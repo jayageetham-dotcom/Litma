@@ -658,19 +658,23 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
         {/* ── Side rail (tablet and up) ── */}
         {!focus && !phone && (
-          <nav className="no-print flex w-12 shrink-0 flex-col items-center gap-1 border-l border-line bg-paper py-3" aria-label="Panels">
-            <RailBtn active={outline} onClick={() => setOutline((o) => !o)} label="Outline" icon={ListTree} />
-            <span className="my-1 h-px w-6 bg-line" />
-            {PANELS.map((p) => (
-              <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} badge={p.id === "inbox" ? inboxCount : 0} />
-            ))}
-            <span className="my-1 h-px w-6 bg-line" />
-            <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" icon={BookOpen} />
-            {store.isCloud() && shareId && isPublic && (
-              <a href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-subtle" title="Open reader view" aria-label="Open reader view">
-                <Eye size={17} />
-              </a>
-            )}
+          // Collapsed it's a thin icon rail; hovering (or tabbing into) it slides out labels over the page.
+          <nav className="group/rail no-print relative w-12 shrink-0" aria-label="Panels">
+            <div className="absolute inset-y-0 right-0 z-40 flex w-12 flex-col gap-0.5 overflow-hidden border-l border-line bg-surface px-1.5 py-3 transition-[width,box-shadow] duration-200 ease-out group-hover/rail:w-56 group-hover/rail:shadow-[var(--pop-shadow)] group-hover/rail:delay-150 group-has-[:focus-visible]/rail:w-56 group-has-[:focus-visible]/rail:shadow-[var(--pop-shadow)]">
+              <RailBtn active={outline} onClick={() => setOutline((o) => !o)} label="Outline" hint="Chapters and headings" icon={ListTree} />
+              <span className="mx-1.5 my-1 h-px shrink-0 bg-line" />
+              {PANELS.map((p) => (
+                <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} badge={p.id === "inbox" ? inboxCount : 0} />
+              ))}
+              <span className="mx-1.5 my-1 h-px shrink-0 bg-line" />
+              <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" hint="Keep the line you type centred" icon={BookOpen} />
+              {store.isCloud() && shareId && isPublic && (
+                <a href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-[9px] text-muted hover:bg-subtle hover:text-ink" aria-label="Open reader view">
+                  <Eye size={17} className="shrink-0" />
+                  <span className="whitespace-nowrap text-[13px] opacity-0 transition-opacity group-hover/rail:opacity-100 group-has-[:focus-visible]/rail:opacity-100">Reader view</span>
+                </a>
+              )}
+            </div>
           </nav>
         )}
       </div>
@@ -750,7 +754,6 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           <span>
             <b className="font-semibold text-ink">{stats.words.toLocaleString("en-IN")}</b> words
           </span>
-          <span className="hidden lg:inline">{stats.aksharas.toLocaleString("en-IN")} aksharas</span>
           <span className="hidden lg:inline">{stats.chars.toLocaleString("en-IN")} characters</span>
           <span>
             {stats.pages} {stats.pages === 1 ? "page" : "pages"}
@@ -808,17 +811,18 @@ function Tile({ icon: Icon, label, onClick, active, badge = 0 }: { icon: React.C
   );
 }
 
-function RailBtn({ active, onClick, label, icon: Icon, badge = 0 }: { active: boolean; onClick: () => void; label: string; icon: React.ComponentType<{ size?: number }>; badge?: number }) {
+function RailBtn({ active, onClick, label, hint, icon: Icon, badge = 0 }: { active: boolean; onClick: () => void; label: string; hint?: string; icon: React.ComponentType<{ size?: number; className?: string }>; badge?: number }) {
   return (
     <button
       onClick={onClick}
-      title={label}
       aria-label={label}
       aria-pressed={active}
-      className={`relative grid h-9 w-9 place-items-center rounded-lg ${active ? "bg-accent-soft text-accent" : "text-muted hover:bg-subtle hover:text-ink"}`}
+      title={hint}
+      className={`relative flex h-9 w-full shrink-0 items-center gap-3 rounded-lg px-[9px] text-left ${active ? "bg-accent-soft text-accent" : "text-muted hover:bg-subtle hover:text-ink"}`}
     >
-      <Icon size={17} />
-      {badge > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-highlight px-1 text-[10px] font-bold text-white">{badge}</span>}
+      <Icon size={17} className="shrink-0" />
+      <span className="whitespace-nowrap text-[13px] font-medium opacity-0 transition-opacity duration-150 group-hover/rail:opacity-100 group-hover/rail:delay-150 group-has-[:focus-visible]/rail:opacity-100">{label}</span>
+      {badge > 0 && <span className="absolute left-5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-highlight px-1 text-[10px] font-bold text-white">{badge}</span>}
     </button>
   );
 }

@@ -76,7 +76,7 @@ function SignupForm() {
           </Link>
         </p>
       </div>
-      <Field label="Name or pen name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="ഉദാ: ജഗത്" />
+      <Field label="Name or pen name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="ഉദാ: ജഗത്ത്" />
       <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <div>
         <Field label="Password" type="password" required minLength={8} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />

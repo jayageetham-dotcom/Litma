@@ -11,7 +11,7 @@
  *    text-accent bg-accent-soft border-accent ring-accent   ← links, selection, active
  *    text-highlight bg-highlight-soft      ← writing-type labels, badges, goals
  *    text-danger bg-danger
- *    .brand-text  .brand-bar               ← the brand gradient
+ *    .brand-text  .brand-bar               ← the Litma gradient
  *
  *  Light values sit in :root, dark values in .dark. Change a hex here and the
  *  whole app (editor, desk, book, print chrome) follows. The document page
@@ -33,17 +33,17 @@
   --line: #e2e2e6;
 
   /* Actions */
-  --primary: #111113; /* main buttons: ink-black, like Threads / Instagram web */
+  --primary: #111113; /* main buttons: ink-black */
   --primary-ink: #ffffff;
   --accent: #7c3aed; /* violet: links, focus rings, active tabs, selections */
   --accent-ink: #ffffff;
   --accent-soft: #f1eafe;
-  --highlight: #e1306c; /* Instagram pink: writing-type labels, badges, goal bars */
-  --highlight-soft: #fde7ef;
+  --highlight: #c2417a; /* berry: writing-type labels, badges, goal bars */
+  --highlight-soft: #fbe9f1;
   --danger: #dc2626;
 
   /* Brand gradient (logo, small accents only — never behind text you read) */
-  --brand-gradient: linear-gradient(90deg, #f58529 0%, #dd2a7b 40%, #8134af 72%, #515bd4 100%);
+  --brand-gradient: linear-gradient(100deg, #5b5bf0 0%, #9b4fe8 50%, #e2547f 100%); /* Litma dusk: periwinkle → orchid → berry */
 
   /* Shape */
   --radius-sm: 8px;
@@ -76,8 +76,9 @@
   --accent: #a78bfa;
   --accent-ink: #09090b;
   --accent-soft: #241c3a;
-  --highlight: #f472b6;
-  --highlight-soft: #3a1828;
+  --highlight: #ec8db4;
+  --highlight-soft: #36182a;
+  --brand-gradient: linear-gradient(100deg, #8a8cff 0%, #b98cf5 50%, #f08aa8 100%);
   --danger: #f87171;
 
   --sheet-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);

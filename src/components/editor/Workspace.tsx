@@ -68,6 +68,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const template = templateFor(initial.kind);
   const [title, setTitle] = useState(initial.title);
   const [settings, setSettings] = useState<DocSettings>(initial.settings);
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
   const [save, setSave] = useState<SaveState>("saved");
   const [mode, setMode] = useState<InputMode>(initial.settings.inputMode ?? "manglish");
   const [panel, setPanel] = useState<PanelId | null>(null);
@@ -337,6 +339,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     };
   }, [editor]);
 
+  const metreToggle = template.metre ? { on: !!settings.showMetre, toggle: () => updateSettings({ showMetre: !settings.showMetre }) } : undefined;
+
   // global shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -356,6 +360,9 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       } else if (mod && e.shiftKey && e.key.toLowerCase() === "l") {
         e.preventDefault();
         setPanel("dict");
+      } else if (mod && e.altKey && e.code === "KeyV" && template.metre) {
+        e.preventDefault();
+        updateSettings({ showMetre: !settingsRef.current.showMetre });
       } else if (mod && e.key === "/") {
         e.preventDefault();
         setShowKeys((v) => !v);
@@ -365,7 +372,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [editor, saveContent, focus]);
+  }, [editor, saveContent, focus, template.metre, updateSettings]);
 
   const pageSize = PAGE_SIZES[settings.pageSize] ?? PAGE_SIZES.A4;
   // shrink the page to fit narrow screens (phones, side panels open)
@@ -570,7 +577,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         </header>
       )}
 
-      {!focus && !phone && editor && <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => setFindOpen(true)} />}
+      {!focus && !phone && editor && <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => setFindOpen(true)} metre={metreToggle} />}
 
       <div className="flex min-h-0 flex-1">
         {/* ── Outline: docked on laptops and up ── */}
@@ -676,7 +683,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       )}
       {phone && phoneSheet === "format" && editor && (
         <Sheet mode="sheet" title="Format" onClose={() => setPhoneSheet(null)}>
-          <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => { setPhoneSheet(null); setFindOpen(true); }} variant="sheet" />
+          <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => { setPhoneSheet(null); setFindOpen(true); }} variant="sheet" metre={metreToggle} />
         </Sheet>
       )}
       {phone && phoneSheet === "outline" && editor && (

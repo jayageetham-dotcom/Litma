@@ -25,6 +25,7 @@ import {
   RemoveFormatting,
   ChevronDown,
   Type,
+  AudioLines,
 } from "lucide-react";
 import type { Template } from "@/lib/templates";
 import { FONTS } from "@/lib/templates";
@@ -102,6 +103,7 @@ export function Toolbar({
   onMode,
   onFind,
   variant = "bar",
+  metre,
 }: {
   editor: Editor;
   template: Template;
@@ -110,6 +112,8 @@ export function Toolbar({
   onFind: () => void;
   /** "bar": one scrolling row under the top bar · "sheet": wrapped, touch-sized, inside the phone's Format sheet */
   variant?: "bar" | "sheet";
+  /** poems and lyrics: show/hide akshara counts and laghu–guru marks */
+  metre?: { on: boolean; toggle: () => void };
 }) {
   const e = editor;
   const chain = () => e.chain().focus();
@@ -316,6 +320,23 @@ export function Toolbar({
       <Btn title="Find and replace (Ctrl+F)" onClick={onFind}>
         <Search size={16} />
       </Btn>
+      {metre && (
+        <>
+          <Sep />
+          <button
+            type="button"
+            onMouseDown={(ev) => ev.preventDefault()}
+            onClick={metre.toggle}
+            aria-pressed={metre.on}
+            aria-label="Metre marks (വൃത്തം)"
+            title={`${metre.on ? "Hide" : "Show"} metre: akshara count and laghu (∪) / guru (–) marks (Ctrl+Alt+V)`}
+            className={`flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-[13px] transition-colors ${metre.on ? "bg-kayal-soft font-semibold text-kayal" : "text-ink hover:bg-desk-2"}`}
+          >
+            <AudioLines size={16} aria-hidden />
+            <span style={{ fontFamily: "'Anek Malayalam'" }}>വൃത്തം</span>
+          </button>
+        </>
+      )}
     </div>
   );
 }

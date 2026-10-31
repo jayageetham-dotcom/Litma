@@ -22,6 +22,7 @@ const GROUPS: [string, [string, string][]][] = [
       ["Ctrl/⌘ + Enter", "Page break"],
       ["Ctrl/⌘ + Shift + F", "Focus mode"],
       ["Ctrl/⌘ + Shift + L", "Dictionary & thesaurus for the selected word"],
+      ["Ctrl/⌘ + Alt + V", "Show or hide metre marks (poems, lyrics)"],
       ["Ctrl/⌘ + /", "This list"],
     ],
   ],

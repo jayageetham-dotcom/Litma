@@ -59,12 +59,12 @@ export const DEFAULT_SETTINGS: DocSettings = {
 const FORM_SETTINGS: Record<DocKind, Partial<DocSettings>> = {
   novel: { font: "Noto Serif Malayalam", fontSize: 12, lineHeight: 1.8, margins: { top: 25, bottom: 25, left: 28, right: 25 } },
   story: { font: "Noto Serif Malayalam", fontSize: 12, lineHeight: 1.8 },
-  poem: { font: "Manjari", fontSize: 13, lineHeight: 1.9, showMetre: true, margins: { top: 30, bottom: 25, left: 30, right: 30 } },
+  poem: { font: "Manjari", fontSize: 13, lineHeight: 1.9, showMetre: false, margins: { top: 30, bottom: 25, left: 30, right: 30 } },
   screenplay: { font: "Noto Sans Malayalam", fontSize: 11, lineHeight: 1.65, margins: { top: 22, bottom: 22, left: 22, right: 22 } },
   feature: { font: "Noto Serif Malayalam", fontSize: 11.5, lineHeight: 1.75 },
   essay: { font: "Noto Serif Malayalam", fontSize: 12, lineHeight: 1.75 },
   drama: { font: "Noto Serif Malayalam", fontSize: 12, lineHeight: 1.7 },
-  lyrics: { font: "Manjari", fontSize: 13, lineHeight: 1.9, showMetre: true },
+  lyrics: { font: "Manjari", fontSize: 13, lineHeight: 1.9, showMetre: false },
   diary: { font: "Gayathri", fontSize: 13, lineHeight: 1.85 },
   blank: {},
 };

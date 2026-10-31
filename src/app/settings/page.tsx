@@ -54,7 +54,7 @@ function Settings() {
         <section>
           <h2 className="text-xl font-semibold">Connect AI assistants (MCP)</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            Litma is an MCP server at {url}. Connect the AI assistant you already use — Claude, ChatGPT, IBM Bob, Cursor, VS Code — with your own account. It can then read and write your works, manage Story World, look words up in the dictionary, assemble books and prepare PDFs. Each writer creates their own token below; it only ever sees that writer’s work.
+            Litma is an MCP server at {url}. Connect any AI assistant that supports MCP — Claude, ChatGPT, Cursor, VS Code and others — with your own account. It can then read and write your works, manage Story World, look words up in the dictionary, assemble books and prepare PDFs. Each writer creates their own token below; it only ever sees that writer’s work.
           </p>
           {!cloud ? (
             <p className="mt-4 rounded-lg border border-kasavu/40 bg-kasavu-soft px-4 py-3 text-sm">MCP needs Litma’s cloud sync. Sign in to create tokens.</p>
@@ -127,7 +127,7 @@ function Settings() {
               <Code>{`${url}?key=${tok}`}</Code>
             </div>
             <div>
-              <h3 className="mb-1.5 font-semibold">IBM Bob, Cursor, VS Code and other MCP clients (mcp.json)</h3>
+              <h3 className="mb-1.5 font-semibold">Cursor, VS Code and other MCP clients (mcp.json)</h3>
               <Code>{JSON.stringify({ mcpServers: { litma: { type: "streamable-http", url, headers: { Authorization: `Bearer ${tok}` } } } }, null, 2)}</Code>
             </div>
           </div>

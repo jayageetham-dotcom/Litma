@@ -233,7 +233,7 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
           </div>
         </div>
       )}
-      <p className="text-[11.5px] leading-snug text-muted">Uses your own API key — add it once in Settings → AI. Claude, ChatGPT and IBM Bob can also work on your writing over MCP.</p>
+      <p className="text-[11.5px] leading-snug text-muted">Uses your own API key — add it once in Settings → AI. Any AI assistant can also work on your writing over MCP.</p>
     </div>
   );
 }
@@ -280,7 +280,7 @@ export function InboxPanel({ editor, docId, onCount }: { editor: Editor; docId: 
     return (
       <div>
         <H>Assistant inbox</H>
-        <p className="text-sm leading-relaxed text-muted">Connect Supabase to let Claude, ChatGPT or IBM Bob read this work over MCP and send suggestions here.</p>
+        <p className="text-sm leading-relaxed text-muted">Connect Supabase to let any AI assistant read this work over MCP and send suggestions here.</p>
       </div>
     );
 

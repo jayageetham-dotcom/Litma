@@ -4,7 +4,7 @@
  * Public URL:  https://www.jayageetham.com/litma/mcp   (PHP relay → this function)
  * Direct URL:  https://<ref>.supabase.co/functions/v1/litma-mcp
  *
- * Each writer connects their own AI assistant (Claude, ChatGPT, IBM Bob, Cursor, VS Code…)
+ * Each writer connects their own AI assistant (any AI assistant that supports MCP (Claude, ChatGPT, Cursor, VS Code…))
  * with their own Litma token: "Authorization: Bearer litma_…" or "?key=litma_…".
  * Every tool is scoped to that writer's data. Deployed with verify_jwt = false.
  */
@@ -294,7 +294,7 @@ const TOOLS: Tool[] = [
         kind: S("string", "Type", { enum: ["insert", "replace", "comment"] }),
         target_text: S("string", "Exact existing text to replace (kind='replace')"),
         note: S("string", "Why — shown to the writer"),
-        source: S("string", "Your name, e.g. 'Claude', 'ChatGPT', 'Bob'"),
+        source: S("string", "Your name, e.g. 'Claude', 'ChatGPT'"),
       },
       required: ["id", "content"],
     },

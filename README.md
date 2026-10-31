@@ -76,13 +76,13 @@ Optional: Authentication → Providers → Google (for "Continue with Google"). 
 - **Dictionary (നിഘണ്ടു):** Malayalam→Malayalam (Datuk), English→Malayalam (Olam), Malayalam→English, synonyms (E.K. Kurup thesaurus) and opposites (Datamuse, mapped to Malayalam). In the editor (Ctrl/⌘+Shift+L, looks up the selection) and at `/dictionary/`.
 - **Books:** collect works as chapters, add parts, preface/introduction/acknowledgements/about-the-author pages, dedication, epigraph, title, half-title and copyright pages, an automatic contents page with page numbers, and designed front/back covers. Export as one print-ready PDF (A4, A5 or Letter, mirrored margins, running heads, roman/arabic folios). Single documents export the same way.
 - Outline, find & replace, focus and typewriter modes, night desk, zoom, notes & character bank, import `.txt`/`.md`, export PDF/Word/Markdown/text/HTML, public read-only links, keyboard shortcuts (`Ctrl/⌘+/`).
-- **AI:** Claude/GPT companion in the editor, and an **MCP server** so Claude, ChatGPT, IBM Bob, Cursor or VS Code can read your works and send suggestions to the editor's live inbox.
+- **AI:** Claude/GPT companion in the editor, and an **MCP server** so any MCP-capable AI assistant (Claude, ChatGPT, Cursor, VS Code…) can read your works and send suggestions to the editor's live inbox.
 
 ## AI — every writer brings their own
 
 **In the editor:** the ✦ panel streams Claude, GPT or Gemini (continue, rewrite, polish, proofread, synonyms, പ്രാസം rhymes, dialogue, description, titles, summary, translation, editor's notes, or ask anything). Each writer adds **their own API key** in **Settings → Your AI keys**; it is AES-GCM encrypted by the `litma-ai` Edge Function and stored in `ai_keys`, a table browsers cannot read. Only the last four characters are ever shown again. No shared server key is needed.
 
-**Over MCP:** each writer connects the assistant they already use (Claude, ChatGPT, IBM Bob, Cursor, VS Code…) with their own Litma token from **Settings → MCP**:
+**Over MCP:** each writer connects the assistant they already use (any AI assistant that supports MCP (Claude, ChatGPT, Cursor, VS Code…)) with their own Litma token from **Settings → MCP**:
 
 ```bash
 claude mcp add --transport http litma https://www.jayageetham.com/litma/mcp --header "Authorization: Bearer litma_…"

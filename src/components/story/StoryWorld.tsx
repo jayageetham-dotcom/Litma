@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Select } from "@/components/ui/Select";
 import type { Editor } from "@tiptap/react";
-import { Camera, GripVertical, Loader2, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Camera, GripVertical, Loader2, Plus, Trash2, X } from "lucide-react";
 import { store } from "@/lib/store";
 import { BEAT_COLORS, FIELDS, defaultGroups, isBlankItem, tabsFor, type StoryTab, type StoryItem, type StoryKind } from "@/lib/story";
 import { resizeImage } from "@/lib/image";
@@ -238,6 +238,41 @@ function BeatBoard({
     next.splice(next.indexOf(target), 0, from);
     onColumns(next);
   };
+  // touch-friendly moves (drag and drop doesn't work with fingers)
+  const moveCard = async (it: StoryItem, dir: "up" | "down" | "left" | "right") => {
+    const g = it.data?.group ?? first;
+    if (dir === "up" || dir === "down") {
+      const col = inCol(g);
+      const i = col.findIndex((c) => c.id === it.id);
+      const j = dir === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= col.length) return;
+      const rest = col.filter((c) => c.id !== it.id);
+      const at = dir === "up" ? j : j; // index in `rest` to insert before
+      const prev = rest[at - 1]?.position ?? (rest[0]?.position ?? 1) - 1;
+      const next = rest[at]?.position ?? prev + 2;
+      await onMove({ ...it, position: (prev + next) / 2 });
+    } else {
+      const ci = cols.indexOf(g) + (dir === "left" ? -1 : 1);
+      if (ci < 0 || ci >= cols.length) return;
+      const target = inCol(cols[ci]);
+      await onMove({ ...it, position: (target.at(-1)?.position ?? 0) + 1, data: { ...it.data, group: cols[ci] } });
+    }
+  };
+  const moveCol = (g: string, d: -1 | 1) => {
+    const i = cols.indexOf(g);
+    const j = i + d;
+    if (j < 0 || j >= cols.length) return;
+    const next = [...cols];
+    [next[i], next[j]] = [next[j], next[i]];
+    onColumns(next);
+  };
+  const [newCol, setNewCol] = useState("");
+  const addCol = () => {
+    const name = newCol.trim();
+    if (name && !cols.includes(name)) onColumns([...cols, name]);
+    setNewCol("");
+  };
+
   const rename = async (from: string, raw: string) => {
     const to = raw.trim();
     if (!to || to === from || cols.includes(to)) return;
@@ -274,7 +309,7 @@ function BeatBoard({
                   setDrag({ kind: "col", id: g });
                 }}
                 onDragEnd={() => (setDrag(null), setOver(null))}
-                className="grid h-7 w-5 shrink-0 cursor-grab place-items-center rounded text-muted hover:bg-subtle active:cursor-grabbing"
+                className="grid h-7 w-5 shrink-0 cursor-grab place-items-center rounded text-muted hover:bg-subtle active:cursor-grabbing [@media(hover:none)]:hidden"
                 title="Drag to reorder columns"
                 aria-hidden
               >
@@ -295,6 +330,14 @@ function BeatBoard({
                   }
                 }}
               />
+              <span className="flex shrink-0 opacity-0 transition-opacity focus-within:opacity-100 group-hover/col:opacity-100 [@media(hover:none)]:opacity-100">
+                <button className="grid h-7 w-7 place-items-center rounded text-muted hover:bg-subtle hover:text-ink disabled:opacity-30" onClick={() => moveCol(g, -1)} disabled={cols.indexOf(g) === 0} aria-label={`Move column ${g} left`}>
+                  <ArrowLeft size={14} />
+                </button>
+                <button className="grid h-7 w-7 place-items-center rounded text-muted hover:bg-subtle hover:text-ink disabled:opacity-30" onClick={() => moveCol(g, 1)} disabled={cols.indexOf(g) === cols.length - 1} aria-label={`Move column ${g} right`}>
+                  <ArrowRight size={14} />
+                </button>
+              </span>
               <span className="rounded-full bg-subtle px-1.5 text-[11px] text-muted">{cards.length}</span>
               {cards.length === 0 && (
                 <button className="grid h-7 w-7 place-items-center rounded text-muted opacity-0 hover:bg-subtle hover:text-danger focus:opacity-100 group-hover/col:opacity-100" onClick={() => onColumns(cols.filter((c) => c !== g))} aria-label={`Remove empty column ${g}`} title="Remove column">
@@ -325,7 +368,7 @@ function BeatBoard({
                     e.stopPropagation();
                     dropCard(g, it);
                   }}
-                  className={`relative cursor-grab rounded-lg border border-line bg-paper p-3 shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-[box-shadow,transform,opacity] hover:-translate-y-px hover:shadow-[var(--sheet-shadow)] active:cursor-grabbing ${drag?.kind === "card" && drag.id === it.id ? "opacity-40" : ""}`}
+                  className={`group/card relative cursor-grab rounded-lg border border-line bg-paper p-3 shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-[box-shadow,transform,opacity] hover:-translate-y-px hover:shadow-[var(--sheet-shadow)] active:cursor-grabbing ${drag?.kind === "card" && drag.id === it.id ? "opacity-40" : ""}`}
                   style={{ borderLeft: `4px solid ${BEAT_COLORS[it.data?.color ?? "kayal"] ?? BEAT_COLORS.kayal}` }}
                 >
                   {over === it.id && drag?.id !== it.id && <span className="absolute -top-[5px] left-1 right-1 h-0.5 rounded-full bg-accent" aria-hidden />}
@@ -340,6 +383,27 @@ function BeatBoard({
                     )}
                     {it.data?.status && <span className="mt-2 inline-block rounded-full bg-subtle px-2 py-px text-[11px] text-muted">{it.data.status}</span>}
                   </button>
+                  {(() => {
+                    const i = cards.findIndex((c) => c.id === it.id);
+                    const ci = cols.indexOf(g);
+                    const btn = "grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-subtle hover:text-ink disabled:opacity-25";
+                    return (
+                      <div className="-mb-1 mt-2 flex justify-end gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover/card:opacity-100 [@media(hover:none)]:opacity-100" role="group" aria-label={`Move ${it.name || "card"}`}>
+                        <button className={btn} onClick={() => moveCard(it, "up")} disabled={i === 0} aria-label="Move up">
+                          <ArrowUp size={15} />
+                        </button>
+                        <button className={btn} onClick={() => moveCard(it, "down")} disabled={i === cards.length - 1} aria-label="Move down">
+                          <ArrowDown size={15} />
+                        </button>
+                        <button className={btn} onClick={() => moveCard(it, "left")} disabled={ci === 0} aria-label="Move to previous column">
+                          <ArrowLeft size={15} />
+                        </button>
+                        <button className={btn} onClick={() => moveCard(it, "right")} disabled={ci === cols.length - 1} aria-label="Move to next column">
+                          <ArrowRight size={15} />
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               ))}
               <button onClick={() => onAdd(g)} className="rounded-lg border border-dashed border-line px-3 py-2 text-left text-sm text-muted hover:border-accent hover:bg-accent-soft/40 hover:text-accent">
@@ -350,16 +414,16 @@ function BeatBoard({
         );
       })}
       <form
-        className="w-[min(15rem,70vw)] shrink-0 snap-start"
+        className="flex w-[min(17rem,78vw)] shrink-0 snap-start gap-1.5"
         onSubmit={(e) => {
           e.preventDefault();
-          const f = new FormData(e.currentTarget);
-          const name = String(f.get("g") ?? "").trim();
-          if (name && !cols.includes(name)) onColumns([...cols, name]);
-          e.currentTarget.reset();
+          addCol();
         }}
       >
-        <input name="g" className="field !py-2 !text-sm" placeholder="+ New column (act, chapter…)" aria-label="New column name" />
+        <input value={newCol} onChange={(e) => setNewCol(e.target.value)} onBlur={() => newCol.trim() && addCol()} className="field !py-2 !text-sm" placeholder="New column (act, chapter…)" aria-label="New column name" enterKeyHint="done" />
+        <button className="btn btn-primary shrink-0 !px-3" disabled={!newCol.trim()} aria-label="Add column">
+          <Plus size={16} />
+        </button>
       </form>
     </div>
   );

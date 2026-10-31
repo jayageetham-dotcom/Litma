@@ -21,7 +21,6 @@ export function DictionaryPanel({ editor }: { editor: Editor }) {
   }, [editor]);
   return (
     <div>
-      <h3 className="mb-2 text-sm font-semibold">Dictionary &amp; thesaurus</h3>
       <p className="mb-3 text-xs text-muted">Select a word in your text, or type one. Ctrl/⌘+Shift+L opens this panel.</p>
       <DictionaryView
         compact

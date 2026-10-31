@@ -640,7 +640,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
           {!focus && screen === "tablet" && outline && editor && (
             <Sheet mode="drawer" side="left" title="Contents" onClose={() => setOutline(false)}>
-              <OutlinePanel editor={editor} />
+              <OutlinePanel editor={editor} title={false} />
             </Sheet>
           )}
           {!focus && panel && editor && panelMode === "drawer" && (
@@ -693,7 +693,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       {phone && phoneSheet === "outline" && editor && (
         <Sheet mode="sheet" title="Contents" onClose={() => setPhoneSheet(null)}>
           <div onClickCapture={(e) => (e.target as HTMLElement).closest("button") && setTimeout(() => setPhoneSheet(null), 120)}>
-            <OutlinePanel editor={editor} />
+            <OutlinePanel editor={editor} title={false} />
           </div>
         </Sheet>
       )}

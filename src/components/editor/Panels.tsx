@@ -28,7 +28,7 @@ export function insertText(editor: Editor, text: string, replace = false) {
 
 // ─── Outline ────────────────────────────────────────────────────────────
 
-export function OutlinePanel({ editor }: { editor: Editor }) {
+export function OutlinePanel({ editor, title = true }: { editor: Editor; title?: boolean }) {
   const [, force] = useState(0);
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
@@ -64,7 +64,7 @@ export function OutlinePanel({ editor }: { editor: Editor }) {
 
   return (
     <nav aria-label="Outline">
-      <H>Outline</H>
+      {title && <H>Outline</H>}
       {items.length === 0 ? (
         <p className="text-sm leading-relaxed text-muted">Titles, chapters, scenes and subheads appear here as you write. Click one to jump to it.</p>
       ) : (
@@ -156,7 +156,7 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <H>Writing companion</H>
+        <span className="text-xs text-muted">Answer with</span>
         <Select
           size="sm"
           className="min-w-28"
@@ -287,14 +287,12 @@ export function InboxPanel({ editor, docId, onCount }: { editor: Editor; docId: 
   if (!store.isCloud())
     return (
       <div>
-        <H>Assistant inbox</H>
         <p className="text-sm leading-relaxed text-muted">Connect Supabase to let any AI assistant read this work over MCP and send suggestions here.</p>
       </div>
     );
 
   return (
     <div>
-      <H>Assistant inbox</H>
       {items.length === 0 ? (
         <p className="text-sm leading-relaxed text-muted">
           No suggestions yet. In Claude or another MCP client, ask: “Read my Litma document and suggest a stronger opening.” Suggestions arrive here live.
@@ -401,7 +399,6 @@ export function HistoryPanel({ editor, doc, onSnapshot }: { editor: Editor; doc:
 
   return (
     <div>
-      <H>Version history</H>
       <form
         className="mb-4 flex gap-1.5"
         onSubmit={async (e) => {
@@ -484,7 +481,6 @@ const GUIDE: [string, string][] = [
 export function KeysPanel({ editor }: { editor: Editor }) {
   return (
     <div className="space-y-4">
-      <H>Malayalam keyboard</H>
       {PALETTE.map(([label, keys]) => (
         <div key={label}>
           <div className="mb-1 text-xs text-muted">{label}</div>
@@ -530,7 +526,6 @@ export function PagePanel({ settings, onChange, showMetreOption }: { settings: D
   const setM = (k: keyof typeof m, v: number) => onChange({ margins: { ...m, [k]: Math.max(5, Math.min(60, v || 0)) } });
   return (
     <div className="space-y-4 text-sm">
-      <H>Page &amp; type</H>
       <div>
         <Select
           label="Paper size"

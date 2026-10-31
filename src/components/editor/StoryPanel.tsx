@@ -22,12 +22,9 @@ export function StoryPanel({ editor, doc, settings, onChange, onOpen, refresh = 
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Story World</h3>
-        <button className="btn btn-primary !px-2.5 !py-1 !text-xs" onClick={onOpen}>
-          <BookOpenText size={14} /> Open Story World
-        </button>
-      </div>
+      <button className="btn btn-primary w-full justify-center !py-2 !text-sm" onClick={onOpen}>
+        <BookOpenText size={15} /> Open Story World
+      </button>
       {tabs.map((t) => {
         const list = items.filter((i) => i.kind === t.kind && i.name);
         const extra = t.kind === "character" ? detected.filter((d) => !known.has(d)) : [];

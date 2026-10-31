@@ -45,8 +45,8 @@ const CHARACTER: FieldDef[] = [
   { key: "backstory", label: "Backstory", type: "textarea" },
   { key: "goal", label: "Wants / goal", type: "textarea" },
   { key: "conflict", label: "Conflict / fear", type: "textarea" },
-  { key: "arc", label: "Arc — how they change", type: "textarea" },
-  { key: "relationships", label: "Relationships", type: "textarea", placeholder: "ഡെന്നി — കോളേജ് സുഹൃത്ത്…" },
+  { key: "arc", label: "Arc: how they change", type: "textarea" },
+  { key: "relationships", label: "Relationships", type: "textarea", placeholder: "ഡെന്നി: കോളേജ് സുഹൃത്ത്…" },
   { key: "voice", label: "Voice & dialect", type: "textarea", placeholder: "Thrissur slang, short sentences…" },
 ];
 

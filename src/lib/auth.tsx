@@ -54,7 +54,7 @@ export function safeNext(next: string | null, fallback = "/desk/") {
 export function authMessage(e: unknown): string {
   const m = e instanceof Error ? e.message : String(e ?? "");
   if (/invalid login credentials/i.test(m)) return "That email and password don't match. Check them, or reset your password.";
-  if (/email not confirmed/i.test(m)) return "Confirm your email first — open the link we sent you, then sign in.";
+  if (/email not confirmed/i.test(m)) return "Confirm your email first. Open the link we sent you, then sign in.";
   if (/already registered|already exists/i.test(m)) return "An account with this email already exists. Sign in instead.";
   if (/password should be at least/i.test(m)) return "Use a password of at least 8 characters.";
   if (/rate limit|too many/i.test(m)) return "Too many attempts. Wait a minute, then try again.";

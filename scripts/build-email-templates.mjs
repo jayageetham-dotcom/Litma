@@ -75,7 +75,7 @@ const TEMPLATES = {
       preheader: "One click and your desk is ready.",
       ml: "സ്വാഗതം!",
       title: "Confirm your email",
-      lead: "Welcome to Litma. Confirm this address and your writing desk is ready — novels, poems, screenplays and more, in Manglish or Malayalam.",
+      lead: "Welcome to Litma. Confirm this address and your writing desk is ready for novels, poems, screenplays and more, in Manglish or Malayalam.",
       button: "Confirm email",
       after: "This link works once and expires in 1 hour. Didn’t sign up? Ignore this email.",
     }),
@@ -87,7 +87,7 @@ const TEMPLATES = {
       title: "Sign in to Litma",
       lead: "Use the button below to sign in on this device. No password needed.",
       button: "Sign in",
-      after: "This link works once and expires in 1 hour. If you didn’t ask to sign in, ignore this email — your account is safe.",
+      after: "This link works once and expires in 1 hour. If you didn’t ask to sign in, ignore this email. Your account is safe.",
     }),
   },
   recovery: {
@@ -97,7 +97,7 @@ const TEMPLATES = {
       title: "Reset your password",
       lead: "Someone asked to reset the password for {{ .Email }}. If it was you, choose a new one below.",
       button: "Choose a new password",
-      after: "This link expires in 1 hour. If you didn’t ask for this, ignore this email — your password stays the same.",
+      after: "This link expires in 1 hour. If you didn’t ask for this, ignore this email. Your password stays the same.",
     }),
   },
   email_change: {

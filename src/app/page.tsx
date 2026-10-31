@@ -9,7 +9,7 @@ import { HeroActions, HomeNav } from "@/components/HomeActions";
 const FEATURES: [string, React.ReactNode][] = [
   ["Manglish or Malayalam", "Type “nammude naadu” and get നമ്മുടെ നാട്. Google Input Tools predictions, an offline engine, and your own keyboard all work."],
   ["Real A4 pages", "Text flows onto separate printed-size pages with page numbers and running heads. Export print-ready PDFs."],
-  ["സാഹിത്യരൂപങ്ങൾ — each set its own way", "Screenplays in the Malayalam two-column layout, poems with വൃത്തം metre marks, novels with chapters, features with pull quotes."],
+  ["സാഹിത്യരൂപങ്ങൾ, each set its own way", "Screenplays in the Malayalam two-column layout, poems with വൃത്തം metre marks, novels with chapters, features with pull quotes."],
   ["Story World", "Characters, locations, props, a drag-and-drop beat board, timeline, research notes and scene and character reports for every work."],
   [
     "Dictionary built in",
@@ -23,7 +23,7 @@ const FEATURES: [string, React.ReactNode][] = [
   ],
   ["Make it a book", "Gather works into a book with covers, title and copyright pages, a contents page with real page numbers, and export one PDF."],
   ["Never lose a line", "Every keystroke is saved on your device at once and synced to the cloud within seconds, even through a dropped connection."],
-  ["AI that reads along", "Ask Claude, GPT or Gemini to continue, polish or translate — or connect any AI assistant over MCP."],
+  ["AI that reads along", "Ask Claude, GPT or Gemini to continue, polish or translate, or connect any AI assistant over MCP."],
 ];
 
 export default function Home() {

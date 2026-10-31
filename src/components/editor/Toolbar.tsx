@@ -285,7 +285,7 @@ export function Toolbar({
       {(() => {
         // alignment works on titles, headings, paragraphs and action lines; screenplay scene/dialogue blocks keep their layout
         const canAlign = ["paragraph", "heading", "styledBlock", "action", "transition"].includes(parentName);
-        const why = canAlign ? "" : " — not available for this script element";
+        const why = canAlign ? "" : " (not available for this script element)";
         return (
           <>
             <Btn title={`Align left${why}`} disabled={!canAlign} active={canAlign && e.isActive({ textAlign: "left" })} onClick={() => chain().setTextAlign("left").run()}>

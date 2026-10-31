@@ -3,7 +3,7 @@ import "./globals.css";
 import "@/styles/editor.scss";
 
 export const metadata: Metadata = {
-  title: "Litma — മലയാളം എഴുത്തുമേശ",
+  title: "Litma · മലയാളം എഴുത്തുമേശ",
   description: "A Malayalam writing studio for novels, stories, poems, screenplays and features. Type in Manglish or Malayalam on A4 pages.",
 };
 

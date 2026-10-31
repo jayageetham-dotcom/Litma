@@ -668,7 +668,7 @@ async function handle(msg: Json, userId: string | null) {
       return ok(id, {
         protocolVersion: (params?.protocolVersion as string) || PROTOCOL,
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: "litma", title: "Litma — Malayalam writing desk", version: "0.3.0" },
+        serverInfo: { name: "litma", title: "Litma · Malayalam writing desk", version: "0.3.0" },
         instructions:
           "Litma holds one writer's Malayalam literary work: documents (novels, stories, poems, screenplays, plays, features…), Story World notes, books and a dictionary. Read before changing anything. Write Malayalam in Unicode script, never Manglish (use transliterate if the writer types Manglish). Prefer suggest_edit for creative proposals; use direct edits only when asked, and save_version before large changes. Call get_writing_guide before writing for a writing type.",
       });

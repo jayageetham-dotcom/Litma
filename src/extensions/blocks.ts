@@ -14,6 +14,15 @@ export const PageBreak = Node.create({
         () =>
         ({ chain }) =>
           chain().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(),
+      insertPageAt:
+        (pos: number) =>
+        ({ state, chain }) => {
+          // a blank page at the boundary `pos` (the start of a page): …page N [break] new page [break] page N+1…
+          const before = state.doc.resolve(pos).nodeBefore;
+          const nodes = [...(before?.type.name === "pageBreak" ? [] : [{ type: "pageBreak" }]), { type: "paragraph" }, { type: "pageBreak" }];
+          const firstPara = pos + (before?.type.name === "pageBreak" ? 0 : 1) + 1;
+          return chain().insertContentAt(pos, nodes).setTextSelection(firstPara).scrollIntoView().run();
+        },
     };
   },
   addKeyboardShortcuts() {
@@ -84,7 +93,7 @@ export const StyledBlock = Node.create({
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
-    pageBreak: { insertPageBreak: () => ReturnType };
+    pageBreak: { insertPageBreak: () => ReturnType; insertPageAt: (pos: number) => ReturnType };
     styledBlock: { setStyledBlock: (variant: string) => ReturnType };
   }
 }

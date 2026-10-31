@@ -36,6 +36,9 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 - `supabase` — hosted Supabase MCP for this project (OAuth on first use)
 - `litma` — Litma's own server; set `LITMA_MCP_TOKEN` (Settings → MCP)
 
+## Copy
+- Plain, human wording in UI text, emails and MCP descriptions. No em dashes (—) or filler phrasing; use a full stop, comma, colon or brackets instead. "—" is fine only as an empty-value placeholder.
+
 ## Vocabulary
 - Novel, story, poem, screenplay… are **writing types — സാഹിത്യരൂപം** (plural സാഹിത്യരൂപങ്ങൾ). Never call them "forms" in UI, docs or MCP text. (Code keeps the `kind` / `DocKind` / `shared/forms.ts` names.)
 - Character/location notes are **Story World — കഥാലോകം**. Avoid religious terms.

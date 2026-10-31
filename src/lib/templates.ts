@@ -26,7 +26,7 @@ const META: TemplateMeta[] = [
     kind: "novel",
     ml: "നോവൽ",
     en: "Novel",
-    blurb: "Chapters, scene breaks and an indented, justified body — set like a printed book.",
+    blurb: "Chapters, scene breaks and an indented, justified body, set like a printed book.",
     blocks: ["title", "author", "epigraph", "chapter"],
   },
   {
@@ -78,7 +78,7 @@ const META: TemplateMeta[] = [
     kind: "lyrics",
     ml: "ഗാനം",
     en: "Song lyrics",
-    blurb: "പല്ലവി, അനുപല്ലവി, ചരണം — labelled parts with metre counts for each line.",
+    blurb: "പല്ലവി, അനുപല്ലവി, ചരണം: labelled parts with metre counts for each line.",
     blocks: ["title", "subtitle", "part"],
     metre: true,
   },

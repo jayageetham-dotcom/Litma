@@ -37,7 +37,7 @@ export function AuthShell({ children, line = 0 }: { children: React.ReactNode; l
           </p>
           {l.by && (
             <p className="mt-5 text-right text-[0.95rem] font-semibold text-highlight" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
-              — {l.by}
+              {l.by}
             </p>
           )}
           {l.en && <p className="mt-3 text-sm text-muted">{l.en}</p>}

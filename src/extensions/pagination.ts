@@ -68,6 +68,17 @@ function measure(view: EditorView, geo: PageGeometry) {
     const dom = view.nodeDOM(offset) as HTMLElement | null;
     if (!dom || !(dom instanceof HTMLElement)) return;
     const h = outerHeight(dom);
+    if (node.type.name === "pageBreak") {
+      // a break marker always stays at the end of its page (it never overflows onto the next one);
+      // two breaks in a row make an empty page between them
+      if (forceNext && used > 0) {
+        breaks.push({ pos: offset, height: Math.max(0, H - used) + geo.gap });
+        used = 0;
+      }
+      forceNext = true;
+      used += Math.max(h, 1);
+      return;
+    }
     if ((forceNext && used > 0) || (used + h > H + 0.5 && used > 0)) {
       breaks.push({ pos: offset, height: Math.max(0, H - used) + geo.gap });
       used = 0;

@@ -138,7 +138,7 @@ export function DictionaryView({
 
       {available === false && (
         <p className="rounded-lg bg-highlight-soft px-3 py-2 text-sm">
-          The dictionary data isn’t installed on this site yet. Run <code>npm run dict</code> (or deploy — CI builds it) to add the Olam datasets.
+          The dictionary data isn’t installed on this site yet. Run <code>npm run dict</code> (or deploy; CI builds it) to add the Olam datasets.
         </p>
       )}
 
@@ -154,7 +154,7 @@ export function DictionaryView({
           )}
           {!res.head ? (
             <p className="text-sm text-muted">
-              “{res.query}” isn’t in the dictionary{alts.length ? " — try one of the Malayalam words above" : ""}.
+              “{res.query}” isn’t in the dictionary{alts.length ? ". Try one of the Malayalam words above" : ""}.
             </p>
           ) : (
             <>

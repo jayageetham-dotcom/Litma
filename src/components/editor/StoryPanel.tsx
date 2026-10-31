@@ -34,7 +34,7 @@ export function StoryPanel({ editor, doc, settings, onChange, onOpen, refresh = 
               {t.ml} · {t.label}
             </h4>
             {list.length + extra.length === 0 ? (
-              <p className="text-xs text-muted">None yet — add them in Story World.</p>
+              <p className="text-xs text-muted">None yet. Add them in Story World.</p>
             ) : (
               <ul className="space-y-0.5">
                 {list.map((i) => (

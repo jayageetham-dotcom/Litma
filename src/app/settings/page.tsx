@@ -55,7 +55,7 @@ function Settings() {
         <section>
           <h2 className="text-xl font-semibold">Connect AI assistants (MCP)</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            Litma is an MCP server at {url}. Connect any AI assistant that supports MCP — Claude, ChatGPT, Cursor, VS Code and others — with your own account. It can then read and write your works, manage Story World, look words up in the dictionary, assemble books and prepare PDFs. Each writer creates their own token below; it only ever sees that writer’s work.
+            Litma is an MCP server at {url}. Connect any AI assistant that supports MCP (Claude, ChatGPT, Cursor, VS Code and others) with your own account. It can then read and write your works, manage Story World, look words up in the dictionary, assemble books and prepare PDFs. Each writer creates their own token below; it only ever sees that writer’s work.
           </p>
           {!cloud ? (
             <p className="mt-4 rounded-lg border border-highlight/40 bg-highlight-soft px-4 py-3 text-sm">MCP needs Litma’s cloud sync. Sign in to create tokens.</p>
@@ -115,7 +115,7 @@ function Settings() {
 
           <div className="mt-6 space-y-5 text-sm">
             <div className="rounded-xl border border-accent/30 bg-accent-soft/60 p-4">
-              <h3 className="font-semibold">Claude (web, desktop and mobile app) — custom connector</h3>
+              <h3 className="font-semibold">Claude (web, desktop and mobile app): custom connector</h3>
               <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] leading-relaxed">
                 <li>Create a token above and copy it.</li>
                 <li>
@@ -127,7 +127,7 @@ function Settings() {
                 <Code>{`${MCP_DIRECT_URL}?key=${tok}`}</Code>
               </div>
               <p className="mt-2 text-xs text-muted">
-                If Claude says it couldn’t work out how the server signs in, choose <b>Continue anyway</b> — the token in the URL is the sign-in. Treat this URL like a password; revoke the token above if it leaks.
+                If Claude says it couldn’t work out how the server signs in, choose <b>Continue anyway</b>. The token in the URL is the sign-in. Treat this URL like a password; revoke the token above if it leaks.
               </p>
             </div>
             <div>
@@ -147,7 +147,7 @@ function Settings() {
               <Code>{JSON.stringify({ mcpServers: { litma: { type: "streamable-http", url, headers: { Authorization: `Bearer ${tok}` } } } }, null, 2)}</Code>
             </div>
             <p className="text-xs text-muted">
-              Apps on your own computer can use {url}. If one can’t connect, use {MCP_DIRECT_URL} instead — it is the same server.
+              Apps on your own computer can use {url}. If one can’t connect, use {MCP_DIRECT_URL} instead. It is the same server.
             </p>
           </div>
         </section>
@@ -212,7 +212,7 @@ function AIKeys() {
       <h2 className="text-xl font-semibold">Your AI keys</h2>
       <p className="mt-1 text-sm leading-relaxed text-muted">
         The writing companion uses your own account with the AI provider, so usage is billed to you and nobody else can use your key.
-        {cloud ? " Keys are encrypted on the server and never shown again — only the last four characters." : " In local mode, keys stay in this browser."}
+        {cloud ? " Keys are encrypted on the server and never shown again; only the last four characters are." : " In local mode, keys stay in this browser."}
       </p>
       <div className="mt-5 space-y-4">
         {PROVIDERS.map((p) => {

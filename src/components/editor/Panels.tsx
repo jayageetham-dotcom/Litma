@@ -241,7 +241,7 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
           </div>
         </div>
       )}
-      <p className="text-[11.5px] leading-snug text-muted">Uses your own API key — add it once in Settings → AI. Any AI assistant can also work on your writing over MCP.</p>
+      <p className="text-[11.5px] leading-snug text-muted">Uses your own API key. Add it once in Settings → AI. Any AI assistant can also work on your writing over MCP.</p>
     </div>
   );
 }
@@ -533,7 +533,7 @@ export function PagePanel({ settings, onChange, showMetreOption }: { settings: D
           className="w-full"
           value={settings.pageSize}
           onChange={(v) => onChange({ pageSize: v as PageSizeKey })}
-          options={(Object.keys(PAGE_SIZES) as PageSizeKey[]).map((k) => ({ value: k, label: `${PAGE_SIZES[k].label}${k === "A4" ? " — default" : ""}` }))}
+          options={(Object.keys(PAGE_SIZES) as PageSizeKey[]).map((k) => ({ value: k, label: `${PAGE_SIZES[k].label}${k === "A4" ? " (default)" : ""}` }))}
         />
       </div>
       <fieldset>

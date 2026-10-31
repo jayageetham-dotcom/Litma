@@ -57,7 +57,7 @@ function SignupForm() {
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">Check your email</h1>
         <p className="text-muted">
-          We sent a confirmation link to <b className="text-ink">{email}</b>. Open it to finish creating your account — it takes you straight to your desk.
+          We sent a confirmation link to <b className="text-ink">{email}</b>. Open it to finish creating your account. It takes you straight to your desk.
         </p>
         <p className="text-sm text-muted">No email after a few minutes? Check spam, or go back and check the address.</p>
         <button className="btn btn-outline" onClick={() => setSent(false)}>

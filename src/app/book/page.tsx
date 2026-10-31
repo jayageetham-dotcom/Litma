@@ -266,7 +266,7 @@ function BookEditor() {
                 onChange={(v) => setSt({ pageSize: v as BookSettings["pageSize"] })}
                 options={[
                   { value: "A4", label: "A4 (default)" },
-                  { value: "A5", label: "A5 — paperback" },
+                  { value: "A5", label: "A5 (paperback)" },
                   { value: "Letter", label: "US Letter" },
                 ]}
               />
@@ -353,7 +353,7 @@ function BookEditor() {
                 setPicking(true);
               }}
             />
-            <AddBtn label="Part divider" hint="ഭാഗം — groups chapters" onClick={() => (insertBeforeBack([{ id: uid(), type: "part", title: "ഒന്നാം ഭാഗം" }]), setAdding(false))} />
+            <AddBtn label="Part divider" hint="ഭാഗം: groups chapters" onClick={() => (insertBeforeBack([{ id: uid(), type: "part", title: "ഒന്നാം ഭാഗം" }]), setAdding(false))} />
             {TEXT_PAGES.map((t) => (
               <AddBtn key={t} label={t.split(" · ")[1]} hint={t.split(" · ")[0]} onClick={() => (insertBeforeBack([{ id: uid(), type: "text", title: t.split(" · ")[0] }]), setAdding(false))} />
             ))}

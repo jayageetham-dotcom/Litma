@@ -77,7 +77,7 @@ export function HeroActions() {
       <div className="mt-8">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
           <Link href="/signup/" className={`${big} btn-primary`}>
-            Start writing — it’s free <ArrowRight size={18} />
+            Start writing for free <ArrowRight size={18} />
           </Link>
           <Link href="/login/" className="text-sm font-medium text-accent underline-offset-4 hover:underline">
             Already have an account? Sign in

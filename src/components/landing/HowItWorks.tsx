@@ -283,8 +283,8 @@ const DEMOS = [
   { title: "Pick the right word", body: "Type Manglish; Litma offers the Malayalam spellings as you go. Space takes the first, 1–7 picks another.", Demo: ManglishDemo },
   { title: "Pages fill like paper", body: "Text flows onto real A4 sheets with page numbers, so you always know how long the work really is.", Demo: PagesDemo },
   { title: "Scripts set themselves", body: "Scene headings, cast and two-column dialogue snap into the Malayalam screenplay layout as you type.", Demo: ScreenplayDemo },
-  { title: "An AI companion beside you", body: "Select a passage and ask to continue, polish or translate. The answer streams in, and you choose whether it replaces your text — with your own Claude, GPT or Gemini key, or any AI assistant over MCP.", Demo: AIDemo },
-  { title: "Dictionary one click away", body: "Select a word for its meaning, English sense and synonyms from Olam’s open datasets — tap a synonym to swap it in.", Demo: DictionaryDemo },
+  { title: "An AI companion beside you", body: "Select a passage and ask to continue, polish or translate. The answer streams in, and you choose whether it replaces your text. Use your own Claude, GPT or Gemini key, or any AI assistant over MCP.", Demo: AIDemo },
+  { title: "Dictionary one click away", body: "Select a word for its meaning, English sense and synonyms from Olam’s open datasets. Tap a synonym to swap it in.", Demo: DictionaryDemo },
   { title: "Works become a book", body: "Gather chapters, add a cover and front pages, and export one print-ready PDF.", Demo: BookDemo },
 ];
 
@@ -294,7 +294,7 @@ export function HowItWorks() {
       <h2 id="how-title" className="text-2xl font-bold">
         എങ്ങനെ? · How it works
       </h2>
-      <p className="mt-2 max-w-2xl text-muted">A look inside the desk — the small things Litma does while you write.</p>
+      <p className="mt-2 max-w-2xl text-muted">A look inside the desk: the small things Litma does while you write.</p>
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {DEMOS.map(({ title, body, Demo }) => (
           <article key={title} className="demo-card">

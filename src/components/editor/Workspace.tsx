@@ -413,7 +413,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   const exportItems: { label: string; hint?: string; run: () => void }[] = [
     {
-      label: "PDF — print-ready pages",
+      label: "PDF, print-ready pages",
       run: async () => {
         await saver.current?.flush();
         window.open(`${BASE}/print/?doc=${initial.id}&auto=1`, "_blank");
@@ -456,7 +456,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   const saveText = settings.pristine
     ? phone
-      ? "Empty — discarded if you leave"
+      ? "Empty, discarded if you leave"
       : "Empty pages are discarded when you leave"
     : save === "saving"
       ? "Saving…"
@@ -466,8 +466,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           : "Saved on this device · syncing"
         : save === "offline"
           ? phone
-            ? "Offline — safe on this device"
-            : "Offline — safe on this device, will sync when back online"
+            ? "Offline, safe on this device"
+            : "Offline. Safe on this device, will sync when back online"
           : store.isCloud()
             ? phone
               ? "Saved"
@@ -632,6 +632,25 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                   </div>
                 ))}
                 <EditorContent editor={editor} className="page-content" />
+                {/* the gap between two sheets: hover to insert a blank page there */}
+                {!focus &&
+                  editor &&
+                  Array.from({ length: stats.pages - 1 }, (_, i) => (
+                    <div key={`gap-${i}`} className="page-gap no-print group/gap absolute inset-x-0 z-10 flex items-center justify-center" style={{ top: (i + 1) * (pageH + PAGE_GAP_PX) - PAGE_GAP_PX, height: PAGE_GAP_PX }}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          const at = paginationKey.getState(editor.state)?.breaks[i]?.pos;
+                          if (at != null) editor.chain().focus().insertPageAt(at).run();
+                        }}
+                        className="flex items-center gap-1 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-muted opacity-0 shadow-sm transition-opacity hover:text-accent focus-visible:opacity-100 group-hover/gap:opacity-100 [@media(hover:none)]:opacity-100"
+                        aria-label={`Insert a blank page between pages ${i + 1} and ${i + 2}`}
+                      >
+                        <Plus size={13} /> Insert page
+                      </button>
+                    </div>
+                  ))}
               </div>
             </div>
             {editor && <ManglishPopup editor={editor} />}

@@ -104,17 +104,36 @@ export function OutlinePanel({ editor, title = true }: { editor: Editor; title?:
 
 // ─── AI companion ──────────────────────────────────────────────────────
 
+type Engine = AIProvider | "claude-app";
+
+/**
+ * The prompt Litma hands to the Claude app. Claude reads the work through the Litma connector (MCP)
+ * and sends its answer back as a suggestion, so it runs on the writer's Claude plan, not API credit.
+ */
+function claudeAppPrompt(o: { action: AIAction; instruction: string; title: string; docId: string; selection: string }) {
+  const task = o.action === "custom" ? o.instruction.trim() : AI_ACTIONS[o.action].label;
+  const sel = o.selection.trim();
+  const quoted = sel.length > 2500 ? `${sel.slice(0, 1200)}\n[…]\n${sel.slice(-1200)}` : sel;
+  return [
+    `Using the Litma connector, open my work “${o.title}” (document id ${o.docId}) and read it for context.`,
+    `Task: ${task}${o.action !== "custom" && o.instruction.trim() ? `. Also: ${o.instruction.trim()}` : ""}.`,
+    sel ? `Work on this passage:\n"""\n${quoted}\n"""` : "Work from where the text ends.",
+    "Write in Malayalam script. Send the result to my editor with suggest_edit so I can review it; don't change the document directly.",
+  ].join("\n\n");
+}
+
 export function getAIPrefs() {
   try {
-    return JSON.parse(localStorage.getItem("litma:ai") || "{}") as { provider?: AIProvider; anthropicKey?: string; openaiKey?: string; geminiKey?: string };
+    return JSON.parse(localStorage.getItem("litma:ai") || "{}") as { provider?: Engine; anthropicKey?: string; openaiKey?: string; geminiKey?: string };
   } catch {
     return {};
   }
 }
 
-export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
+export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: string; docId: string; title: string }) {
   const prefs = useMemo(getAIPrefs, []);
-  const [provider, setProvider] = useState<AIProvider>(prefs.provider ?? "anthropic");
+  const [provider, setProvider] = useState<Engine>(prefs.provider ?? (store.isCloud() ? "claude-app" : "anthropic"));
+  const [sent, setSent] = useState<string | null>(null);
   const [instruction, setInstruction] = useState("");
   const [out, setOut] = useState("");
   const [busy, setBusy] = useState<AIAction | null>(null);
@@ -128,6 +147,18 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
   async function run(action: AIAction) {
     const { from, to, empty } = editor.state.selection;
     const selection = empty ? "" : editor.state.doc.textBetween(from, to, "\n");
+    if (provider === "claude-app") {
+      const prompt = claudeAppPrompt({ action, instruction, title, docId, selection });
+      try {
+        await navigator.clipboard.writeText(prompt);
+      } catch {}
+      window.open(`https://claude.ai/new?q=${encodeURIComponent(prompt)}`, "_blank", "noopener");
+      setSent(prompt);
+      setOut("");
+      setErr(null);
+      return;
+    }
+    setSent(null);
     const context = editor.state.doc.textBetween(0, from, "\n").slice(-6000);
     selRange.current = empty ? null : { from, to };
     setUsedSelection(!empty);
@@ -151,7 +182,7 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
         },
         ac.signal
       );
-      if (!r.ok || !r.body) throw new Error(friendlyAIError(await r.text(), provider));
+      if (!r.ok || !r.body) throw new Error(friendlyAIError(await r.text(), provider as AIProvider));
       const reader = r.body.getReader();
       const dec = new TextDecoder();
       for (;;) {
@@ -183,20 +214,43 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
           aria-label="AI provider"
           value={provider}
           onChange={(x) => {
-            const v = x as AIProvider;
+            const v = x as Engine;
+            setSent(null);
             setProvider(v);
             try {
               localStorage.setItem("litma:ai", JSON.stringify({ ...getAIPrefs(), provider: v }));
             } catch {}
           }}
           options={[
-            { value: "anthropic", label: "Claude", hint: "Anthropic" },
-            { value: "openai", label: "GPT", hint: "OpenAI" },
-            { value: "gemini", label: "Gemini", hint: "Google" },
+            ...(store.isCloud() ? [{ value: "claude-app", label: "Claude app", hint: "Your Claude plan, no API key" }] : []),
+            { value: "anthropic", label: "Claude API", hint: "Anthropic key" },
+            { value: "openai", label: "GPT", hint: "OpenAI key" },
+            { value: "gemini", label: "Gemini", hint: "Google key" },
           ]}
         />
       </div>
       <p className="-mt-2 text-xs text-muted">{hasSel ? "Working on your selection." : "Select text to rewrite, polish or translate it."}</p>
+      {provider === "claude-app" && !sent && (
+        <p className="rounded-lg bg-accent-soft px-3 py-2 text-xs leading-relaxed text-ink">
+          Opens Claude in a new tab with the request filled in. Claude reads this work through your Litma connector, and its answer arrives in the <b>Assistant inbox</b>. Uses your Claude Pro or Max plan, no API credit.
+        </p>
+      )}
+      {sent && (
+        <div className="rounded-lg border border-line bg-paper p-3 text-xs leading-relaxed">
+          <p className="font-semibold text-ink">Sent to Claude.</p>
+          <p className="mt-1 text-muted">
+            Press Enter in the Claude tab. When Claude is done, its suggestion appears in the Assistant inbox (the tray icon in the side bar) to accept or dismiss. The request is also on your clipboard if the tab didn’t open.
+          </p>
+          <div className="mt-2 flex gap-1.5">
+            <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => navigator.clipboard.writeText(sent).catch(() => {})}>
+              Copy request again
+            </button>
+            <button className="btn btn-ghost !px-2 !py-1 !text-xs" onClick={() => setSent(null)}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap gap-1.5">
         {(Object.keys(AI_ACTIONS) as AIAction[])
           .filter((a) => a !== "custom")
@@ -236,10 +290,17 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
             {err ? (
               <span className="block text-[13px] leading-relaxed text-danger" style={{ fontFamily: "var(--font-ui)" }}>
                 {err}
-                {/no API credit/.test(err) && (
-                  <a href={BILLING[provider][1]} target="_blank" rel="noreferrer" className="mt-2 block font-semibold text-accent underline">
-                    Open {BILLING[provider][0]} billing ↗
-                  </a>
+                {/no API credit/.test(err) && provider !== "claude-app" && (
+                  <>
+                    <a href={BILLING[provider][1]} target="_blank" rel="noreferrer" className="mt-2 block font-semibold text-accent underline">
+                      Open {BILLING[provider][0]} billing ↗
+                    </a>
+                    {store.isCloud() && (
+                      <button className="mt-1 block font-semibold text-accent underline" onClick={() => (setProvider("claude-app"), setErr(null))}>
+                        Or use the Claude app with your plan instead
+                      </button>
+                    )}
+                  </>
                 )}
               </span>
             ) : (

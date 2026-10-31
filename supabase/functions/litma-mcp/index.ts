@@ -293,7 +293,7 @@ const TOOLS: Tool[] = [
         content: S("string", "Suggested text (Malayalam Unicode) or the note"),
         kind: S("string", "Type", { enum: ["insert", "replace", "comment"] }),
         target_text: S("string", "Exact existing text to replace (kind='replace')"),
-        note: S("string", "Why — shown to the writer"),
+        note: S("string", "Why (shown to the writer)"),
         source: S("string", "Your name, e.g. 'Claude', 'ChatGPT'"),
       },
       required: ["id", "content"],

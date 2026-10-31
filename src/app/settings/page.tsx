@@ -173,7 +173,8 @@ function AIKeys() {
   const [def, setDef] = useState<AIProvider>("anthropic");
 
   useEffect(() => {
-    setDef(getAIPrefs().provider ?? "anthropic");
+    const pv = getAIPrefs().provider;
+    setDef(pv && pv !== "claude-app" ? pv : "anthropic");
     if (cloud) listAiKeys().then(setKeys).catch((e) => setMsg({ kind: "error", text: e.message }));
     else setKeys([]);
   }, [cloud]);
@@ -214,6 +215,11 @@ function AIKeys() {
         The writing companion uses your own account with the AI provider, so usage is billed to you and nobody else can use your key.
         {cloud ? " Keys are encrypted on the server and never shown again; only the last four characters are." : " In local mode, keys stay in this browser."}
       </p>
+      {cloud && (
+        <p className="mt-3 rounded-lg bg-accent-soft px-4 py-3 text-sm leading-relaxed">
+          <b>Have Claude Pro or Max?</b> You don’t need an API key. Add the Litma connector to Claude (see <b>MCP</b> below), then choose <b>Claude app</b> in the editor’s AI panel. Claude reads your work and sends its suggestions to the Assistant inbox, on your Claude plan.
+        </p>
+      )}
       <div className="mt-5 space-y-4">
         {PROVIDERS.map((p) => {
           const s = saved(p.id);

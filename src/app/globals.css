@@ -268,3 +268,10 @@ body {
   text-align: start !important;
   text-align-last: auto !important;
 }
+
+/* Phones: 16px text in fields so iOS never needs to zoom in on focus */
+@media (max-width: 767px) {
+  .field {
+    font-size: 16px;
+  }
+}

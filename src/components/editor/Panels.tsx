@@ -4,11 +4,10 @@ import { Select } from "@/components/ui/Select";
 import type { Editor } from "@tiptap/react";
 import type { JSONContent } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
-import { Check, Copy, CornerDownLeft, History, Loader2, RotateCcw, Square, X } from "lucide-react";
+import { Check, Copy, CornerDownLeft, History, Inbox, Loader2, RotateCcw, Square, X } from "lucide-react";
 import { AI_ACTIONS, type AIAction } from "@/shared/ai-prompts";
 import { store } from "@/lib/store";
 import { aiStream, listAiKeys, type AIProvider } from "@/lib/functions";
-import { useConfirm } from "@/components/ui/Confirm";
 import { BASE } from "@/lib/config";
 import type { DocSettings, DocVersion, LitmaDoc, Suggestion } from "@/lib/types";
 import { FONTS } from "@/lib/templates";
@@ -133,22 +132,37 @@ export function getAIPrefs() {
   }
 }
 
-export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: string; docId: string; title: string }) {
+type Why = "nokey" | "nocredit" | "badkey";
+
+/** What went wrong with an API call, in a form the panel can act on. */
+function classifyAIError(raw: string): Why | null {
+  const m = raw.toLowerCase();
+  if (/credit balance|insufficient_quota|billing|exceeded your current quota|payment/.test(m)) return "nocredit";
+  if (/invalid x-api-key|invalid api key|incorrect api key|api key not valid|authentication_error|\b401\b/.test(m)) return "badkey";
+  return null;
+}
+
+export function AIPanel({ editor, kind, docId, title, onOpenInbox }: { editor: Editor; kind: string; docId: string; title: string; onOpenInbox?: () => void }) {
   const prefs = useMemo(getAIPrefs, []);
+  const cloud = store.isCloud();
   const [provider, setProvider] = useState<AIProvider>(prefs.provider && prefs.provider !== "claude-app" ? prefs.provider : "anthropic");
-  const [sent, setSent] = useState<string | null>(null);
-  const [confirmDialog, ask] = useConfirm();
   // which providers this writer has a key for: account keys (cloud) or this browser's keys (local mode)
   const [keyed, setKeyed] = useState<AIProvider[] | null>(null);
+  // has this writer connected Litma to an AI assistant? (a Litma token that has been used)
+  const [connected, setConnected] = useState<boolean | null>(null);
   useEffect(() => {
-    if (store.isCloud())
+    if (cloud) {
       listAiKeys()
         .then((k) => setKeyed(k.map((x) => x.provider)))
         .catch(() => setKeyed([]));
-    else setKeyed((["anthropic", "openai", "gemini"] as AIProvider[]).filter((p) => !!prefs[`${p}Key` as const]));
-  }, [prefs]);
+      store
+        .listTokens()
+        .then((t) => setConnected((t as { last_used_at: string | null }[]).some((x) => !!x.last_used_at)))
+        .catch(() => setConnected(false));
+    } else setKeyed((["anthropic", "openai", "gemini"] as AIProvider[]).filter((p) => !!prefs[`${p}Key` as const]));
+  }, [prefs, cloud]);
   const hasKey = keyed?.includes(provider) ?? false;
-  const noKeys = keyed !== null && keyed.length === 0;
+
   const [instruction, setInstruction] = useState("");
   const [out, setOut] = useState("");
   const [busy, setBusy] = useState<AIAction | null>(null);
@@ -156,78 +170,33 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
   const [usedSelection, setUsedSelection] = useState(false);
   const abort = useRef<AbortController | null>(null);
   const selRange = useRef<{ from: number; to: number } | null>(null);
+  // the hand-over to Claude: the request is ready, then (once opened) we point back to the inbox
+  const [handoff, setHandoff] = useState<{ prompt: string; why: Why; task: string; opened: boolean } | null>(null);
 
   const hasSel = !editor.state.selection.empty;
 
-  type Why = "nokey" | "nocredit" | "badkey";
-  const providerName = provider === "anthropic" ? "Claude" : provider === "openai" ? "GPT" : "Gemini";
-  const lastRun = useRef<{ action: AIAction; selection: string } | null>(null);
-
-  /** Hand the request to the Claude app (the writer's own plan), only with their permission. */
-  async function openInClaude(action: AIAction, selection: string, why: Why) {
-    const reason =
-      why === "nokey"
-        ? noKeys
-          ? "You haven’t added an AI key to Litma."
-          : `You haven’t added a key for ${providerName}.`
-        : why === "nocredit"
-          ? `Your ${providerName} API key has no credit left. API use is billed separately from chat plans like Claude Pro.`
-          : `Your ${providerName} API key wasn’t accepted.`;
-    const remembered = why === "nokey" && localStorage.getItem("litma:claude-app-ok") === "1";
-    const go =
-      remembered ||
-      (await ask({
-        title: "Open this in Claude?",
-        body: (
-          <>
-            <span className="block">
-              {reason} Litma can open Claude in a new tab with the request already written for “{AI_ACTIONS[action].label}”.
-            </span>
-            <span className="mt-2 block">Send it there, then come back: Claude reads this work through your Litma connector and its answer appears here, in the Assistant inbox. It uses your own Claude plan.</span>
-            <span className="mt-2 block">
-              Needs the Litma connector in Claude (Settings → MCP).{" "}
-              {why === "nocredit" ? (
-                <a className="text-accent underline" href={BILLING[provider][1]} target="_blank" rel="noreferrer">
-                  Add API credit instead
-                </a>
-              ) : (
-                <a className="text-accent underline" href={`${BASE}/settings/`} target="_blank" rel="noreferrer">
-                  {why === "badkey" ? "Fix the key instead" : "Add an API key instead"}
-                </a>
-              )}
-              .
-            </span>
-            {why === "nokey" && (
-              <label className="mt-3 flex items-center gap-2 text-ink">
-                <input type="checkbox" className="accent-[var(--accent)]" onChange={(e) => (e.target.checked ? localStorage.setItem("litma:claude-app-ok", "1") : localStorage.removeItem("litma:claude-app-ok"))} />
-                Don’t ask again
-              </label>
-            )}
-          </>
-        ),
-        confirm: "Open Claude",
-      }));
-    if (!go) return;
-    const prompt = claudeAppPrompt({ action, instruction, title, docId, selection });
-    try {
-      await navigator.clipboard.writeText(prompt);
-    } catch {}
-    window.open(`https://claude.ai/new?q=${encodeURIComponent(prompt)}`, "_blank", "noopener");
-    setSent(prompt);
+  function prepareHandoff(action: AIAction, selection: string, why: Why) {
     setOut("");
     setErr(null);
+    setHandoff({ prompt: claudeAppPrompt({ action, instruction, title, docId, selection }), why, task: action === "custom" ? instruction.trim() : AI_ACTIONS[action].label, opened: false });
+  }
+
+  function openClaude() {
+    if (!handoff) return;
+    navigator.clipboard?.writeText(handoff.prompt).catch(() => {});
+    window.open(`https://claude.ai/new?q=${encodeURIComponent(handoff.prompt)}`, "_blank", "noopener");
+    setHandoff({ ...handoff, opened: true });
   }
 
   async function run(action: AIAction) {
     const { from, to, empty } = editor.state.selection;
     const selection = empty ? "" : editor.state.doc.textBetween(from, to, "\n");
+    setHandoff(null);
     if (!hasKey) {
       // without cloud sync there is no Litma connector for Claude to use, so a key is the only way
-      if (!store.isCloud()) return setErr("Add your API key in Settings → AI to use the companion.");
-      return openInClaude(action, selection, "nokey");
+      if (!cloud) return setErr("Add your API key in Settings → AI to use the companion.");
+      return prepareHandoff(action, selection, "nokey");
     }
-    setSent(null);
-    lastRun.current = { action, selection };
     const context = editor.state.doc.textBetween(0, from, "\n").slice(-6000);
     selRange.current = empty ? null : { from, to };
     setUsedSelection(!empty);
@@ -242,7 +211,7 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
         {
           provider,
           // signed-in writers use the key saved to their account; local mode uses this browser's key
-          apiKey: store.isCloud() ? undefined : prefs[`${provider}Key` as const],
+          apiKey: cloud ? undefined : prefs[`${provider}Key` as const],
           action,
           kind,
           selection,
@@ -251,7 +220,13 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
         },
         ac.signal
       );
-      if (!r.ok || !r.body) throw new Error(friendlyAIError(await r.text(), provider as AIProvider));
+      if (!r.ok || !r.body) {
+        const raw = await r.text();
+        const why = classifyAIError(raw);
+        // a key without credit (or a rejected key): don't strand the writer, offer Claude instead
+        if (why && cloud) return prepareHandoff(action, selection, why);
+        throw new Error(friendlyAIError(raw, provider));
+      }
       const reader = r.body.getReader();
       const dec = new TextDecoder();
       for (;;) {
@@ -273,10 +248,11 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
     insertText(editor, out.trim(), true);
   };
 
+  const providerName = provider === "anthropic" ? "Claude" : provider === "openai" ? "GPT" : "Gemini";
+
   return (
     <div className="flex flex-col gap-3">
-      {confirmDialog}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-xs text-muted">Answer with</span>
         <Select
           size="sm"
@@ -285,45 +261,21 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
           value={provider}
           onChange={(x) => {
             const v = x as AIProvider;
-            setSent(null);
+            setHandoff(null);
             setProvider(v);
             try {
               localStorage.setItem("litma:ai", JSON.stringify({ ...getAIPrefs(), provider: v }));
             } catch {}
           }}
           options={[
-            { value: "anthropic", label: "Claude", hint: keyed?.includes("anthropic") ? "Your API key" : "No key: opens Claude" },
+            { value: "anthropic", label: "Claude", hint: keyed?.includes("anthropic") ? "Your API key" : "Opens Claude" },
             { value: "openai", label: "GPT", hint: keyed?.includes("openai") ? "Your API key" : "No key added" },
             { value: "gemini", label: "Gemini", hint: keyed?.includes("gemini") ? "Your API key" : "No key added" },
           ]}
         />
       </div>
       <p className="-mt-2 text-xs text-muted">{hasSel ? "Working on your selection." : "Select text to rewrite, polish or translate it."}</p>
-      {keyed !== null && !hasKey && !sent && (
-        <p className="rounded-lg bg-subtle px-3 py-2 text-xs leading-relaxed text-muted">
-          No API key for this provider, so actions will ask before opening Claude in a new tab. Answers come back to the Assistant inbox here.{" "}
-          <a className="text-accent underline" href={`${BASE}/settings/`} target="_blank" rel="noreferrer">
-            Add a key
-          </a>{" "}
-          to get answers right in this panel.
-        </p>
-      )}
-      {sent && (
-        <div className="rounded-lg border border-line bg-paper p-3 text-xs leading-relaxed">
-          <p className="font-semibold text-ink">Opened in Claude.</p>
-          <p className="mt-1 text-muted">
-            Press Enter in the Claude tab, then come back here. The answer appears in the Assistant inbox (the tray icon in the side bar) for you to accept or dismiss. The request is also on your clipboard if the tab didn’t open.
-          </p>
-          <div className="mt-2 flex gap-1.5">
-            <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => navigator.clipboard.writeText(sent).catch(() => {})}>
-              Copy request again
-            </button>
-            <button className="btn btn-ghost !px-2 !py-1 !text-xs" onClick={() => setSent(null)}>
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+
       <div className="flex flex-wrap gap-1.5">
         {(Object.keys(AI_ACTIONS) as AIAction[])
           .filter((a) => a !== "custom")
@@ -337,6 +289,7 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
                 onClick={() => run(a)}
                 disabled={disabled}
                 title={meta.label}
+                aria-label={meta.label}
                 className={`rounded-full border px-2.5 py-1 text-[12.5px] transition-colors disabled:opacity-40 ${busy === a ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}
               >
                 {meta.ml}
@@ -357,20 +310,94 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
         </button>
       </form>
 
-      {(out || busy || err) && (
+      {/* ── Hand-over to Claude ── */}
+      {handoff && (
+        <div className="rounded-xl border border-line bg-paper p-4 text-sm leading-relaxed" role="status">
+          {connected === false ? (
+            <>
+              <p className="font-semibold text-ink">Connect Litma to Claude first</p>
+              <p className="mt-1 text-muted">
+                {handoff.why === "nocredit" ? "Your API key has no credits, so Claude needs to work on this from your Claude account. " : handoff.why === "badkey" ? "Your API key didn’t work, so Claude needs to work on this from your Claude account. " : ""}
+                To do that, add the Litma connector to Claude once. It takes about a minute, then come back and tap the action again.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a className="btn btn-primary !px-3 !py-2 !text-sm" href={`${BASE}/settings/#mcp`} target="_blank" rel="noreferrer">
+                  Set up in Settings
+                </a>
+                <button className="btn btn-ghost !px-3 !py-2 !text-sm" onClick={() => setConnected(true)}>
+                  I’ve connected it
+                </button>
+              </div>
+            </>
+          ) : !handoff.opened ? (
+            <>
+              <p className="font-semibold text-ink">{handoff.why === "nocredit" ? "Your API key needs credits" : handoff.why === "badkey" ? "Your API key didn’t work" : "Get help from Claude"}</p>
+              <p className="mt-1 text-muted">
+                {handoff.why === "nocredit"
+                  ? `The ${providerName} API is paid for separately from chat plans, and your key has no credits left. If you have a Claude plan, Litma can take you to Claude with this request ready.`
+                  : handoff.why === "badkey"
+                    ? "The saved key was not accepted. If you have a Claude plan, Litma can take you to Claude with this request ready."
+                    : "Litma will open Claude with this request ready."}{" "}
+                Claude reads this work and sends its suggestion back to Litma. Then come back here and check the Assistant inbox.
+              </p>
+              <p className="mt-2 text-xs text-muted">
+                Request: <b className="text-ink">{handoff.task}</b>
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button className="btn btn-primary !px-3 !py-2 !text-sm" onClick={openClaude}>
+                  Open Claude
+                </button>
+                <button className="btn btn-ghost !px-3 !py-2 !text-sm" onClick={() => setHandoff(null)}>
+                  Cancel
+                </button>
+              </div>
+              <p className="mt-3 text-xs text-muted">
+                {handoff.why === "nocredit" ? (
+                  <>
+                    Prefer answers right here?{" "}
+                    <a className="text-accent underline" href={BILLING[provider][1]} target="_blank" rel="noreferrer">
+                      Add API credits
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    Prefer answers right here?{" "}
+                    <a className="text-accent underline" href={`${BASE}/settings/`} target="_blank" rel="noreferrer">
+                      {handoff.why === "badkey" ? "Update your API key" : "Add an API key"}
+                    </a>
+                  </>
+                )}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-semibold text-ink">Opened in Claude</p>
+              <p className="mt-1 text-muted">Send the message in Claude. When Claude has finished, come back to Litma and open the Assistant inbox to accept or dismiss its suggestion.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {onOpenInbox && (
+                  <button className="btn btn-primary !px-3 !py-2 !text-sm" onClick={onOpenInbox}>
+                    <Inbox size={15} /> Open Assistant inbox
+                  </button>
+                )}
+                <button className="btn btn-outline !px-3 !py-2 !text-sm" onClick={openClaude}>
+                  Open Claude again
+                </button>
+                <button className="btn btn-ghost !px-3 !py-2 !text-sm" onClick={() => setHandoff(null)}>
+                  Close
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-muted">The request is also on your clipboard, in case the Claude tab didn’t open.</p>
+            </>
+          )}
+        </div>
+      )}
+
+      {!handoff && (out || busy || err) && (
         <div className="rounded-lg border border-line bg-paper">
           <div className="max-h-[46vh] overflow-y-auto whitespace-pre-wrap p-3 text-[14.5px] leading-relaxed" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
             {err ? (
               <span className="block text-[13px] leading-relaxed text-danger" style={{ fontFamily: "var(--font-ui)" }}>
                 {err}
-                {/no API credit/.test(err) && (
-                  <>
-                    <a href={BILLING[provider][1]} target="_blank" rel="noreferrer" className="mt-2 block font-semibold text-accent underline">
-                      Open {BILLING[provider][0]} billing ↗
-                    </a>
-
-                  </>
-                )}
               </span>
             ) : (
               out
@@ -402,7 +429,9 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
           </div>
         </div>
       )}
-      <p className="text-[11.5px] leading-snug text-muted">Uses your own API key. Add it once in Settings → AI. Any AI assistant can also work on your writing over MCP.</p>
+      <p className="text-[11.5px] leading-snug text-muted">
+        {hasKey ? "Answers appear here, using your own API key." : cloud ? "No API key added: Litma hands the request to Claude and the answer comes back to the Assistant inbox." : "Add an API key in Settings → AI to use the companion."}
+      </p>
     </div>
   );
 }

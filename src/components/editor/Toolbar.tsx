@@ -141,7 +141,7 @@ export function Toolbar({
     <div
       className={
         variant === "sheet"
-          ? "no-print flex flex-wrap items-center gap-1 [&_button]:min-h-10 [&_button]:min-w-10 [&_[role=combobox]]:min-h-10"
+          ? "no-print flex flex-wrap items-center gap-1 [&>span[aria-hidden]]:hidden [&_button]:min-h-10 [&_button]:min-w-10 [&_[role=combobox]]:min-h-10"
           : "no-print scrollbar-thin flex items-center gap-0.5 overflow-x-auto border-b border-line bg-paper px-3 py-1.5"
       }
       role="toolbar"

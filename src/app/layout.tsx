@@ -10,6 +10,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // stops iPhone Safari zooming the whole app in when a small-text field or the page gets focus
+  // (pinch-zoom still works: iOS ignores this for user gestures)
+  maximumScale: 1,
   viewportFit: "cover",
   // the on-screen keyboard shrinks the visual viewport only, so the keyboard accessory can sit on top of it
   interactiveWidget: "resizes-visual",

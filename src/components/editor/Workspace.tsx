@@ -477,7 +477,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const panelBody = (id: PanelId) =>
     editor && (
       <>
-        {id === "ai" && <AIPanel editor={editor} kind={initial.kind} docId={initial.id} title={title} />}
+        {id === "ai" && <AIPanel editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} />}
         {id === "inbox" && <InboxPanel editor={editor} docId={initial.id} onCount={setInboxCount} />}
         {id === "dict" && <DictionaryPanel editor={editor} />}
         {id === "story" && <StoryPanel editor={editor} doc={docRef.current} settings={settings} onChange={updateSettings} onOpen={() => setStoryOpen(true)} refresh={storyOpen ? 0 : 1} />}

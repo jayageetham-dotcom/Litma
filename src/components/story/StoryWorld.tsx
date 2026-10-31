@@ -246,7 +246,7 @@ function BeatBoard({
   };
 
   return (
-    <div className="scrollbar-thin flex items-start gap-4 overflow-x-auto pb-4">
+    <div className="scrollbar-thin -mx-5 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto scroll-px-5 px-5 pb-4 md:mx-0 md:snap-none md:px-0">
       {cols.map((g) => {
         const cards = inCol(g);
         const colOver = over === `col:${g}`;
@@ -254,7 +254,7 @@ function BeatBoard({
           <section
             key={g}
             aria-label={g}
-            className={`flex w-72 shrink-0 flex-col rounded-xl border bg-surface p-2.5 transition-[border-color,opacity,box-shadow] ${colOver ? "border-accent shadow-[var(--pop-shadow)]" : "border-line"} ${drag?.kind === "col" && drag.id === g ? "opacity-40" : ""}`}
+            className={`flex w-[min(18rem,82vw)] shrink-0 snap-start flex-col rounded-xl border bg-surface p-2.5 transition-[border-color,opacity,box-shadow] ${colOver ? "border-accent shadow-[var(--pop-shadow)]" : "border-line"} ${drag?.kind === "col" && drag.id === g ? "opacity-40" : ""}`}
             onDragOver={(e) => {
               e.preventDefault();
               if (drag?.kind === "col" || (drag?.kind === "card" && !cards.length)) setOver(`col:${g}`);
@@ -350,7 +350,7 @@ function BeatBoard({
         );
       })}
       <form
-        className="w-60 shrink-0"
+        className="w-[min(15rem,70vw)] shrink-0 snap-start"
         onSubmit={(e) => {
           e.preventDefault();
           const f = new FormData(e.currentTarget);

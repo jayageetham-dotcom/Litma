@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import {
   ArrowLeft,
+  BookA,
   BookOpen,
   Download,
   Eye,
@@ -27,7 +28,7 @@ import {
 import { buildExtensions } from "./extensions";
 import { Toolbar } from "./Toolbar";
 import { ManglishPopup } from "./ManglishPopup";
-import { AIPanel, HistoryPanel, InboxPanel, KeysPanel, NotesPanel, OutlinePanel, PagePanel } from "./Panels";
+import { AIPanel, HistoryPanel, InboxPanel, KeysPanel, OutlinePanel, PagePanel } from "./Panels";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { store } from "@/lib/store";
 import { templateFor } from "@/lib/templates";
@@ -38,19 +39,25 @@ import { metreKey, searchKey } from "@/extensions/tools";
 import type { InputMode } from "@/extensions/manglish";
 import { exportDocx, exportHTML, exportMarkdown, exportText } from "@/lib/export";
 import { BASE, appUrl } from "@/lib/config";
+import { DocSaver, clearJournal, readJournal, type SaveStatus } from "@/lib/autosave";
 import { ShortcutsDialog } from "./ShortcutsDialog";
+import { DictionaryPanel } from "./DictionaryPanel";
+import { StoryPanel } from "./StoryPanel";
+import { CueSuggest } from "./CueSuggest";
+import { StoryWorld } from "@/components/story/StoryWorld";
 
-type PanelId = "ai" | "inbox" | "notes" | "history" | "keys" | "page";
+type PanelId = "ai" | "dict" | "inbox" | "story" | "history" | "keys" | "page";
 const PANELS: { id: PanelId; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
   { id: "ai", label: "AI companion", icon: Sparkles },
+  { id: "dict", label: "Dictionary & thesaurus", icon: BookA },
   { id: "inbox", label: "Assistant inbox (MCP)", icon: Inbox },
-  { id: "notes", label: "Notes & characters", icon: NotebookPen },
+  { id: "story", label: "Story World", icon: NotebookPen },
   { id: "history", label: "Version history", icon: HistoryIcon },
   { id: "keys", label: "Malayalam keyboard", icon: Keyboard },
   { id: "page", label: "Page & type", icon: Settings2 },
 ];
 
-type SaveState = "saved" | "saving" | "dirty" | "error";
+type SaveState = SaveStatus;
 
 export function Workspace({ initial }: { initial: LitmaDoc }) {
   const template = templateFor(initial.kind);
@@ -74,13 +81,33 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   const router = useRouter();
   const [showKeys, setShowKeys] = useState(false);
-  const [backup, setBackup] = useState<{ content: LitmaDoc["content"]; at: string } | null>(null);
+  const [storyOpen, setStoryOpen] = useState(false);
+  const [castNames, setCastNames] = useState<string[]>([]);
+  const usesCues = initial.kind === "screenplay" || initial.kind === "drama";
+  useEffect(() => {
+    if (!usesCues || storyOpen) return;
+    store
+      .listStory(initial.id)
+      .then((items) => setCastNames(items.filter((i) => i.kind === "character" && i.name).map((i) => i.name)))
+      .catch(() => {});
+  }, [usesCues, storyOpen, initial.id]);
   /** New documents stay "pristine" until the writer types; pristine documents are discarded on close. */
   const pristine = useRef(!!initial.settings.pristine);
   const docRef = useRef<LitmaDoc>(initial);
+  const titleRef = useRef(initial.title);
   const lastSavedWords = useRef(initial.word_count);
   const lastSnapshot = useRef(Date.now());
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Crash recovery: a local journal newer than the cloud copy wins (the writer can switch back).
+  const [recovered, setRecovered] = useState<{ at: string; server: LitmaDoc["content"] } | null>(null);
+  const [startContent] = useState(() => {
+    const j = readJournal(initial.id);
+    if (j && new Date(j.at) > new Date(initial.updated_at) && JSON.stringify(j.content) !== JSON.stringify(initial.content)) {
+      return { content: j.content, title: j.title, at: j.at };
+    }
+    if (j) clearJournal(initial.id);
+    return null;
+  });
 
   // The extension set is fixed for the life of the document.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,7 +115,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   const editor = useEditor({
     extensions,
-    content: initial.content,
+    content: startContent?.content ?? initial.content,
     immediatelyRender: false,
     autofocus: "end",
     editorProps: {
@@ -97,50 +124,17 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   });
 
   // ── persistence ──
-  const backupKey = `litma:backup:${initial.id}`;
-  const persist = useCallback(
-    async (patch: Partial<LitmaDoc>) => {
-      setSave("saving");
-      try {
-        await store.updateDoc(docRef.current.id, patch);
-        docRef.current = { ...docRef.current, ...patch };
-        setSave("saved");
-        if (patch.content) {
-          try {
-            localStorage.removeItem(backupKey);
-          } catch {}
-        }
-        return true;
-      } catch {
-        setSave("error");
-        // keep an offline copy so nothing is lost if the network drops
-        if (patch.content) {
-          try {
-            localStorage.setItem(backupKey, JSON.stringify({ content: patch.content, at: new Date().toISOString() }));
-          } catch {}
-        }
-        return false;
-      }
-    },
-    [backupKey]
-  );
+  const persist = useCallback(async (patch: Partial<LitmaDoc>) => {
+    await store.updateDoc(docRef.current.id, patch);
+    docRef.current = { ...docRef.current, ...patch };
+  }, []);
 
-  // Offer to restore an offline copy that never reached the server
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(backupKey);
-      if (!raw) return;
-      const b = JSON.parse(raw) as { content: LitmaDoc["content"]; at: string };
-      if (new Date(b.at) > new Date(initial.updated_at)) setBackup(b);
-      else localStorage.removeItem(backupKey);
-    } catch {}
-  }, [backupKey, initial.updated_at]);
-
-  const saveContent = useCallback(
+  /** Cloud save of the whole document (called by the autosaver). Throws on failure so it retries. */
+  const saveToCloud = useCallback(
     async (ed: Editor, snapshotLabel?: string | null) => {
       const content = ed.getJSON();
       const words = countWords(ed.getText({ blockSeparator: "\n" }));
-      const patch: Partial<LitmaDoc> = { content, word_count: words };
+      const patch: Partial<LitmaDoc> = { content, word_count: words, title: titleRef.current };
       if (docRef.current.settings?.pristine && !pristine.current) patch.settings = { ...docRef.current.settings, pristine: false };
       await persist(patch);
       const delta = words - lastSavedWords.current;
@@ -148,11 +142,48 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       if (delta > 0) store.addWordsToday(delta).catch(() => {});
       if (snapshotLabel !== undefined || Date.now() - lastSnapshot.current > 10 * 60 * 1000) {
         lastSnapshot.current = Date.now();
-        await store.saveVersion(docRef.current.id, content, words, snapshotLabel ?? null);
+        await store.saveVersion(docRef.current.id, content, words, snapshotLabel ?? null).catch(() => {});
       }
     },
     [persist]
   );
+
+  const saver = useRef<DocSaver | null>(null);
+  useEffect(() => {
+    if (!editor) return;
+    const sv = new DocSaver({
+      id: initial.id,
+      snapshot: () => (editor.isDestroyed ? null : { content: editor.getJSON(), title: titleRef.current }),
+      save: () => saveToCloud(editor),
+      onStatus: setSave,
+    });
+    saver.current = sv;
+    if (startContent) {
+      // restored from the device journal — push it to the cloud right away
+      setRecovered({ at: startContent.at, server: initial.content });
+      if (startContent.title) {
+        titleRef.current = startContent.title;
+        setTitle(startContent.title);
+      }
+      pristine.current = false;
+      sv.touch();
+    }
+    return () => sv.dispose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor]);
+
+  // warn before closing the tab while a save is still pending
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => {
+      if (saver.current?.unsaved) {
+        saver.current.writeJournal();
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
 
   useEffect(() => {
     if (!editor) return;
@@ -166,9 +197,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         pristine.current = false;
         setSettings((prev) => ({ ...prev, pristine: false }));
       }
-      setSave("dirty");
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => saveContent(editor), 1200);
+      saver.current?.touch();
       clearTimeout(statTimer);
       statTimer = setTimeout(computeStats, 250);
     };
@@ -184,21 +213,29 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       editor.off("transaction", onTx);
       clearTimeout(statTimer);
     };
-  }, [editor, saveContent]);
+  }, [editor]);
+
+  const saveContent = useCallback(
+    async (ed: Editor, label?: string | null) => {
+      await saver.current?.flush();
+      await saveToCloud(ed, label ?? null);
+    },
+    [saveToCloud]
+  );
 
   // flush on leave — or discard the document if nothing was ever written in it
   const closed = useRef(false);
   const finish = useCallback(async () => {
     if (closed.current) return;
     closed.current = true;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
     if (pristine.current) {
+      saver.current?.dispose();
+      clearJournal(docRef.current.id);
       await store.deleteDoc(docRef.current.id).catch(() => {});
-    } else if (editor && saveTimer.current) {
-      saveTimer.current = null;
-      await saveContent(editor);
+    } else {
+      await saver.current?.flush();
     }
-  }, [editor, saveContent]);
+  }, []);
 
   const goToDesk = useCallback(async () => {
     await finish();
@@ -206,13 +243,11 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   }, [finish, router]);
 
   // Run `finish` only on real exits (tab close / unmount), never on re-renders.
-  const finishRef = useRef(finish);
-  finishRef.current = finish;
   const mounted = useRef(false);
   useEffect(() => {
     mounted.current = true;
     const flush = () => {
-      finishRef.current();
+      finish();
     };
     window.addEventListener("pagehide", flush);
     return () => {
@@ -223,14 +258,14 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         if (!mounted.current) flush();
       }, 0);
     };
-  }, []);
+  }, [finish]);
 
   // ── settings ──
   const updateSettings = useCallback(
     (patch: Partial<DocSettings>) => {
       setSettings((prev) => {
         const next = { ...prev, ...patch };
-        persist({ settings: next });
+        persist({ settings: next }).catch(() => setSave("offline"));
         return next;
       });
     },
@@ -291,6 +326,9 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       } else if (mod && e.key.toLowerCase() === "p") {
         e.preventDefault();
         window.print();
+      } else if (mod && e.shiftKey && e.key.toLowerCase() === "l") {
+        e.preventDefault();
+        setPanel("dict");
       } else if (mod && e.key === "/") {
         e.preventDefault();
         setShowKeys((v) => !v);
@@ -352,15 +390,14 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           <div className="min-w-0 flex-1">
             <input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => {
-                if (title === docRef.current.title) return;
+              onChange={(e) => {
+                setTitle(e.target.value);
+                titleRef.current = e.target.value;
                 if (pristine.current) {
                   pristine.current = false;
-                  const next = { ...settings, pristine: false };
-                  setSettings(next);
-                  persist({ title, settings: next });
-                } else persist({ title });
+                  setSettings((prev) => ({ ...prev, pristine: false }));
+                }
+                saver.current?.touch();
               }}
               onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
               className="w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1.05rem] font-semibold hover:bg-desk-2 focus:bg-desk-2 focus:outline-none"
@@ -369,7 +406,19 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             <div className="flex items-center gap-2 px-1.5 text-[11.5px] text-muted">
               <span className="font-semibold text-kasavu">{template.ml}</span>
               <span>{settings.pageSize}</span>
-              <span aria-live="polite">{settings.pristine ? "Empty pages are discarded when you leave" : save === "saving" ? "Saving…" : save === "dirty" ? "Editing" : save === "error" ? "Couldn't save — retrying on next change" : store.isCloud() ? "Saved to cloud" : "Saved in this browser"}</span>
+              <span aria-live="polite" className={save === "offline" ? "font-semibold text-danger" : ""}>
+                {settings.pristine
+                  ? "Empty pages are discarded when you leave"
+                  : save === "saving"
+                    ? "Saving…"
+                    : save === "dirty"
+                      ? "Saved on this device · syncing"
+                      : save === "offline"
+                        ? "Offline — safe on this device, will sync when back online"
+                        : store.isCloud()
+                          ? "All changes saved"
+                          : "Saved in this browser"}
+              </span>
             </div>
           </div>
 
@@ -379,7 +428,15 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             </button>
             {menu === "export" && (
               <Menu onClose={() => setMenu(null)}>
-                <MenuItem onClick={() => window.print()} icon={<FileText size={15} />} label="PDF (print)" hint="Ctrl+P" />
+                <MenuItem
+                  onClick={async () => {
+                    await saver.current?.flush();
+                    window.open(`${BASE}/print/?doc=${initial.id}&auto=1`, "_blank");
+                  }}
+                  icon={<FileText size={15} />}
+                  label="PDF — print-ready pages"
+                />
+                <MenuItem onClick={() => window.print()} icon={<FileText size={15} />} label="Quick print" hint="Ctrl+P" />
                 <MenuItem onClick={() => exportDocx(currentDoc())} icon={<FileText size={15} />} label="Word (.docx)" />
                 <MenuItem onClick={() => exportMarkdown(currentDoc())} icon={<FileText size={15} />} label="Markdown (.md)" />
                 <MenuItem onClick={() => exportText(currentDoc())} icon={<FileText size={15} />} label="Plain text (.txt)" />
@@ -446,30 +503,22 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         {/* ── Desk with A4 pages ── */}
         <main ref={deskRef} className="desk-scroll scrollbar-thin relative min-w-0 flex-1 overflow-auto bg-desk px-4 py-8" onClick={(e) => e.target === e.currentTarget && editor?.commands.focus("end")}>
           {findOpen && editor && <FindBar editor={editor} onClose={() => setFindOpen(false)} />}
-          {backup && editor && (
+          {recovered && editor && (
             <div className="no-print sticky top-0 z-30 mx-auto mb-4 flex w-fit max-w-full flex-wrap items-center gap-3 rounded-xl border border-kasavu/50 bg-kasavu-soft px-4 py-2.5 text-sm shadow-lg" role="status">
               <span>
-                Found changes from {new Date(backup.at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })} that didn’t reach the server.
+                Recovered your unsaved writing from {new Date(recovered.at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.
               </span>
-              <button
-                className="btn btn-primary !px-2.5 !py-1 !text-xs"
-                onClick={() => {
-                  editor.commands.setContent(backup.content, true);
-                  setBackup(null);
-                }}
-              >
-                Restore them
+              <button className="btn btn-primary !px-2.5 !py-1 !text-xs" onClick={() => setRecovered(null)}>
+                Keep it
               </button>
               <button
                 className="btn btn-ghost !px-2.5 !py-1 !text-xs"
                 onClick={() => {
-                  try {
-                    localStorage.removeItem(backupKey);
-                  } catch {}
-                  setBackup(null);
+                  editor.commands.setContent(recovered.server, true);
+                  setRecovered(null);
                 }}
               >
-                Discard
+                Use the older cloud copy
               </button>
             </div>
           )}
@@ -493,6 +542,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             </div>
           </div>
           {editor && <ManglishPopup editor={editor} />}
+          {editor && usesCues && <CueSuggest editor={editor} names={castNames} />}
         </main>
 
         {/* ── Side panels ── */}
@@ -507,7 +557,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 </div>
                 {panel === "ai" && <AIPanel editor={editor} kind={initial.kind} />}
                 {panel === "inbox" && <InboxPanel editor={editor} docId={initial.id} onCount={setInboxCount} />}
-                {panel === "notes" && <NotesPanel editor={editor} settings={settings} onChange={updateSettings} kind={initial.kind} />}
+                {panel === "dict" && <DictionaryPanel editor={editor} />}
+                {panel === "story" && <StoryPanel editor={editor} doc={docRef.current} settings={settings} onChange={updateSettings} onOpen={() => setStoryOpen(true)} refresh={storyOpen ? 0 : 1} />}
                 {panel === "history" && <HistoryPanel editor={editor} doc={docRef.current} onSnapshot={(l) => saveContent(editor, l)} />}
                 {panel === "keys" && <KeysPanel editor={editor} />}
                 {panel === "page" && <PagePanel settings={settings} onChange={updateSettings} showMetreOption={!!template.metre} />}
@@ -531,6 +582,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         )}
       </div>
 
+      {storyOpen && <StoryWorld doc={docRef.current} editor={editor} onClose={() => setStoryOpen(false)} />}
       {showKeys && <ShortcutsDialog onClose={() => setShowKeys(false)} screenplay={!!template.screenplay} />}
 
       {/* ── Status bar ── */}

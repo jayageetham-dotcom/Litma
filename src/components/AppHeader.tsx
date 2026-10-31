@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Settings, User } from "lucide-react";
+import { BookA, LogOut, Settings, User } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import { store } from "@/lib/store";
@@ -57,6 +57,9 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
           <Logo href="/desk/" />
         </div>
         <div className="flex items-center gap-1">
+          <Link href="/dictionary/" className="btn btn-ghost !px-2.5 text-sm" title="Malayalam dictionary & thesaurus">
+            <BookA size={17} /> <span className="hidden sm:inline">നിഘണ്ടു</span>
+          </Link>
           <ThemeToggle />
           {store.isCloud() ? (
             <div className="relative" ref={ref}>

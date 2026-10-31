@@ -50,3 +50,73 @@ export interface Profile {
   daily_goal: number;
   preferences: { inputMode?: string; [k: string]: unknown };
 }
+
+// ── Books ──
+export type BookItemType =
+  | "cover"
+  | "half-title"
+  | "title"
+  | "copyright"
+  | "dedication"
+  | "epigraph"
+  | "toc"
+  | "text"
+  | "part"
+  | "document"
+  | "back-cover";
+
+export interface BookItem {
+  id: string;
+  type: BookItemType;
+  /** for "document" */
+  documentId?: string;
+  /** heading shown for this item (chapter title, page title, part name) */
+  title?: string;
+  /** for "document": print the document title as a chapter heading */
+  showTitle?: boolean;
+  /** rich text for text / dedication / epigraph / copyright pages (Tiptap JSON) */
+  content?: JSONContent;
+  /** include in the table of contents */
+  inToc?: boolean;
+}
+
+export interface BookSettings {
+  pageSize?: "A4" | "A5" | "Letter";
+  font?: string;
+  fontSize?: number;
+  lineHeight?: number;
+  margins?: { top: number; bottom: number; inner: number; outer: number };
+  chaptersOnRight?: boolean;
+  runningHead?: boolean;
+  publisher?: string;
+  isbn?: string;
+  edition?: string;
+  year?: string;
+}
+
+export interface BookCover {
+  template?: "kasavu" | "solid" | "photo" | "type" | "minimal";
+  bg?: string;
+  fg?: string;
+  accent?: string;
+  font?: string;
+  image?: string | null;
+  imageOpacity?: number;
+  titleScale?: number;
+  blurb?: string;
+  authorBio?: string;
+  authorPhoto?: string | null;
+  price?: string;
+}
+
+export interface Book {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  author: string | null;
+  structure: BookItem[];
+  settings: BookSettings;
+  cover: BookCover;
+  created_at: string;
+  updated_at: string;
+}

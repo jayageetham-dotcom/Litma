@@ -21,6 +21,7 @@ const GROUPS: [string, [string, string][]][] = [
       ["Ctrl/⌘ + P", "Print / save as PDF (A4)"],
       ["Ctrl/⌘ + Enter", "Page break"],
       ["Ctrl/⌘ + Shift + F", "Focus mode"],
+      ["Ctrl/⌘ + Shift + L", "Dictionary & thesaurus for the selected word"],
       ["Ctrl/⌘ + /", "This list"],
     ],
   ],
@@ -38,6 +39,7 @@ const SCREENPLAY: [string, string][] = [
   ["Tab", "Action ↔ dialogue; name → speech"],
   ["Enter on an empty line", "Switch between action and dialogue"],
   ["Ctrl/⌘ + Alt + 1 … 6", "Scene · Time · Cast · Action · Dialogue · Transition"],
+  ["Alt + 1 … 7 (in a name)", "Pick a character from the suggestions"],
 ];
 
 export function ShortcutsDialog({ onClose, screenplay }: { onClose: () => void; screenplay: boolean }) {

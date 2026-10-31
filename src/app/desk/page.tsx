@@ -2,13 +2,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Copy, FileUp, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { BookPlus, Copy, FileUp, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { CoverFront } from "@/components/book/Cover";
+import { DEFAULT_STRUCTURE } from "@/lib/book-structure";
 import { AppHeader } from "@/components/AppHeader";
 import { TemplatePreview } from "@/components/TemplatePreview";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { TEMPLATES, templateFor } from "@/lib/templates";
-import type { DocKind, LitmaDoc } from "@/lib/types";
+import type { Book, DocKind, LitmaDoc } from "@/lib/types";
 
 function timeAgo(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -20,7 +22,8 @@ function timeAgo(iso: string) {
 
 function Desk() {
   const router = useRouter();
-  const [view, setView] = useState<"works" | "trash">("works");
+  const [view, setView] = useState<"works" | "books" | "trash">("works");
+  const [books, setBooks] = useState<Book[] | null>(null);
   const [docs, setDocs] = useState<LitmaDoc[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
@@ -35,6 +38,11 @@ function Desk() {
   const load = useCallback(async () => {
     try {
       if (view === "works") await store.discardPristine(30).catch(() => 0);
+      if (view === "books") {
+        setBooks(await store.listBooks());
+        setDocs([]);
+        return;
+      }
       setDocs(await store.listDocs({ trash: view === "trash" }));
       const days = await store.wordsByDay();
       if (days.length) {
@@ -100,10 +108,12 @@ function Desk() {
         <div className="flex flex-wrap items-end justify-between gap-4 pt-4">
           <div>
             <h1 className="text-3xl font-bold" style={{ fontFamily: "'Anek Malayalam'" }}>
-              {view === "works" ? "എഴുത്തുമേശ" : "ചവറ്റുകുട്ട"}
+              {view === "works" ? "എഴുത്തുമേശ" : view === "books" ? "പുസ്തകങ്ങൾ" : "ചവറ്റുകുട്ട"}
             </h1>
             <p className="mt-1 text-muted">
-              {view === "trash"
+              {view === "books"
+                ? "Collect your works into a book with covers, contents and front pages, then export it as one PDF."
+                : view === "trash"
                 ? "Works you deleted. Restore them, or empty the trash to remove them for good."
                 : docs
                   ? `${docs.length} ${docs.length === 1 ? "work" : "works"} · ${totalWords.toLocaleString("en-IN")} words${today ? ` · ${today.words.toLocaleString("en-IN")} today` : ""}${today && today.streak > 1 ? ` · ${today.streak}-day streak` : ""}`
@@ -111,7 +121,18 @@ function Desk() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {view === "works" ? (
+            {view === "books" ? (
+              <button
+                className="btn btn-primary !px-4 !py-2.5"
+                onClick={async () => {
+                  const prof = await store.getProfile().catch(() => null);
+                  const b = await store.createBook({ title: "പുതിയ പുസ്തകം", author: prof?.pen_name || prof?.display_name || null, structure: DEFAULT_STRUCTURE(), settings: { pageSize: "A4", chaptersOnRight: true, runningHead: true }, cover: { template: "kasavu" } });
+                  router.push(`/book/?id=${b.id}`);
+                }}
+              >
+                <BookPlus size={18} /> New book
+              </button>
+            ) : view === "works" ? (
               <>
                 <input
                   ref={fileRef}
@@ -162,6 +183,7 @@ function Desk() {
             {(
               [
                 ["works", "Works"],
+                ["books", "Books"],
                 ["trash", "Trash"],
               ] as const
             ).map(([v, l]) => (
@@ -170,7 +192,7 @@ function Desk() {
               </button>
             ))}
           </div>
-          {docs && docs.length > 0 && (
+          {view !== "books" && docs && docs.length > 0 && (
             <>
               <label className="relative ml-auto">
                 <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
@@ -202,6 +224,38 @@ function Desk() {
           </section>
         )}
         {docs && docs.length === 0 && view === "trash" && <p className="mt-10 text-muted">The trash is empty.</p>}
+
+        {view === "books" && books && (
+          <ul className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-x-6 gap-y-8">
+            {books.length === 0 && <li className="col-span-full text-muted">No books yet. Use “New book” to collect chapters from your works.</li>}
+            {books.map((b) => (
+              <li key={b.id} className="group">
+                <Link href={`/book/?id=${b.id}`} className="block overflow-hidden rounded-sm transition-transform group-hover:-translate-y-1" style={{ width: 170, height: 170 * (297 / 210), boxShadow: "var(--sheet-shadow)" }}>
+                  <div style={{ transform: `scale(${170 / 793.7})`, transformOrigin: "top left" }}>
+                    <CoverFront book={b} w={210} h={297} />
+                  </div>
+                </Link>
+                <div className="mt-2 flex items-start justify-between gap-2 px-0.5">
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold">{b.title}</div>
+                    <div className="text-xs text-muted">{b.structure.filter((i) => i.type === "document").length} chapters · {timeAgo(b.updated_at)}</div>
+                  </div>
+                  <button
+                    className="rounded p-1 text-muted opacity-0 hover:text-danger group-hover:opacity-100"
+                    aria-label={`Delete ${b.title}`}
+                    onClick={async () => {
+                      if (!confirm(`Delete the book “${b.title}”? Its chapters stay on your desk.`)) return;
+                      await store.deleteBook(b.id);
+                      load();
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <ul className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-x-6 gap-y-8">
           {shown.map((d) => {

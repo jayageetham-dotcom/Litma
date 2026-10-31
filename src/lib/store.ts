@@ -6,12 +6,15 @@
 import type { JSONContent } from "@tiptap/core";
 import { getSupabase } from "./supabase/client";
 import { settingsFor, templateFor } from "./templates";
-import type { DocKind, DocVersion, LitmaDoc, Profile, Suggestion } from "./types";
+import type { Book, DocKind, DocVersion, LitmaDoc, Profile, Suggestion } from "./types";
+import type { StoryItem, StoryKind } from "./story";
 import { textToNodes } from "@/shared/serialize";
 import { countWords } from "@/shared/manglish";
 
 const LS_DOCS = "litma:docs";
 const LS_VERSIONS = "litma:versions";
+const LS_STORY = "litma:story";
+const LS_BOOKS = "litma:books";
 
 function lsGet<T>(key: string, fallback: T): T {
   try {
@@ -232,6 +235,121 @@ export const store = {
     const { data: old } = await sb.storage.from("avatars").list(u.user.id);
     if (old?.length) await sb.storage.from("avatars").remove(old.map((f) => `${u.user!.id}/${f.name}`));
     await this.updateProfile({ avatar_url: null });
+  },
+
+  // ── Story World ──
+  async listStory(docId: string): Promise<StoryItem[]> {
+    const sb = getSupabase();
+    if (!sb) return lsGet<StoryItem[]>(LS_STORY, []).filter((i) => i.document_id === docId).sort((a, b) => a.position - b.position);
+    const { data, error } = await sb.from("story_items").select("*").eq("document_id", docId).order("position").order("created_at");
+    if (error) throw error;
+    return (data ?? []) as StoryItem[];
+  },
+
+  async saveStory(item: Partial<StoryItem> & { document_id: string; kind: StoryKind }): Promise<StoryItem> {
+    const row = { name: "", summary: "", data: {}, image_url: null, position: Date.now() % 1e9, ...item };
+    const sb = getSupabase();
+    if (!sb) {
+      const all = lsGet<StoryItem[]>(LS_STORY, []);
+      const now = new Date().toISOString();
+      const saved = { ...row, id: row.id ?? uuid(), updated_at: now, created_at: row.created_at ?? now } as StoryItem;
+      const i = all.findIndex((x) => x.id === saved.id);
+      if (i >= 0) all[i] = saved;
+      else all.push(saved);
+      lsSet(LS_STORY, all);
+      return saved;
+    }
+    const { id, created_at: _c, updated_at: _u, ...rest } = row as StoryItem;
+    void _c;
+    void _u;
+    const q = id ? sb.from("story_items").update(rest).eq("id", id).select("*").single() : sb.from("story_items").insert(rest).select("*").single();
+    const { data, error } = await q;
+    if (error) throw error;
+    return data as StoryItem;
+  },
+
+  async deleteStory(id: string) {
+    const sb = getSupabase();
+    if (!sb) {
+      lsSet(LS_STORY, lsGet<StoryItem[]>(LS_STORY, []).filter((x) => x.id !== id));
+      return;
+    }
+    const { error } = await sb.from("story_items").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  /** Upload an image to media/<uid>/<folder>/… and return its public URL. */
+  async uploadMedia(blob: Blob, folder: string): Promise<string> {
+    const sb = getSupabase();
+    if (!sb) {
+      // local mode: keep a data URL (fine for a few small images)
+      return await new Promise((res) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result));
+        r.readAsDataURL(blob);
+      });
+    }
+    const { data: u } = await sb.auth.getUser();
+    if (!u.user) throw new Error("Sign in first.");
+    const path = `${u.user.id}/${folder}/${uuid()}.webp`;
+    const { error } = await sb.storage.from("media").upload(path, blob, { contentType: blob.type || "image/webp", cacheControl: "31536000" });
+    if (error) throw error;
+    return sb.storage.from("media").getPublicUrl(path).data.publicUrl;
+  },
+
+  // ── books ──
+  async listBooks(): Promise<Book[]> {
+    const sb = getSupabase();
+    if (!sb) return lsGet<Book[]>(LS_BOOKS, []).sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+    const { data, error } = await sb.from("books").select("*").order("updated_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as Book[];
+  },
+
+  async getBook(id: string): Promise<Book | null> {
+    const sb = getSupabase();
+    if (!sb) return lsGet<Book[]>(LS_BOOKS, []).find((b) => b.id === id) ?? null;
+    const { data, error } = await sb.from("books").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data as Book | null;
+  },
+
+  async createBook(init: Partial<Book>): Promise<Book> {
+    const sb = getSupabase();
+    if (!sb) {
+      const now = new Date().toISOString();
+      const b = { id: uuid(), title: "പുതിയ പുസ്തകം", subtitle: null, author: null, structure: [], settings: {}, cover: {}, created_at: now, updated_at: now, ...init } as Book;
+      lsSet(LS_BOOKS, [b, ...lsGet<Book[]>(LS_BOOKS, [])]);
+      return b;
+    }
+    const { data, error } = await sb.from("books").insert(init).select("*").single();
+    if (error) throw error;
+    return data as Book;
+  },
+
+  async updateBook(id: string, patch: Partial<Book>) {
+    const sb = getSupabase();
+    if (!sb) {
+      const all = lsGet<Book[]>(LS_BOOKS, []);
+      const i = all.findIndex((b) => b.id === id);
+      if (i >= 0) {
+        all[i] = { ...all[i], ...patch, updated_at: new Date().toISOString() };
+        lsSet(LS_BOOKS, all);
+      }
+      return;
+    }
+    const { error } = await sb.from("books").update(patch).eq("id", id);
+    if (error) throw error;
+  },
+
+  async deleteBook(id: string) {
+    const sb = getSupabase();
+    if (!sb) {
+      lsSet(LS_BOOKS, lsGet<Book[]>(LS_BOOKS, []).filter((b) => b.id !== id));
+      return;
+    }
+    const { error } = await sb.from("books").delete().eq("id", id);
+    if (error) throw error;
   },
 
   // ── versions ──

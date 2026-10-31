@@ -13,7 +13,10 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 ## Map
 - `src/extensions/` manglish · pagination (A4) · screenplay · blocks · tools (metre, search, typewriter)
 - `src/lib/store.ts` data layer (Supabase or localStorage) · `auth.tsx` guards/helpers · `functions.ts` Edge Function calls
-- `src/components/editor/Workspace.tsx` the editor shell
+- `src/components/editor/Workspace.tsx` the editor shell; `src/lib/autosave.ts` journal + cloud saver
+- `src/components/story/StoryWorld.tsx` Story World (characters, locations, beats…); `src/lib/story.ts` field definitions per form
+- `src/lib/paginate.ts` print paginator; `src/lib/book-sections.ts` book/document → pages; `src/app/print` PDF view; `src/app/book` book editor
+- `src/lib/dictionary.ts` + `scripts/build-dictionary.mjs` Olam dictionary/thesaurus
 - `supabase/functions/litma-mcp` MCP server (stateless Streamable HTTP); `public/mcp.php` relays `/litma/mcp` to it
 
 ## MCP servers (.mcp.json)

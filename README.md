@@ -16,6 +16,10 @@ A Malayalam writing desk for novels, short stories, poems, screenplays, features
 
 The site is static, so there are no server secrets on cPanel. Service keys stay inside Supabase.
 
+## Dictionary data
+
+`npm run dict` downloads Olam's open datasets (Datuk — ODbL, EnMl — ODbL, E.K. Kurup — CC BY-SA 4.0) and writes sharded JSON to `public/dict/` (git-ignored). CI does this on every deploy (cached), so the dictionary is served from `/litma/dict/`.
+
 ## Local development
 
 ```bash
@@ -67,7 +71,10 @@ Optional: Authentication → Providers → Google (for "Continue with Google"); 
 - **A4 pages** by default (A5, Letter, Legal), page numbers, running heads, true-size PDF export.
 - **Nine forms**, each with its own template and toolbar — including the Kerala **screenplay** layout (Scene: N, location, time, cast on the right, action left, two-column dialogue) and **poems/lyrics** with akshara counts and laghu/guru metre marks.
 - **Accounts:** sign up, sign in (password, email link, Google), forgot/reset password, **profile** with picture upload, pen name, bio, daily goal, default typing mode, writing heatmap and streaks.
-- **Never lose a line:** autosave, offline backup with restore, version history, trash with restore. **Empty new files are discarded** when you close them without writing.
+- **Never lose a line:** every change is journaled on the device immediately and saved to the cloud within ~1 s (at least every 5 s while typing), with retry/back-off when offline and automatic recovery on reopen. Version history, trash with restore. **Empty new files are discarded** when you close them without writing.
+- **Story World (കഥാലോകം)** for every form: characters (role, arc, voice, relationships, picture), locations, props/objects, a drag-and-drop beat/plot board, timeline, research notes, and reports (scene list, dialogue counts per character, locations; chapter word counts and name mentions; verse line/akshara spread). Character-name autocomplete in screenplay cues.
+- **Dictionary (നിഘണ്ടു):** Malayalam→Malayalam (Datuk), English→Malayalam (Olam), Malayalam→English, synonyms (E.K. Kurup thesaurus) and opposites (Datamuse, mapped to Malayalam). In the editor (Ctrl/⌘+Shift+L, looks up the selection) and at `/dictionary/`.
+- **Books:** collect works as chapters, add parts, preface/introduction/acknowledgements/about-the-author pages, dedication, epigraph, title, half-title and copyright pages, an automatic contents page with page numbers, and designed front/back covers. Export as one print-ready PDF (A4, A5 or Letter, mirrored margins, running heads, roman/arabic folios). Single documents export the same way.
 - Outline, find & replace, focus and typewriter modes, night desk, zoom, notes & character bank, import `.txt`/`.md`, export PDF/Word/Markdown/text/HTML, public read-only links, keyboard shortcuts (`Ctrl/⌘+/`).
 - **AI:** Claude/GPT companion in the editor, and an **MCP server** so Claude, ChatGPT, IBM Bob, Cursor or VS Code can read your works and send suggestions to the editor's live inbox.
 
@@ -84,11 +91,12 @@ Tools: `list_documents`, `search_documents`, `read_document`, `get_writing_guide
 ## Project layout
 
 ```
-src/app/            pages (desk, write, read, login, signup, profile, settings…)
+src/app/            pages (desk, write, book, print, dictionary, read, login, signup, profile, settings…)
 src/components/     UI; editor/ holds the Tiptap workspace, toolbar, panels
 src/extensions/     Tiptap extensions (manglish, pagination, screenplay, blocks, tools)
 src/shared/         dependency-free code shared with Edge Functions
 supabase/functions/ litma-transliterate · litma-ai · litma-mcp (+ _shared, synced from src/shared)
 supabase/migrations schema, RLS, storage policies
+scripts/build-dictionary.mjs   Olam datasets → public/dict shards (run by CI; `npm run dict` locally)
 public/mcp.php      /litma/mcp relay   ·   public/.htaccess  routing & caching
 ```

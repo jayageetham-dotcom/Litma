@@ -88,6 +88,14 @@ Optional: Authentication → Providers → Google (for "Continue with Google"). 
 claude mcp add --transport http litma https://www.jayageetham.com/litma/mcp --header "Authorization: Bearer litma_…"
 ```
 
+Cloud connectors (Claude.ai **Settings → Connectors → Add custom connector**, ChatGPT) call from data centres, which the shared host's firewall blocks at `/litma/mcp`. They use the Edge Function directly, with the token in the URL:
+
+```
+https://jdexadomaxjtxlvgtldu.supabase.co/functions/v1/litma-mcp?key=litma_…
+```
+
+The project URL is public anyway (it ships in the app bundle with the publishable key); every call needs the writer's own token.
+
 30 tools, all scoped to the token's owner:
 
 | Area | Tools |

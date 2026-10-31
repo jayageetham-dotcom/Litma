@@ -4,7 +4,7 @@ import { Copy, KeyRound, Trash2 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 import { AppHeader } from "@/components/AppHeader";
 import { RequireAuth } from "@/lib/auth";
-import { MCP_URL } from "@/lib/config";
+import { MCP_DIRECT_URL, MCP_URL } from "@/lib/config";
 import { store } from "@/lib/store";
 import { getAIPrefs } from "@/components/editor/Panels";
 import { deleteAiKey, listAiKeys, saveAiKey, type AIProvider, type StoredKey } from "@/lib/functions";
@@ -114,6 +114,26 @@ function Settings() {
           )}
 
           <div className="mt-6 space-y-5 text-sm">
+            <div className="rounded-xl border border-kayal/30 bg-kayal-soft/60 p-4">
+              <h3 className="font-semibold">Claude (web, desktop and mobile app) — custom connector</h3>
+              <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] leading-relaxed">
+                <li>Create a token above and copy it.</li>
+                <li>
+                  In Claude, open <b>Settings → Connectors → Add custom connector</b>.
+                </li>
+                <li>Name it “Litma” and paste this URL (it already includes your token):</li>
+              </ol>
+              <div className="mt-2">
+                <Code>{`${MCP_DIRECT_URL}?key=${tok}`}</Code>
+              </div>
+              <p className="mt-2 text-xs text-muted">
+                If Claude says it couldn’t work out how the server signs in, choose <b>Continue anyway</b> — the token in the URL is the sign-in. Treat this URL like a password; revoke the token above if it leaks.
+              </p>
+            </div>
+            <div>
+              <h3 className="mb-1.5 font-semibold">ChatGPT (developer mode connector)</h3>
+              <Code>{`${MCP_DIRECT_URL}?key=${tok}`}</Code>
+            </div>
             <div>
               <h3 className="mb-1.5 font-semibold">Claude Code</h3>
               <Code>{`claude mcp add --transport http litma ${url} --header "Authorization: Bearer ${tok}"`}</Code>
@@ -121,16 +141,14 @@ function Settings() {
             <div>
               <h3 className="mb-1.5 font-semibold">Claude Desktop (claude_desktop_config.json)</h3>
               <Code>{JSON.stringify({ mcpServers: { litma: { command: "npx", args: ["-y", "mcp-remote", url, "--header", `Authorization: Bearer ${tok}`] } } }, null, 2)}</Code>
-              <p className="mt-1 text-xs text-muted">Or in Claude (web, desktop or mobile): Settings → Connectors → Add custom connector, URL {`${url}?key=${tok}`}</p>
-            </div>
-            <div>
-              <h3 className="mb-1.5 font-semibold">ChatGPT (developer mode connector)</h3>
-              <Code>{`${url}?key=${tok}`}</Code>
             </div>
             <div>
               <h3 className="mb-1.5 font-semibold">Cursor, VS Code and other MCP clients (mcp.json)</h3>
               <Code>{JSON.stringify({ mcpServers: { litma: { type: "streamable-http", url, headers: { Authorization: `Bearer ${tok}` } } } }, null, 2)}</Code>
             </div>
+            <p className="text-xs text-muted">
+              Apps on your own computer can use {url}. If one can’t connect, use {MCP_DIRECT_URL} instead — it is the same server.
+            </p>
           </div>
         </section>
       </main>

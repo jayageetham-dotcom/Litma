@@ -17,7 +17,7 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 - `src/components/story/StoryWorld.tsx` Story World (characters, locations, beats…); `src/lib/story.ts` field definitions per writing type (സാഹിത്യരൂപം)
 - `src/lib/paginate.ts` print paginator; `src/lib/book-sections.ts` book/document → pages; `src/app/print` PDF view; `src/app/book` book editor
 - `src/lib/dictionary.ts` + `scripts/build-dictionary.mjs` Olam dictionary/thesaurus
-- `supabase/functions/litma-mcp` MCP server (stateless Streamable HTTP); `public/mcp.php` relays `/litma/mcp` to it
+- `supabase/functions/litma-mcp` MCP server (stateless Streamable HTTP); `public/mcp.php` relays `/litma/mcp` to it. The cPanel firewall blocks data-centre callers, so cloud connectors (Claude.ai, ChatGPT) use `MCP_DIRECT_URL` (the function URL + `?key=`) — Settings shows it.
 
 ## Layout (mobile-first, mirrors the planned native app)
 - `useScreen()` in `src/lib/useLayout.ts`: phone < 768 · tablet < 1280 · desktop < 1536 · wide.

@@ -14,7 +14,7 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 - `src/extensions/` manglish · pagination (A4) · screenplay · blocks · tools (metre, search, typewriter)
 - `src/lib/store.ts` data layer (Supabase or localStorage) · `auth.tsx` guards/helpers · `functions.ts` Edge Function calls
 - `src/components/editor/Workspace.tsx` the editor shell; `src/lib/autosave.ts` journal + cloud saver
-- `src/components/story/StoryWorld.tsx` Story World (characters, locations, beats…); `src/lib/story.ts` field definitions per form
+- `src/components/story/StoryWorld.tsx` Story World (characters, locations, beats…); `src/lib/story.ts` field definitions per writing type (സാഹിത്യരൂപം)
 - `src/lib/paginate.ts` print paginator; `src/lib/book-sections.ts` book/document → pages; `src/app/print` PDF view; `src/app/book` book editor
 - `src/lib/dictionary.ts` + `scripts/build-dictionary.mjs` Olam dictionary/thesaurus
 - `supabase/functions/litma-mcp` MCP server (stateless Streamable HTTP); `public/mcp.php` relays `/litma/mcp` to it
@@ -22,3 +22,7 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 ## MCP servers (.mcp.json)
 - `supabase` — hosted Supabase MCP for this project (OAuth on first use)
 - `litma` — Litma's own server; set `LITMA_MCP_TOKEN` (Settings → MCP)
+
+## Vocabulary
+- Novel, story, poem, screenplay… are **writing types — സാഹിത്യരൂപം** (plural സാഹിത്യരൂപങ്ങൾ). Never call them "forms" in UI, docs or MCP text. (Code keeps the `kind` / `DocKind` / `shared/forms.ts` names.)
+- Character/location notes are **Story World — കഥാലോകം**. Avoid religious terms.

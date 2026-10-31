@@ -1,7 +1,7 @@
 import type { DocKind } from "@/lib/types";
 import { settingsFor } from "@/lib/templates";
 
-/** Real-looking first pages for each form, rendered with the same CSS as the editor. */
+/** Real-looking first pages for each writing type (സാഹിത്യരൂപം), rendered with the same CSS as the editor. */
 const SAMPLES: Record<DocKind, string> = {
   novel: `<p class="sb sb-chapter">കടൽ കാണാത്ത വീട്</p>
 <p>അന്ന് രാത്രി മഴ തോർന്നിരുന്നില്ല. ഇടവഴിയിലെ ചെളിയിൽ കാൽ പൂഴ്ത്തി നടക്കുമ്പോൾ അയാൾ അമ്മയുടെ ശബ്ദം ഓർത്തു. വാതിൽ തുറന്നു കിടന്നിരുന്നു; അകത്ത് ഒരു മണ്ണെണ്ണ വിളക്ക് മാത്രം.</p>

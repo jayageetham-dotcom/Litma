@@ -260,7 +260,7 @@ function ProfileView() {
           </div>
           {stats.byKind.length > 0 && (
             <div className="rounded-xl bg-paper p-5" style={{ boxShadow: "var(--sheet-shadow)" }}>
-              <h2 className="mb-2 font-semibold">By form</h2>
+              <h2 className="mb-2 font-semibold">സാഹിത്യരൂപം · By writing type</h2>
               <ul className="space-y-1 text-sm">
                 {stats.byKind.map(([k, n]) => (
                   <li key={k} className="flex justify-between">

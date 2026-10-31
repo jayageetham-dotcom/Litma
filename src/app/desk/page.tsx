@@ -219,7 +219,7 @@ function Desk() {
         {docs && docs.length === 0 && view === "works" && !choosing && (
           <section className="mt-10">
             <h2 className="text-xl font-semibold">Start your first work</h2>
-            <p className="mt-1 text-muted">Choose a form. You can change fonts, margins and page size later.</p>
+            <p className="mt-1 text-muted">Choose a സാഹിത്യരൂപം (writing type). You can change fonts, margins and page size later.</p>
             <Chooser onPick={create} creating={creating} />
           </section>
         )}
@@ -342,10 +342,10 @@ function Desk() {
       </main>
 
       {choosing && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-12" role="dialog" aria-modal="true" aria-label="Choose a form" onClick={closeChooser}>
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-12" role="dialog" aria-modal="true" aria-label="Choose a writing type" onClick={closeChooser}>
           <div className="w-full max-w-5xl rounded-xl bg-desk p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">{importing ? `Import “${importing.name}” as…` : "What are you writing?"}</h2>
+              <h2 className="text-xl font-bold">{importing ? `Import “${importing.name}” as…` : "സാഹിത്യരൂപം · What are you writing?"}</h2>
               <button className="btn btn-ghost !p-2" onClick={closeChooser} aria-label="Close">
                 <X size={18} />
               </button>

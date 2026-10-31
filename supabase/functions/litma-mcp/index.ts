@@ -74,8 +74,8 @@ const TOOLS: Tool[] = [
   {
     name: "list_documents",
     title: "List documents",
-    description: "List the writer's works (novels, stories, poems, screenplays, features…) with id, title, form, words and last edit. Set trash=true for deleted works.",
-    inputSchema: { type: "object", properties: { kind: S("string", "Only this form", { enum: KINDS }), trash: S("boolean", "List the trash instead"), limit: S("number", "Max results (default 50)") } },
+    description: "List the writer's works (novels, stories, poems, screenplays, features…) with id, title, writing type (സാഹിത്യരൂപം), words and last edit. Set trash=true for deleted works.",
+    inputSchema: { type: "object", properties: { kind: S("string", "Only this writing type", { enum: KINDS }), trash: S("boolean", "List the trash instead"), limit: S("number", "Max results (default 50)") } },
     annotations: RO,
     async run(a, u) {
       let q = db.from("documents").select("id,title,kind,word_count,updated_at").eq("user_id", u).eq("archived", !!a.trash).order("updated_at", { ascending: false }).limit(Number(a.limit) || 50);
@@ -125,14 +125,14 @@ const TOOLS: Tool[] = [
       const st = d.settings as Json;
       const notes = st?.notes ? `\n\n---\nWriter's notes:\n${st.notes}` : "";
       const f = formName(String(d.kind));
-      return out(`# ${d.title}\nForm: ${f.en} (${f.ml}) · ${d.word_count} words · edit: ${docLink(String(d.id))}\n\n${body}${notes}`);
+      return out(`# ${d.title}\nWriting type (സാഹിത്യരൂപം): ${f.en} (${f.ml}) · ${d.word_count} words · edit: ${docLink(String(d.id))}\n\n${body}${notes}`);
     },
   },
   {
     name: "create_document",
     title: "Create a document",
-    description: "Create a new work of a given form, optionally with starting text (parsed like append_to_document).",
-    inputSchema: { type: "object", properties: { title: S("string", "Title"), kind: S("string", "Form", { enum: KINDS }), text: S("string", "Optional starting text") }, required: ["title", "kind"] },
+    description: "Create a new work of a given writing type, optionally with starting text (parsed like append_to_document).",
+    inputSchema: { type: "object", properties: { title: S("string", "Title"), kind: S("string", "Writing type", { enum: KINDS }), text: S("string", "Optional starting text") }, required: ["title", "kind"] },
     async run(a, u) {
       const kind = (KINDS.includes(a.kind) ? a.kind : "blank") as DocKind;
       const title = String(a.title || `പുതിയ ${formName(kind).ml}`);
@@ -153,7 +153,7 @@ const TOOLS: Tool[] = [
     name: "append_to_document",
     title: "Append text",
     description:
-      "Add text to the end of a work. Parsed by form: '# ' title, '## ' chapter, '### ' subhead, blank-line paragraphs, '* * *' scene break; screenplay lines like 'Scene: Int./Beach' and 'പേര്: സംഭാഷണം'; drama '(stage direction)'. Call get_writing_guide first.",
+      "Add text to the end of a work. Parsed by writing type: '# ' title, '## ' chapter, '### ' subhead, blank-line paragraphs, '* * *' scene break; screenplay lines like 'Scene: Int./Beach' and 'പേര്: സംഭാഷണം'; drama '(stage direction)'. Call get_writing_guide first.",
     inputSchema: { type: "object", properties: { id: S("string", "Document id"), text: S("string", "Text to add") }, required: ["id", "text"] },
     async run(a, u) {
       const d = await ownDoc(u, a.id);
@@ -424,8 +424,8 @@ const TOOLS: Tool[] = [
   {
     name: "get_writing_guide",
     title: "Writing guide",
-    description: "Formatting conventions for a Litma form (e.g. the Malayalam screenplay layout). Read before writing text into a work.",
-    inputSchema: { type: "object", properties: { kind: S("string", "Form", { enum: KINDS }) }, required: ["kind"] },
+    description: "Formatting conventions for a Litma writing type (e.g. the Malayalam screenplay layout). Read before writing text into a work.",
+    inputSchema: { type: "object", properties: { kind: S("string", "Writing type", { enum: KINDS }) }, required: ["kind"] },
     annotations: RO,
     async run(a) {
       return out(WRITING_GUIDES[String(a.kind)] ?? WRITING_GUIDES.blank);
@@ -616,7 +616,7 @@ const TOOLS: Tool[] = [
   {
     name: "writing_stats",
     title: "Writing stats",
-    description: "Words written per day (last 60 days), current streak, totals per form.",
+    description: "Words written per day (last 60 days), current streak, totals per writing type.",
     inputSchema: { type: "object", properties: {} },
     annotations: RO,
     async run(_a, u) {
@@ -631,13 +631,13 @@ const TOOLS: Tool[] = [
         streak++;
         d.setDate(d.getDate() - 1);
       }
-      const perForm: Record<string, { works: number; words: number }> = {};
+      const perWritingType: Record<string, { works: number; words: number }> = {};
       for (const x of docs ?? []) {
-        const f = (perForm[x.kind] ??= { works: 0, words: 0 });
+        const f = (perWritingType[x.kind] ??= { works: 0, words: 0 });
         f.works++;
         f.words += x.word_count;
       }
-      return outJson({ streak, today: map.get(key(new Date())) ?? 0, days: days ?? [], perForm });
+      return outJson({ streak, today: map.get(key(new Date())) ?? 0, days: days ?? [], perWritingType });
     },
   },
 ];
@@ -670,7 +670,7 @@ async function handle(msg: Json, userId: string | null) {
         capabilities: { tools: { listChanged: false } },
         serverInfo: { name: "litma", title: "Litma — Malayalam writing desk", version: "0.3.0" },
         instructions:
-          "Litma holds one writer's Malayalam literary work: documents (novels, stories, poems, screenplays, plays, features…), Story World notes, books and a dictionary. Read before changing anything. Write Malayalam in Unicode script, never Manglish (use transliterate if the writer types Manglish). Prefer suggest_edit for creative proposals; use direct edits only when asked, and save_version before large changes. Call get_writing_guide before writing for a form.",
+          "Litma holds one writer's Malayalam literary work: documents (novels, stories, poems, screenplays, plays, features…), Story World notes, books and a dictionary. Read before changing anything. Write Malayalam in Unicode script, never Manglish (use transliterate if the writer types Manglish). Prefer suggest_edit for creative proposals; use direct edits only when asked, and save_version before large changes. Call get_writing_guide before writing for a writing type.",
       });
     case "ping":
       return ok(id, {});

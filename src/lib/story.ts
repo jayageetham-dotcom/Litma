@@ -84,7 +84,7 @@ export interface StoryTab {
   summary?: string;
 }
 
-/** Which story-story sections each form gets (modelled on Final Draft, Scrivener, Celtx…). */
+/** Which Story World sections each writing type gets (modelled on Final Draft, Scrivener, Celtx…). */
 export function tabsFor(kind: DocKind): StoryTab[] {
   const report: StoryTab = { kind: "report", label: "Reports", ml: "റിപ്പോർട്ട്" };
   switch (kind) {

@@ -8,7 +8,7 @@ import { TEMPLATES } from "@/lib/templates";
 const FEATURES = [
   ["Manglish or Malayalam", "Type “nammude naadu” and get നമ്മുടെ നാട്. Google Input Tools predictions, an offline engine, and your own keyboard all work."],
   ["Real A4 pages", "Text flows onto separate printed-size pages with page numbers and running heads. Export print-ready PDFs."],
-  ["Forms that know their craft", "Screenplays in the Malayalam two-column layout, poems with വൃത്തം metre marks, novels with chapters, features with pull quotes."],
+  ["സാഹിത്യരൂപങ്ങൾ — each set its own way", "Screenplays in the Malayalam two-column layout, poems with വൃത്തം metre marks, novels with chapters, features with pull quotes."],
   ["Story World", "Characters, locations, props, a drag-and-drop beat board, timeline, research notes and scene and character reports for every work."],
   ["Dictionary built in", "Malayalam–Malayalam, English–Malayalam, synonyms and opposites from Olam's open datasets, one click from your text."],
   ["Make it a book", "Gather works into a book with covers, title and copyright pages, a contents page with real page numbers, and export one PDF."],
@@ -51,18 +51,18 @@ export default function Home() {
               <Link href="/desk/" className="btn btn-primary !px-5 !py-3 !text-base">
                 Open your desk
               </Link>
-              <Link href="#forms" className="btn btn-outline !px-5 !py-3 !text-base">
-                See the forms
+              <Link href="#types" className="btn btn-outline !px-5 !py-3 !text-base">
+                See the writing types
               </Link>
             </div>
           </div>
           <TryManglish />
         </section>
 
-        <section id="forms" className="border-y border-line bg-desk-2/60 py-16">
+        <section id="types" className="border-y border-line bg-desk-2/60 py-16">
           <div className="mx-auto max-w-6xl px-5">
-            <h2 className="text-2xl font-bold">Nine forms, each set the way it is printed</h2>
-            <p className="mt-2 max-w-2xl text-muted">Pick a form and Litma sets up the page, the typeface and the toolbar for it.</p>
+            <h2 className="text-2xl font-bold">ഒൻപത് സാഹിത്യരൂപങ്ങൾ · Nine writing types, each set the way it is printed</h2>
+            <p className="mt-2 max-w-2xl text-muted">Pick a സാഹിത്യരൂപം (writing type) and Litma sets up the page, the typeface and the toolbar for it.</p>
             <div className="scrollbar-thin mt-8 flex gap-6 overflow-x-auto pb-4">
               {TEMPLATES.filter((t) => t.kind !== "blank").map((t) => (
                 <div key={t.kind} className="shrink-0">

@@ -46,6 +46,13 @@
   --brand: #111113;
   --brand-mark: #4f46e5; /* the small dot in the logo and thin accent lines */
 
+  /* Landing "How it works" demos */
+  --demo-stage: #eef0f6; /* cool, slightly tinted so white pages pop */
+  --demo-dots: rgba(79, 70, 229, 0.10);
+  --demo-paper-line: #dfe1ea;
+  --demo-cover: #312e81; /* book cloth: deep indigo */
+  --demo-cover-ink: #eef0ff;
+
   /* Shape */
   --radius-sm: 8px;
   --radius: 12px;
@@ -82,6 +89,12 @@
   --brand: #f4f4f5;
   --brand-mark: #a5b4fc;
   --danger: #f87171;
+
+  --demo-stage: #0d0d10;
+  --demo-dots: rgba(165, 180, 252, 0.06);
+  --demo-paper-line: #26262c;
+  --demo-cover: #f4f4f5;
+  --demo-cover-ink: #111113;
 
   --sheet-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);
   --pop-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);

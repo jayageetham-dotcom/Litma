@@ -58,7 +58,7 @@ function ManglishDemo() {
   const w = WORDS[fr.done.length] ?? WORDS[0];
   return (
     <div ref={ref} aria-hidden className="demo-stage grid place-items-center px-6">
-      <div className="relative w-full max-w-[19rem] rounded-md bg-paper px-5 py-6 shadow-[var(--sheet-shadow)]" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+      <div className="relative w-full max-w-[19rem] rounded-md demo-paper px-5 py-6" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
         <p className="text-[17px] leading-relaxed text-ink">
           {fr.done.join(" ")}
           {fr.done.length > 0 && " "}
@@ -91,7 +91,7 @@ function PagesDemo() {
   const n = Math.min(step, LINE_W.length);
   const pages = n > PER_PAGE ? 2 : 1;
   const page = (from: number, to: number, num: number, show: boolean) => (
-    <div className={`demo-fade relative h-[170px] w-[120px] rounded-[3px] bg-paper px-3 pt-4 shadow-[var(--sheet-shadow)] ${show ? "opacity-100" : "translate-x-3 opacity-0"}`}>
+    <div className={`demo-fade relative h-[170px] w-[120px] rounded-[3px] demo-paper px-3 pt-4 ${show ? "opacity-100" : "translate-x-3 opacity-0"}`}>
       {LINE_W.slice(from, to).map((w, k) => (
         <div key={k} className="mb-[7px] h-[5px] rounded-full bg-ink/70" style={{ width: `${w}%`, animation: "litma-line 0.25s ease-out both" }} />
       ))}
@@ -123,7 +123,7 @@ function ScreenplayDemo() {
   const speech = step >= 5;
   return (
     <div ref={ref} aria-hidden className="demo-stage grid place-items-center px-6">
-      <div className="w-full max-w-[19rem] rounded-md bg-paper px-5 py-5 text-[13px] shadow-[var(--sheet-shadow)]" style={{ fontFamily: "'Noto Sans Malayalam'" }}>
+      <div className="w-full max-w-[19rem] rounded-md demo-paper px-5 py-5 text-[13px]" style={{ fontFamily: "'Noto Sans Malayalam'" }}>
         <div className="h-6">
           {sceneTyped && !sceneSet && (
             <span className="font-mono text-[12px] text-muted">
@@ -166,7 +166,7 @@ function BookDemo() {
           return (
             <div
               key={c}
-              className="demo-fade absolute inset-0 rounded-[3px] bg-paper px-2 pt-3 shadow-[var(--sheet-shadow)]"
+              className="demo-fade absolute inset-0 rounded-[3px] demo-paper px-2 pt-3"
               style={{ transform: `translateX(${shown ? fan : fan + 30}px) rotate(${bound ? 0 : (k - 1) * 4}deg)`, opacity: shown ? 1 : 0 }}
             >
               <div className="text-[9px] font-semibold text-highlight">{c}</div>
@@ -177,8 +177,8 @@ function BookDemo() {
           );
         })}
         <div
-          className="demo-fade absolute inset-0 flex flex-col justify-end rounded-[3px] bg-primary p-2.5 text-primary-ink shadow-[var(--pop-shadow)]"
-          style={{ opacity: step >= 5 ? 1 : 0, transform: step >= 5 ? "none" : "translateY(14px)" }}
+          className="demo-fade absolute inset-0 flex flex-col justify-end rounded-[3px] p-2.5 shadow-[var(--pop-shadow)]"
+          style={{ background: "var(--demo-cover)", color: "var(--demo-cover-ink)", opacity: step >= 5 ? 1 : 0, transform: step >= 5 ? "none" : "translateY(14px)" }}
         >
           <div className="text-[11px] font-bold leading-tight" style={{ fontFamily: "'Anek Malayalam'" }}>
             കടൽ കാണാത്ത വീട്
@@ -213,7 +213,7 @@ function AIDemo() {
   return (
     <div ref={ref} aria-hidden className="demo-stage grid place-items-center px-5">
       <div className="w-full max-w-[20rem]">
-        <div className="rounded-md bg-paper px-4 py-3 text-[14px] leading-relaxed shadow-[var(--sheet-shadow)]" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+        <div className="rounded-md demo-paper px-4 py-3 text-[14px] leading-relaxed" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
           പടിവാതിൽ ചാരി.{" "}
           <span className={`rounded-sm transition-colors duration-300 ${accepted ? "bg-highlight-soft" : selected ? "bg-accent-soft" : ""}`}>{accepted ? AI_AFTER : AI_BEFORE}</span>
         </div>
@@ -249,7 +249,7 @@ function DictionaryDemo() {
   return (
     <div ref={ref} aria-hidden className="demo-stage grid place-items-center px-5">
       <div className="relative w-full max-w-[20rem]">
-        <div className="rounded-md bg-paper px-4 py-3 text-[15px] leading-relaxed shadow-[var(--sheet-shadow)]" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+        <div className="rounded-md demo-paper px-4 py-3 text-[15px] leading-relaxed" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
           രാത്രി മുഴുവൻ{" "}
           <span className={`rounded-sm px-0.5 transition-colors duration-300 ${swapped ? "bg-highlight-soft" : selected ? "bg-accent-soft" : ""}`}>{swapped ? "മാരി" : "മഴ"}</span> പെയ്തു.
         </div>

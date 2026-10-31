@@ -212,9 +212,26 @@ body {
 .demo-stage {
   position: relative;
   height: 260px;
-  background: var(--canvas);
+  background-color: var(--demo-stage);
+  background-image: radial-gradient(var(--demo-dots) 1px, transparent 1.2px);
+  background-size: 14px 14px;
   border-bottom: 1px solid var(--line);
   overflow: hidden;
+}
+.demo-card {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.demo-card:hover {
+  box-shadow: var(--pop-shadow);
+}
+/* a sheet of paper inside a demo: crisp hairline + soft lift in light, quiet in dark */
+.demo-paper {
+  background: var(--paper);
+  border: 1px solid var(--demo-paper-line);
+  box-shadow: 0 1px 1px rgba(17, 17, 19, 0.04), 0 6px 18px -6px rgba(49, 46, 129, 0.16);
+}
+.dark .demo-paper {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.35);
 }
 .demo-fade {
   transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);

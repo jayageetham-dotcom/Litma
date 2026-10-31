@@ -61,3 +61,13 @@ export function authMessage(e: unknown): string {
   if (/network|fetch/i.test(m)) return "Can't reach the server. Check your connection and try again.";
   return m || "Something went wrong. Try again.";
 }
+
+/** On sign-in/sign-up screens: a writer who is already signed in goes straight on to `next`. */
+export function useRedirectIfSignedIn(next: string) {
+  const user = useUser();
+  const router = useRouter();
+  useEffect(() => {
+    if (user) router.replace(next);
+  }, [user, next, router]);
+  return user;
+}

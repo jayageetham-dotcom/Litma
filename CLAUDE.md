@@ -19,6 +19,13 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 - `src/lib/dictionary.ts` + `scripts/build-dictionary.mjs` Olam dictionary/thesaurus
 - `supabase/functions/litma-mcp` MCP server (stateless Streamable HTTP); `public/mcp.php` relays `/litma/mcp` to it
 
+## Layout (mobile-first, mirrors the planned native app)
+- `useScreen()` in `src/lib/useLayout.ts`: phone < 768 · tablet < 1280 · desktop < 1536 · wide.
+- Phones: bottom tab bars (`MobileNav` on desk/dictionary/profile/settings; Format · Contents · Story · Dictionary · More in the editor; Contents · Page · Details in the book editor), panels as bottom sheets (`components/ui/Sheet.tsx`), and a keyboard accessory (`MobileFormatStrip`) while writing.
+- Tablets/laptops: editor panels slide **over** the page (never shrink it); they dock only on wide screens.
+- Global `.btn` sets `display`, so hide buttons with `max-md:!hidden`, not `hidden md:inline-flex`.
+- Landing/auth are session-aware: signed-in writers never see Sign in / Create account (`HomeActions.tsx`, `useRedirectIfSignedIn`).
+
 ## MCP servers (.mcp.json)
 - `supabase` — hosted Supabase MCP for this project (OAuth on first use)
 - `litma` — Litma's own server; set `LITMA_MCP_TOKEN` (Settings → MCP)

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Copy, KeyRound, Trash2 } from "lucide-react";
+import { MobileNav } from "@/components/MobileNav";
 import { AppHeader } from "@/components/AppHeader";
 import { RequireAuth } from "@/lib/auth";
 import { MCP_URL } from "@/lib/config";
@@ -133,14 +134,15 @@ function Settings() {
           </div>
         </section>
       </main>
+      <MobileNav />
     </div>
   );
 }
 
-const PROVIDERS: { id: AIProvider; name: string; placeholder: string; model: string; where: string }[] = [
-  { id: "anthropic", name: "Claude (Anthropic)", placeholder: "sk-ant-…", model: "claude-sonnet-5-5", where: "console.anthropic.com → API keys" },
-  { id: "openai", name: "GPT (OpenAI)", placeholder: "sk-…", model: "gpt-4.1-mini", where: "platform.openai.com → API keys" },
-  { id: "gemini", name: "Gemini (Google)", placeholder: "AIza…", model: "gemini-2.5-flash", where: "aistudio.google.com → Get API key" },
+const PROVIDERS: { id: AIProvider; name: string; placeholder: string; model: string; keyUrl: string; keyHost: string; billingUrl: string }[] = [
+  { id: "anthropic", name: "Claude (Anthropic)", placeholder: "sk-ant-…", model: "claude-sonnet-5-5", keyUrl: "https://console.anthropic.com/settings/keys", keyHost: "Anthropic Console", billingUrl: "https://console.anthropic.com/settings/billing" },
+  { id: "openai", name: "GPT (OpenAI)", placeholder: "sk-…", model: "gpt-4.1-mini", keyUrl: "https://platform.openai.com/api-keys", keyHost: "OpenAI Platform", billingUrl: "https://platform.openai.com/settings/organization/billing" },
+  { id: "gemini", name: "Gemini (Google)", placeholder: "AIza…", model: "gemini-2.5-flash", keyUrl: "https://aistudio.google.com/app/apikey", keyHost: "Google AI Studio", billingUrl: "https://aistudio.google.com/usage" },
 ];
 
 /** Each writer's own AI keys: stored encrypted on the server (cloud) or in this browser (local mode). */
@@ -202,7 +204,6 @@ function AIKeys() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <div className="font-semibold">{p.name}</div>
-                  <div className="text-xs text-muted">Get a key: {p.where}</div>
                 </div>
                 <label className="flex items-center gap-2 text-xs">
                   <input type="radio" name="default-ai" className="accent-[var(--kayal)]" checked={def === p.id} onChange={() => setDefault(p.id)} /> Default
@@ -253,6 +254,14 @@ function AIKeys() {
                   {busy === p.id ? "Saving…" : "Save key"}
                 </button>
               </form>
+              <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                <a href={p.keyUrl} target="_blank" rel="noreferrer" className="font-medium text-kayal underline underline-offset-2">
+                  Get your {p.name.split(" ")[0]} API key at {p.keyHost} ↗
+                </a>
+                <a href={p.billingUrl} target="_blank" rel="noreferrer" className="text-muted underline underline-offset-2">
+                  Usage &amp; billing ↗
+                </a>
+              </p>
             </div>
           );
         })}

@@ -5,12 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell, Field, GoogleButton, Notice } from "@/components/AuthShell";
 import { getSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { authMessage, authRedirect, safeNext } from "@/lib/auth";
+import { authMessage, authRedirect, safeNext, useRedirectIfSignedIn } from "@/lib/auth";
 
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
+  useRedirectIfSignedIn(next);
   const [magic, setMagic] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

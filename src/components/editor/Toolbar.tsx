@@ -23,6 +23,8 @@ import {
   Undo2,
   Asterisk,
   RemoveFormatting,
+  ChevronDown,
+  Type,
 } from "lucide-react";
 import type { Template } from "@/lib/templates";
 import { FONTS } from "@/lib/templates";
@@ -98,12 +100,15 @@ export function Toolbar({
   mode,
   onMode,
   onFind,
+  variant = "bar",
 }: {
   editor: Editor;
   template: Template;
   mode: InputMode;
   onMode: (m: InputMode) => void;
   onFind: () => void;
+  /** "bar": one scrolling row under the top bar · "sheet": wrapped, touch-sized, inside the phone's Format sheet */
+  variant?: "bar" | "sheet";
 }) {
   const e = editor;
   const chain = () => e.chain().focus();
@@ -127,7 +132,15 @@ export function Toolbar({
   const usesDialogue = template.screenplay || template.dialogue;
 
   return (
-    <div className="no-print scrollbar-thin flex items-center gap-0.5 overflow-x-auto border-b border-line bg-paper px-3 py-1.5" role="toolbar" aria-label="Formatting">
+    <div
+      className={
+        variant === "sheet"
+          ? "no-print flex flex-wrap items-center gap-1 [&_button]:min-h-10 [&_button]:min-w-10 [&_select]:h-10"
+          : "no-print scrollbar-thin flex items-center gap-0.5 overflow-x-auto border-b border-line bg-paper px-3 py-1.5"
+      }
+      role="toolbar"
+      aria-label="Formatting"
+    >
       <Btn title="Undo (Ctrl+Z)" onClick={() => chain().undo().run()} disabled={!e.can().undo()}>
         <Undo2 size={16} />
       </Btn>
@@ -310,6 +323,97 @@ export function Toolbar({
       <Btn title="Find and replace (Ctrl+F)" onClick={onFind}>
         <Search size={16} />
       </Btn>
+    </div>
+  );
+}
+
+/**
+ * Phone keyboard accessory: sits on top of the on-screen keyboard while writing,
+ * like a native app's input accessory view. The most used actions only; "Aa" opens the full Format sheet.
+ */
+export function MobileFormatStrip({
+  editor,
+  template,
+  mode,
+  onMode,
+  onMore,
+  onDone,
+}: {
+  editor: Editor;
+  template: Template;
+  mode: InputMode;
+  onMode: (m: InputMode) => void;
+  onMore: () => void;
+  onDone: () => void;
+}) {
+  const e = editor;
+  const chain = () => e.chain().focus();
+  const parentName = e.state.selection.$from.parent.type.name;
+  const usesDialogue = template.screenplay || template.dialogue;
+  const next: Record<InputMode, InputMode> = { manglish: "malayalam", malayalam: "english", english: "manglish" };
+  const label: Record<InputMode, string> = { manglish: "Manglish", malayalam: "മലയാളം", english: "English" };
+  const keep = (ev: React.MouseEvent | React.PointerEvent) => ev.preventDefault();
+  const B = ({ t, on, act, dis, children }: { t: string; on: () => void; act?: boolean; dis?: boolean; children: React.ReactNode }) => (
+    <button
+      type="button"
+      onPointerDown={keep}
+      onMouseDown={keep}
+      onClick={on}
+      aria-label={t}
+      aria-pressed={act}
+      disabled={dis}
+      className={`grid h-10 min-w-10 shrink-0 place-items-center rounded-lg px-2 text-[13px] disabled:opacity-35 ${act ? "bg-kayal-soft text-kayal" : "text-ink active:bg-desk-2"}`}
+    >
+      {children}
+    </button>
+  );
+  return (
+    <div className="no-print flex items-center gap-0.5 border-t border-line bg-paper px-1.5 py-1" role="toolbar" aria-label="Quick formatting">
+      <button
+        type="button"
+        onPointerDown={keep}
+        onMouseDown={keep}
+        onClick={() => onMode(next[mode])}
+        className="h-9 shrink-0 rounded-lg bg-kayal-soft px-2.5 text-[12.5px] font-semibold text-kayal"
+        aria-label={`Input: ${label[mode]}. Tap to switch`}
+      >
+        {label[mode]}
+      </button>
+      <div className="scrollbar-none flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
+        <B t="Undo" on={() => chain().undo().run()} dis={!e.can().undo()}>
+          <Undo2 size={18} />
+        </B>
+        <B t="Redo" on={() => chain().redo().run()} dis={!e.can().redo()}>
+          <Redo2 size={18} />
+        </B>
+        {usesDialogue
+          ? SCREENPLAY_ELEMENTS.filter((x) => template.screenplay || ["action", "dialogue"].includes(x.type)).map((el) => (
+              <B key={el.type} t={el.label} on={() => setScreenplayElement(e, el.type)} act={parentName === el.type || (el.type === "dialogue" && parentName.startsWith("dialogue"))}>
+                {el.ml}
+              </B>
+            ))
+          : null}
+        <B t="Bold" on={() => chain().toggleBold().run()} act={e.isActive("bold")}>
+          <Bold size={18} />
+        </B>
+        <B t="Italic" on={() => chain().toggleItalic().run()} act={e.isActive("italic")}>
+          <Italic size={18} />
+        </B>
+        <B t="Underline" on={() => chain().toggleUnderline().run()} act={e.isActive("underline")}>
+          <UIcon size={18} />
+        </B>
+        {!template.screenplay && (
+          <B t="Bulleted list" on={() => chain().toggleBulletList().run()} act={e.isActive("bulletList")}>
+            <List size={18} />
+          </B>
+        )}
+      </div>
+      <B t="All formatting" on={onMore}>
+        <Type size={18} />
+      </B>
+      <B t="Hide keyboard" on={onDone}>
+        <ChevronDown size={20} />
+      </B>
     </div>
   );
 }

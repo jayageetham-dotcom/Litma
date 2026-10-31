@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { TryManglish } from "@/components/TryManglish";
 import { TemplatePreview } from "@/components/TemplatePreview";
 import { TEMPLATES } from "@/lib/templates";
+import { HeroActions, HomeNav } from "@/components/HomeActions";
 
 const FEATURES: [string, React.ReactNode][] = [
   ["Manglish or Malayalam", "Type “nammude naadu” and get നമ്മുടെ നാട്. Google Input Tools predictions, an offline engine, and your own keyboard all work."],
@@ -29,19 +30,11 @@ export default function Home() {
   return (
     <div className="min-h-dvh">
       <div className="kasavu-rule" />
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
+      <header className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-5 py-5">
         <Logo />
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-1.5 sm:gap-2">
           <ThemeToggle />
-          <Link href="/login/" className="btn btn-ghost">
-            Sign in
-          </Link>
-          <Link href="/signup/" className="btn btn-outline hidden sm:inline-flex">
-            Create account
-          </Link>
-          <Link href="/desk/" className="btn btn-primary">
-            Start writing
-          </Link>
+          <HomeNav />
         </nav>
       </header>
 
@@ -56,14 +49,7 @@ export default function Home() {
             <p className="mt-6 max-w-[34rem] text-lg leading-relaxed text-muted">
               Litma is a writing desk for Malayalam literature. Write novels, short stories, poems, screenplays and features on real A4 pages, in Manglish or Malayalam.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/desk/" className="btn btn-primary !px-5 !py-3 !text-base">
-                Open your desk
-              </Link>
-              <Link href="#types" className="btn btn-outline !px-5 !py-3 !text-base">
-                See the writing types
-              </Link>
-            </div>
+            <HeroActions />
           </div>
           <TryManglish />
         </section>

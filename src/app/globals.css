@@ -140,3 +140,16 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+/* Native-app chrome: respect the notch and home indicator */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}

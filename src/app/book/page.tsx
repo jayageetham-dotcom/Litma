@@ -2,7 +2,8 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowDown, ArrowLeft, ArrowUp, Camera, ExternalLink, FileText, GripVertical, Loader2, Plus, Printer, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Camera, ExternalLink, FileText, GripVertical, ListOrdered, Loader2, PanelTop, Plus, Printer, Settings2, X } from "lucide-react";
+import { useScreen } from "@/lib/useLayout";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { BASE } from "@/lib/config";
@@ -29,6 +30,11 @@ function BookEditor() {
   const [adding, setAdding] = useState(false);
   const [picking, setPicking] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
+  const screen = useScreen();
+  const phone = screen === "phone";
+  // phones show one pane at a time (tab bar); tablets slide "Book details" over the page
+  const [pane, setPane] = useState<"contents" | "item" | "details">("contents");
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latest = useRef<Book | null>(null);
 
@@ -121,7 +127,7 @@ function BookEditor() {
   return (
     <div className="flex h-dvh flex-col">
       <div className="kasavu-rule" />
-      <header className="flex items-center gap-3 border-b border-line bg-paper px-4 py-2">
+      <header className="safe-top flex items-center gap-1.5 border-b border-line bg-paper px-2 py-1.5 sm:gap-3 sm:px-4 sm:py-2">
         <Link href="/desk/" className="btn btn-ghost !p-2" aria-label="Back to desk">
           <ArrowLeft size={18} />
         </Link>
@@ -131,15 +137,20 @@ function BookEditor() {
             <span className="font-semibold text-kasavu">പുസ്തകം</span> · {chapters} {chapters === 1 ? "chapter" : "chapters"} · {save === "saving" ? "Saving…" : save === "error" ? "Offline — will retry" : "All changes saved"}
           </div>
         </div>
-        <ThemeToggle />
-        <a href={`${BASE}/print/?book=${book.id}`} target="_blank" rel="noreferrer" className="btn btn-primary" onClick={() => flush()}>
-          <Printer size={16} /> Preview &amp; export PDF
+        {!phone && <ThemeToggle />}
+        {screen === "tablet" && (
+          <button className={`btn btn-ghost !px-2.5 ${detailsOpen ? "text-kayal" : ""}`} onClick={() => setDetailsOpen((o) => !o)} aria-pressed={detailsOpen}>
+            <Settings2 size={16} /> Details
+          </button>
+        )}
+        <a href={`${BASE}/print/?book=${book.id}`} target="_blank" rel="noreferrer" className="btn btn-primary !px-3" onClick={() => flush()} aria-label="Preview and export PDF">
+          <Printer size={16} /> <span className="hidden sm:inline">Preview &amp; export</span> PDF
         </a>
       </header>
 
-      <div className="flex min-h-0 flex-1">
+      <div className="relative flex min-h-0 flex-1">
         {/* Contents */}
-        <aside className="scrollbar-thin w-72 shrink-0 overflow-y-auto border-r border-line bg-desk p-3">
+        <aside className={`scrollbar-thin overflow-y-auto bg-desk p-3 md:w-72 md:shrink-0 md:border-r md:border-line ${phone ? (pane === "contents" ? "flex-1" : "hidden") : ""}`}>
           <div className="mb-2 flex items-center justify-between px-1">
             <h2 className="text-sm font-semibold">Book contents</h2>
             <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => setAdding(true)}>
@@ -158,16 +169,22 @@ function BookEditor() {
                   if (from >= 0) move(from, i);
                   setDragId(null);
                 }}
-                className={`group flex items-center gap-1.5 rounded-md px-1.5 py-1.5 ${sel === it.id ? "bg-paper shadow-sm" : "hover:bg-desk-2"} ${dragId === it.id ? "opacity-40" : ""}`}
+                className={`group flex items-center gap-1.5 rounded-md px-1.5 py-2 md:py-1.5 ${sel === it.id ? "bg-paper shadow-sm" : "hover:bg-desk-2"} ${dragId === it.id ? "opacity-40" : ""}`}
               >
                 <GripVertical size={14} className="shrink-0 cursor-grab text-muted" aria-hidden />
-                <button className="min-w-0 flex-1 text-left" onClick={() => setSel(it.id)}>
+                <button
+                  className="min-w-0 flex-1 text-left"
+                  onClick={() => {
+                    setSel(it.id);
+                    if (phone) setPane("item");
+                  }}
+                >
                   <span className="block truncate text-[13.5px] font-medium" style={ml}>
                     {label(it)}
                   </span>
                   <span className="block text-[11px] text-muted">{it.type === "document" ? templateFor(docMap.get(it.documentId ?? "")?.kind ?? "blank").ml : ITEM_LABELS[it.type].en}</span>
                 </button>
-                <span className="flex opacity-0 group-hover:opacity-100">
+                <span className="flex group-hover:opacity-100 [@media(hover:hover)]:opacity-0 [&_button]:p-1.5 md:[&_button]:p-0.5">
                   <button className="rounded p-0.5 hover:bg-desk-2" onClick={() => move(i, i - 1)} aria-label="Move up">
                     <ArrowUp size={13} />
                   </button>
@@ -196,7 +213,7 @@ function BookEditor() {
         </aside>
 
         {/* Selected item */}
-        <main className="scrollbar-thin min-w-0 flex-1 overflow-y-auto bg-desk px-6 py-6">
+        <main className={`scrollbar-thin min-w-0 flex-1 overflow-y-auto bg-desk px-3 py-4 sm:px-6 sm:py-6 ${phone && pane !== "item" ? "hidden" : ""}`}>
           {!selected ? (
             <p className="text-muted">Choose a page from the contents, or add one.</p>
           ) : selected.type === "cover" || selected.type === "back-cover" ? (
@@ -207,8 +224,27 @@ function BookEditor() {
         </main>
 
         {/* Book settings */}
-        <aside className="scrollbar-thin hidden w-80 shrink-0 overflow-y-auto border-l border-line bg-desk p-4 xl:block">
-          <h2 className="mb-3 text-sm font-semibold">Book details</h2>
+        <aside
+          className={`scrollbar-thin overflow-y-auto bg-desk p-4 ${
+            phone
+              ? pane === "details"
+                ? "flex-1"
+                : "hidden"
+              : screen === "tablet"
+                ? detailsOpen
+                  ? "absolute inset-y-0 right-0 z-30 w-80 border-l border-line shadow-2xl"
+                  : "hidden"
+                : "w-80 shrink-0 border-l border-line"
+          }`}
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Book details</h2>
+            {screen === "tablet" && (
+              <button className="btn btn-ghost !p-1" onClick={() => setDetailsOpen(false)} aria-label="Close book details">
+                <X size={15} />
+              </button>
+            )}
+          </div>
           <div className="space-y-3 text-sm">
             <In label="Subtitle" value={book.subtitle ?? ""} onChange={(v) => update({ subtitle: v || null })} />
             <In label="Author" value={book.author ?? ""} onChange={(v) => update({ author: v || null })} />
@@ -270,8 +306,33 @@ function BookEditor() {
               Running heads (book title / chapter title)
             </label>
           </div>
+          {phone && (
+            <div className="mt-6 flex items-center justify-between rounded-xl border border-line bg-paper px-4 py-2 text-sm">
+              <span>Theme</span>
+              <ThemeToggle />
+            </div>
+          )}
         </aside>
       </div>
+
+      {phone && (
+        <nav className="safe-bottom grid grid-cols-3 border-t border-line bg-paper" aria-label="Book sections">
+          {(
+            [
+              ["contents", "Contents", ListOrdered],
+              ["item", "Page", PanelTop],
+              ["details", "Details", Settings2],
+            ] as const
+          ).map(([id, l, Icon]) => (
+            <button key={id} onClick={() => setPane(id)} aria-pressed={pane === id} className={`flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10.5px] font-medium ${pane === id ? "text-kayal" : "text-muted"}`}>
+              <span className={`grid h-7 w-14 place-items-center rounded-full ${pane === id ? "bg-kayal-soft" : ""}`}>
+                <Icon size={19} />
+              </span>
+              {l}
+            </button>
+          ))}
+        </nav>
+      )}
 
       {adding && (
         <Modal title="Add to book" onClose={() => setAdding(false)}>

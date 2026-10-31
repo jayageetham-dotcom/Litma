@@ -24,9 +24,14 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  MoreHorizontal,
+  Search,
+  Type,
 } from "lucide-react";
 import { buildExtensions } from "./extensions";
-import { Toolbar } from "./Toolbar";
+import { MobileFormatStrip, Toolbar } from "./Toolbar";
+import { Sheet } from "@/components/ui/Sheet";
+import { useKeyboardInset, useScreen } from "@/lib/useLayout";
 import { ManglishPopup } from "./ManglishPopup";
 import { AIPanel, HistoryPanel, InboxPanel, KeysPanel, OutlinePanel, PagePanel } from "./Panels";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -47,14 +52,14 @@ import { CueSuggest } from "./CueSuggest";
 import { StoryWorld } from "@/components/story/StoryWorld";
 
 type PanelId = "ai" | "dict" | "inbox" | "story" | "history" | "keys" | "page";
-const PANELS: { id: PanelId; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
-  { id: "ai", label: "AI companion", icon: Sparkles },
-  { id: "dict", label: "Dictionary & thesaurus", icon: BookA },
-  { id: "inbox", label: "Assistant inbox (MCP)", icon: Inbox },
-  { id: "story", label: "Story World", icon: NotebookPen },
-  { id: "history", label: "Version history", icon: HistoryIcon },
-  { id: "keys", label: "Malayalam keyboard", icon: Keyboard },
-  { id: "page", label: "Page & type", icon: Settings2 },
+const PANELS: { id: PanelId; label: string; short: string; icon: React.ComponentType<{ size?: number }> }[] = [
+  { id: "ai", short: "AI", label: "AI companion", icon: Sparkles },
+  { id: "dict", short: "Dictionary", label: "Dictionary & thesaurus", icon: BookA },
+  { id: "inbox", short: "Inbox", label: "Assistant inbox (MCP)", icon: Inbox },
+  { id: "story", short: "Story", label: "Story World", icon: NotebookPen },
+  { id: "history", short: "History", label: "Version history", icon: HistoryIcon },
+  { id: "keys", short: "Keyboard", label: "Malayalam keyboard", icon: Keyboard },
+  { id: "page", short: "Page", label: "Page & type", icon: Settings2 },
 ];
 
 type SaveState = SaveStatus;
@@ -67,6 +72,13 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const [mode, setMode] = useState<InputMode>(initial.settings.inputMode ?? "manglish");
   const [panel, setPanel] = useState<PanelId | null>(null);
   const [outline, setOutline] = useState(true);
+  const screen = useScreen();
+  const phone = screen === "phone";
+  const kb = useKeyboardInset();
+  const [phoneSheet, setPhoneSheet] = useState<"format" | "outline" | "more" | null>(null);
+  const [editing, setEditing] = useState(false);
+  // Outline docks on laptops; on tablets and phones it opens on demand.
+  useEffect(() => setOutline(screen === "desktop" || screen === "wide"), [screen]);
   const [focus, setFocus] = useState(false);
   const [typewriter, setTypewriter] = useState(false);
   const [userZoom, setZoom] = useState(1);
@@ -117,7 +129,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     extensions,
     content: startContent?.content ?? initial.content,
     immediatelyRender: false,
-    autofocus: "end",
+    // phones: don't pop the keyboard (and hide the tab bar) just because a work opened
+    autofocus: typeof window !== "undefined" && window.innerWidth < 768 ? false : "end",
     editorProps: {
       attributes: { spellcheck: "false", "aria-label": `${template.en} manuscript`, lang: "ml" },
     },
@@ -310,6 +323,20 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     };
   }, [editor]);
 
+  // phones: show the keyboard accessory while the page has focus, the tab bar otherwise
+  useEffect(() => {
+    if (!editor) return;
+    const on = () => setEditing(true);
+    const off = () => setEditing(false);
+    editor.on("focus", on);
+    editor.on("blur", off);
+    setEditing(editor.isFocused);
+    return () => {
+      editor.off("focus", on);
+      editor.off("blur", off);
+    };
+  }, [editor]);
+
   // global shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -346,7 +373,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     const el = deskRef.current;
     if (!el) return;
     const ro = new ResizeObserver(() => {
-      const avail = el.clientWidth - 32;
+      const avail = el.clientWidth - (el.clientWidth < 768 ? 16 : 32);
       setFit(Math.min(1, avail / (pageSize.w * MM)));
     });
     ro.observe(el);
@@ -377,15 +404,100 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   const currentDoc = (): LitmaDoc => ({ ...docRef.current, title, settings, content: editor?.getJSON() ?? docRef.current.content });
 
+  const exportItems: { label: string; hint?: string; run: () => void }[] = [
+    {
+      label: "PDF — print-ready pages",
+      run: async () => {
+        await saver.current?.flush();
+        window.open(`${BASE}/print/?doc=${initial.id}&auto=1`, "_blank");
+      },
+    },
+    { label: "Quick print", hint: "Ctrl+P", run: () => window.print() },
+    { label: "Word (.docx)", run: () => exportDocx(currentDoc()) },
+    { label: "Markdown (.md)", run: () => exportMarkdown(currentDoc()) },
+    { label: "Plain text (.txt)", run: () => exportText(currentDoc()) },
+    { label: "Web page (.html)", run: () => exportHTML(currentDoc(), editor?.getHTML() ?? "") },
+  ];
+
+  const shareBody = store.isCloud() ? (
+    <div className="space-y-2 text-sm">
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={isPublic}
+          className="accent-[var(--kayal)]"
+          onChange={async (e) => {
+            const id = await store.setPublic(docRef.current.id, e.target.checked);
+            setIsPublic(e.target.checked);
+            setShareId(id);
+          }}
+        />
+        Anyone with the link can read
+      </label>
+      {isPublic && shareId && (
+        <div className="flex gap-1">
+          <input readOnly className="field !py-1 !text-xs" value={`${appUrl(`/read/?s=${shareId}`)}`} onFocus={(e) => e.target.select()} />
+          <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => navigator.clipboard.writeText(`${appUrl(`/read/?s=${shareId}`)}`)}>
+            Copy
+          </button>
+        </div>
+      )}
+    </div>
+  ) : (
+    <p className="text-sm text-muted">Sharing needs a Supabase connection. Until then, export as PDF or Word to share.</p>
+  );
+
+  const saveText = settings.pristine
+    ? phone
+      ? "Empty — discarded if you leave"
+      : "Empty pages are discarded when you leave"
+    : save === "saving"
+      ? "Saving…"
+      : save === "dirty"
+        ? phone
+          ? "Saved on device · syncing"
+          : "Saved on this device · syncing"
+        : save === "offline"
+          ? phone
+            ? "Offline — safe on this device"
+            : "Offline — safe on this device, will sync when back online"
+          : store.isCloud()
+            ? phone
+              ? "Saved"
+              : "All changes saved"
+            : "Saved in this browser";
+
+  const panelBody = (id: PanelId) =>
+    editor && (
+      <>
+        {id === "ai" && <AIPanel editor={editor} kind={initial.kind} />}
+        {id === "inbox" && <InboxPanel editor={editor} docId={initial.id} onCount={setInboxCount} />}
+        {id === "dict" && <DictionaryPanel editor={editor} />}
+        {id === "story" && <StoryPanel editor={editor} doc={docRef.current} settings={settings} onChange={updateSettings} onOpen={() => setStoryOpen(true)} refresh={storyOpen ? 0 : 1} />}
+        {id === "history" && <HistoryPanel editor={editor} doc={docRef.current} onSnapshot={(l) => saveContent(editor, l)} />}
+        {id === "keys" && <KeysPanel editor={editor} />}
+        {id === "page" && <PagePanel settings={settings} onChange={updateSettings} showMetreOption={!!template.metre} />}
+      </>
+    );
+  const panelMode = phone ? "sheet" : screen === "wide" ? "dock" : "drawer";
+  const openPanel = (id: PanelId | null) => {
+    setPhoneSheet(null);
+    setPanel(id);
+  };
+  const hideKeyboard = () => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    editor?.commands.blur();
+  };
+
   return (
     <div className={`flex h-dvh flex-col ${focus ? "focus-shell" : ""}`}>
       <style>{pageCss}</style>
 
       {/* ── Top bar ── */}
       {!focus && (
-        <header className="no-print flex items-center gap-2 border-b border-line bg-paper px-3 py-2">
+        <header className="no-print safe-top flex items-center gap-1 border-b border-line bg-paper px-2 py-1.5 md:gap-2 md:px-3 md:py-2">
           <button onClick={goToDesk} className="btn btn-ghost !p-2" title="Back to desk" aria-label="Back to desk">
-            <ArrowLeft size={18} />
+            <ArrowLeft size={phone ? 20 : 18} />
           </button>
           <div className="min-w-0 flex-1">
             <input
@@ -400,231 +512,292 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 saver.current?.touch();
               }}
               onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-              className="w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1.05rem] font-semibold hover:bg-desk-2 focus:bg-desk-2 focus:outline-none"
+              className="w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-desk-2 focus:bg-desk-2 focus:outline-none md:text-[1.05rem]"
               aria-label="Title"
             />
-            <div className="flex items-center gap-2 px-1.5 text-[11.5px] text-muted">
+            <div className="flex items-center gap-2 truncate px-1.5 text-[11.5px] text-muted">
               <span className="font-semibold text-kasavu">{template.ml}</span>
-              <span>{settings.pageSize}</span>
-              <span aria-live="polite" className={save === "offline" ? "font-semibold text-danger" : ""}>
-                {settings.pristine
-                  ? "Empty pages are discarded when you leave"
-                  : save === "saving"
-                    ? "Saving…"
-                    : save === "dirty"
-                      ? "Saved on this device · syncing"
-                      : save === "offline"
-                        ? "Offline — safe on this device, will sync when back online"
-                        : store.isCloud()
-                          ? "All changes saved"
-                          : "Saved in this browser"}
+              {phone ? (
+                <span>
+                  {stats.words.toLocaleString("en-IN")} words · {stats.pages} {stats.pages === 1 ? "page" : "pages"}
+                </span>
+              ) : (
+                <span>{settings.pageSize}</span>
+              )}
+              <span aria-live="polite" className={`truncate ${save === "offline" ? "font-semibold text-danger" : ""}`}>
+                {saveText}
               </span>
             </div>
           </div>
 
-          <div className="relative">
-            <button className="btn btn-ghost !px-2.5" onClick={() => setMenu(menu === "export" ? null : "export")} aria-expanded={menu === "export"}>
-              <Download size={16} /> <span className="hidden md:inline">Export</span>
+          {phone ? (
+            <button className={`btn btn-ghost !p-2 ${panel === "ai" ? "text-kayal" : ""}`} onClick={() => openPanel(panel === "ai" ? null : "ai")} aria-label="AI companion">
+              <Sparkles size={20} />
             </button>
-            {menu === "export" && (
-              <Menu onClose={() => setMenu(null)}>
-                <MenuItem
-                  onClick={async () => {
-                    await saver.current?.flush();
-                    window.open(`${BASE}/print/?doc=${initial.id}&auto=1`, "_blank");
-                  }}
-                  icon={<FileText size={15} />}
-                  label="PDF — print-ready pages"
-                />
-                <MenuItem onClick={() => window.print()} icon={<FileText size={15} />} label="Quick print" hint="Ctrl+P" />
-                <MenuItem onClick={() => exportDocx(currentDoc())} icon={<FileText size={15} />} label="Word (.docx)" />
-                <MenuItem onClick={() => exportMarkdown(currentDoc())} icon={<FileText size={15} />} label="Markdown (.md)" />
-                <MenuItem onClick={() => exportText(currentDoc())} icon={<FileText size={15} />} label="Plain text (.txt)" />
-                <MenuItem onClick={() => exportHTML(currentDoc(), editor?.getHTML() ?? "")} icon={<FileText size={15} />} label="Web page (.html)" />
-              </Menu>
-            )}
-          </div>
-          <div className="relative">
-            <button className="btn btn-ghost !px-2.5" onClick={() => setMenu(menu === "share" ? null : "share")} aria-expanded={menu === "share"}>
-              <Share2 size={16} /> <span className="hidden md:inline">Share</span>
-            </button>
-            {menu === "share" && (
-              <Menu onClose={() => setMenu(null)} wide>
-                {store.isCloud() ? (
-                  <div className="space-y-2 p-3 text-sm">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={isPublic}
-                        className="accent-[var(--kayal)]"
-                        onChange={async (e) => {
-                          const id = await store.setPublic(docRef.current.id, e.target.checked);
-                          setIsPublic(e.target.checked);
-                          setShareId(id);
-                        }}
-                      />
-                      Anyone with the link can read
-                    </label>
-                    {isPublic && shareId && (
-                      <div className="flex gap-1">
-                        <input readOnly className="field !py-1 !text-xs" value={`${appUrl(`/read/?s=${shareId}`)}`} onFocus={(e) => e.target.select()} />
-                        <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => navigator.clipboard.writeText(`${appUrl(`/read/?s=${shareId}`)}`)}>
-                          Copy
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="p-3 text-sm text-muted">Sharing needs a Supabase connection. Until then, export as PDF or Word to share.</p>
+          ) : (
+            <>
+              <div className="relative">
+                <button className="btn btn-ghost !px-2.5" onClick={() => setMenu(menu === "export" ? null : "export")} aria-expanded={menu === "export"}>
+                  <Download size={16} /> <span className="hidden lg:inline">Export</span>
+                </button>
+                {menu === "export" && (
+                  <Menu onClose={() => setMenu(null)}>
+                    {exportItems.map((x) => (
+                      <MenuItem key={x.label} onClick={x.run} icon={<FileText size={15} />} label={x.label} hint={x.hint} />
+                    ))}
+                  </Menu>
                 )}
-              </Menu>
-            )}
-          </div>
-          <ThemeToggle />
-          <button className="btn btn-ghost !p-2 text-sm font-semibold" onClick={() => setShowKeys(true)} title="Keyboard shortcuts (Ctrl+/)" aria-label="Keyboard shortcuts">
-            ?
-          </button>
-          <button className="btn btn-ghost !p-2" onClick={() => setFocus(true)} title="Focus mode (Ctrl+Shift+F)" aria-label="Focus mode">
-            <Maximize2 size={17} />
-          </button>
+              </div>
+              <div className="relative">
+                <button className="btn btn-ghost !px-2.5" onClick={() => setMenu(menu === "share" ? null : "share")} aria-expanded={menu === "share"}>
+                  <Share2 size={16} /> <span className="hidden lg:inline">Share</span>
+                </button>
+                {menu === "share" && (
+                  <Menu onClose={() => setMenu(null)} wide>
+                    <div className="p-3">{shareBody}</div>
+                  </Menu>
+                )}
+              </div>
+              <ThemeToggle />
+              <button className="btn btn-ghost !p-2 text-sm font-semibold" onClick={() => setShowKeys(true)} title="Keyboard shortcuts (Ctrl+/)" aria-label="Keyboard shortcuts">
+                ?
+              </button>
+              <button className="btn btn-ghost !p-2" onClick={() => setFocus(true)} title="Focus mode (Ctrl+Shift+F)" aria-label="Focus mode">
+                <Maximize2 size={17} />
+              </button>
+            </>
+          )}
         </header>
       )}
 
-      {!focus && editor && <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => setFindOpen(true)} />}
+      {!focus && !phone && editor && <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => setFindOpen(true)} />}
 
       <div className="flex min-h-0 flex-1">
-        {/* ── Outline ── */}
-        {!focus && outline && editor && (
-          <aside className="no-print scrollbar-thin hidden w-56 shrink-0 overflow-y-auto border-r border-line bg-desk px-3 py-4 lg:block">
+        {/* ── Outline: docked on laptops and up ── */}
+        {!focus && outline && editor && (screen === "desktop" || screen === "wide") && (
+          <aside className="no-print scrollbar-thin w-56 shrink-0 overflow-y-auto border-r border-line bg-desk px-3 py-4">
             <OutlinePanel editor={editor} />
           </aside>
         )}
 
-        {/* ── Desk with A4 pages ── */}
-        <main ref={deskRef} className="desk-scroll scrollbar-thin relative min-w-0 flex-1 overflow-auto bg-desk px-4 py-8" onClick={(e) => e.target === e.currentTarget && editor?.commands.focus("end")}>
-          {findOpen && editor && <FindBar editor={editor} onClose={() => setFindOpen(false)} />}
-          {recovered && editor && (
-            <div className="no-print sticky top-0 z-30 mx-auto mb-4 flex w-fit max-w-full flex-wrap items-center gap-3 rounded-xl border border-kasavu/50 bg-kasavu-soft px-4 py-2.5 text-sm shadow-lg" role="status">
-              <span>
-                Recovered your unsaved writing from {new Date(recovered.at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.
-              </span>
-              <button className="btn btn-primary !px-2.5 !py-1 !text-xs" onClick={() => setRecovered(null)}>
-                Keep it
-              </button>
-              <button
-                className="btn btn-ghost !px-2.5 !py-1 !text-xs"
-                onClick={() => {
-                  editor.commands.setContent(recovered.server, true);
-                  setRecovered(null);
-                }}
-              >
-                Use the older cloud copy
-              </button>
-            </div>
-          )}
-          <div style={{ height: totalH * zoom + 4, width: `calc(${pageSize.w}mm * ${zoom})` }} className="mx-auto">
-            <div
-              className={`page-stack tpl-${initial.kind} ${settings.showMetre && template.metre ? "show-metre" : ""} ${focus ? "focus-mode" : ""}`}
-              style={{ ...stackStyle, transformOrigin: "top left" }}
-            >
-              {Array.from({ length: stats.pages }, (_, i) => (
-                <div key={i} className="sheet" style={{ top: i * (pageH + PAGE_GAP_PX), height: pageH }}>
-                  {i > 0 && (settings.header || title) && (
-                    <div className="sheet-head">
-                      <span>{settings.header || title}</span>
-                      <span>{template.ml}</span>
-                    </div>
-                  )}
-                  <div className="sheet-foot">{i + 1}</div>
-                </div>
-              ))}
-              <EditorContent editor={editor} className="page-content" />
-            </div>
-          </div>
-          {editor && <ManglishPopup editor={editor} />}
-          {editor && usesCues && <CueSuggest editor={editor} names={castNames} />}
-        </main>
-
-        {/* ── Side panels ── */}
-        {!focus && (
-          <>
-            {panel && editor && (
-              <aside className="no-print scrollbar-thin fixed inset-y-0 right-12 z-40 w-80 max-w-[85vw] shrink-0 overflow-y-auto border-l border-line bg-desk px-4 py-4 shadow-xl md:static md:shadow-none" aria-label={PANELS.find((p) => p.id === panel)?.label}>
-                <div className="mb-2 flex justify-end">
-                  <button className="btn btn-ghost !p-1" onClick={() => setPanel(null)} aria-label="Close panel">
-                    <X size={15} />
-                  </button>
-                </div>
-                {panel === "ai" && <AIPanel editor={editor} kind={initial.kind} />}
-                {panel === "inbox" && <InboxPanel editor={editor} docId={initial.id} onCount={setInboxCount} />}
-                {panel === "dict" && <DictionaryPanel editor={editor} />}
-                {panel === "story" && <StoryPanel editor={editor} doc={docRef.current} settings={settings} onChange={updateSettings} onOpen={() => setStoryOpen(true)} refresh={storyOpen ? 0 : 1} />}
-                {panel === "history" && <HistoryPanel editor={editor} doc={docRef.current} onSnapshot={(l) => saveContent(editor, l)} />}
-                {panel === "keys" && <KeysPanel editor={editor} />}
-                {panel === "page" && <PagePanel settings={settings} onChange={updateSettings} showMetreOption={!!template.metre} />}
-              </aside>
+        {/* The page keeps its full width: on tablets and laptops panels slide over it instead of squeezing it. */}
+        <div className="relative flex min-w-0 flex-1">
+          {/* ── Desk with A4 pages ── */}
+          <main
+            ref={deskRef}
+            className={`desk-scroll scrollbar-thin relative min-w-0 flex-1 overflow-auto bg-desk ${phone ? "px-2 pb-6 pt-3" : "px-4 py-8"}`}
+            onClick={(e) => e.target === e.currentTarget && editor?.commands.focus("end")}
+          >
+            {findOpen && editor && <FindBar editor={editor} onClose={() => setFindOpen(false)} />}
+            {recovered && editor && (
+              <div className="no-print sticky top-0 z-30 mx-auto mb-4 flex w-fit max-w-full flex-wrap items-center gap-3 rounded-xl border border-kasavu/50 bg-kasavu-soft px-4 py-2.5 text-sm shadow-lg" role="status">
+                <span>
+                  Recovered your unsaved writing from {new Date(recovered.at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.
+                </span>
+                <button className="btn btn-primary !px-2.5 !py-1 !text-xs" onClick={() => setRecovered(null)}>
+                  Keep it
+                </button>
+                <button
+                  className="btn btn-ghost !px-2.5 !py-1 !text-xs"
+                  onClick={() => {
+                    editor.commands.setContent(recovered.server, true);
+                    setRecovered(null);
+                  }}
+                >
+                  Use the older cloud copy
+                </button>
+              </div>
             )}
-            <nav className="no-print flex w-12 shrink-0 flex-col items-center gap-1 border-l border-line bg-paper py-3" aria-label="Panels">
-              <RailBtn active={outline} onClick={() => setOutline((o) => !o)} label="Outline" icon={ListTree} />
-              <span className="my-1 h-px w-6 bg-line" />
-              {PANELS.map((p) => (
-                <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} badge={p.id === "inbox" ? inboxCount : 0} />
-              ))}
-              <span className="my-1 h-px w-6 bg-line" />
-              <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" icon={BookOpen} />
-              {store.isCloud() && shareId && isPublic && (
-                <a href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-desk-2" title="Open reader view" aria-label="Open reader view">
-                  <Eye size={17} />
-                </a>
-              )}
-            </nav>
-          </>
+            <div style={{ height: totalH * zoom + 4, width: `calc(${pageSize.w}mm * ${zoom})` }} className="mx-auto">
+              <div
+                className={`page-stack tpl-${initial.kind} ${settings.showMetre && template.metre ? "show-metre" : ""} ${focus ? "focus-mode" : ""}`}
+                style={{ ...stackStyle, transformOrigin: "top left" }}
+              >
+                {Array.from({ length: stats.pages }, (_, i) => (
+                  <div key={i} className="sheet" style={{ top: i * (pageH + PAGE_GAP_PX), height: pageH }}>
+                    {i > 0 && (settings.header || title) && (
+                      <div className="sheet-head">
+                        <span>{settings.header || title}</span>
+                        <span>{template.ml}</span>
+                      </div>
+                    )}
+                    <div className="sheet-foot">{i + 1}</div>
+                  </div>
+                ))}
+                <EditorContent editor={editor} className="page-content" />
+              </div>
+            </div>
+            {editor && <ManglishPopup editor={editor} />}
+            {editor && usesCues && <CueSuggest editor={editor} names={castNames} />}
+          </main>
+
+          {!focus && screen === "tablet" && outline && editor && (
+            <Sheet mode="drawer" side="left" title="Contents" onClose={() => setOutline(false)}>
+              <OutlinePanel editor={editor} />
+            </Sheet>
+          )}
+          {!focus && panel && editor && panelMode === "drawer" && (
+            <Sheet mode="drawer" title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+              {panelBody(panel)}
+            </Sheet>
+          )}
+        </div>
+
+        {!focus && panel && editor && panelMode === "dock" && (
+          <Sheet mode="dock" title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+            {panelBody(panel)}
+          </Sheet>
+        )}
+
+        {/* ── Side rail (tablet and up) ── */}
+        {!focus && !phone && (
+          <nav className="no-print flex w-12 shrink-0 flex-col items-center gap-1 border-l border-line bg-paper py-3" aria-label="Panels">
+            <RailBtn active={outline} onClick={() => setOutline((o) => !o)} label="Outline" icon={ListTree} />
+            <span className="my-1 h-px w-6 bg-line" />
+            {PANELS.map((p) => (
+              <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} badge={p.id === "inbox" ? inboxCount : 0} />
+            ))}
+            <span className="my-1 h-px w-6 bg-line" />
+            <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" icon={BookOpen} />
+            {store.isCloud() && shareId && isPublic && (
+              <a href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-desk-2" title="Open reader view" aria-label="Open reader view">
+                <Eye size={17} />
+              </a>
+            )}
+          </nav>
         )}
       </div>
+
+      {/* ── Phone: bottom sheets ── */}
+      {phone && panel && editor && (
+        <Sheet mode="sheet" title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+          {panelBody(panel)}
+        </Sheet>
+      )}
+      {phone && phoneSheet === "format" && editor && (
+        <Sheet mode="sheet" title="Format" onClose={() => setPhoneSheet(null)}>
+          <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => { setPhoneSheet(null); setFindOpen(true); }} variant="sheet" />
+        </Sheet>
+      )}
+      {phone && phoneSheet === "outline" && editor && (
+        <Sheet mode="sheet" title="Contents" onClose={() => setPhoneSheet(null)}>
+          <div onClickCapture={(e) => (e.target as HTMLElement).closest("button") && setTimeout(() => setPhoneSheet(null), 120)}>
+            <OutlinePanel editor={editor} />
+          </div>
+        </Sheet>
+      )}
+      {phone && phoneSheet === "more" && (
+        <Sheet mode="sheet" title="More" onClose={() => setPhoneSheet(null)}>
+          <div className="grid grid-cols-4 gap-1.5">
+            {PANELS.filter((p) => !["story", "dict"].includes(p.id)).map((p) => (
+              <Tile key={p.id} icon={p.icon} label={p.short} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />
+            ))}
+            <Tile icon={Search} label="Find" onClick={() => { setPhoneSheet(null); setFindOpen(true); }} />
+            <Tile icon={BookOpen} label="Typewriter" active={typewriter} onClick={() => setTypewriter((t) => !t)} />
+            <Tile icon={Maximize2} label="Focus" onClick={() => { setPhoneSheet(null); setFocus(true); }} />
+            {store.isCloud() && shareId && isPublic && <Tile icon={Eye} label="Reader" onClick={() => window.open(`${BASE}/read/?s=${shareId}`, "_blank")} />}
+          </div>
+          <h3 className="mb-1.5 mt-5 text-xs font-semibold uppercase tracking-wide text-muted">Export</h3>
+          <div className="overflow-hidden rounded-xl border border-line bg-paper">
+            {exportItems.filter((x) => x.label !== "Quick print").map((x) => (
+              <button key={x.label} onClick={x.run} className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left text-sm last:border-0 active:bg-desk-2">
+                <FileText size={16} className="text-muted" /> {x.label}
+              </button>
+            ))}
+          </div>
+          <h3 className="mb-1.5 mt-5 text-xs font-semibold uppercase tracking-wide text-muted">Share</h3>
+          <div className="rounded-xl border border-line bg-paper p-3">{shareBody}</div>
+          <div className="mt-5 flex items-center justify-between rounded-xl border border-line bg-paper px-4 py-2 text-sm">
+            <span>Theme</span>
+            <ThemeToggle />
+          </div>
+        </Sheet>
+      )}
 
       {storyOpen && <StoryWorld doc={docRef.current} editor={editor} onClose={() => setStoryOpen(false)} />}
       {showKeys && <ShortcutsDialog onClose={() => setShowKeys(false)} screenplay={!!template.screenplay} />}
 
+      {/* ── Phone: keyboard accessory while writing, tab bar otherwise ── */}
+      {phone && !focus && editor && (editing ? (
+        <div className={kb ? "fixed inset-x-0 z-40" : ""} style={kb ? { bottom: kb } : undefined}>
+          <MobileFormatStrip editor={editor} template={template} mode={mode} onMode={changeMode} onMore={() => { hideKeyboard(); setPhoneSheet("format"); }} onDone={hideKeyboard} />
+        </div>
+      ) : (
+        <nav className="no-print safe-bottom grid grid-cols-5 border-t border-line bg-paper" aria-label="Writing tools">
+          <TabBtn icon={Type} label="Format" active={phoneSheet === "format"} onClick={() => { setPanel(null); setPhoneSheet(phoneSheet === "format" ? null : "format"); }} />
+          <TabBtn icon={ListTree} label="Contents" active={phoneSheet === "outline"} onClick={() => { setPanel(null); setPhoneSheet(phoneSheet === "outline" ? null : "outline"); }} />
+          <TabBtn icon={NotebookPen} label="Story" active={panel === "story"} onClick={() => openPanel(panel === "story" ? null : "story")} />
+          <TabBtn icon={BookA} label="Dictionary" active={panel === "dict"} onClick={() => openPanel(panel === "dict" ? null : "dict")} />
+          <TabBtn icon={MoreHorizontal} label="More" active={phoneSheet === "more"} badge={inboxCount} onClick={() => { setPanel(null); setPhoneSheet(phoneSheet === "more" ? null : "more"); }} />
+        </nav>
+      ))}
+
       {/* ── Status bar ── */}
-      <footer className="no-print flex items-center gap-4 border-t border-line bg-paper px-4 py-1.5 text-[12px] text-muted">
-        {focus && (
-          <button className="btn btn-ghost !px-2 !py-0.5 !text-xs" onClick={() => setFocus(false)}>
-            <Minimize2 size={13} /> Exit focus
-          </button>
-        )}
-        <span>
-          <b className="font-semibold text-ink">{stats.words.toLocaleString("en-IN")}</b> words
-        </span>
-        <span className="hidden sm:inline">{stats.aksharas.toLocaleString("en-IN")} aksharas</span>
-        <span className="hidden sm:inline">{stats.chars.toLocaleString("en-IN")} characters</span>
-        <span>
-          {stats.pages} {stats.pages === 1 ? "page" : "pages"}
-        </span>
-        <span className="hidden md:inline">{readingMinutes(stats.words)} min read</span>
-        {goal > 0 && (
-          <span className="flex items-center gap-2" title={`${stats.words} of ${goal} words`}>
-            <span className="h-1.5 w-24 overflow-hidden rounded-full bg-desk-2">
-              <span className="block h-full bg-kasavu" style={{ width: `${pct}%` }} />
+      {(!phone || focus) && (
+        <footer className="no-print safe-bottom flex items-center gap-4 border-t border-line bg-paper px-4 py-1.5 text-[12px] text-muted">
+          {focus && (
+            <button className="btn btn-ghost !px-2 !py-0.5 !text-xs" onClick={() => setFocus(false)}>
+              <Minimize2 size={13} /> Exit focus
+            </button>
+          )}
+          <span>
+            <b className="font-semibold text-ink">{stats.words.toLocaleString("en-IN")}</b> words
+          </span>
+          <span className="hidden lg:inline">{stats.aksharas.toLocaleString("en-IN")} aksharas</span>
+          <span className="hidden lg:inline">{stats.chars.toLocaleString("en-IN")} characters</span>
+          <span>
+            {stats.pages} {stats.pages === 1 ? "page" : "pages"}
+          </span>
+          <span className="hidden md:inline">{readingMinutes(stats.words)} min read</span>
+          {goal > 0 && (
+            <span className="flex items-center gap-2" title={`${stats.words} of ${goal} words`}>
+              <span className="h-1.5 w-24 overflow-hidden rounded-full bg-desk-2">
+                <span className="block h-full bg-kasavu" style={{ width: `${pct}%` }} />
+              </span>
+              {pct}%
             </span>
-            {pct}%
-          </span>
-        )}
-        <span className="ml-auto flex items-center gap-1">
-          <span className="mr-2 rounded bg-kayal-soft px-1.5 py-0.5 font-semibold text-kayal" title="Ctrl/⌘ + M switches input">
-            {mode === "manglish" ? "Manglish → മലയാളം" : mode === "malayalam" ? "മലയാളം" : "English"}
-          </span>
-          <button className="rounded p-1 hover:bg-desk-2" onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.1).toFixed(2)))} aria-label="Zoom out">
-            <Minus size={13} />
-          </button>
-          <button className="w-11 rounded py-0.5 text-center hover:bg-desk-2" onClick={() => setZoom(1)} title="Reset zoom">
-            {Math.round(zoom * 100)}%
-          </button>
-          <button className="rounded p-1 hover:bg-desk-2" onClick={() => setZoom((z) => Math.min(2, +(z + 0.1).toFixed(2)))} aria-label="Zoom in">
-            <Plus size={13} />
-          </button>
-        </span>
-      </footer>
+          )}
+          {!phone && (
+            <span className="ml-auto flex items-center gap-1">
+              <span className="mr-2 rounded bg-kayal-soft px-1.5 py-0.5 font-semibold text-kayal" title="Ctrl/⌘ + M switches input">
+                {mode === "manglish" ? "Manglish → മലയാളം" : mode === "malayalam" ? "മലയാളം" : "English"}
+              </span>
+              <button className="rounded p-1 hover:bg-desk-2" onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.1).toFixed(2)))} aria-label="Zoom out">
+                <Minus size={13} />
+              </button>
+              <button className="w-11 rounded py-0.5 text-center hover:bg-desk-2" onClick={() => setZoom(1)} title="Reset zoom">
+                {Math.round(zoom * 100)}%
+              </button>
+              <button className="rounded p-1 hover:bg-desk-2" onClick={() => setZoom((z) => Math.min(2, +(z + 0.1).toFixed(2)))} aria-label="Zoom in">
+                <Plus size={13} />
+              </button>
+            </span>
+          )}
+        </footer>
+      )}
     </div>
+  );
+}
+
+function TabBtn({ icon: Icon, label, active, onClick, badge = 0 }: { icon: React.ComponentType<{ size?: number }>; label: string; active: boolean; onClick: () => void; badge?: number }) {
+  return (
+    <button onClick={onClick} aria-pressed={active} className={`relative flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10.5px] font-medium ${active ? "text-kayal" : "text-muted"}`}>
+      <span className={`grid h-7 w-12 place-items-center rounded-full ${active ? "bg-kayal-soft" : ""}`}>
+        <Icon size={19} />
+      </span>
+      {label}
+      {badge > 0 && <span className="absolute right-[calc(50%-1.4rem)] top-1 grid h-4 min-w-4 place-items-center rounded-full bg-kasavu px-1 text-[10px] font-bold text-white">{badge}</span>}
+    </button>
+  );
+}
+
+function Tile({ icon: Icon, label, onClick, active, badge = 0 }: { icon: React.ComponentType<{ size?: number }>; label: string; onClick: () => void; active?: boolean; badge?: number }) {
+  return (
+    <button onClick={onClick} aria-pressed={active} className={`relative flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 text-[11.5px] leading-tight ${active ? "bg-kayal-soft text-kayal" : "bg-paper text-ink active:bg-desk-2"}`}>
+      <Icon size={20} />
+      <span className="text-center">{label}</span>
+      {badge > 0 && <span className="absolute right-2 top-2 grid h-4 min-w-4 place-items-center rounded-full bg-kasavu px-1 text-[10px] font-bold text-white">{badge}</span>}
+    </button>
   );
 }
 
@@ -684,10 +857,10 @@ function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
   useEffect(() => () => void editor.commands.setSearch(""), [editor]);
   const n = st?.results.length ?? 0;
   return (
-    <div className="no-print sticky top-0 z-30 mx-auto mb-4 flex w-fit flex-wrap items-center gap-1.5 rounded-xl border border-line bg-paper p-2 shadow-lg" role="search">
+    <div className="no-print sticky top-0 z-30 mx-auto mb-4 flex w-fit max-w-full flex-wrap items-center gap-1.5 rounded-xl border border-line bg-paper p-2 shadow-lg" role="search">
       <input
         autoFocus
-        className="field !w-52 !py-1.5 !text-sm"
+        className="field min-w-0 flex-1 !py-1.5 !text-sm sm:!w-52 sm:flex-none"
         placeholder="Find"
         value={term}
         onChange={(e) => setTerm(e.target.value)}
@@ -703,7 +876,7 @@ function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
       <button className="btn btn-ghost !p-1.5" onClick={() => editor.commands.searchStep(1)} aria-label="Next match">
         <ChevronDown size={15} />
       </button>
-      <input className="field !w-44 !py-1.5 !text-sm" placeholder="Replace with" value={rep} onChange={(e) => setRep(e.target.value)} />
+      <input className="field min-w-0 flex-1 !py-1.5 !text-sm sm:!w-44 sm:flex-none" placeholder="Replace with" value={rep} onChange={(e) => setRep(e.target.value)} />
       <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => editor.commands.replaceCurrent(rep)} disabled={!n}>
         Replace
       </button>

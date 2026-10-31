@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell, Field, GoogleButton, Notice } from "@/components/AuthShell";
 import { getSupabase } from "@/lib/supabase/client";
-import { authMessage, authRedirect, safeNext } from "@/lib/auth";
+import { authMessage, authRedirect, safeNext, useRedirectIfSignedIn } from "@/lib/auth";
 
 function strength(p: string) {
   let s = 0;
@@ -21,6 +21,7 @@ function SignupForm() {
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
+  useRedirectIfSignedIn(next);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

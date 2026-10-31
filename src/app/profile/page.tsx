@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, Loader2, Trash2 } from "lucide-react";
+import { MobileNav } from "@/components/MobileNav";
 import { AppHeader, Avatar } from "@/components/AppHeader";
 import { Field, Notice } from "@/components/AuthShell";
 import { RequireAuth, authMessage } from "@/lib/auth";
@@ -283,6 +284,7 @@ export default function ProfilePage() {
       <div className="min-h-dvh">
         <AppHeader />
         <ProfileView />
+        <MobileNav />
       </div>
     </RequireAuth>
   );

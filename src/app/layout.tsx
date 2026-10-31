@@ -1,10 +1,22 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "@/styles/editor.scss";
 
 export const metadata: Metadata = {
   title: "Litma — മലയാളം എഴുത്തുമേശ",
   description: "A Malayalam writing studio for novels, stories, poems, screenplays and features. Type in Manglish or Malayalam on A4 pages.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  // the on-screen keyboard shrinks the visual viewport only, so the keyboard accessory can sit on top of it
+  interactiveWidget: "resizes-visual",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#e3e9e6" },
+    { media: "(prefers-color-scheme: dark)", color: "#121917" },
+  ],
 };
 
 const FONTS =

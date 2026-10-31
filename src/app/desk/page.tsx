@@ -1,11 +1,12 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BookPlus, Copy, FileUp, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import { CoverFront } from "@/components/book/Cover";
 import { DEFAULT_STRUCTURE } from "@/lib/book-structure";
 import { AppHeader } from "@/components/AppHeader";
+import { MobileNav } from "@/components/MobileNav";
 import { TemplatePreview } from "@/components/TemplatePreview";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
@@ -22,7 +23,11 @@ function timeAgo(iso: string) {
 
 function Desk() {
   const router = useRouter();
-  const [view, setView] = useState<"works" | "books" | "trash">("works");
+  // the view lives in the URL so the phone tab bar (and the back button) can switch it
+  const params = useSearchParams();
+  const pv = params.get("view");
+  const view: "works" | "books" | "trash" = pv === "books" || pv === "trash" ? pv : "works";
+  const setView = (v: typeof view) => router.replace(v === "works" ? "/desk/" : `/desk/?view=${v}`);
   const [books, setBooks] = useState<Book[] | null>(null);
   const [docs, setDocs] = useState<LitmaDoc[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +101,11 @@ function Desk() {
   }, [docs, q, filter, sort]);
   const totalWords = (docs ?? []).reduce((n, d) => n + (d.word_count || 0), 0);
   const kindsUsed = Array.from(new Set((docs ?? []).map((d) => d.kind)));
+  async function newBook() {
+    const prof = await store.getProfile().catch(() => null);
+    const b = await store.createBook({ title: "പുതിയ പുസ്തകം", author: prof?.pen_name || prof?.display_name || null, structure: DEFAULT_STRUCTURE(), settings: { pageSize: "A4", chaptersOnRight: true, runningHead: true }, cover: { template: "kasavu" } });
+    router.push(`/book/?id=${b.id}`);
+  }
   const closeChooser = () => {
     setChoosing(false);
     setImporting(null);
@@ -104,10 +114,10 @@ function Desk() {
   return (
     <div className="min-h-dvh">
       <AppHeader />
-      <main className="mx-auto max-w-6xl px-5 pb-20">
+      <main className="mx-auto max-w-6xl px-4 pb-24 sm:px-5 md:pb-20">
         <div className="flex flex-wrap items-end justify-between gap-4 pt-4">
           <div>
-            <h1 className="text-3xl font-bold" style={{ fontFamily: "'Anek Malayalam'" }}>
+            <h1 className="text-2xl font-bold sm:text-3xl" style={{ fontFamily: "'Anek Malayalam'" }}>
               {view === "works" ? "എഴുത്തുമേശ" : view === "books" ? "പുസ്തകങ്ങൾ" : "ചവറ്റുകുട്ട"}
             </h1>
             <p className="mt-1 text-muted">
@@ -122,14 +132,7 @@ function Desk() {
           </div>
           <div className="flex flex-wrap gap-2">
             {view === "books" ? (
-              <button
-                className="btn btn-primary !px-4 !py-2.5"
-                onClick={async () => {
-                  const prof = await store.getProfile().catch(() => null);
-                  const b = await store.createBook({ title: "പുതിയ പുസ്തകം", author: prof?.pen_name || prof?.display_name || null, structure: DEFAULT_STRUCTURE(), settings: { pageSize: "A4", chaptersOnRight: true, runningHead: true }, cover: { template: "kasavu" } });
-                  router.push(`/book/?id=${b.id}`);
-                }}
-              >
+              <button className="btn btn-primary !px-4 !py-2.5 max-md:!hidden" onClick={newBook}>
                 <BookPlus size={18} /> New book
               </button>
             ) : view === "works" ? (
@@ -151,7 +154,7 @@ function Desk() {
                 <button className="btn btn-outline" onClick={() => fileRef.current?.click()} title="Import a .txt or .md file">
                   <FileUp size={16} /> Import
                 </button>
-                <button className="btn btn-primary !px-4 !py-2.5" onClick={() => setChoosing(true)}>
+                <button className="btn btn-primary !px-4 !py-2.5 max-md:!hidden" onClick={() => setChoosing(true)}>
                   <Plus size={18} /> New work
                 </button>
               </>
@@ -178,7 +181,7 @@ function Desk() {
         )}
         {error && <p className="mt-4 rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
 
-        <div className="mt-8 flex flex-wrap items-center gap-3 border-b border-line pb-3">
+        <div className="mt-6 flex flex-wrap items-center gap-3 border-b border-line pb-3 sm:mt-8">
           <div className="flex gap-1 text-sm" role="tablist">
             {(
               [
@@ -194,11 +197,11 @@ function Desk() {
           </div>
           {view !== "books" && docs && docs.length > 0 && (
             <>
-              <label className="relative ml-auto">
+              <label className="relative order-last w-full sm:order-none sm:ml-auto sm:w-auto">
                 <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-                <input className="field !w-56 !py-1.5 !pl-9" placeholder="Search titles and text" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search" />
+                <input className="field !py-1.5 !pl-9 sm:!w-56" placeholder="Search titles and text" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search" />
               </label>
-              <select className="field !w-auto !py-1.5 !text-sm" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label="Sort">
+              <select className="field ml-auto !w-auto !py-1.5 !text-sm sm:ml-0" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label="Sort">
                 <option value="updated">Last edited</option>
                 <option value="title">Title</option>
                 <option value="words">Longest</option>
@@ -207,9 +210,9 @@ function Desk() {
           )}
         </div>
         {view === "works" && kindsUsed.length > 1 && (
-          <div className="mt-3 flex flex-wrap gap-1 text-sm">
+          <div className="scrollbar-none -mx-4 mt-3 flex gap-1 overflow-x-auto px-4 text-sm sm:mx-0 sm:flex-wrap sm:px-0">
             {(["all", ...kindsUsed] as (DocKind | "all")[]).map((k) => (
-              <button key={k} onClick={() => setFilter(k)} className={`rounded-full px-3 py-1 ${filter === k ? "bg-kayal text-kayal-ink" : "text-muted hover:bg-desk-2"}`}>
+              <button key={k} onClick={() => setFilter(k)} className={`shrink-0 rounded-full px-3 py-1 ${filter === k ? "bg-kayal text-kayal-ink" : "text-muted hover:bg-desk-2"}`}>
                 {k === "all" ? "All" : templateFor(k).ml}
               </button>
             ))}
@@ -226,12 +229,12 @@ function Desk() {
         {docs && docs.length === 0 && view === "trash" && <p className="mt-10 text-muted">The trash is empty.</p>}
 
         {view === "books" && books && (
-          <ul className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-x-6 gap-y-8">
+          <ul className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-4 gap-y-7 sm:mt-8 sm:grid-cols-[repeat(auto-fill,minmax(170px,1fr))] sm:gap-x-6 sm:gap-y-8">
             {books.length === 0 && <li className="col-span-full text-muted">No books yet. Use “New book” to collect chapters from your works.</li>}
             {books.map((b) => (
               <li key={b.id} className="group">
-                <Link href={`/book/?id=${b.id}`} className="block overflow-hidden rounded-sm transition-transform group-hover:-translate-y-1" style={{ width: 170, height: 170 * (297 / 210), boxShadow: "var(--sheet-shadow)" }}>
-                  <div style={{ transform: `scale(${170 / 793.7})`, transformOrigin: "top left" }}>
+                <Link href={`/book/?id=${b.id}`} className="block overflow-hidden rounded-sm transition-transform group-hover:-translate-y-1" style={{ width: 150, height: 150 * (297 / 210), boxShadow: "var(--sheet-shadow)" }}>
+                  <div style={{ transform: `scale(${150 / 793.7})`, transformOrigin: "top left" }}>
                     <CoverFront book={b} w={210} h={297} />
                   </div>
                 </Link>
@@ -241,7 +244,7 @@ function Desk() {
                     <div className="text-xs text-muted">{b.structure.filter((i) => i.type === "document").length} chapters · {timeAgo(b.updated_at)}</div>
                   </div>
                   <button
-                    className="rounded p-1 text-muted opacity-0 hover:text-danger group-hover:opacity-100"
+                    className="rounded p-1 text-muted hover:text-danger [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                     aria-label={`Delete ${b.title}`}
                     onClick={async () => {
                       if (!confirm(`Delete the book “${b.title}”? Its chapters stay on your desk.`)) return;
@@ -257,14 +260,14 @@ function Desk() {
           </ul>
         )}
 
-        <ul className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-x-6 gap-y-8">
+        <ul className="mt-6 grid grid-cols-2 gap-x-3 gap-y-6 sm:mt-8 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-x-6 sm:gap-y-8">
           {shown.map((d) => {
             const t = templateFor(d.kind);
             const card = (
               <>
                 <div className="text-xs font-semibold text-kasavu">{t.ml}</div>
-                <div className="mt-2 line-clamp-2 text-lg font-bold leading-snug">{d.title}</div>
-                <p className="mt-3 line-clamp-5 text-sm leading-relaxed text-muted" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+                <div className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-snug sm:mt-2 sm:text-lg">{d.title}</div>
+                <p className="mt-2 line-clamp-4 text-[13px] leading-relaxed text-muted sm:mt-3 sm:line-clamp-5 sm:text-sm" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
                   {d.excerpt || "—"}
                 </p>
               </>
@@ -272,19 +275,19 @@ function Desk() {
             return (
               <li key={d.id} className="group">
                 {view === "works" ? (
-                  <Link href={`/write/?id=${d.id}`} className="block rounded-md bg-paper p-5 transition-shadow hover:ring-2 hover:ring-kayal" style={{ boxShadow: "var(--sheet-shadow)", aspectRatio: "210 / 200" }}>
+                  <Link href={`/write/?id=${d.id}`} className="block overflow-hidden rounded-md bg-paper p-3.5 transition-shadow hover:ring-2 hover:ring-kayal sm:p-5" style={{ boxShadow: "var(--sheet-shadow)", aspectRatio: "210 / 200" }}>
                     {card}
                   </Link>
                 ) : (
-                  <div className="block rounded-md bg-paper p-5 opacity-70" style={{ boxShadow: "var(--sheet-shadow)", aspectRatio: "210 / 200" }}>
+                  <div className="block overflow-hidden rounded-md bg-paper p-3.5 opacity-70 sm:p-5" style={{ boxShadow: "var(--sheet-shadow)", aspectRatio: "210 / 200" }}>
                     {card}
                   </div>
                 )}
-                <div className="mt-2 flex items-center justify-between px-1 text-xs text-muted">
-                  <span>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-y-1 px-1 text-xs text-muted">
+                  <span className="truncate">
                     {d.word_count.toLocaleString("en-IN")} words · {timeAgo(d.updated_at)}
                   </span>
-                  <span className={`flex gap-1 ${view === "works" ? "opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100" : ""}`}>
+                  <span className={`flex gap-1 ${view === "works" ? "transition-opacity focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0" : ""}`}>
                     {view === "works" ? (
                       <>
                         <button
@@ -341,11 +344,23 @@ function Desk() {
         </ul>
       </main>
 
+      {/* Phone: floating action button, like a native app */}
+      {(view === "works" || view === "books") && !choosing && (
+        <button
+          className="btn btn-primary fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-40 !rounded-full !px-5 !py-3.5 shadow-xl md:hidden"
+          onClick={view === "books" ? newBook : () => setChoosing(true)}
+        >
+          {view === "books" ? <BookPlus size={20} /> : <Plus size={20} />} {view === "books" ? "New book" : "New work"}
+        </button>
+      )}
+      <MobileNav />
+
       {choosing && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-12" role="dialog" aria-modal="true" aria-label="Choose a writing type" onClick={closeChooser}>
-          <div className="w-full max-w-5xl rounded-xl bg-desk p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">{importing ? `Import “${importing.name}” as…` : "സാഹിത്യരൂപം · What are you writing?"}</h2>
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/40 sm:items-start sm:p-4 sm:pt-12" role="dialog" aria-modal="true" aria-label="Choose a writing type" onClick={closeChooser}>
+          <div className="max-h-[92dvh] w-full max-w-5xl overflow-y-auto rounded-t-2xl bg-desk p-4 pb-8 sm:max-h-none sm:rounded-xl sm:p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-line sm:hidden" aria-hidden />
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-lg font-bold sm:text-xl">{importing ? `Import “${importing.name}” as…` : "സാഹിത്യരൂപം · What are you writing?"}</h2>
               <button className="btn btn-ghost !p-2" onClick={closeChooser} aria-label="Close">
                 <X size={18} />
               </button>
@@ -361,11 +376,11 @@ function Desk() {
 
 function Chooser({ onPick, creating }: { onPick: (k: DocKind) => void; creating: DocKind | null }) {
   return (
-    <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-5 gap-y-7">
+    <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] sm:gap-x-5 sm:gap-y-7">
       {TEMPLATES.map((t) => (
         <button key={t.kind} onClick={() => onPick(t.kind)} disabled={!!creating} className="group flex flex-col items-start self-start text-left" title={t.blurb}>
           <div className="transition-transform group-hover:-translate-y-1 group-focus-visible:-translate-y-1">
-            <TemplatePreview kind={t.kind} width={150} />
+            <TemplatePreview kind={t.kind} width={140} />
           </div>
           <div className="mt-2.5 font-semibold">
             {t.ml} <span className="text-sm font-normal text-muted">{t.en}</span>
@@ -380,7 +395,9 @@ function Chooser({ onPick, creating }: { onPick: (k: DocKind) => void; creating:
 export default function DeskPage() {
   return (
     <RequireAuth>
-      <Desk />
+      <Suspense fallback={null}>
+        <Desk />
+      </Suspense>
     </RequireAuth>
   );
 }

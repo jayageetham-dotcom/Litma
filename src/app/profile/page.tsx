@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, Loader2, Trash2 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
+import { Select } from "@/components/ui/Select";
 import { AppHeader, Avatar } from "@/components/AppHeader";
 import { Field, Notice } from "@/components/AuthShell";
 import { RequireAuth, authMessage } from "@/lib/auth";
@@ -188,14 +189,19 @@ function ProfileView() {
             </label>
             <Field label="Website" type="url" value={p.website ?? ""} onChange={set("website")} placeholder="https://" />
             <Field label="Daily word goal" type="number" min={0} step={50} value={String(p.daily_goal ?? 0)} onChange={set("daily_goal")} />
-            <label className="block">
-              <span className="mb-1 block text-sm">Default typing for new works</span>
-              <select className="field" value={(p.preferences?.inputMode as string) ?? "manglish"} onChange={(e) => setP({ ...p, preferences: { ...p.preferences, inputMode: e.target.value } })}>
-                <option value="manglish">Manglish → മലയാളം</option>
-                <option value="malayalam">മലയാളം keyboard</option>
-                <option value="english">English</option>
-              </select>
-            </label>
+            <div>
+              <Select
+                label="Default typing for new works"
+                className="w-full"
+                value={(p.preferences?.inputMode as string) ?? "manglish"}
+                onChange={(v) => setP({ ...p, preferences: { ...p.preferences, inputMode: v } })}
+                options={[
+                  { value: "manglish", label: "Manglish → മലയാളം", text: "Manglish", hint: "Type in English letters, get Malayalam" },
+                  { value: "malayalam", label: "മലയാളം keyboard", text: "Malayalam", hint: "InScript, Mozhi, Swanalekha…" },
+                  { value: "english", label: "English" },
+                ]}
+              />
+            </div>
           </section>
 
           {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}

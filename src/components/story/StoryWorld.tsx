@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Select } from "@/components/ui/Select";
 import type { Editor } from "@tiptap/react";
 import { Camera, GripVertical, Loader2, Plus, Trash2, X } from "lucide-react";
 import { store } from "@/lib/store";
@@ -376,14 +377,13 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
             <label key={f.key} className="block">
               <span className="mb-1 block text-sm">{f.label}</span>
               {f.type === "select" ? (
-                <select className="field" value={it.data?.[f.key] ?? ""} onChange={(e) => setData(f.key, e.target.value)}>
-                  <option value="">—</option>
-                  {f.options!.map((o) => (
-                    <option key={o} value={o}>
-                      {o}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  className="w-full"
+                  aria-label={f.label}
+                  value={it.data?.[f.key] ?? ""}
+                  onChange={(v) => setData(f.key, v)}
+                  options={[{ value: "", label: "—", text: "none" }, ...f.options!.map((o) => ({ value: o, label: o }))]}
+                />
               ) : f.type === "textarea" ? (
                 <textarea className="field min-h-20" placeholder={f.placeholder} value={it.data?.[f.key] ?? ""} onChange={(e) => setData(f.key, e.target.value)} style={ml} />
               ) : (

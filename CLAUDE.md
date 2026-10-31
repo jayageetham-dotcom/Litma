@@ -24,6 +24,7 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 - Phones: bottom tab bars (`MobileNav` on desk/dictionary/profile/settings; Format · Contents · Story · Dictionary · More in the editor; Contents · Page · Details in the book editor), panels as bottom sheets (`components/ui/Sheet.tsx`), and a keyboard accessory (`MobileFormatStrip`) while writing.
 - Tablets/laptops: editor panels slide **over** the page (never shrink it); they dock only on wide screens.
 - Global `.btn` sets `display`, so hide buttons with `max-md:!hidden`, not `hidden md:inline-flex`.
+- No native `<select>`: use `components/ui/Select.tsx` (accessible combobox + listbox, keyboard and type-ahead, portal so toolbars never clip it; `preventFocusSteal` for editor pickers). Confirmations use `useConfirm()` from `components/ui/Confirm.tsx`, not `window.confirm`.
 - Landing/auth are session-aware: signed-in writers never see Sign in / Create account (`HomeActions.tsx`, `useRedirectIfSignedIn`).
 
 ## MCP servers (.mcp.json)

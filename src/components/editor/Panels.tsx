@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Select } from "@/components/ui/Select";
 import type { Editor } from "@tiptap/react";
 import type { JSONContent } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
@@ -156,17 +157,24 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <H>Writing companion</H>
-        <select className="rounded-md border border-line bg-paper px-2 py-1 text-xs" value={provider} onChange={(e) => {
-            const v = e.target.value as AIProvider;
+        <Select
+          size="sm"
+          className="min-w-28"
+          aria-label="AI provider"
+          value={provider}
+          onChange={(x) => {
+            const v = x as AIProvider;
             setProvider(v);
             try {
               localStorage.setItem("litma:ai", JSON.stringify({ ...getAIPrefs(), provider: v }));
             } catch {}
-          }} aria-label="AI provider">
-          <option value="anthropic">Claude</option>
-          <option value="openai">GPT</option>
-          <option value="gemini">Gemini</option>
-        </select>
+          }}
+          options={[
+            { value: "anthropic", label: "Claude", hint: "Anthropic" },
+            { value: "openai", label: "GPT", hint: "OpenAI" },
+            { value: "gemini", label: "Gemini", hint: "Google" },
+          ]}
+        />
       </div>
       <p className="-mt-2 text-xs text-muted">{hasSel ? "Working on your selection." : "Select text to rewrite, polish or translate it."}</p>
       <div className="flex flex-wrap gap-1.5">
@@ -523,17 +531,16 @@ export function PagePanel({ settings, onChange, showMetreOption }: { settings: D
   return (
     <div className="space-y-4 text-sm">
       <H>Page &amp; type</H>
-      <label className="block">
-        <span className="mb-1 block text-xs text-muted">Paper size</span>
-        <select className="field !py-1.5" value={settings.pageSize} onChange={(e) => onChange({ pageSize: e.target.value as PageSizeKey })}>
-          {(Object.keys(PAGE_SIZES) as PageSizeKey[]).map((k) => (
-            <option key={k} value={k}>
-              {PAGE_SIZES[k].label}
-              {k === "A4" ? " — default" : ""}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div>
+        <Select
+          label="Paper size"
+          labelClassName="mb-1 block text-xs text-muted"
+          className="w-full"
+          value={settings.pageSize}
+          onChange={(v) => onChange({ pageSize: v as PageSizeKey })}
+          options={(Object.keys(PAGE_SIZES) as PageSizeKey[]).map((k) => ({ value: k, label: `${PAGE_SIZES[k].label}${k === "A4" ? " — default" : ""}` }))}
+        />
+      </div>
       <fieldset>
         <legend className="mb-1 text-xs text-muted">Margins (mm)</legend>
         <div className="grid grid-cols-4 gap-1.5">
@@ -545,31 +552,31 @@ export function PagePanel({ settings, onChange, showMetreOption }: { settings: D
           ))}
         </div>
       </fieldset>
-      <label className="block">
-        <span className="mb-1 block text-xs text-muted">Document font</span>
-        <select className="field !py-1.5" value={settings.font} onChange={(e) => onChange({ font: e.target.value })} style={{ fontFamily: `'${settings.font}'` }}>
-          {FONTS.map((f) => (
-            <option key={f.name} value={f.name}>
-              {f.name} — {f.note}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div>
+        <Select
+          label="Document font"
+          labelClassName="mb-1 block text-xs text-muted"
+          className="w-full"
+          value={settings.font}
+          onChange={(v) => onChange({ font: v })}
+          options={FONTS.map((f) => ({ value: f.name, label: f.name, text: f.name, hint: f.note, style: { fontFamily: `'${f.name}'` } }))}
+        />
+      </div>
       <div className="grid grid-cols-2 gap-2">
         <label>
           <span className="mb-1 block text-xs text-muted">Size (pt)</span>
           <input type="number" step={0.5} min={8} max={24} className="field !py-1.5" value={settings.fontSize} onChange={(e) => onChange({ fontSize: Number(e.target.value) || 12 })} />
         </label>
-        <label>
-          <span className="mb-1 block text-xs text-muted">Line spacing</span>
-          <select className="field !py-1.5" value={settings.lineHeight} onChange={(e) => onChange({ lineHeight: Number(e.target.value) })}>
-            {[1.3, 1.5, 1.65, 1.75, 1.8, 1.9, 2, 2.4].map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div>
+          <Select
+            label="Line spacing"
+            labelClassName="mb-1 block text-xs text-muted"
+            className="w-full"
+            value={String(settings.lineHeight)}
+            onChange={(v) => onChange({ lineHeight: Number(v) })}
+            options={[...new Set([1.3, 1.5, 1.65, 1.75, 1.8, 1.9, 2, 2.4, settings.lineHeight])].sort((a, b) => a - b).map((v) => ({ value: String(v), label: String(v) }))}
+          />
+        </div>
       </div>
       <label className="block">
         <span className="mb-1 block text-xs text-muted">Running header</span>

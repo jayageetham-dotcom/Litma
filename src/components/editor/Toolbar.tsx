@@ -31,6 +31,7 @@ import { FONTS } from "@/lib/templates";
 import { BLOCK_VARIANTS } from "@/extensions/blocks";
 import { SCREENPLAY_ELEMENTS, setScreenplayElement } from "@/extensions/screenplay";
 import type { InputMode } from "@/extensions/manglish";
+import { Select } from "@/components/ui/Select";
 
 function Btn({
   onClick,
@@ -135,7 +136,7 @@ export function Toolbar({
     <div
       className={
         variant === "sheet"
-          ? "no-print flex flex-wrap items-center gap-1 [&_button]:min-h-10 [&_button]:min-w-10 [&_select]:h-10"
+          ? "no-print flex flex-wrap items-center gap-1 [&_button]:min-h-10 [&_button]:min-w-10 [&_[role=combobox]]:min-h-10"
           : "no-print scrollbar-thin flex items-center gap-0.5 overflow-x-auto border-b border-line bg-paper px-3 py-1.5"
       }
       role="toolbar"
@@ -152,23 +153,22 @@ export function Toolbar({
       <Sep />
 
       {!inScreenplay && (
-        <select
-          className="h-8 shrink-0 rounded-md border border-line bg-paper px-2 text-[13px]"
-          value={current.startsWith("sb:") || current.startsWith("h") || current === "paragraph" ? current : ""}
-          onChange={(ev) => setStyle(ev.target.value)}
+        <Select
+          size={variant === "sheet" ? "md" : "sm"}
+          className={variant === "sheet" ? "w-full sm:w-auto sm:min-w-48" : "min-w-36"}
+          preventFocusSteal
           aria-label="Paragraph style"
-        >
-          <option value="paragraph">Body text</option>
-          {template.blocks.map((v) => (
-            <option key={v} value={`sb:${v}`}>
-              {BLOCK_VARIANTS[v].ml} · {BLOCK_VARIANTS[v].label}
-            </option>
-          ))}
-          <option value="h1">Heading 1</option>
-          <option value="h2">Heading 2</option>
-          <option value="h3">Heading 3</option>
-          {!["paragraph", "h1", "h2", "h3"].includes(current) && !current.startsWith("sb:") && <option value="">—</option>}
-        </select>
+          value={current.startsWith("sb:") || current.startsWith("h") || current === "paragraph" ? current : ""}
+          placeholder="—"
+          onChange={setStyle}
+          options={[
+            { value: "paragraph", label: "Body text" },
+            ...template.blocks.map((v) => ({ value: `sb:${v}`, label: `${BLOCK_VARIANTS[v].ml} · ${BLOCK_VARIANTS[v].label}` })),
+            { value: "h1", label: "Heading 1" },
+            { value: "h2", label: "Heading 2" },
+            { value: "h3", label: "Heading 3" },
+          ]}
+        />
       )}
 
       {usesDialogue && (
@@ -189,38 +189,31 @@ export function Toolbar({
             );
           })}
           {inScreenplay && (
-            <select
-              className="ml-1 h-8 rounded-md border border-line bg-paper px-2 text-[13px]"
+            <Select
+              size={variant === "sheet" ? "md" : "sm"}
+              className="ml-1"
+              preventFocusSteal
+              aria-label="Insert a title-page block"
               value=""
-              onChange={(ev) => ev.target.value && setStyle(ev.target.value)}
-              aria-label="Title blocks"
-            >
-              <option value="">Title page…</option>
-              {template.blocks.map((v) => (
-                <option key={v} value={`sb:${v}`}>
-                  {BLOCK_VARIANTS[v].ml}
-                </option>
-              ))}
-            </select>
+              placeholder="Title page…"
+              onChange={(v) => v && setStyle(v)}
+              options={template.blocks.map((v) => ({ value: `sb:${v}`, label: BLOCK_VARIANTS[v].ml, hint: BLOCK_VARIANTS[v].label }))}
+            />
           )}
         </div>
       )}
       <Sep />
 
-      <select
-        className="h-8 w-36 shrink-0 rounded-md border border-line bg-paper px-2 text-[13px]"
-        value={font}
-        onChange={(ev) => (ev.target.value ? chain().setFontFamily(`'${ev.target.value}'`).run() : chain().unsetFontFamily().run())}
-        aria-label="Font for selection"
+      <Select
+        size={variant === "sheet" ? "md" : "sm"}
+        className={variant === "sheet" ? "w-full sm:w-auto sm:min-w-48" : "w-40"}
+        preventFocusSteal
+        aria-label="Font for selected text"
         title="Font for selected text"
-      >
-        <option value="">Document font</option>
-        {FONTS.map((f) => (
-          <option key={f.name} value={f.name}>
-            {f.name}
-          </option>
-        ))}
-      </select>
+        value={font}
+        onChange={(v) => (v ? chain().setFontFamily(`'${v}'`).run() : chain().unsetFontFamily().run())}
+        options={[{ value: "", label: "Document font" }, ...FONTS.map((f) => ({ value: f.name, label: f.name, style: { fontFamily: `'${f.name}'` } }))]}
+      />
       <Sep />
 
       <Btn title="Bold (Ctrl+B)" active={e.isActive("bold")} onClick={() => chain().toggleBold().run()}>

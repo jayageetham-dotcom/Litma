@@ -8,6 +8,7 @@ import { DEFAULT_STRUCTURE } from "@/lib/book-structure";
 import { AppHeader } from "@/components/AppHeader";
 import { MobileNav } from "@/components/MobileNav";
 import { useConfirm } from "@/components/ui/Confirm";
+import { Select } from "@/components/ui/Select";
 import { TemplatePreview } from "@/components/TemplatePreview";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
@@ -211,11 +212,18 @@ function Desk() {
                 <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                 <input className="field !py-1.5 !pl-9 sm:!w-56" placeholder="Search titles and text" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search" />
               </label>
-              <select className="field ml-auto !w-auto !py-1.5 !text-sm sm:ml-0" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label="Sort">
-                <option value="updated">Last edited</option>
-                <option value="title">Title</option>
-                <option value="words">Longest</option>
-              </select>
+              <Select
+                size="sm"
+                className="ml-auto min-w-36 sm:ml-0"
+                aria-label="Sort works"
+                value={sort}
+                onChange={(v) => setSort(v as typeof sort)}
+                options={[
+                  { value: "updated", label: "Last edited" },
+                  { value: "title", label: "Title" },
+                  { value: "words", label: "Longest" },
+                ]}
+              />
             </>
           )}
         </div>

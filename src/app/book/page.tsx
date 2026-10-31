@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowDown, ArrowLeft, ArrowUp, Camera, ExternalLink, FileText, GripVertical, ListOrdered, Loader2, PanelTop, Plus, Printer, Settings2, X } from "lucide-react";
 import { useScreen } from "@/lib/useLayout";
+import { Select } from "@/components/ui/Select";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { BASE } from "@/lib/config";
@@ -257,22 +258,30 @@ function BookEditor() {
           </div>
           <h2 className="mb-3 mt-6 text-sm font-semibold">Page &amp; type</h2>
           <div className="space-y-3 text-sm">
-            <label className="block">
-              <span className="mb-1 block text-xs text-muted">Page size</span>
-              <select className="field !py-1.5" value={st.pageSize ?? "A4"} onChange={(e) => setSt({ pageSize: e.target.value as BookSettings["pageSize"] })}>
-                <option value="A4">A4 (default)</option>
-                <option value="A5">A5 — paperback</option>
-                <option value="Letter">US Letter</option>
-              </select>
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-xs text-muted">Body font (prose chapters)</span>
-              <select className="field !py-1.5" value={st.font ?? "Noto Serif Malayalam"} onChange={(e) => setSt({ font: e.target.value })}>
-                {["Noto Serif Malayalam", "Noto Sans Malayalam", "Manjari", "Gayathri", "Anek Malayalam"].map((f) => (
-                  <option key={f}>{f}</option>
-                ))}
-              </select>
-            </label>
+            <div>
+              <Select
+                label="Page size"
+                labelClassName="mb-1 block text-xs text-muted"
+                className="w-full"
+                value={st.pageSize ?? "A4"}
+                onChange={(v) => setSt({ pageSize: v as BookSettings["pageSize"] })}
+                options={[
+                  { value: "A4", label: "A4 (default)" },
+                  { value: "A5", label: "A5 — paperback" },
+                  { value: "Letter", label: "US Letter" },
+                ]}
+              />
+            </div>
+            <div>
+              <Select
+                label="Body font (prose chapters)"
+                labelClassName="mb-1 block text-xs text-muted"
+                className="w-full"
+                value={st.font ?? "Noto Serif Malayalam"}
+                onChange={(v) => setSt({ font: v })}
+                options={["Noto Serif Malayalam", "Noto Sans Malayalam", "Manjari", "Gayathri", "Anek Malayalam"].map((f) => ({ value: f, label: f, style: { fontFamily: `'${f}'` } }))}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <label>
                 <span className="mb-1 block text-xs text-muted">Size (pt)</span>
@@ -599,14 +608,16 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
         </div>
         {!back && (
           <>
-            <label className="block">
-              <span className="mb-1 block text-xs text-muted">Title font</span>
-              <select className="field !py-1.5" value={c.font ?? "Anek Malayalam"} onChange={(e) => onCover({ font: e.target.value })}>
-                {COVER_FONTS.map((f) => (
-                  <option key={f}>{f}</option>
-                ))}
-              </select>
-            </label>
+            <div>
+              <Select
+                label="Title font"
+                labelClassName="mb-1 block text-xs text-muted"
+                className="w-full"
+                value={c.font ?? "Anek Malayalam"}
+                onChange={(v) => onCover({ font: v })}
+                options={COVER_FONTS.map((f) => ({ value: f, label: f, style: { fontFamily: `'${f}'` } }))}
+              />
+            </div>
             <label className="block">
               <span className="mb-1 block text-xs text-muted">Title size</span>
               <input type="range" min={0.6} max={1.6} step={0.05} className="w-full" value={c.titleScale ?? 1} onChange={(e) => onCover({ titleScale: Number(e.target.value) })} />

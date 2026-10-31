@@ -17,22 +17,23 @@ export function AuthShell({ children, line = 0 }: { children: React.ReactNode; l
   const l = LINES[line % LINES.length];
   return (
     <div className="min-h-dvh">
-      <div className="kasavu-rule" />
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+      <header className="app-bar">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-2.5">
         <Logo />
         <ThemeToggle />
+        </div>
       </header>
       <main className="mx-auto grid max-w-6xl items-start gap-12 px-5 pb-16 pt-6 md:grid-cols-[minmax(0,26rem)_1fr] md:pt-12">
         <div className="rounded-xl bg-paper p-7" style={{ boxShadow: "var(--sheet-shadow)" }}>
           {children}
         </div>
         <aside className="relative hidden aspect-[210/297] max-h-[560px] justify-self-center bg-paper px-10 pt-14 md:block" style={{ boxShadow: "var(--sheet-shadow)" }} aria-hidden>
-          <div className="kasavu-rule absolute inset-x-0 top-0" />
+          <div className="brand-bar absolute inset-x-0 top-0" />
           <p className={`${l.ml.length > 80 ? "text-[1.15rem] leading-[1.9]" : "text-[1.6rem] leading-[1.7]"} text-ink`} style={{ fontFamily: "'Noto Serif Malayalam'" }}>
             {l.ml}
           </p>
           {l.by && (
-            <p className="mt-5 text-right text-[0.95rem] font-semibold text-kasavu" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+            <p className="mt-5 text-right text-[0.95rem] font-semibold text-highlight" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
               — {l.by}
             </p>
           )}
@@ -56,7 +57,7 @@ export function Field({ label, hint, ...props }: React.InputHTMLAttributes<HTMLI
 
 export function Notice({ kind, children }: { kind: "error" | "info"; children: React.ReactNode }) {
   return (
-    <p role={kind === "error" ? "alert" : "status"} className={`rounded-lg px-3 py-2 text-sm ${kind === "error" ? "bg-danger/10 text-danger" : "bg-kayal-soft text-kayal"}`}>
+    <p role={kind === "error" ? "alert" : "status"} className={`rounded-lg px-3 py-2 text-sm ${kind === "error" ? "bg-danger/10 text-danger" : "bg-accent-soft text-accent"}`}>
       {children}
     </p>
   );

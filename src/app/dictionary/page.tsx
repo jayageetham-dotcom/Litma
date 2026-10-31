@@ -8,12 +8,13 @@ import { MobileNav } from "@/components/MobileNav";
 export default function DictionaryPage() {
   return (
     <div className="min-h-dvh">
-      <div className="kasavu-rule" />
-      <header className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
+      <header className="app-bar">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-2.5">
         <Logo />
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <HomeNav />
+        </div>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-24 pt-4 sm:px-5 sm:pt-6">

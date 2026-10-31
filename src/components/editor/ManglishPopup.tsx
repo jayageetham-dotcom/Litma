@@ -97,7 +97,7 @@ export function ManglishPopup({ editor }: { editor: Editor }) {
       role="listbox"
       aria-label="Malayalam suggestions"
     >
-      <div className="flex items-center justify-between border-b border-line bg-desk-2/60 px-3 py-1 text-[11px] text-muted">
+      <div className="flex items-center justify-between border-b border-line bg-subtle/60 px-3 py-1 text-[11px] text-muted">
         <span className="font-mono">{st.word}</span>
         <span>Esc keeps English</span>
       </div>
@@ -112,7 +112,7 @@ export function ManglishPopup({ editor }: { editor: Editor }) {
                 e.preventDefault();
                 editor.commands.commitManglish(i);
               }}
-              className={`flex w-full items-center gap-3 px-3 py-1 text-left text-[17px] ${i === st.index ? "bg-kayal-soft text-kayal" : "hover:bg-desk-2"}`}
+              className={`flex w-full items-center gap-3 px-3 py-1 text-left text-[17px] ${i === st.index ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}
               style={{ fontFamily: "'Noto Sans Malayalam'" }}
             >
               <span className="w-3 text-[11px] text-muted" style={{ fontFamily: "var(--font-ui)" }}>

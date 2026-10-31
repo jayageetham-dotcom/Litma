@@ -71,7 +71,7 @@ export function OutlinePanel({ editor }: { editor: Editor }) {
         <ul className="space-y-0.5 text-[13.5px]">
           {items.map((it) => (
             <li key={it.pos}>
-              <button onClick={() => go(it.pos)} className={`w-full truncate rounded px-2 py-1 text-left hover:bg-desk-2 ${it.level > 1 ? "pl-5 text-muted" : ""}`}>
+              <button onClick={() => go(it.pos)} className={`w-full truncate rounded px-2 py-1 text-left hover:bg-subtle ${it.level > 1 ? "pl-5 text-muted" : ""}`}>
                 {it.label}
               </button>
             </li>
@@ -190,7 +190,7 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
                 onClick={() => run(a)}
                 disabled={disabled}
                 title={meta.label}
-                className={`rounded-full border px-2.5 py-1 text-[12.5px] transition-colors disabled:opacity-40 ${busy === a ? "border-kayal bg-kayal-soft text-kayal" : "border-line hover:border-kayal"}`}
+                className={`rounded-full border px-2.5 py-1 text-[12.5px] transition-colors disabled:opacity-40 ${busy === a ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}
               >
                 {meta.ml}
               </button>
@@ -304,7 +304,7 @@ export function InboxPanel({ editor, docId, onCount }: { editor: Editor; docId: 
           {items.map((s) => (
             <li key={s.id} className="rounded-lg border border-line bg-paper p-3">
               <div className="mb-1.5 flex items-center justify-between text-[11.5px] text-muted">
-                <span className="font-semibold text-kasavu">{s.source}</span>
+                <span className="font-semibold text-highlight">{s.source}</span>
                 <span>{s.kind === "replace" ? "Replace" : s.kind === "comment" ? "Note" : "Insert"}</span>
               </div>
               {s.target_text && <p className="mb-1 text-xs text-muted line-through">{s.target_text}</p>}
@@ -421,7 +421,7 @@ export function HistoryPanel({ editor, doc, onSnapshot }: { editor: Editor; doc:
       ) : (
         <ul className="space-y-1">
           {versions.map((v) => (
-            <li key={v.id} className="group flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-desk-2">
+            <li key={v.id} className="group flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-subtle">
               <div className="min-w-0">
                 <div className="truncate text-[13.5px] font-medium">{v.label || new Date(v.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</div>
                 <div className="text-[11.5px] text-muted">
@@ -494,7 +494,7 @@ export function KeysPanel({ editor }: { editor: Editor }) {
                 key={k}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().insertContent(k).run()}
-                className="grid h-8 min-w-8 place-items-center rounded-md border border-line bg-paper px-1 text-[16px] hover:border-kayal hover:text-kayal"
+                className="grid h-8 min-w-8 place-items-center rounded-md border border-line bg-paper px-1 text-[16px] hover:border-accent hover:text-accent"
                 style={{ fontFamily: "'Noto Sans Malayalam'" }}
               >
                 {k}
@@ -588,7 +588,7 @@ export function PagePanel({ settings, onChange, showMetreOption }: { settings: D
       </label>
       {showMetreOption && (
         <label className="flex items-center gap-2">
-          <input type="checkbox" checked={!!settings.showMetre} onChange={(e) => onChange({ showMetre: e.target.checked })} className="accent-[var(--kayal)]" />
+          <input type="checkbox" checked={!!settings.showMetre} onChange={(e) => onChange({ showMetre: e.target.checked })} className="accent-[var(--accent)]" />
           Show akshara count and laghu (∪) / guru (–) marks
         </label>
       )}

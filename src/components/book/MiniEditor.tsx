@@ -31,7 +31,7 @@ export function MiniEditor({ value, onChange, placeholder }: { value?: JSONConte
   useEffect(() => () => editor?.destroy(), [editor]);
   if (!editor) return null;
   const B = ({ on, active, label, children }: { on: () => void; active?: boolean; label: string; children: React.ReactNode }) => (
-    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={on} aria-label={label} title={label} className={`grid h-7 w-7 place-items-center rounded ${active ? "bg-kayal-soft text-kayal" : "hover:bg-desk-2"}`}>
+    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={on} aria-label={label} title={label} className={`grid h-7 w-7 place-items-center rounded ${active ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}>
       {children}
     </button>
   );

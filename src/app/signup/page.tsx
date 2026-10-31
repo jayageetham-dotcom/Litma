@@ -72,7 +72,7 @@ function SignupForm() {
         <h1 className="text-2xl font-bold">Create your account</h1>
         <p className="mt-1 text-sm text-muted">
           Already have one?{" "}
-          <Link href={`/login/?next=${encodeURIComponent(next)}`} className="font-medium text-kayal underline underline-offset-2">
+          <Link href={`/login/?next=${encodeURIComponent(next)}`} className="font-medium text-accent underline underline-offset-2">
             Sign in
           </Link>
         </p>
@@ -85,7 +85,7 @@ function SignupForm() {
           <div className="mt-1.5 flex items-center gap-2 text-xs text-muted">
             <span className="flex h-1.5 flex-1 gap-1">
               {[0, 1, 2, 3].map((i) => (
-                <span key={i} className={`flex-1 rounded-full ${i < st ? (st < 2 ? "bg-danger" : st < 3 ? "bg-kasavu" : "bg-kayal") : "bg-desk-2"}`} />
+                <span key={i} className={`flex-1 rounded-full ${i < st ? (st < 2 ? "bg-danger" : st < 3 ? "bg-highlight" : "bg-accent") : "bg-subtle"}`} />
               ))}
             </span>
             {LABELS[password.length < 8 ? 0 : st]}

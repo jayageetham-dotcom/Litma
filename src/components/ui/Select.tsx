@@ -213,7 +213,7 @@ export function Select({ value, onChange, options, label, labelClassName, placeh
         onMouseDown={preventFocusSteal ? (e) => e.preventDefault() : undefined}
         onClick={() => (open ? close() : openList())}
         onKeyDown={onKeyDown}
-        className={`inline-flex shrink-0 items-center justify-between border border-line bg-paper text-left text-ink transition-colors hover:border-[color-mix(in_srgb,var(--kayal)_45%,var(--line))] focus-visible:border-kayal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--kayal)_20%,transparent)] disabled:opacity-50 ${open ? "border-kayal" : ""} ${sizing} ${className}`}
+        className={`inline-flex shrink-0 items-center justify-between border border-line bg-paper text-left text-ink transition-colors hover:border-[color-mix(in_srgb,var(--accent)_45%,var(--line))] focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_20%,transparent)] disabled:opacity-50 ${open ? "border-accent" : ""} ${sizing} ${className}`}
         style={{ ...selected?.style, ...buttonStyle }}
       >
         <span id={valueId} className={`min-w-0 truncate ${selected ? "" : "text-muted"}`}>
@@ -246,7 +246,7 @@ export function Select({ value, onChange, options, label, labelClassName, placeh
                   aria-disabled={o.disabled || undefined}
                   onPointerEnter={() => !o.disabled && setActive(i)}
                   onClick={() => choose(i)}
-                  className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${i === active ? "bg-desk-2" : ""} ${sel ? "font-semibold text-kayal" : ""} ${o.disabled ? "cursor-not-allowed opacity-40" : ""}`}
+                  className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${i === active ? "bg-subtle" : ""} ${sel ? "font-semibold text-accent" : ""} ${o.disabled ? "cursor-not-allowed opacity-40" : ""}`}
                   style={o.style}
                 >
                   <span className="min-w-0 flex-1">

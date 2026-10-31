@@ -14,13 +14,13 @@ export const viewport: Viewport = {
   // the on-screen keyboard shrinks the visual viewport only, so the keyboard accessory can sit on top of it
   interactiveWidget: "resizes-visual",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#e3e9e6" },
-    { media: "(prefers-color-scheme: dark)", color: "#121917" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#141417" },
   ],
 };
 
 const FONTS =
-  "https://fonts.googleapis.com/css2?family=Anek+Malayalam:wght@300..800&family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Manjari:wght@400;700&family=Gayathri:wght@400;700&family=Chilanka&family=Baloo+Chettan+2:wght@400;600;700&display=swap";
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Anek+Malayalam:wght@300..800&family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Manjari:wght@400;700&family=Gayathri:wght@400;700&family=Chilanka&family=Baloo+Chettan+2:wght@400;600;700&display=swap";
 
 const themeScript = `try{var t=localStorage.getItem('litma:theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}`;
 

@@ -16,7 +16,7 @@ export function Avatar({ profile, size = 32 }: { profile: Pick<Profile, "avatar_
     // eslint-disable-next-line @next/next/no-img-element
     <img src={profile.avatar_url} alt="" width={size} height={size} className="rounded-full object-cover" style={{ width: size, height: size }} />
   ) : (
-    <span className="grid place-items-center rounded-full bg-kayal font-semibold text-kayal-ink" style={{ width: size, height: size, fontSize: size * 0.42 }} aria-hidden>
+    <span className="grid place-items-center rounded-full bg-accent font-semibold text-accent-ink" style={{ width: size, height: size, fontSize: size * 0.42 }} aria-hidden>
       {initial}
     </span>
   );
@@ -50,8 +50,8 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
 
   return (
     <>
-      <div className="kasavu-rule" />
-      <header className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4">
+      <header className="app-bar">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-2.5">
         <div className="flex items-center gap-2">
           {children}
           <Logo href="/desk/" />
@@ -63,7 +63,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
           <ThemeToggle />
           {store.isCloud() ? (
             <div className="relative" ref={ref}>
-              <button className="ml-1 rounded-full ring-offset-2 ring-offset-desk hover:ring-2 hover:ring-kayal" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label="Account menu">
+              <button className="ml-1 rounded-full ring-offset-2 ring-offset-canvas hover:ring-2 hover:ring-accent" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label="Account menu">
                 <Avatar profile={profile} size={34} />
               </button>
               {open && (
@@ -72,15 +72,15 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
                     <div className="truncate font-semibold">{profile?.pen_name || profile?.display_name || "Writer"}</div>
                     <div className="truncate text-xs text-muted">{profile?.email}</div>
                   </div>
-                  <Link role="menuitem" href="/profile/" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-desk-2">
+                  <Link role="menuitem" href="/profile/" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-subtle">
                     <User size={15} /> Profile
                   </Link>
-                  <Link role="menuitem" href="/settings/" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-desk-2">
+                  <Link role="menuitem" href="/settings/" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-subtle">
                     <Settings size={15} /> Settings &amp; AI
                   </Link>
                   <button
                     role="menuitem"
-                    className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm hover:bg-desk-2"
+                    className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm hover:bg-subtle"
                     onClick={async () => {
                       await getSupabase()?.auth.signOut();
                       router.replace("/login/");
@@ -96,6 +96,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
               <Settings size={17} />
             </Link>
           )}
+        </div>
         </div>
       </header>
     </>

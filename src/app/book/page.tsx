@@ -127,20 +127,19 @@ function BookEditor() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <div className="kasavu-rule" />
-      <header className="safe-top flex items-center gap-1.5 border-b border-line bg-paper px-2 py-1.5 sm:gap-3 sm:px-4 sm:py-2">
+      <header className="safe-top flex items-center gap-1.5 border-b border-line bg-header px-2 py-1.5 sm:gap-3 sm:px-4 sm:py-2">
         <Link href="/desk/" className="btn btn-ghost !p-2" aria-label="Back to desk">
           <ArrowLeft size={18} />
         </Link>
         <div className="min-w-0 flex-1">
-          <input value={book.title} onChange={(e) => update({ title: e.target.value })} className="w-full max-w-xl rounded-md bg-transparent px-1.5 py-0.5 text-[1.05rem] font-semibold hover:bg-desk-2 focus:bg-desk-2 focus:outline-none" aria-label="Book title" style={ml} />
+          <input value={book.title} onChange={(e) => update({ title: e.target.value })} className="w-full max-w-xl rounded-md bg-transparent px-1.5 py-0.5 text-[1.05rem] font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none" aria-label="Book title" style={ml} />
           <div className="px-1.5 text-[11.5px] text-muted">
-            <span className="font-semibold text-kasavu">പുസ്തകം</span> · {chapters} {chapters === 1 ? "chapter" : "chapters"} · {save === "saving" ? "Saving…" : save === "error" ? "Offline — will retry" : "All changes saved"}
+            <span className="font-semibold text-highlight">പുസ്തകം</span> · {chapters} {chapters === 1 ? "chapter" : "chapters"} · {save === "saving" ? "Saving…" : save === "error" ? "Offline — will retry" : "All changes saved"}
           </div>
         </div>
         {!phone && <ThemeToggle />}
         {screen === "tablet" && (
-          <button className={`btn btn-ghost !px-2.5 ${detailsOpen ? "text-kayal" : ""}`} onClick={() => setDetailsOpen((o) => !o)} aria-pressed={detailsOpen}>
+          <button className={`btn btn-ghost !px-2.5 ${detailsOpen ? "text-accent" : ""}`} onClick={() => setDetailsOpen((o) => !o)} aria-pressed={detailsOpen}>
             <Settings2 size={16} /> Details
           </button>
         )}
@@ -151,7 +150,7 @@ function BookEditor() {
 
       <div className="relative flex min-h-0 flex-1">
         {/* Contents */}
-        <aside className={`scrollbar-thin overflow-y-auto bg-desk p-3 md:w-72 md:shrink-0 md:border-r md:border-line ${phone ? (pane === "contents" ? "flex-1" : "hidden") : ""}`}>
+        <aside className={`scrollbar-thin overflow-y-auto bg-surface p-3 md:w-72 md:shrink-0 md:border-r md:border-line ${phone ? (pane === "contents" ? "flex-1" : "hidden") : ""}`}>
           <div className="mb-2 flex items-center justify-between px-1">
             <h2 className="text-sm font-semibold">Book contents</h2>
             <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => setAdding(true)}>
@@ -170,7 +169,7 @@ function BookEditor() {
                   if (from >= 0) move(from, i);
                   setDragId(null);
                 }}
-                className={`group flex items-center gap-1.5 rounded-md px-1.5 py-2 md:py-1.5 ${sel === it.id ? "bg-paper shadow-sm" : "hover:bg-desk-2"} ${dragId === it.id ? "opacity-40" : ""}`}
+                className={`group flex items-center gap-1.5 rounded-md px-1.5 py-2 md:py-1.5 ${sel === it.id ? "bg-paper shadow-sm" : "hover:bg-subtle"} ${dragId === it.id ? "opacity-40" : ""}`}
               >
                 <GripVertical size={14} className="shrink-0 cursor-grab text-muted" aria-hidden />
                 <button
@@ -186,14 +185,14 @@ function BookEditor() {
                   <span className="block text-[11px] text-muted">{it.type === "document" ? templateFor(docMap.get(it.documentId ?? "")?.kind ?? "blank").ml : ITEM_LABELS[it.type].en}</span>
                 </button>
                 <span className="flex group-hover:opacity-100 [@media(hover:hover)]:opacity-0 [&_button]:p-1.5 md:[&_button]:p-0.5">
-                  <button className="rounded p-0.5 hover:bg-desk-2" onClick={() => move(i, i - 1)} aria-label="Move up">
+                  <button className="rounded p-0.5 hover:bg-subtle" onClick={() => move(i, i - 1)} aria-label="Move up">
                     <ArrowUp size={13} />
                   </button>
-                  <button className="rounded p-0.5 hover:bg-desk-2" onClick={() => move(i, i + 1)} aria-label="Move down">
+                  <button className="rounded p-0.5 hover:bg-subtle" onClick={() => move(i, i + 1)} aria-label="Move down">
                     <ArrowDown size={13} />
                   </button>
                   <button
-                    className="rounded p-0.5 hover:bg-desk-2 hover:text-danger"
+                    className="rounded p-0.5 hover:bg-subtle hover:text-danger"
                     onClick={() => {
                       setItems(items.filter((x) => x.id !== it.id));
                       if (sel === it.id) setSel(null);
@@ -207,14 +206,14 @@ function BookEditor() {
             ))}
           </ol>
           {chapters === 0 && (
-            <button className="mt-3 w-full rounded-md border-2 border-dashed border-line px-3 py-4 text-sm text-muted hover:border-kayal hover:text-kayal" onClick={() => setPicking(true)}>
+            <button className="mt-3 w-full rounded-md border-2 border-dashed border-line px-3 py-4 text-sm text-muted hover:border-accent hover:text-accent" onClick={() => setPicking(true)}>
               <Plus size={15} className="mr-1 inline" /> Add documents as chapters
             </button>
           )}
         </aside>
 
         {/* Selected item */}
-        <main className={`scrollbar-thin min-w-0 flex-1 overflow-y-auto bg-desk px-3 py-4 sm:px-6 sm:py-6 ${phone && pane !== "item" ? "hidden" : ""}`}>
+        <main className={`scrollbar-thin min-w-0 flex-1 overflow-y-auto bg-canvas px-3 py-4 sm:px-6 sm:py-6 ${phone && pane !== "item" ? "hidden" : ""}`}>
           {!selected ? (
             <p className="text-muted">Choose a page from the contents, or add one.</p>
           ) : selected.type === "cover" || selected.type === "back-cover" ? (
@@ -226,7 +225,7 @@ function BookEditor() {
 
         {/* Book settings */}
         <aside
-          className={`scrollbar-thin overflow-y-auto bg-desk p-4 ${
+          className={`scrollbar-thin overflow-y-auto bg-surface p-4 ${
             phone
               ? pane === "details"
                 ? "flex-1"
@@ -307,11 +306,11 @@ function BookEditor() {
               </div>
             </fieldset>
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="accent-[var(--kayal)]" checked={!!st.chaptersOnRight} onChange={(e) => setSt({ chaptersOnRight: e.target.checked })} />
+              <input type="checkbox" className="accent-[var(--accent)]" checked={!!st.chaptersOnRight} onChange={(e) => setSt({ chaptersOnRight: e.target.checked })} />
               Start chapters on a right-hand page
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="accent-[var(--kayal)]" checked={st.runningHead !== false} onChange={(e) => setSt({ runningHead: e.target.checked })} />
+              <input type="checkbox" className="accent-[var(--accent)]" checked={st.runningHead !== false} onChange={(e) => setSt({ runningHead: e.target.checked })} />
               Running heads (book title / chapter title)
             </label>
           </div>
@@ -333,8 +332,8 @@ function BookEditor() {
               ["details", "Details", Settings2],
             ] as const
           ).map(([id, l, Icon]) => (
-            <button key={id} onClick={() => setPane(id)} aria-pressed={pane === id} className={`flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10.5px] font-medium ${pane === id ? "text-kayal" : "text-muted"}`}>
-              <span className={`grid h-7 w-14 place-items-center rounded-full ${pane === id ? "bg-kayal-soft" : ""}`}>
+            <button key={id} onClick={() => setPane(id)} aria-pressed={pane === id} className={`flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10.5px] font-medium ${pane === id ? "text-accent" : "text-muted"}`}>
+              <span className={`grid h-7 w-14 place-items-center rounded-full ${pane === id ? "bg-accent-soft" : ""}`}>
                 <Icon size={19} />
               </span>
               {l}
@@ -409,7 +408,7 @@ function In({ label, value, onChange, placeholder }: { label: string; value: str
 
 function AddBtn({ label, hint, onClick }: { label: string; hint: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="rounded-lg border border-line bg-paper px-3 py-2.5 text-left hover:border-kayal">
+    <button onClick={onClick} className="rounded-lg border border-line bg-paper px-3 py-2.5 text-left hover:border-accent">
       <span className="block text-sm font-semibold">{label}</span>
       <span className="block text-xs text-muted" style={ml}>
         {hint}
@@ -426,7 +425,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   }, [onClose]);
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
-      <div className="scrollbar-thin max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-desk p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="scrollbar-thin max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-canvas p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold">{title}</h2>
           <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label="Close">
@@ -451,8 +450,8 @@ function DocPicker({ docs, already, onPick, onClose }: { docs: LitmaDoc[]; alrea
             const on = chosen.includes(d.id);
             return (
               <li key={d.id}>
-                <label className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 ${on ? "bg-kayal-soft" : "hover:bg-desk-2"}`}>
-                  <input type="checkbox" className="accent-[var(--kayal)]" checked={on} onChange={() => setChosen((c) => (on ? c.filter((x) => x !== d.id) : [...c, d.id]))} />
+                <label className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 ${on ? "bg-accent-soft" : "hover:bg-subtle"}`}>
+                  <input type="checkbox" className="accent-[var(--accent)]" checked={on} onChange={() => setChosen((c) => (on ? c.filter((x) => x !== d.id) : [...c, d.id]))} />
                   <FileText size={15} className="text-muted" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium" style={ml}>
@@ -462,7 +461,7 @@ function DocPicker({ docs, already, onPick, onClose }: { docs: LitmaDoc[]; alrea
                       {templateFor(d.kind).ml} · {d.word_count} words {already.has(d.id) && "· already in this book"}
                     </span>
                   </span>
-                  {on && <span className="text-xs font-semibold text-kayal">{chosen.indexOf(d.id) + 1}</span>}
+                  {on && <span className="text-xs font-semibold text-accent">{chosen.indexOf(d.id) + 1}</span>}
                 </label>
               </li>
             );
@@ -487,7 +486,7 @@ function ItemPanel({ item, book, doc, onChange }: { item: BookItem; book: Book; 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
       <div>
-        <span className="text-xs font-semibold text-kasavu">
+        <span className="text-xs font-semibold text-highlight">
           {info.ml} · {info.en}
         </span>
       </div>
@@ -517,11 +516,11 @@ function ItemPanel({ item, book, doc, onChange }: { item: BookItem; book: Book; 
           )}
           <In label="Chapter title in the book (leave empty to use the document’s title)" value={item.title ?? ""} onChange={(v) => onChange({ title: v })} />
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="accent-[var(--kayal)]" checked={item.showTitle !== false} onChange={(e) => onChange({ showTitle: e.target.checked })} />
+            <input type="checkbox" className="accent-[var(--accent)]" checked={item.showTitle !== false} onChange={(e) => onChange({ showTitle: e.target.checked })} />
             Print a chapter heading (number and title)
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="accent-[var(--kayal)]" checked={item.inToc !== false} onChange={(e) => onChange({ inToc: e.target.checked })} />
+            <input type="checkbox" className="accent-[var(--accent)]" checked={item.inToc !== false} onChange={(e) => onChange({ inToc: e.target.checked })} />
             List in the table of contents
           </label>
         </>
@@ -537,7 +536,7 @@ function ItemPanel({ item, book, doc, onChange }: { item: BookItem; book: Book; 
           />
           {item.type === "text" && (
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="accent-[var(--kayal)]" checked={item.inToc !== false} onChange={(e) => onChange({ inToc: e.target.checked })} />
+              <input type="checkbox" className="accent-[var(--accent)]" checked={item.inToc !== false} onChange={(e) => onChange({ inToc: e.target.checked })} />
               List in the table of contents (when it comes after the contents page)
             </label>
           )}
@@ -586,7 +585,7 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
           <span className="mb-1.5 block text-xs text-muted">Design</span>
           <div className="flex flex-wrap gap-1.5">
             {COVER_TEMPLATES.map((x) => (
-              <button key={x.id} onClick={() => onCover({ template: x.id, ...x.defaults })} className={`rounded-full border px-3 py-1 text-xs ${t === x.id ? "border-kayal bg-kayal-soft text-kayal" : "border-line hover:border-kayal"}`}>
+              <button key={x.id} onClick={() => onCover({ template: x.id, ...x.defaults })} className={`rounded-full border px-3 py-1 text-xs ${t === x.id ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
                 {x.label}
               </button>
             ))}

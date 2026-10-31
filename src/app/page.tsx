@@ -15,7 +15,7 @@ const FEATURES: [string, React.ReactNode][] = [
     "Dictionary built in",
     <>
       Malayalam–Malayalam, English–Malayalam, synonyms and opposites from{" "}
-      <a href="https://olam.in/p/open" target="_blank" rel="noreferrer" className="text-kayal underline underline-offset-2">
+      <a href="https://olam.in/p/open" target="_blank" rel="noreferrer" className="text-accent underline underline-offset-2">
         Olam’s open datasets
       </a>
       , one click from your text.
@@ -29,13 +29,14 @@ const FEATURES: [string, React.ReactNode][] = [
 export default function Home() {
   return (
     <div className="min-h-dvh">
-      <div className="kasavu-rule" />
-      <header className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-5 py-5">
+      <header className="app-bar">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-5 py-2.5">
         <Logo />
         <nav className="flex items-center gap-1.5 sm:gap-2">
           <ThemeToggle />
           <HomeNav />
         </nav>
+        </div>
       </header>
 
       <main>
@@ -54,7 +55,7 @@ export default function Home() {
           <TryManglish />
         </section>
 
-        <section id="types" className="border-y border-line bg-desk-2/60 py-16">
+        <section id="types" className="border-y border-line bg-subtle/60 py-16">
           <div className="mx-auto max-w-6xl px-5">
             <h2 className="text-2xl font-bold">ഒൻപത് സാഹിത്യരൂപങ്ങൾ · Nine writing types, each set the way it is printed</h2>
             <p className="mt-2 max-w-2xl text-muted">Pick a സാഹിത്യരൂപം (writing type) and Litma sets up the page, the typeface and the toolbar for it.</p>
@@ -73,7 +74,7 @@ export default function Home() {
         <section className="mx-auto max-w-6xl px-5 py-16">
           <dl className="grid gap-x-12 gap-y-9 md:grid-cols-2">
             {FEATURES.map(([t, d]) => (
-              <div key={t} className="border-l-2 border-kasavu pl-5">
+              <div key={t} className="border-l-2 border-highlight pl-5">
                 <dt className="text-lg font-semibold">{t}</dt>
                 <dd className="mt-1.5 leading-relaxed text-muted">{d}</dd>
               </div>

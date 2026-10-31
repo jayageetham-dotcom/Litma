@@ -57,7 +57,7 @@ function Btn({
       aria-pressed={active}
       disabled={disabled}
       className={`grid h-8 min-w-8 place-items-center rounded-md px-1.5 text-[13px] transition-colors disabled:opacity-35 ${
-        active ? "bg-kayal-soft text-kayal" : "text-ink hover:bg-desk-2"
+        active ? "bg-accent-soft text-accent" : "text-ink hover:bg-subtle"
       }`}
     >
       {children}
@@ -77,7 +77,7 @@ export function InputModeSwitch({ mode, onChange }: { mode: InputMode; onChange:
     ["english", "English", "Plain English typing"],
   ];
   return (
-    <div className="flex shrink-0 rounded-lg bg-desk-2 p-0.5 text-[12.5px]" role="radiogroup" aria-label="Input mode">
+    <div className="flex shrink-0 rounded-lg bg-subtle p-0.5 text-[12.5px]" role="radiogroup" aria-label="Input mode">
       {opts.map(([m, l, t]) => (
         <button
           key={m}
@@ -87,7 +87,7 @@ export function InputModeSwitch({ mode, onChange }: { mode: InputMode; onChange:
           title={t}
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => onChange(m)}
-          className={`rounded-md px-2.5 py-1 ${mode === m ? "bg-paper font-semibold text-kayal shadow-sm" : "text-muted hover:text-ink"}`}
+          className={`rounded-md px-2.5 py-1 ${mode === m ? "bg-paper font-semibold text-accent shadow-sm" : "text-muted hover:text-ink"}`}
         >
           {l}
         </button>
@@ -186,7 +186,7 @@ export function Toolbar({
                 onMouseDown={(ev) => ev.preventDefault()}
                 onClick={() => setScreenplayElement(e, el.type)}
                 title={`${el.label} (Ctrl+Alt+${el.key})`}
-                className={`h-8 rounded-md px-2 text-[13px] ${active ? "bg-kayal text-kayal-ink" : "hover:bg-desk-2"}`}
+                className={`h-8 rounded-md px-2 text-[13px] ${active ? "bg-accent text-accent-ink" : "hover:bg-subtle"}`}
               >
                 {el.ml}
               </button>
@@ -240,7 +240,7 @@ export function Toolbar({
       </Btn>
 
       <details className="relative shrink-0">
-        <summary className="grid h-8 min-w-8 cursor-pointer list-none place-items-center rounded-md hover:bg-desk-2" title="Text colour and highlight" aria-label="Colour">
+        <summary className="grid h-8 min-w-8 cursor-pointer list-none place-items-center rounded-md hover:bg-subtle" title="Text colour and highlight" aria-label="Colour">
           <span className="flex flex-col items-center">
             <Highlighter size={15} />
           </span>
@@ -258,7 +258,7 @@ export function Toolbar({
               <button key={c} className="h-6 w-6 rounded border border-line" style={{ background: c }} aria-label={`Highlight ${c}`} onMouseDown={(ev) => ev.preventDefault()} onClick={() => chain().toggleHighlight({ color: c }).run()} />
             ))}
           </div>
-          <button className="mt-3 text-xs text-kayal underline" onMouseDown={(ev) => ev.preventDefault()} onClick={() => chain().unsetColor().unsetHighlight().run()}>
+          <button className="mt-3 text-xs text-accent underline" onMouseDown={(ev) => ev.preventDefault()} onClick={() => chain().unsetColor().unsetHighlight().run()}>
             Clear colours
           </button>
         </div>
@@ -330,7 +330,7 @@ export function Toolbar({
             aria-pressed={metre.on}
             aria-label="Metre marks (വൃത്തം)"
             title={`${metre.on ? "Hide" : "Show"} metre: akshara count and laghu (∪) / guru (–) marks (Ctrl+Alt+V)`}
-            className={`flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-[13px] transition-colors ${metre.on ? "bg-kayal-soft font-semibold text-kayal" : "text-ink hover:bg-desk-2"}`}
+            className={`flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-[13px] transition-colors ${metre.on ? "bg-accent-soft font-semibold text-accent" : "text-ink hover:bg-subtle"}`}
           >
             <AudioLines size={16} aria-hidden />
             <span style={{ fontFamily: "'Anek Malayalam'" }}>വൃത്തം</span>
@@ -376,7 +376,7 @@ export function MobileFormatStrip({
       aria-label={t}
       aria-pressed={act}
       disabled={dis}
-      className={`grid h-10 min-w-10 shrink-0 place-items-center rounded-lg px-2 text-[13px] disabled:opacity-35 ${act ? "bg-kayal-soft text-kayal" : "text-ink active:bg-desk-2"}`}
+      className={`grid h-10 min-w-10 shrink-0 place-items-center rounded-lg px-2 text-[13px] disabled:opacity-35 ${act ? "bg-accent-soft text-accent" : "text-ink active:bg-subtle"}`}
     >
       {children}
     </button>
@@ -388,7 +388,7 @@ export function MobileFormatStrip({
         onPointerDown={keep}
         onMouseDown={keep}
         onClick={() => onMode(next[mode])}
-        className="h-9 shrink-0 rounded-lg bg-kayal-soft px-2.5 text-[12.5px] font-semibold text-kayal"
+        className="h-9 shrink-0 rounded-lg bg-accent-soft px-2.5 text-[12.5px] font-semibold text-accent"
         aria-label={`Input: ${label[mode]}. Tap to switch`}
       >
         {label[mode]}

@@ -1,77 +1,69 @@
 @import "tailwindcss";
+/* All design tokens live in src/styles/theme.css — edit colours, radii and fonts there. */
+@import "../styles/theme.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Litma palette — "Kayal & Kasavu": backwater green and the gold border of a Kerala mundu. */
-:root {
-  --desk: #e3e9e6;
-  --desk-2: #d7dfdb;
-  --paper: #ffffff;
-  --ink: #1a2220;
-  --muted: #5d6b67;
-  --line: #cbd5d1;
-  --kayal: #1d5a52;
-  --kayal-ink: #ffffff;
-  --kayal-soft: #d8e8e3;
-  --kasavu: #a17a28;
-  --kasavu-soft: #f3ead6;
-  --danger: #a3372b;
-  --sheet-shadow: 0 1px 2px rgba(18, 40, 36, 0.12), 0 8px 28px rgba(18, 40, 36, 0.08);
-  color-scheme: light;
-}
-
-.dark {
-  --desk: #121917;
-  --desk-2: #19221f;
-  --paper: #1d2624;
-  --ink: #e1e7e4;
-  --muted: #92a19c;
-  --line: #2c3936;
-  --kayal: #6fb3a6;
-  --kayal-ink: #0d1614;
-  --kayal-soft: #213531;
-  --kasavu: #d2ad5c;
-  --kasavu-soft: #2e2918;
-  --danger: #e0806f;
-  --sheet-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.35);
-  color-scheme: dark;
-}
-
 @theme inline {
-  --color-desk: var(--desk);
-  --color-desk-2: var(--desk-2);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
   --color-paper: var(--paper);
+  --color-header: var(--header);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
-  --color-kayal: var(--kayal);
-  --color-kayal-ink: var(--kayal-ink);
-  --color-kayal-soft: var(--kayal-soft);
-  --color-kasavu: var(--kasavu);
-  --color-kasavu-soft: var(--kasavu-soft);
+  --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-soft);
   --color-danger: var(--danger);
-  --font-ui: "Anek Malayalam", "Noto Sans Malayalam", system-ui, sans-serif;
-  --font-serif: "Noto Serif Malayalam", Georgia, serif;
+  --font-sans: var(--font-ui);
+  --font-display: var(--font-display);
 }
 
 html,
 body {
-  background: var(--desk);
+  background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
 }
 
-/* The brand device: a kasavu double rule. Used once per screen, at the top. */
-.kasavu-rule {
-  height: 5px;
-  background:
-    linear-gradient(var(--kasavu), var(--kasavu)) top / 100% 2px no-repeat,
-    linear-gradient(var(--kasavu), var(--kasavu)) bottom / 100% 1px no-repeat;
+/* Top bars: a solid, slightly translucent surface with a hairline, so the header reads as its own layer. */
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--header);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  padding-top: env(safe-area-inset-top);
+}
+.bg-header {
+  background: var(--header);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+}
+
+/* Brand gradient: the logo word and thin accent bars only */
+.brand-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.brand-bar {
+  height: 3px;
+  background: var(--brand-gradient);
 }
 
 :focus-visible {
-  outline: 2px solid var(--kayal);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -90,51 +82,66 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  border-radius: 8px;
-  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.95rem;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  letter-spacing: -0.005em;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s, transform 0.08s;
   cursor: pointer;
 }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 .btn-primary {
-  background: var(--kayal);
-  color: var(--kayal-ink);
+  background: var(--primary);
+  color: var(--primary-ink);
 }
 .btn-primary:hover:not(:disabled) {
-  filter: brightness(1.08);
+  opacity: 0.88;
+}
+.btn-accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.btn-accent:hover:not(:disabled) {
+  opacity: 0.9;
 }
 .btn-ghost {
   color: var(--ink);
 }
 .btn-ghost:hover:not(:disabled) {
-  background: var(--desk-2);
+  background: var(--subtle);
 }
 .btn-outline {
   border: 1px solid var(--line);
-  background: var(--paper);
+  background: var(--surface);
+  color: var(--ink);
 }
 .btn-outline:hover:not(:disabled) {
-  border-color: var(--kayal);
+  background: var(--subtle);
 }
 .field {
   width: 100%;
   border: 1px solid var(--line);
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 0.6rem 0.75rem;
   font-size: 0.95rem;
 }
+.field::placeholder {
+  color: var(--muted);
+}
 .field:focus {
   outline: none;
-  border-color: var(--kayal);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kayal) 20%, transparent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .scrollbar-thin {
   scrollbar-width: thin;

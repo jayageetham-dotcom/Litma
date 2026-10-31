@@ -432,7 +432,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         <input
           type="checkbox"
           checked={isPublic}
-          className="accent-[var(--kayal)]"
+          className="accent-[var(--accent)]"
           onChange={async (e) => {
             const id = await store.setPublic(docRef.current.id, e.target.checked);
             setIsPublic(e.target.checked);
@@ -502,7 +502,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
       {/* ── Top bar ── */}
       {!focus && (
-        <header className="no-print safe-top flex items-center gap-1 border-b border-line bg-paper px-2 py-1.5 md:gap-2 md:px-3 md:py-2">
+        <header className="no-print safe-top flex items-center gap-1 border-b border-line bg-header px-2 py-1.5 md:gap-2 md:px-3 md:py-2">
           <button onClick={goToDesk} className="btn btn-ghost !p-2" title="Back to desk" aria-label="Back to desk">
             <ArrowLeft size={phone ? 20 : 18} />
           </button>
@@ -519,11 +519,11 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 saver.current?.touch();
               }}
               onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-              className="w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-desk-2 focus:bg-desk-2 focus:outline-none md:text-[1.05rem]"
+              className="w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none md:text-[1.05rem]"
               aria-label="Title"
             />
             <div className="flex items-center gap-2 truncate px-1.5 text-[11.5px] text-muted">
-              <span className="font-semibold text-kasavu">{template.ml}</span>
+              <span className="font-semibold text-highlight">{template.ml}</span>
               {phone ? (
                 <span>
                   {stats.words.toLocaleString("en-IN")} words · {stats.pages} {stats.pages === 1 ? "page" : "pages"}
@@ -538,7 +538,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           </div>
 
           {phone ? (
-            <button className={`btn btn-ghost !p-2 ${panel === "ai" ? "text-kayal" : ""}`} onClick={() => openPanel(panel === "ai" ? null : "ai")} aria-label="AI companion">
+            <button className={`btn btn-ghost !p-2 ${panel === "ai" ? "text-accent" : ""}`} onClick={() => openPanel(panel === "ai" ? null : "ai")} aria-label="AI companion">
               <Sparkles size={20} />
             </button>
           ) : (
@@ -582,7 +582,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       <div className="flex min-h-0 flex-1">
         {/* ── Outline: docked on laptops and up ── */}
         {!focus && outline && editor && (screen === "desktop" || screen === "wide") && (
-          <aside className="no-print scrollbar-thin w-56 shrink-0 overflow-y-auto border-r border-line bg-desk px-3 py-4">
+          <aside className="no-print scrollbar-thin w-56 shrink-0 overflow-y-auto border-r border-line bg-surface px-3 py-4">
             <OutlinePanel editor={editor} />
           </aside>
         )}
@@ -592,12 +592,12 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           {/* ── Desk with A4 pages ── */}
           <main
             ref={deskRef}
-            className={`desk-scroll scrollbar-thin relative min-w-0 flex-1 overflow-auto bg-desk ${phone ? "px-2 pb-6 pt-3" : "px-4 py-8"}`}
+            className={`desk-scroll scrollbar-thin relative min-w-0 flex-1 overflow-auto bg-canvas ${phone ? "px-2 pb-6 pt-3" : "px-4 py-8"}`}
             onClick={(e) => e.target === e.currentTarget && editor?.commands.focus("end")}
           >
             {findOpen && editor && <FindBar editor={editor} onClose={() => setFindOpen(false)} />}
             {recovered && editor && (
-              <div className="no-print sticky top-0 z-30 mx-auto mb-4 flex w-fit max-w-full flex-wrap items-center gap-3 rounded-xl border border-kasavu/50 bg-kasavu-soft px-4 py-2.5 text-sm shadow-lg" role="status">
+              <div className="no-print sticky top-0 z-30 mx-auto mb-4 flex w-fit max-w-full flex-wrap items-center gap-3 rounded-xl border border-highlight/50 bg-highlight-soft px-4 py-2.5 text-sm shadow-lg" role="status">
                 <span>
                   Recovered your unsaved writing from {new Date(recovered.at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.
                 </span>
@@ -667,7 +667,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             <span className="my-1 h-px w-6 bg-line" />
             <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" icon={BookOpen} />
             {store.isCloud() && shareId && isPublic && (
-              <a href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-desk-2" title="Open reader view" aria-label="Open reader view">
+              <a href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-subtle" title="Open reader view" aria-label="Open reader view">
                 <Eye size={17} />
               </a>
             )}
@@ -707,7 +707,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           <h3 className="mb-1.5 mt-5 text-xs font-semibold uppercase tracking-wide text-muted">Export</h3>
           <div className="overflow-hidden rounded-xl border border-line bg-paper">
             {exportItems.filter((x) => x.label !== "Quick print").map((x) => (
-              <button key={x.label} onClick={x.run} className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left text-sm last:border-0 active:bg-desk-2">
+              <button key={x.label} onClick={x.run} className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left text-sm last:border-0 active:bg-subtle">
                 <FileText size={16} className="text-muted" /> {x.label}
               </button>
             ))}
@@ -758,24 +758,24 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           <span className="hidden md:inline">{readingMinutes(stats.words)} min read</span>
           {goal > 0 && (
             <span className="flex items-center gap-2" title={`${stats.words} of ${goal} words`}>
-              <span className="h-1.5 w-24 overflow-hidden rounded-full bg-desk-2">
-                <span className="block h-full bg-kasavu" style={{ width: `${pct}%` }} />
+              <span className="h-1.5 w-24 overflow-hidden rounded-full bg-subtle">
+                <span className="block h-full bg-highlight" style={{ width: `${pct}%` }} />
               </span>
               {pct}%
             </span>
           )}
           {!phone && (
             <span className="ml-auto flex items-center gap-1">
-              <span className="mr-2 rounded bg-kayal-soft px-1.5 py-0.5 font-semibold text-kayal" title="Ctrl/⌘ + M switches input">
+              <span className="mr-2 rounded bg-accent-soft px-1.5 py-0.5 font-semibold text-accent" title="Ctrl/⌘ + M switches input">
                 {mode === "manglish" ? "Manglish → മലയാളം" : mode === "malayalam" ? "മലയാളം" : "English"}
               </span>
-              <button className="rounded p-1 hover:bg-desk-2" onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.1).toFixed(2)))} aria-label="Zoom out">
+              <button className="rounded p-1 hover:bg-subtle" onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.1).toFixed(2)))} aria-label="Zoom out">
                 <Minus size={13} />
               </button>
-              <button className="w-11 rounded py-0.5 text-center hover:bg-desk-2" onClick={() => setZoom(1)} title="Reset zoom">
+              <button className="w-11 rounded py-0.5 text-center hover:bg-subtle" onClick={() => setZoom(1)} title="Reset zoom">
                 {Math.round(zoom * 100)}%
               </button>
-              <button className="rounded p-1 hover:bg-desk-2" onClick={() => setZoom((z) => Math.min(2, +(z + 0.1).toFixed(2)))} aria-label="Zoom in">
+              <button className="rounded p-1 hover:bg-subtle" onClick={() => setZoom((z) => Math.min(2, +(z + 0.1).toFixed(2)))} aria-label="Zoom in">
                 <Plus size={13} />
               </button>
             </span>
@@ -788,22 +788,22 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
 function TabBtn({ icon: Icon, label, active, onClick, badge = 0 }: { icon: React.ComponentType<{ size?: number }>; label: string; active: boolean; onClick: () => void; badge?: number }) {
   return (
-    <button onClick={onClick} aria-pressed={active} className={`relative flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10.5px] font-medium ${active ? "text-kayal" : "text-muted"}`}>
-      <span className={`grid h-7 w-12 place-items-center rounded-full ${active ? "bg-kayal-soft" : ""}`}>
+    <button onClick={onClick} aria-pressed={active} className={`relative flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10.5px] font-medium ${active ? "text-accent" : "text-muted"}`}>
+      <span className={`grid h-7 w-12 place-items-center rounded-full ${active ? "bg-accent-soft" : ""}`}>
         <Icon size={19} />
       </span>
       {label}
-      {badge > 0 && <span className="absolute right-[calc(50%-1.4rem)] top-1 grid h-4 min-w-4 place-items-center rounded-full bg-kasavu px-1 text-[10px] font-bold text-white">{badge}</span>}
+      {badge > 0 && <span className="absolute right-[calc(50%-1.4rem)] top-1 grid h-4 min-w-4 place-items-center rounded-full bg-highlight px-1 text-[10px] font-bold text-white">{badge}</span>}
     </button>
   );
 }
 
 function Tile({ icon: Icon, label, onClick, active, badge = 0 }: { icon: React.ComponentType<{ size?: number }>; label: string; onClick: () => void; active?: boolean; badge?: number }) {
   return (
-    <button onClick={onClick} aria-pressed={active} className={`relative flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 text-[11.5px] leading-tight ${active ? "bg-kayal-soft text-kayal" : "bg-paper text-ink active:bg-desk-2"}`}>
+    <button onClick={onClick} aria-pressed={active} className={`relative flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 text-[11.5px] leading-tight ${active ? "bg-accent-soft text-accent" : "bg-paper text-ink active:bg-subtle"}`}>
       <Icon size={20} />
       <span className="text-center">{label}</span>
-      {badge > 0 && <span className="absolute right-2 top-2 grid h-4 min-w-4 place-items-center rounded-full bg-kasavu px-1 text-[10px] font-bold text-white">{badge}</span>}
+      {badge > 0 && <span className="absolute right-2 top-2 grid h-4 min-w-4 place-items-center rounded-full bg-highlight px-1 text-[10px] font-bold text-white">{badge}</span>}
     </button>
   );
 }
@@ -815,10 +815,10 @@ function RailBtn({ active, onClick, label, icon: Icon, badge = 0 }: { active: bo
       title={label}
       aria-label={label}
       aria-pressed={active}
-      className={`relative grid h-9 w-9 place-items-center rounded-lg ${active ? "bg-kayal-soft text-kayal" : "text-muted hover:bg-desk-2 hover:text-ink"}`}
+      className={`relative grid h-9 w-9 place-items-center rounded-lg ${active ? "bg-accent-soft text-accent" : "text-muted hover:bg-subtle hover:text-ink"}`}
     >
       <Icon size={17} />
-      {badge > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-kasavu px-1 text-[10px] font-bold text-white">{badge}</span>}
+      {badge > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-highlight px-1 text-[10px] font-bold text-white">{badge}</span>}
     </button>
   );
 }
@@ -845,7 +845,7 @@ function Menu({ children, onClose, wide }: { children: React.ReactNode; onClose:
 
 function MenuItem({ onClick, icon, label, hint }: { onClick: () => void; icon: React.ReactNode; label: string; hint?: string }) {
   return (
-    <button role="menuitem" onClick={onClick} className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-desk-2">
+    <button role="menuitem" onClick={onClick} className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-subtle">
       {icon}
       <span className="flex-1">{label}</span>
       {hint && <span className="text-xs text-muted">{hint}</span>}

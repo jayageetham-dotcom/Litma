@@ -26,8 +26,8 @@ function Nav() {
       <div className="h-[calc(4rem+env(safe-area-inset-bottom))] md:hidden" aria-hidden />
       <nav className="no-print safe-bottom fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-paper/95 backdrop-blur md:hidden" aria-label="Main">
         {tabs.map((t) => (
-          <Link key={t.label} href={t.href} aria-current={t.on ? "page" : undefined} className={`flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10.5px] font-medium ${t.on ? "text-kayal" : "text-muted"}`}>
-            <span className={`grid h-7 w-14 place-items-center rounded-full ${t.on ? "bg-kayal-soft" : ""}`}>
+          <Link key={t.label} href={t.href} aria-current={t.on ? "page" : undefined} className={`flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10.5px] font-medium ${t.on ? "text-accent" : "text-muted"}`}>
+            <span className={`grid h-7 w-14 place-items-center rounded-full ${t.on ? "bg-accent-soft" : ""}`}>
               <t.icon size={19} />
             </span>
             {t.label}

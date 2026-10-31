@@ -14,7 +14,7 @@ type Token = { id: string; name: string; created_at: string; last_used_at: strin
 function Code({ children }: { children: string }) {
   return (
     <div className="group relative">
-      <pre className="scrollbar-thin overflow-x-auto rounded-lg bg-desk-2 p-3 text-[12px] leading-relaxed">{children}</pre>
+      <pre className="scrollbar-thin overflow-x-auto rounded-lg bg-subtle p-3 text-[12px] leading-relaxed">{children}</pre>
       <button className="absolute right-2 top-2 rounded bg-paper p-1 opacity-0 shadow group-hover:opacity-100" onClick={() => navigator.clipboard.writeText(children)} aria-label="Copy">
         <Copy size={13} />
       </button>
@@ -58,7 +58,7 @@ function Settings() {
             Litma is an MCP server at {url}. Connect any AI assistant that supports MCP — Claude, ChatGPT, Cursor, VS Code and others — with your own account. It can then read and write your works, manage Story World, look words up in the dictionary, assemble books and prepare PDFs. Each writer creates their own token below; it only ever sees that writer’s work.
           </p>
           {!cloud ? (
-            <p className="mt-4 rounded-lg border border-kasavu/40 bg-kasavu-soft px-4 py-3 text-sm">MCP needs Litma’s cloud sync. Sign in to create tokens.</p>
+            <p className="mt-4 rounded-lg border border-highlight/40 bg-highlight-soft px-4 py-3 text-sm">MCP needs Litma’s cloud sync. Sign in to create tokens.</p>
           ) : (
             <>
               <div className="mt-5 rounded-xl bg-paper p-5" style={{ boxShadow: "var(--sheet-shadow)" }}>
@@ -84,7 +84,7 @@ function Settings() {
                 </form>
                 {err && <p className="mt-2 text-sm text-danger">{err}</p>}
                 {fresh && (
-                  <div className="mt-3 rounded-lg border border-kasavu/50 bg-kasavu-soft p-3 text-sm">
+                  <div className="mt-3 rounded-lg border border-highlight/50 bg-highlight-soft p-3 text-sm">
                     Copy this token now. Litma stores only a hash, so it won’t be shown again.
                     <Code>{fresh}</Code>
                   </div>
@@ -114,7 +114,7 @@ function Settings() {
           )}
 
           <div className="mt-6 space-y-5 text-sm">
-            <div className="rounded-xl border border-kayal/30 bg-kayal-soft/60 p-4">
+            <div className="rounded-xl border border-accent/30 bg-accent-soft/60 p-4">
               <h3 className="font-semibold">Claude (web, desktop and mobile app) — custom connector</h3>
               <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] leading-relaxed">
                 <li>Create a token above and copy it.</li>
@@ -224,11 +224,11 @@ function AIKeys() {
                   <div className="font-semibold">{p.name}</div>
                 </div>
                 <label className="flex items-center gap-2 text-xs">
-                  <input type="radio" name="default-ai" className="accent-[var(--kayal)]" checked={def === p.id} onChange={() => setDefault(p.id)} /> Default
+                  <input type="radio" name="default-ai" className="accent-[var(--accent)]" checked={def === p.id} onChange={() => setDefault(p.id)} /> Default
                 </label>
               </div>
               {s && (
-                <div className="mt-3 flex items-center justify-between rounded-lg bg-kayal-soft px-3 py-2 text-sm">
+                <div className="mt-3 flex items-center justify-between rounded-lg bg-accent-soft px-3 py-2 text-sm">
                   <span>
                     Saved key ••••{s.last4}
                     {s.model ? ` · model ${s.model}` : ""}
@@ -273,7 +273,7 @@ function AIKeys() {
                 </button>
               </form>
               <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                <a href={p.keyUrl} target="_blank" rel="noreferrer" className="font-medium text-kayal underline underline-offset-2">
+                <a href={p.keyUrl} target="_blank" rel="noreferrer" className="font-medium text-accent underline underline-offset-2">
                   Get your {p.name.split(" ")[0]} API key at {p.keyHost} ↗
                 </a>
                 <a href={p.billingUrl} target="_blank" rel="noreferrer" className="text-muted underline underline-offset-2">
@@ -284,7 +284,7 @@ function AIKeys() {
           );
         })}
       </div>
-      {msg && <p className={`mt-3 text-sm ${msg.kind === "error" ? "text-danger" : "text-kayal"}`}>{msg.text}</p>}
+      {msg && <p className={`mt-3 text-sm ${msg.kind === "error" ? "text-danger" : "text-accent"}`}>{msg.text}</p>}
     </section>
   );
 }

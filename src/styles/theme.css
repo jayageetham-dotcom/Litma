@@ -1,0 +1,87 @@
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ *  Litma theme — the one file to edit to restyle the app.
+ *
+ *  Every colour, radius, shadow and font in the UI comes from these tokens.
+ *  Components use them through Tailwind classes generated in globals.css:
+ *
+ *    bg-canvas  bg-surface  bg-subtle  bg-paper  bg-header
+ *    text-ink   text-muted  border-line
+ *    bg-primary text-primary-ink           ← main buttons
+ *    text-accent bg-accent-soft border-accent ring-accent   ← links, selection, active
+ *    text-highlight bg-highlight-soft      ← writing-type labels, badges, goals
+ *    text-danger bg-danger
+ *    .brand-text  .brand-bar               ← the brand gradient
+ *
+ *  Light values sit in :root, dark values in .dark. Change a hex here and the
+ *  whole app (editor, desk, book, print chrome) follows. The document page
+ *  itself uses --paper so writing stays black-on-white however the chrome looks.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+:root {
+  /* Surfaces — neutral, so the writing is the colour on screen */
+  --canvas: #f4f4f5; /* app background, the desk behind the pages */
+  --surface: #ffffff; /* cards, panels, menus */
+  --subtle: #ececee; /* hover, chips, segmented controls */
+  --paper: #ffffff; /* the document page */
+  --header: rgba(255, 255, 255, 0.86); /* top bars (translucent over content) */
+
+  /* Text and lines */
+  --ink: #111113;
+  --muted: #6b6b76;
+  --line: #e2e2e6;
+
+  /* Actions */
+  --primary: #111113; /* main buttons: ink-black, like Threads / Instagram web */
+  --primary-ink: #ffffff;
+  --accent: #7c3aed; /* violet: links, focus rings, active tabs, selections */
+  --accent-ink: #ffffff;
+  --accent-soft: #f1eafe;
+  --highlight: #e1306c; /* Instagram pink: writing-type labels, badges, goal bars */
+  --highlight-soft: #fde7ef;
+  --danger: #dc2626;
+
+  /* Brand gradient (logo, small accents only — never behind text you read) */
+  --brand-gradient: linear-gradient(90deg, #f58529 0%, #dd2a7b 40%, #8134af 72%, #515bd4 100%);
+
+  /* Shape */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --sheet-shadow: 0 1px 2px rgba(17, 17, 19, 0.06), 0 10px 30px rgba(17, 17, 19, 0.07);
+  --pop-shadow: 0 12px 40px rgba(17, 17, 19, 0.14);
+
+  /* Type */
+  --font-ui: "Inter", "Anek Malayalam", "Noto Sans Malayalam", system-ui, sans-serif;
+  --font-display: "Anek Malayalam", "Inter", system-ui, sans-serif;
+  --font-serif: "Noto Serif Malayalam", Georgia, serif;
+
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: #09090b;
+  --surface: #141417;
+  --subtle: #1f1f23;
+  --paper: #18181b;
+  --header: rgba(20, 20, 23, 0.86);
+
+  --ink: #ececf0;
+  --muted: #9b9ba6;
+  --line: #2a2a30;
+
+  --primary: #f4f4f5;
+  --primary-ink: #09090b;
+  --accent: #a78bfa;
+  --accent-ink: #09090b;
+  --accent-soft: #241c3a;
+  --highlight: #f472b6;
+  --highlight-soft: #3a1828;
+  --danger: #f87171;
+
+  --sheet-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);
+  --pop-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+
+  color-scheme: dark;
+}

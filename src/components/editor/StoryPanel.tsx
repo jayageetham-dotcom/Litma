@@ -33,7 +33,7 @@ export function StoryPanel({ editor, doc, settings, onChange, onOpen, refresh = 
         const extra = t.kind === "character" ? detected.filter((d) => !known.has(d)) : [];
         return (
           <section key={t.kind}>
-            <h4 className="mb-1.5 text-xs font-semibold text-kasavu">
+            <h4 className="mb-1.5 text-xs font-semibold text-highlight">
               {t.ml} · {t.label}
             </h4>
             {list.length + extra.length === 0 ? (
@@ -41,7 +41,7 @@ export function StoryPanel({ editor, doc, settings, onChange, onOpen, refresh = 
             ) : (
               <ul className="space-y-0.5">
                 {list.map((i) => (
-                  <li key={i.id} className="group flex items-center justify-between rounded px-2 py-1 hover:bg-desk-2">
+                  <li key={i.id} className="group flex items-center justify-between rounded px-2 py-1 hover:bg-subtle">
                     <span className="min-w-0">
                       <span className="block truncate text-[14px] font-medium" style={ml}>
                         {i.name}
@@ -52,18 +52,18 @@ export function StoryPanel({ editor, doc, settings, onChange, onOpen, refresh = 
                         </span>
                       )}
                     </span>
-                    <button className="rounded p-1 text-muted opacity-0 hover:text-kayal group-hover:opacity-100" onClick={() => insert(i.name)} title="Insert name" aria-label={`Insert ${i.name}`}>
+                    <button className="rounded p-1 text-muted opacity-0 hover:text-accent group-hover:opacity-100" onClick={() => insert(i.name)} title="Insert name" aria-label={`Insert ${i.name}`}>
                       <CornerDownLeft size={13} />
                     </button>
                   </li>
                 ))}
                 {extra.map((n) => (
-                  <li key={n} className="group flex items-center justify-between rounded px-2 py-1 hover:bg-desk-2">
+                  <li key={n} className="group flex items-center justify-between rounded px-2 py-1 hover:bg-subtle">
                     <span className="truncate text-[14px] text-muted" style={ml}>
                       {n} <span className="text-[11px]">(in script)</span>
                     </span>
                     <button
-                      className="text-xs text-kayal opacity-0 group-hover:opacity-100"
+                      className="text-xs text-accent opacity-0 group-hover:opacity-100"
                       onClick={async () => {
                         const it = await store.saveStory({ document_id: doc.id, kind: "character", name: n });
                         setItems((x) => [...x, it]);
@@ -79,7 +79,7 @@ export function StoryPanel({ editor, doc, settings, onChange, onOpen, refresh = 
         );
       })}
       <section>
-        <h4 className="mb-1.5 text-xs font-semibold text-kasavu">കുറിപ്പ് · Quick notes</h4>
+        <h4 className="mb-1.5 text-xs font-semibold text-highlight">കുറിപ്പ് · Quick notes</h4>
         <textarea className="field min-h-36 !text-[14px] leading-relaxed" placeholder="Plot points, reminders…" value={settings.notes ?? ""} onChange={(e) => onChange({ notes: e.target.value })} style={ml} />
       </section>
     </div>

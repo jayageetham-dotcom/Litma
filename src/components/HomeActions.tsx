@@ -60,7 +60,7 @@ export function HomeNav() {
         <span className="sm:hidden">Desk</span>
       </Link>
       {state === "writer" && (
-        <Link href="/profile/" className="ml-1 rounded-full ring-offset-2 ring-offset-desk hover:ring-2 hover:ring-kayal" aria-label="Your profile">
+        <Link href="/profile/" className="ml-1 rounded-full ring-offset-2 ring-offset-canvas hover:ring-2 hover:ring-accent" aria-label="Your profile">
           <Avatar profile={profile} size={34} />
         </Link>
       )}
@@ -79,7 +79,7 @@ export function HeroActions() {
           <Link href="/signup/" className={`${big} btn-primary`}>
             Start writing — it’s free <ArrowRight size={18} />
           </Link>
-          <Link href="/login/" className="text-sm font-medium text-kayal underline-offset-4 hover:underline">
+          <Link href="/login/" className="text-sm font-medium text-accent underline-offset-4 hover:underline">
             Already have an account? Sign in
           </Link>
         </div>

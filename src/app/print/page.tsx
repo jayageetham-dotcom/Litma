@@ -68,9 +68,9 @@ function PrintView() {
   const hasBack = !!state?.book?.structure.some((i) => i.type === "back-cover");
 
   return (
-    <div className="min-h-dvh bg-desk">
+    <div className="min-h-dvh bg-canvas">
       {state && <style>{`@page { size: ${state.spec.w}mm ${state.spec.h}mm; margin: 0 } @media print { html, body { background: #fff } }`}</style>}
-      <header className="no-print sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-line bg-paper px-4 py-2.5">
+      <header className="no-print sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-line bg-header px-4 py-2.5">
         <button className="btn btn-ghost !p-2" onClick={() => (history.length > 1 ? router.back() : router.push("/desk/"))} aria-label="Back">
           <ArrowLeft size={18} />
         </button>

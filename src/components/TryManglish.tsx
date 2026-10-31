@@ -63,10 +63,10 @@ export function TryManglish() {
         spellCheck={false}
       />
       <div className="relative mt-4 bg-paper px-8 pb-10 pt-8" style={{ boxShadow: "var(--sheet-shadow)" }}>
-        <div className="kasavu-rule absolute inset-x-0 top-0" />
+        <div className="brand-bar absolute inset-x-0 top-0" />
         <p className="min-h-[5.5rem] text-[1.35rem] leading-[1.9] text-ink" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
           {output}
-          <span className="ml-0.5 inline-block h-[1.2em] w-[2px] translate-y-[0.2em] animate-pulse bg-kayal" />
+          <span className="ml-0.5 inline-block h-[1.2em] w-[2px] translate-y-[0.2em] animate-pulse bg-accent" />
         </p>
         <span className="absolute bottom-3 right-4 text-xs text-muted">A4 · 1</span>
       </div>

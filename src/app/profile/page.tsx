@@ -38,7 +38,7 @@ function Heatmap({ days }: { days: Days }) {
   }
   const max = Math.max(1, ...cells.map((c) => c.words));
   const level = (w: number) => (w === 0 ? 0 : Math.min(4, Math.ceil((w / max) * 4)));
-  const shades = ["var(--desk-2)", "color-mix(in srgb, var(--kayal) 30%, var(--paper))", "color-mix(in srgb, var(--kayal) 55%, var(--paper))", "color-mix(in srgb, var(--kayal) 78%, var(--paper))", "var(--kayal)"];
+  const shades = ["var(--subtle)", "color-mix(in srgb, var(--accent) 30%, var(--paper))", "color-mix(in srgb, var(--accent) 55%, var(--paper))", "color-mix(in srgb, var(--accent) 78%, var(--paper))", "var(--accent)"];
   return (
     <div className="scrollbar-thin overflow-x-auto">
       <div className="grid w-max grid-flow-col grid-rows-7 gap-[3px]" role="img" aria-label={`Words written per day over the last ${weeks} weeks`}>
@@ -256,8 +256,8 @@ function ProfileView() {
               <dd className="text-right font-semibold">{stats.best.toLocaleString("en-IN")}</dd>
             </dl>
             {p.daily_goal > 0 && (
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-desk-2" title="Today's goal">
-                <div className="h-full bg-kasavu" style={{ width: `${Math.min(100, (stats.today / p.daily_goal) * 100)}%` }} />
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-subtle" title="Today's goal">
+                <div className="h-full bg-highlight" style={{ width: `${Math.min(100, (stats.today / p.daily_goal) * 100)}%` }} />
               </div>
             )}
           </div>

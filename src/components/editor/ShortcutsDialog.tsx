@@ -61,7 +61,7 @@ export function ShortcutsDialog({ onClose, screenplay }: { onClose: () => void; 
         </div>
         {groups.map(([title, rows]) => (
           <section key={title} className="mb-4">
-            <h3 className="mb-1.5 text-sm font-semibold text-kasavu">{title}</h3>
+            <h3 className="mb-1.5 text-sm font-semibold text-highlight">{title}</h3>
             <dl className="divide-y divide-line text-sm">
               {rows.map(([k, d]) => (
                 <div key={k} className="flex justify-between gap-4 py-1.5">

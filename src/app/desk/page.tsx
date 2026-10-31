@@ -188,7 +188,7 @@ function Desk() {
         </div>
 
         {!store.isCloud() && (
-          <p className="mt-5 rounded-lg border border-kasavu/40 bg-kasavu-soft px-4 py-3 text-sm">Local mode: your work is saved in this browser only.</p>
+          <p className="mt-5 rounded-lg border border-highlight/40 bg-highlight-soft px-4 py-3 text-sm">Local mode: your work is saved in this browser only.</p>
         )}
         {error && <p className="mt-4 rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
 
@@ -201,7 +201,7 @@ function Desk() {
                 ["trash", "Trash"],
               ] as const
             ).map(([v, l]) => (
-              <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)} className={`rounded-md px-3 py-1.5 ${view === v ? "bg-paper font-semibold shadow-sm" : "text-muted hover:text-ink"}`}>
+              <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)} className={`rounded-full px-3.5 py-1.5 ${view === v ? "bg-primary font-semibold text-primary-ink" : "text-muted hover:bg-subtle hover:text-ink"}`}>
                 {l}
               </button>
             ))}
@@ -230,7 +230,7 @@ function Desk() {
         {view === "works" && kindsUsed.length > 1 && (
           <div className="scrollbar-none -mx-4 mt-3 flex gap-1 overflow-x-auto px-4 text-sm sm:mx-0 sm:flex-wrap sm:px-0">
             {(["all", ...kindsUsed] as (DocKind | "all")[]).map((k) => (
-              <button key={k} onClick={() => setFilter(k)} className={`shrink-0 rounded-full px-3 py-1 ${filter === k ? "bg-kayal text-kayal-ink" : "text-muted hover:bg-desk-2"}`}>
+              <button key={k} onClick={() => setFilter(k)} className={`shrink-0 rounded-full px-3 py-1 ${filter === k ? "bg-accent text-accent-ink" : "text-muted hover:bg-subtle"}`}>
                 {k === "all" ? "All" : templateFor(k).ml}
               </button>
             ))}
@@ -283,7 +283,7 @@ function Desk() {
             const t = templateFor(d.kind);
             const card = (
               <>
-                <div className="text-xs font-semibold text-kasavu">{t.ml}</div>
+                <div className="text-xs font-semibold text-highlight">{t.ml}</div>
                 <div className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-snug sm:mt-2 sm:text-lg">{d.title}</div>
                 <p className="mt-2 line-clamp-4 text-[13px] leading-relaxed text-muted sm:mt-3 sm:line-clamp-5 sm:text-sm" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
                   {d.excerpt || "—"}
@@ -293,11 +293,11 @@ function Desk() {
             return (
               <li key={d.id} className="group">
                 {view === "works" ? (
-                  <Link href={`/write/?id=${d.id}`} className="block overflow-hidden rounded-md bg-paper p-3.5 transition-shadow hover:ring-2 hover:ring-kayal sm:p-5" style={{ boxShadow: "var(--sheet-shadow)", aspectRatio: "210 / 200" }}>
+                  <Link href={`/write/?id=${d.id}`} className="block overflow-hidden rounded-2xl border border-line bg-surface p-3.5 transition-[box-shadow,transform,border-color] hover:-translate-y-0.5 hover:border-transparent hover:shadow-[var(--pop-shadow)] sm:p-5" style={{ aspectRatio: "210 / 200" }}>
                     {card}
                   </Link>
                 ) : (
-                  <div className="block overflow-hidden rounded-md bg-paper p-3.5 opacity-70 sm:p-5" style={{ boxShadow: "var(--sheet-shadow)", aspectRatio: "210 / 200" }}>
+                  <div className="block overflow-hidden rounded-2xl border border-line bg-surface p-3.5 opacity-70 sm:p-5" style={{ aspectRatio: "210 / 200" }}>
                     {card}
                   </div>
                 )}
@@ -309,7 +309,7 @@ function Desk() {
                     {view === "works" ? (
                       <>
                         <button
-                          className="rounded p-1 hover:bg-desk-2"
+                          className="rounded p-1 hover:bg-subtle"
                           title="Duplicate"
                           aria-label={`Duplicate ${d.title}`}
                           onClick={async () => {
@@ -320,7 +320,7 @@ function Desk() {
                           <Copy size={14} />
                         </button>
                         <button
-                          className="rounded p-1 hover:bg-desk-2 hover:text-danger"
+                          className="rounded p-1 hover:bg-subtle hover:text-danger"
                           title="Move to trash"
                           aria-label={`Move ${d.title} to trash`}
                           onClick={async () => {
@@ -343,7 +343,7 @@ function Desk() {
                     ) : (
                       <>
                         <button
-                          className="flex items-center gap-1 rounded px-1.5 py-1 hover:bg-desk-2 hover:text-ink"
+                          className="flex items-center gap-1 rounded px-1.5 py-1 hover:bg-subtle hover:text-ink"
                           onClick={async () => {
                             await store.restoreDoc(d.id);
                             load();
@@ -352,7 +352,7 @@ function Desk() {
                           <RotateCcw size={13} /> Restore
                         </button>
                         <button
-                          className="flex items-center gap-1 rounded px-1.5 py-1 hover:bg-desk-2 hover:text-danger"
+                          className="flex items-center gap-1 rounded px-1.5 py-1 hover:bg-subtle hover:text-danger"
                           onClick={async () => {
                             if (!(await ask({ title: `Delete “${d.title}” forever?`, body: "It will be removed with its versions and Story World. This can’t be undone.", confirm: "Delete forever", danger: true }))) return;
                             await store.deleteDoc(d.id);
@@ -385,7 +385,7 @@ function Desk() {
 
       {choosing && (
         <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/40 sm:items-start sm:p-4 sm:pt-12" role="dialog" aria-modal="true" aria-label="Choose a writing type" onClick={closeChooser}>
-          <div className="max-h-[92dvh] w-full max-w-5xl overflow-y-auto rounded-t-2xl bg-desk p-4 pb-8 sm:max-h-none sm:rounded-xl sm:p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="max-h-[92dvh] w-full max-w-5xl overflow-y-auto rounded-t-2xl bg-canvas p-4 pb-8 sm:max-h-none sm:rounded-xl sm:p-6" onClick={(e) => e.stopPropagation()}>
             <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-line sm:hidden" aria-hidden />
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-lg font-bold sm:text-xl">{importing ? `Import “${importing.name}” as…` : "സാഹിത്യരൂപം · What are you writing?"}</h2>

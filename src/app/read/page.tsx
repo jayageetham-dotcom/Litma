@@ -30,12 +30,13 @@ function Reader() {
   const html = generateHTML(doc.content, buildExtensions(doc.kind, s, "english"));
   return (
     <div className="min-h-dvh">
-      <div className="kasavu-rule" />
-      <header className="no-print mx-auto flex max-w-4xl items-center justify-between px-5 py-4">
+      <header className="app-bar no-print">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-5 py-2.5">
         <Logo size="sm" />
         <div className="flex items-center gap-2 text-sm text-muted">
           {templateFor(doc.kind).ml}
           <ThemeToggle />
+        </div>
         </div>
       </header>
       <main className="px-4 pb-16">

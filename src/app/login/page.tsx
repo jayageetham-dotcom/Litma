@@ -58,7 +58,7 @@ function LoginForm() {
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="mt-1 text-sm text-muted">
           New to Litma?{" "}
-          <Link href={`/signup/?next=${encodeURIComponent(next)}`} className="font-medium text-kayal underline underline-offset-2">
+          <Link href={`/signup/?next=${encodeURIComponent(next)}`} className="font-medium text-accent underline underline-offset-2">
             Create an account
           </Link>
         </p>
@@ -67,7 +67,7 @@ function LoginForm() {
       {!magic && (
         <div>
           <Field label="Password" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          <Link href="/forgot-password/" className="mt-1.5 inline-block text-xs text-kayal underline underline-offset-2">
+          <Link href="/forgot-password/" className="mt-1.5 inline-block text-xs text-accent underline underline-offset-2">
             Forgot your password?
           </Link>
         </div>

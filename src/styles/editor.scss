@@ -57,7 +57,7 @@ $mm: 3.7795275591px;
   font-size: var(--doc-size);
   line-height: var(--doc-lh);
   color: var(--ink);
-  caret-color: var(--kayal);
+  caret-color: var(--accent);
   word-wrap: break-word;
   font-variant-ligatures: common-ligatures;
   counter-reset: scene chapter;
@@ -102,7 +102,7 @@ $mm: 3.7795275591px;
     list-style: decimal;
   }
   blockquote {
-    border-left: 3px solid var(--kasavu);
+    border-left: 3px solid var(--highlight);
     padding-left: 1em;
     margin: 0.6em 0 0.9em;
     color: color-mix(in srgb, var(--ink) 85%, var(--muted));
@@ -119,11 +119,11 @@ $mm: 3.7795275591px;
       font-size: 1.1em;
     }
     &.ProseMirror-selectednode {
-      outline: 2px solid var(--kayal-soft);
+      outline: 2px solid var(--accent-soft);
     }
   }
   a {
-    color: var(--kayal);
+    color: var(--accent);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
@@ -136,7 +136,7 @@ $mm: 3.7795275591px;
   code {
     font-family: ui-monospace, monospace;
     font-size: 0.88em;
-    background: var(--desk-2);
+    background: var(--subtle);
     padding: 0.1em 0.3em;
     border-radius: 3px;
   }
@@ -215,14 +215,14 @@ $mm: 3.7795275591px;
       width: 3em;
       height: 2px;
       margin: 0.55em auto 0;
-      background: var(--kasavu);
+      background: var(--highlight);
     }
   }
   .sb-kicker {
     font-family: var(--font-ui);
     font-size: 0.85em;
     font-weight: 600;
-    color: var(--kasavu);
+    color: var(--highlight);
     margin-bottom: 0.2em;
   }
   .sb-standfirst {
@@ -249,9 +249,9 @@ $mm: 3.7795275591px;
     line-height: 1.5;
     font-weight: 600;
     text-align: center;
-    color: var(--kayal);
-    border-top: 2px solid var(--kasavu);
-    border-bottom: 1px solid var(--kasavu);
+    color: var(--accent);
+    border-top: 2px solid var(--highlight);
+    border-bottom: 1px solid var(--highlight);
     padding: 0.6em 1.2em;
     margin: 1em 8%;
   }
@@ -265,7 +265,7 @@ $mm: 3.7795275591px;
     font-family: var(--font-ui);
     font-weight: 600;
     font-size: 0.88em;
-    color: var(--kasavu);
+    color: var(--highlight);
     margin: 1.3em 0 0.35em;
   }
   .sb-stage {
@@ -282,7 +282,7 @@ $mm: 3.7795275591px;
   .sb-dateline {
     font-family: var(--font-ui);
     font-weight: 600;
-    color: var(--kayal);
+    color: var(--accent);
     border-bottom: 1px solid var(--line);
     padding-bottom: 0.3em;
     margin: 1.4em 0 0.8em;
@@ -290,8 +290,8 @@ $mm: 3.7795275591px;
 
   // Manglish composition & search
   .manglish-composing {
-    background: var(--kasavu-soft);
-    text-decoration: underline dotted var(--kasavu);
+    background: var(--highlight-soft);
+    text-decoration: underline dotted var(--highlight);
     text-underline-offset: 3px;
     border-radius: 2px;
   }
@@ -300,7 +300,7 @@ $mm: 3.7795275591px;
     color: #1a2220;
     border-radius: 2px;
     &.current {
-      background: var(--kasavu);
+      background: var(--highlight);
       color: #fff;
     }
   }
@@ -323,7 +323,7 @@ $mm: 3.7795275591px;
   .ProseMirror > .sb-chapter + p::first-letter {
     font-size: 1.6em;
     font-weight: 700;
-    color: var(--kayal);
+    color: var(--accent);
   }
 }
 
@@ -362,7 +362,7 @@ $mm: 3.7795275591px;
       text-overflow: ellipsis;
       font: 9px/1.4 var(--font-ui);
       letter-spacing: 0.5px;
-      color: var(--kasavu);
+      color: var(--highlight);
       text-indent: 0;
       pointer-events: none;
     }
@@ -541,8 +541,8 @@ $mm: 3.7795275591px;
   --muted: #5f6b67;
   --paper: #fff;
   --line: #cfd6d3;
-  --kayal: #1d5a52;
-  --kasavu: #a17a28;
+  --accent: #1d5a52;
+  --highlight: #a17a28;
 }
 .pp-body {
   position: absolute;
@@ -760,7 +760,7 @@ $mm: 3.7795275591px;
     pointer-events: none;
   }
   .manglish-composing {
-    background: var(--kasavu-soft);
-    text-decoration: underline dotted var(--kasavu);
+    background: var(--highlight-soft);
+    text-decoration: underline dotted var(--highlight);
   }
 }

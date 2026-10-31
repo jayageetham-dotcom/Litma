@@ -19,6 +19,11 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 - `src/lib/dictionary.ts` + `scripts/build-dictionary.mjs` Olam dictionary/thesaurus
 - `supabase/functions/litma-mcp` MCP server (stateless Streamable HTTP); `public/mcp.php` relays `/litma/mcp` to it. The cPanel firewall blocks data-centre callers, so cloud connectors (Claude.ai, ChatGPT) use `MCP_DIRECT_URL` (the function URL + `?key=`) — Settings shows it.
 
+## Design system
+- **All tokens live in `src/styles/theme.css`** (light in `:root`, dark in `.dark`): canvas · surface · subtle · paper · header · ink · muted · line · primary · accent · highlight · danger, plus radius, shadows, fonts and `--brand-gradient`. Edit there to restyle the app.
+- Use the generated classes (`bg-surface`, `text-accent`, `bg-primary text-primary-ink`, `text-highlight`…); never hard-code colours in components. Buttons: `.btn` + `btn-primary` (ink-black) / `btn-accent` (violet) / `btn-outline` / `btn-ghost`. Top bars: `.app-bar` (sticky, translucent) or `bg-header`. Brand gradient only via `.brand-text` / `.brand-bar`.
+- The document page uses `--paper` so writing stays black on white; colour belongs to the chrome, not the text.
+
 ## Layout (mobile-first, mirrors the planned native app)
 - `useScreen()` in `src/lib/useLayout.ts`: phone < 768 · tablet < 1280 · desktop < 1536 · wide.
 - Phones: bottom tab bars (`MobileNav` on desk/dictionary/profile/settings; Format · Contents · Story · Dictionary · More in the editor; Contents · Page · Details in the book editor), panels as bottom sheets (`components/ui/Sheet.tsx`), and a keyboard accessory (`MobileFormatStrip`) while writing.

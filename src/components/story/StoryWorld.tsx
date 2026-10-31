@@ -70,9 +70,8 @@ export function StoryWorld({ doc, editor, onClose }: { doc: LitmaDoc; editor: Ed
   const content = editor?.getJSON() ?? doc.content;
 
   return (
-    <div className="no-print fixed inset-0 z-50 flex flex-col bg-desk" role="dialog" aria-modal="true" aria-label="Story World">
-      <div className="kasavu-rule" />
-      <header className="flex items-center gap-3 border-b border-line bg-paper px-5 py-3">
+    <div className="no-print fixed inset-0 z-50 flex flex-col bg-canvas" role="dialog" aria-modal="true" aria-label="Story World">
+      <header className="safe-top flex items-center gap-3 border-b border-line bg-header px-5 py-3">
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-bold" style={{ fontFamily: "'Anek Malayalam'" }}>
             കഥാലോകം <span className="text-sm font-normal text-muted">Story World · {doc.title}</span>
@@ -91,10 +90,10 @@ export function StoryWorld({ doc, editor, onClose }: { doc: LitmaDoc; editor: Ed
               role="tab"
               aria-selected={tab.kind === t.kind}
               onClick={() => setTab(t)}
-              className={`shrink-0 border-b-2 px-3 py-2.5 text-sm ${tab.kind === t.kind ? "border-kasavu font-semibold text-ink" : "border-transparent text-muted hover:text-ink"}`}
+              className={`shrink-0 border-b-2 px-3 py-2.5 text-sm ${tab.kind === t.kind ? "border-highlight font-semibold text-ink" : "border-transparent text-muted hover:text-ink"}`}
             >
               {t.ml} <span className="text-xs text-muted">{t.label}</span>
-              {n ? <span className="ml-1.5 rounded-full bg-desk-2 px-1.5 text-[11px]">{n}</span> : null}
+              {n ? <span className="ml-1.5 rounded-full bg-subtle px-1.5 text-[11px]">{n}</span> : null}
             </button>
           );
         })}
@@ -132,7 +131,7 @@ function CardGrid({ tab, items, onAdd, onOpen, onInsert }: { tab: StoryTab; item
               // eslint-disable-next-line @next/next/no-img-element
               <img src={it.image_url} alt="" className="h-36 w-full object-cover" />
             ) : (
-              <div className="grid h-20 w-full place-items-center bg-desk-2 text-3xl text-muted" style={ml} aria-hidden>
+              <div className="grid h-20 w-full place-items-center bg-subtle text-3xl text-muted" style={ml} aria-hidden>
                 {(it.name || "?").slice(0, 1)}
               </div>
             )}
@@ -140,7 +139,7 @@ function CardGrid({ tab, items, onAdd, onOpen, onInsert }: { tab: StoryTab; item
               <h3 className="text-lg font-bold leading-snug" style={ml}>
                 {it.name || <span className="text-muted">Untitled</span>}
               </h3>
-              {sub(it) && <p className="mt-0.5 text-xs text-kasavu">{sub(it)}</p>}
+              {sub(it) && <p className="mt-0.5 text-xs text-highlight">{sub(it)}</p>}
               <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-muted" style={ml}>
                 {it.summary}
               </p>
@@ -153,7 +152,7 @@ function CardGrid({ tab, items, onAdd, onOpen, onInsert }: { tab: StoryTab; item
           )}
         </article>
       ))}
-      <button onClick={onAdd} className="grid min-h-40 place-items-center rounded-lg border-2 border-dashed border-line text-muted hover:border-kayal hover:text-kayal">
+      <button onClick={onAdd} className="grid min-h-40 place-items-center rounded-lg border-2 border-dashed border-line text-muted hover:border-accent hover:text-accent">
         <span className="flex items-center gap-2">
           <Plus size={18} /> Add {tab.label.toLowerCase().replace(/s$/, "")}
         </span>
@@ -188,7 +187,7 @@ function BeatBoard({ doc, items, onAdd, onOpen, onMove }: { doc: LitmaDoc; items
       {cols.map((g) => (
         <section
           key={g}
-          className="flex w-72 shrink-0 flex-col rounded-lg bg-desk-2/70 p-3"
+          className="flex w-72 shrink-0 flex-col rounded-lg bg-subtle/70 p-3"
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();
@@ -226,13 +225,13 @@ function BeatBoard({ doc, items, onAdd, onOpen, onMove }: { doc: LitmaDoc; items
                         <p className="mt-1 line-clamp-3 text-[13px] text-muted" style={ml}>
                           {it.summary}
                         </p>
-                        {it.data?.status && <span className="mt-1.5 inline-block rounded bg-desk-2 px-1.5 text-[11px] text-muted">{it.data.status}</span>}
+                        {it.data?.status && <span className="mt-1.5 inline-block rounded bg-subtle px-1.5 text-[11px] text-muted">{it.data.status}</span>}
                       </div>
                     </div>
                   </button>
                 </div>
               ))}
-            <button onClick={() => onAdd(g)} className="rounded-md border border-dashed border-line px-3 py-2 text-left text-sm text-muted hover:border-kayal hover:text-kayal">
+            <button onClick={() => onAdd(g)} className="rounded-md border border-dashed border-line px-3 py-2 text-left text-sm text-muted hover:border-accent hover:text-accent">
               <Plus size={14} className="mr-1 inline" /> Add card
             </button>
           </div>
@@ -257,12 +256,12 @@ function BeatBoard({ doc, items, onAdd, onOpen, onMove }: { doc: LitmaDoc; items
 function Timeline({ items, onAdd, onOpen }: { items: StoryItem[]; onAdd: () => void; onOpen: (i: StoryItem) => void }) {
   return (
     <div className="mx-auto max-w-2xl">
-      <ol className="relative border-l-2 border-kasavu/50 pl-6">
+      <ol className="relative border-l-2 border-highlight/50 pl-6">
         {items.map((it) => (
           <li key={it.id} className="mb-6">
-            <span className="absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full bg-kasavu" aria-hidden />
+            <span className="absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full bg-highlight" aria-hidden />
             <button className="w-full rounded-lg bg-paper p-4 text-left" style={{ boxShadow: "var(--sheet-shadow)" }} onClick={() => onOpen(it)}>
-              <div className="text-xs font-semibold text-kasavu" style={ml}>
+              <div className="text-xs font-semibold text-highlight" style={ml}>
                 {it.data?.when || "When?"}
               </div>
               <div className="mt-0.5 font-semibold" style={ml}>
@@ -312,7 +311,7 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
     <div className="fixed inset-0 z-[60] flex justify-end bg-black/30" onClick={onClose}>
       <aside className="scrollbar-thin h-full w-full max-w-lg overflow-y-auto bg-paper p-6 shadow-2xl" onClick={(e) => e.stopPropagation()} aria-label="Edit card">
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-xs font-semibold text-kasavu">
+          <span className="text-xs font-semibold text-highlight">
             {tab.ml} · {tab.label}
           </span>
           <span className="text-xs text-muted" aria-live="polite">
@@ -365,7 +364,7 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
         <label className="mt-4 block">
           <span className="mb-1 flex items-center justify-between text-sm">
             {tab.summary ?? "Summary"}
-            <button type="button" className="text-xs text-kayal underline" onClick={() => set({ name: manglish(it.name), summary: manglish(it.summary) })} title="Convert Manglish in name and summary to Malayalam">
+            <button type="button" className="text-xs text-accent underline" onClick={() => set({ name: manglish(it.name), summary: manglish(it.summary) })} title="Convert Manglish in name and summary to Malayalam">
               ⇄ Manglish → മലയാളം
             </button>
           </span>

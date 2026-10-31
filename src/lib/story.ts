@@ -147,8 +147,8 @@ export function tabsFor(kind: DocKind): StoryTab[] {
 }
 
 export const BEAT_COLORS: Record<string, string> = {
-  kayal: "var(--kayal)",
-  kasavu: "var(--kasavu)",
+  kayal: "var(--accent)",
+  kasavu: "var(--highlight)",
   rose: "#b0566b",
   sky: "#3f72af",
   grey: "#7d8986",

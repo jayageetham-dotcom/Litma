@@ -15,7 +15,7 @@ function Chips({ words, onPick, title }: { words: { word: string; gloss?: string
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => onPick(w.word)}
           title={w.gloss ? `${title} · ${w.gloss}` : title}
-          className="rounded-full border border-line bg-paper px-2.5 py-0.5 text-[14px] hover:border-kayal hover:text-kayal"
+          className="rounded-full border border-line bg-paper px-2.5 py-0.5 text-[14px] hover:border-accent hover:text-accent"
           style={ml}
         >
           {w.word}
@@ -121,7 +121,7 @@ export function DictionaryView({
               <li key={s}>
                 <button
                   type="button"
-                  className="w-full px-3 py-1.5 text-left text-[15px] hover:bg-desk-2"
+                  className="w-full px-3 py-1.5 text-left text-[15px] hover:bg-subtle"
                   style={ml}
                   onClick={() => {
                     setQ(s);
@@ -137,7 +137,7 @@ export function DictionaryView({
       </form>
 
       {available === false && (
-        <p className="rounded-lg bg-kasavu-soft px-3 py-2 text-sm">
+        <p className="rounded-lg bg-highlight-soft px-3 py-2 text-sm">
           The dictionary data isn’t installed on this site yet. Run <code>npm run dict</code> (or deploy — CI builds it) to add the Olam datasets.
         </p>
       )}
@@ -167,11 +167,11 @@ export function DictionaryView({
 
               {res.meanings.length > 0 && (
                 <section>
-                  <h4 className="mb-1.5 text-xs font-semibold text-kasavu">{res.lang === "en" ? "മലയാളം അർത്ഥം · Meaning" : "അർത്ഥം · Meaning"}</h4>
+                  <h4 className="mb-1.5 text-xs font-semibold text-highlight">{res.lang === "en" ? "മലയാളം അർത്ഥം · Meaning" : "അർത്ഥം · Meaning"}</h4>
                   <ol className="space-y-1.5">
                     {res.meanings.slice(0, compact ? 6 : 20).map((m, i) => (
                       <li key={i} className="text-[15px] leading-relaxed" style={ml}>
-                        {m.pos && m.pos !== "-" && <span className="mr-1.5 rounded bg-desk-2 px-1 text-[11px] text-muted">{m.pos}</span>}
+                        {m.pos && m.pos !== "-" && <span className="mr-1.5 rounded bg-subtle px-1 text-[11px] text-muted">{m.pos}</span>}
                         {m.defs.slice(0, compact ? 4 : 12).join(" · ")}
                       </li>
                     ))}
@@ -180,18 +180,18 @@ export function DictionaryView({
               )}
 
               <section>
-                <h4 className="mb-1.5 text-xs font-semibold text-kasavu">പര്യായം · Synonyms</h4>
+                <h4 className="mb-1.5 text-xs font-semibold text-highlight">പര്യായം · Synonyms</h4>
                 {res.synonyms.length ? <Chips words={res.synonyms.slice(0, compact ? 18 : 40).map((word) => ({ word }))} onPick={pick} title="Synonym" /> : <p className="text-sm text-muted">None listed.</p>}
               </section>
 
               <section>
-                <h4 className="mb-1.5 text-xs font-semibold text-kasavu">വിപരീതം · Opposites</h4>
+                <h4 className="mb-1.5 text-xs font-semibold text-highlight">വിപരീതം · Opposites</h4>
                 {opp === null ? <Loader2 size={14} className="animate-spin text-muted" /> : opp.length ? <Chips words={opp} onPick={pick} title="Opposite" /> : <p className="text-sm text-muted">None found.</p>}
               </section>
 
               {res.translations.length > 0 && (
                 <section>
-                  <h4 className="mb-1.5 text-xs font-semibold text-kasavu">{res.lang === "en" ? "മലയാളം · In Malayalam" : "English"}</h4>
+                  <h4 className="mb-1.5 text-xs font-semibold text-highlight">{res.lang === "en" ? "മലയാളം · In Malayalam" : "English"}</h4>
                   <Chips words={res.translations.slice(0, compact ? 15 : 40).map((word) => ({ word }))} onPick={pick} title={res.lang === "en" ? "Malayalam" : "English"} />
                 </section>
               )}

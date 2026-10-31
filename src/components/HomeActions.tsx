@@ -83,7 +83,7 @@ export function HeroActions() {
             Already have an account? Sign in
           </Link>
         </div>
-        <p className="mt-3 text-xs text-muted">Your works sync across devices. No card needed.</p>
+        <p className="mt-3 text-xs text-muted">Free to use. Your works stay in sync on all your devices.</p>
       </div>
     );
   const name = profile?.pen_name || profile?.display_name;

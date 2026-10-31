@@ -53,7 +53,7 @@ export function TemplatePreview({ kind, width = 168 }: { kind: DocKind; width?: 
   } as React.CSSProperties;
   return (
     <div
-      className="relative overflow-hidden rounded-[2px] bg-paper"
+      className="tpl-preview relative overflow-hidden rounded-[2px] bg-paper"
       style={{ width, height: width * (297 / 210), boxShadow: "var(--sheet-shadow)" }}
       aria-hidden
     >

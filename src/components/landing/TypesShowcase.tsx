@@ -50,8 +50,8 @@ export function TypesShowcase() {
   const t = TYPES[active];
 
   return (
-    <div ref={root} className="grid items-center justify-center gap-8 md:grid-cols-[minmax(0,24rem)_auto] md:gap-16 lg:gap-24" onMouseLeave={() => setAuto(true)}>
-      <div role="tablist" aria-label="Writing types" aria-orientation="vertical" onKeyDown={onKey} className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 md:mx-0 md:grid md:grid-cols-1 md:gap-1 md:overflow-visible md:px-0 lg:grid-cols-1">
+    <div ref={root} className="grid items-center justify-start gap-8 md:grid-cols-[minmax(0,24rem)_auto] md:gap-16 lg:gap-24" onMouseLeave={() => setAuto(true)}>
+      <div role="tablist" aria-label="Writing types" aria-orientation="vertical" onKeyDown={onKey} className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 md:mx-0 md:-ml-4 md:grid md:grid-cols-1 md:gap-1 md:overflow-visible md:px-0 lg:grid-cols-1">
         {TYPES.map((x, i) => {
           const on = i === active;
           return (
@@ -84,11 +84,11 @@ export function TypesShowcase() {
         })}
       </div>
 
-      <div id="type-panel" role="tabpanel" aria-labelledby={`type-tab-${t.kind}`} className="mx-auto md:sticky md:top-24">
+      <div id="type-panel" role="tabpanel" aria-labelledby={`type-tab-${t.kind}`} className="max-md:mx-auto md:sticky md:top-24">
         <div key={t.kind} className="rise-in">
           <TemplatePreview kind={t.kind} width={300} />
         </div>
-        <p className="mt-3 text-center text-sm text-muted md:hidden">{t.blurb}</p>
+        <p className="mt-3 text-sm text-muted md:hidden">{t.blurb}</p>
       </div>
     </div>
   );

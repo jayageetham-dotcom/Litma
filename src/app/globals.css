@@ -243,3 +243,11 @@ body {
     transform-origin: left;
   }
 }
+
+/* Thumbnails of a page: at this size justified lines read as big gaps between words,
+   so previews set text ragged-right (the editor itself keeps each type's alignment). */
+.tpl-preview .ProseMirror p,
+.tpl-preview .ProseMirror li {
+  text-align: start !important;
+  text-align-last: auto !important;
+}

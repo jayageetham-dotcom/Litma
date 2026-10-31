@@ -14,6 +14,26 @@ import { PAGE_SIZES, type PageSizeKey } from "@/extensions/pagination";
 import { collectCharacters } from "@/extensions/screenplay";
 import { manglish } from "@/shared/manglish";
 
+const BILLING: Record<AIProvider, [string, string]> = {
+  anthropic: ["Anthropic Console", "https://console.anthropic.com/settings/billing"],
+  openai: ["OpenAI Platform", "https://platform.openai.com/settings/organization/billing"],
+  gemini: ["Google AI Studio", "https://aistudio.google.com/usage"],
+};
+
+/** Turn a provider's raw error into one plain sentence the writer can act on. */
+function friendlyAIError(raw: string, provider: AIProvider): string {
+  const [where] = BILLING[provider];
+  const m = raw.toLowerCase();
+  if (/credit balance|insufficient_quota|billing|exceeded your current quota|payment/.test(m))
+    return `Your ${where} account has no API credit left. API use is billed separately from chat plans like Claude Pro or ChatGPT Plus. Add credit in ${where}, then try again.`;
+  if (/invalid x-api-key|invalid api key|incorrect api key|api key not valid|authentication_error|401/.test(m))
+    return "That API key wasn't accepted. Check it, or save a new one in Settings → AI.";
+  if (/no .*key|add .*key|missing.*key/.test(m)) return "Add your API key in Settings → AI to use the companion.";
+  if (/rate.?limit|429|overloaded|529/.test(m)) return "The AI service is busy right now. Wait a moment and try again.";
+  const msg = raw.match(/"message"\s*:\s*"([^"]+)"/)?.[1];
+  return msg ?? (raw.length > 240 ? raw.slice(0, 240) + "…" : raw) ?? "The assistant didn't respond.";
+}
+
 const H = ({ children }: { children: React.ReactNode }) => <h3 className="mb-2 text-sm font-semibold">{children}</h3>;
 
 /** Insert plain text (with line breaks as paragraphs) at the cursor or over the selection. */
@@ -131,7 +151,7 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
         },
         ac.signal
       );
-      if (!r.ok || !r.body) throw new Error(await r.text());
+      if (!r.ok || !r.body) throw new Error(friendlyAIError(await r.text(), provider));
       const reader = r.body.getReader();
       const dec = new TextDecoder();
       for (;;) {
@@ -213,7 +233,18 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
       {(out || busy || err) && (
         <div className="rounded-lg border border-line bg-paper">
           <div className="max-h-[46vh] overflow-y-auto whitespace-pre-wrap p-3 text-[14.5px] leading-relaxed" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
-            {err ? <span className="text-danger" style={{ fontFamily: "var(--font-ui)" }}>{err}</span> : out}
+            {err ? (
+              <span className="block text-[13px] leading-relaxed text-danger" style={{ fontFamily: "var(--font-ui)" }}>
+                {err}
+                {/no API credit/.test(err) && (
+                  <a href={BILLING[provider][1]} target="_blank" rel="noreferrer" className="mt-2 block font-semibold text-accent underline">
+                    Open {BILLING[provider][0]} billing ↗
+                  </a>
+                )}
+              </span>
+            ) : (
+              out
+            )}
             {busy && !out && <Loader2 size={16} className="animate-spin text-muted" />}
           </div>
           <div className="flex flex-wrap gap-1 border-t border-line p-1.5">

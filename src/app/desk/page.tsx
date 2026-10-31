@@ -7,6 +7,7 @@ import { CoverFront } from "@/components/book/Cover";
 import { DEFAULT_STRUCTURE } from "@/lib/book-structure";
 import { AppHeader } from "@/components/AppHeader";
 import { MobileNav } from "@/components/MobileNav";
+import { useConfirm } from "@/components/ui/Confirm";
 import { TemplatePreview } from "@/components/TemplatePreview";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
@@ -39,6 +40,7 @@ function Desk() {
   const [creating, setCreating] = useState<DocKind | null>(null);
   const [today, setToday] = useState<{ words: number; streak: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [confirmDialog, ask] = useConfirm();
 
   const load = useCallback(async () => {
     try {
@@ -164,7 +166,15 @@ function Desk() {
                 <button
                   className="btn btn-outline hover:!border-danger hover:!text-danger"
                   onClick={async () => {
-                    if (!confirm(`Delete ${docs.length} ${docs.length === 1 ? "work" : "works"} permanently? This can't be undone.`)) return;
+                    if (
+                      !(await ask({
+                        title: `Empty the trash?`,
+                        body: `${docs.length} ${docs.length === 1 ? "work" : "works"} will be deleted for good. This can’t be undone.`,
+                        confirm: "Delete forever",
+                        danger: true,
+                      }))
+                    )
+                      return;
                     await store.emptyTrash();
                     load();
                   }}
@@ -247,7 +257,7 @@ function Desk() {
                     className="rounded p-1 text-muted hover:text-danger [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                     aria-label={`Delete ${b.title}`}
                     onClick={async () => {
-                      if (!confirm(`Delete the book “${b.title}”? Its chapters stay on your desk.`)) return;
+                      if (!(await ask({ title: `Delete the book “${b.title}”?`, body: "Its covers and front pages go. The works used as chapters stay on your desk.", confirm: "Delete book", danger: true }))) return;
                       await store.deleteBook(b.id);
                       load();
                     }}
@@ -306,6 +316,15 @@ function Desk() {
                           title="Move to trash"
                           aria-label={`Move ${d.title} to trash`}
                           onClick={async () => {
+                            if (
+                              !(await ask({
+                                title: `Move “${d.title}” to the trash?`,
+                                body: "You can restore it from the Trash tab any time.",
+                                confirm: "Move to trash",
+                                danger: true,
+                              }))
+                            )
+                              return;
                             await store.trashDoc(d.id);
                             load();
                           }}
@@ -327,7 +346,7 @@ function Desk() {
                         <button
                           className="flex items-center gap-1 rounded px-1.5 py-1 hover:bg-desk-2 hover:text-danger"
                           onClick={async () => {
-                            if (!confirm(`Delete “${d.title}” permanently? This can't be undone.`)) return;
+                            if (!(await ask({ title: `Delete “${d.title}” forever?`, body: "It will be removed with its versions and Story World. This can’t be undone.", confirm: "Delete forever", danger: true }))) return;
                             await store.deleteDoc(d.id);
                             load();
                           }}
@@ -347,13 +366,14 @@ function Desk() {
       {/* Phone: floating action button, like a native app */}
       {(view === "works" || view === "books") && !choosing && (
         <button
-          className="btn btn-primary fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-40 !rounded-full !px-5 !py-3.5 shadow-xl md:hidden"
+          className="btn btn-primary fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-40 !rounded-full !px-5 !py-3.5 shadow-xl md:!hidden"
           onClick={view === "books" ? newBook : () => setChoosing(true)}
         >
           {view === "books" ? <BookPlus size={20} /> : <Plus size={20} />} {view === "books" ? "New book" : "New work"}
         </button>
       )}
       <MobileNav />
+      {confirmDialog}
 
       {choosing && (
         <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/40 sm:items-start sm:p-4 sm:pt-12" role="dialog" aria-modal="true" aria-label="Choose a writing type" onClick={closeChooser}>

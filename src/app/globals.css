@@ -153,3 +153,23 @@ body {
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }
+
+/* Tailwind v4 no longer gives buttons a pointer cursor — restore it everywhere */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  [role="menuitem"],
+  [role="radio"],
+  summary,
+  select,
+  label:has(> input[type="checkbox"], > input[type="radio"]),
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}

@@ -25,16 +25,16 @@ jobs:
         uses: actions/checkout@v4
 
       # public_html also holds the main site and /onnayi (whose uploads/ and
-      # api/config.php exist nowhere else). FTP-Deploy-Action only removes files
-      # it uploaded itself, and Litma's FTP account is locked to public_html/litma,
-      # so neither can be touched — unless dangerous-clean-slate is turned on.
-      - name: 🔒 Refuse to wipe the server folder
+      # api/config.php exist nowhere else). Litma's FTP account is locked to
+      # public_html/litma, and the upload below never deletes anything on the
+      # server. This guard makes adding a delete flag a build failure.
+      - name: 🔒 Refuse to delete files on the server
         run: |
-          if grep -qE '^[[:space:]]*dangerous-clean-slate:[[:space:]]*true' .github/workflows/deploy.yml; then
-            echo "::error::dangerous-clean-slate is true — it deletes everything under server-dir. Set it back to false."
+          if grep -nE '^[[:space:]]*mirror .*(--delete|[[:space:]]-e[[:space:]])' .github/workflows/deploy.yml; then
+            echo "::error::The FTP upload must never delete server files. Remove --delete / -e from the mirror command."
             exit 1
           fi
-          echo "dangerous-clean-slate is false — safe."
+          echo "Upload is add/replace only — the rest of public_html is safe."
 
       - name: 🟢 Use Node.js 22
         uses: actions/setup-node@v4
@@ -69,22 +69,44 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://www.jayageetham.com/litma
           NEXT_PUBLIC_BASE_PATH: /litma
 
-      - name: 📂 Sync files to public_html/litma
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ftp.jayageetham.com
-          username: ${{ vars.FTP_USERNAME || 'litma@jayageetham.com' }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          # cPanel serves the shared server's certificate, not one for ftp.jayageetham.com
-          security: loose
-          local-dir: ./out/
-          # The litma@ FTP account's Directory is public_html/litma, so "./" is that folder.
-          # If you use the main admin@ account instead, set FTP_SERVER_DIR=/litma/ (repo variable).
-          server-dir: ${{ vars.FTP_SERVER_DIR || './' }}
-          # Never set this true — see the guard step above.
-          dangerous-clean-slate: false
+      # lftp instead of FTP-Deploy-Action: cPanel's FTPS server resets connections
+      # when one session creates thousands of files. lftp reconnects and retries each
+      # file, uploads in parallel, and skips files whose size hasn't changed — so a
+      # re-run after a failure resumes instead of starting over.
+      - name: 🧰 Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: 📂 Upload to public_html/litma (FTPS, resumable)
+        env:
+          FTP_USER: ${{ vars.FTP_USERNAME || 'litma@jayageetham.com' }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          # The litma@ account's Directory is public_html/litma, so "/" is that folder.
+          # With the admin@ account instead, set the repo variable FTP_SERVER_DIR=/litma
+          FTP_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
+        run: |
+          if [ -z "$FTP_PASSWORD" ]; then echo "::error::Add the FTP_PASSWORD repository secret."; exit 1; fi
+          for attempt in 1 2 3; do
+            echo "Upload attempt $attempt"
+            if lftp -u "$FTP_USER","$FTP_PASSWORD" ftp.jayageetham.com <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate no
+          set ftp:passive-mode true
+          set net:timeout 30
+          set net:max-retries 8
+          set net:reconnect-interval-base 5
+          set net:reconnect-interval-multiplier 2
+          set mirror:parallel-transfer-count 4
+          set cmd:fail-exit true
+          mirror --reverse --ignore-time --no-perms --verbose=1 --exclude-glob .DS_Store ./out/ $FTP_DIR
+          bye
+          LFTP
+            then echo "Upload complete"; exit 0; fi
+            echo "Attempt $attempt failed — retrying in 20s (already-uploaded files are skipped)"
+            sleep 20
+          done
+          echo "::error::FTP upload failed after 3 attempts."
+          exit 1
 
   supabase-deploy:
     name: ⚡ Edge Functions & database

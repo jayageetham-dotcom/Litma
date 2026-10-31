@@ -137,18 +137,27 @@ function parseKurup(text) {
 }
 
 // ── sharding ──
+// One file per first letter (≈100 files in total), split by second letter only when a
+// letter's file would exceed ~2.5 MB. Fewer files keep FTP deploys fast and reliable.
 const enKey = (w) => w.toLowerCase().trim();
-function enShard(key) {
-  const a = key[0] && /[a-z]/.test(key[0]) ? key[0] : "_";
-  const b = key[1] && /[a-z]/.test(key[1]) ? key[1] : "_";
-  return a + b;
-}
 const hex = (ch) => ch.codePointAt(0).toString(16);
-function mlShard(key, split) {
-  const chars = [...key];
-  const first = chars[0] ? hex(chars[0]) : "_";
-  if (!split.has(first)) return first;
-  return first + "-" + (chars[1] ? hex(chars[1]) : "_");
+const enFirst = (k) => (k[0] && /[a-z]/.test(k[0]) ? k[0] : "_");
+const enSecond = (k) => (k[1] && /[a-z]/.test(k[1]) ? k[1] : "_");
+const mlFirst = (k) => ([...k][0] ? hex([...k][0]) : "_");
+const mlSecond = (k) => ([...k][1] ? hex([...k][1]) : "_");
+const LIMIT = 2_500_000;
+
+function shardAll(entries, first, second) {
+  const sizes = {};
+  for (const [k, v] of entries) sizes[first(k)] = (sizes[first(k)] ?? 0) + k.length * 3 + JSON.stringify(v).length;
+  const split = new Set(Object.entries(sizes).filter(([, n]) => n > LIMIT).map(([f]) => f));
+  const shards = {};
+  for (const [k, v] of entries) {
+    const f = first(k);
+    const name = split.has(f) ? `${f}-${second(k)}` : f;
+    (shards[name] ??= {})[k] = v;
+  }
+  return { shards, split: [...split] };
 }
 
 function push(map, k, v) {
@@ -240,29 +249,20 @@ async function main() {
     mlObj[k] = o;
   }
 
-  // shard Malayalam: split first-letter shards bigger than ~350 KB
-  const firstSizes = {};
-  for (const [k, v] of Object.entries(mlObj)) {
-    const f = [...k][0] ? hex([...k][0]) : "_";
-    firstSizes[f] = (firstSizes[f] ?? 0) + k.length * 3 + JSON.stringify(v).length;
-  }
-  const split = new Set(Object.entries(firstSizes).filter(([, size]) => size > 350_000).map(([f]) => f));
-
   rmSync(OUT, { recursive: true, force: true });
   mkdirSync(join(OUT, "en"), { recursive: true });
   mkdirSync(join(OUT, "ml"), { recursive: true });
 
-  const enShards = {};
-  for (const [k, v] of en) (enShards[enShard(k)] ??= {})[k] = v;
-  const mlShards = {};
-  for (const [k, v] of Object.entries(mlObj)) (mlShards[mlShard(k, split)] ??= {})[k] = v;
-
+  const { shards: enShards, split: enSplit } = shardAll([...en.entries()], enFirst, enSecond);
+  const { shards: mlShards, split: mlSplit } = shardAll(Object.entries(mlObj), mlFirst, mlSecond);
   for (const [s, obj] of Object.entries(enShards)) writeFileSync(join(OUT, "en", `${s}.json`), JSON.stringify(obj));
   for (const [s, obj] of Object.entries(mlShards)) writeFileSync(join(OUT, "ml", `${s}.json`), JSON.stringify(obj));
 
   const index = {
     version: new Date().toISOString().slice(0, 10),
-    mlSplit: [...split],
+    format: 2,
+    enSplit,
+    mlSplit,
     counts: { en: en.size, ml: ml.size, enShards: Object.keys(enShards).length, mlShards: Object.keys(mlShards).length },
     sources: [
       { name: "Datuk corpus (Malayalam–Malayalam)", url: "https://olam.in/p/open/datuk", license: "ODbL" },

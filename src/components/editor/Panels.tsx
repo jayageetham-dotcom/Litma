@@ -6,7 +6,7 @@ import { TextSelection } from "@tiptap/pm/state";
 import { Check, Copy, CornerDownLeft, History, Loader2, RotateCcw, Square, X } from "lucide-react";
 import { AI_ACTIONS, type AIAction } from "@/shared/ai-prompts";
 import { store } from "@/lib/store";
-import { aiStream } from "@/lib/functions";
+import { aiStream, type AIProvider } from "@/lib/functions";
 import type { DocSettings, DocVersion, LitmaDoc, Suggestion } from "@/lib/types";
 import { FONTS } from "@/lib/templates";
 import { PAGE_SIZES, type PageSizeKey } from "@/extensions/pagination";
@@ -85,7 +85,7 @@ export function OutlinePanel({ editor }: { editor: Editor }) {
 
 export function getAIPrefs() {
   try {
-    return JSON.parse(localStorage.getItem("litma:ai") || "{}") as { provider?: "anthropic" | "openai"; anthropicKey?: string; openaiKey?: string; anthropicModel?: string; openaiModel?: string };
+    return JSON.parse(localStorage.getItem("litma:ai") || "{}") as { provider?: AIProvider; anthropicKey?: string; openaiKey?: string; geminiKey?: string };
   } catch {
     return {};
   }
@@ -93,7 +93,7 @@ export function getAIPrefs() {
 
 export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
   const prefs = useMemo(getAIPrefs, []);
-  const [provider, setProvider] = useState<"anthropic" | "openai">(prefs.provider ?? "anthropic");
+  const [provider, setProvider] = useState<AIProvider>(prefs.provider ?? "anthropic");
   const [instruction, setInstruction] = useState("");
   const [out, setOut] = useState("");
   const [busy, setBusy] = useState<AIAction | null>(null);
@@ -120,8 +120,8 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
       const r = await aiStream(
         {
           provider,
-          apiKey: provider === "openai" ? prefs.openaiKey : prefs.anthropicKey,
-          model: provider === "openai" ? prefs.openaiModel : prefs.anthropicModel,
+          // signed-in writers use the key saved to their account; local mode uses this browser's key
+          apiKey: store.isCloud() ? undefined : prefs[`${provider}Key` as const],
           action,
           kind,
           selection,
@@ -156,9 +156,16 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <H>Writing companion</H>
-        <select className="rounded-md border border-line bg-paper px-2 py-1 text-xs" value={provider} onChange={(e) => setProvider(e.target.value as "anthropic" | "openai")} aria-label="AI provider">
+        <select className="rounded-md border border-line bg-paper px-2 py-1 text-xs" value={provider} onChange={(e) => {
+            const v = e.target.value as AIProvider;
+            setProvider(v);
+            try {
+              localStorage.setItem("litma:ai", JSON.stringify({ ...getAIPrefs(), provider: v }));
+            } catch {}
+          }} aria-label="AI provider">
           <option value="anthropic">Claude</option>
           <option value="openai">GPT</option>
+          <option value="gemini">Gemini</option>
         </select>
       </div>
       <p className="-mt-2 text-xs text-muted">{hasSel ? "Working on your selection." : "Select text to rewrite, polish or translate it."}</p>
@@ -226,7 +233,7 @@ export function AIPanel({ editor, kind }: { editor: Editor; kind: string }) {
           </div>
         </div>
       )}
-      <p className="text-[11.5px] leading-snug text-muted">Add API keys in Settings → AI. Claude, ChatGPT and IBM Bob can also connect over MCP and leave suggestions in the Inbox.</p>
+      <p className="text-[11.5px] leading-snug text-muted">Uses your own API key — add it once in Settings → AI. Claude, ChatGPT and IBM Bob can also work on your writing over MCP.</p>
     </div>
   );
 }

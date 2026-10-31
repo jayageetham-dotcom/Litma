@@ -4,7 +4,8 @@ export const WRITING_GUIDES: Record<string, string> = {
 - Each scene starts with an auto-numbered heading "Scene: N", then the location line (e.g. "Int./Resort"), then the time ("പകൽ" / "രാത്രി"), then the cast in the scene listed on the right.
 - Action/description (രംഗവിവരണം) sits in the left half of the page, in present tense.
 - Dialogue is two columns: character name right-aligned with a colon on the left, speech on the right. Parentheticals go before the name: "(കടലിലേക്ക് നോക്കി) പ്രിയലാൽ: …".
-- When writing text for append_to_document, use lines like "Scene: Int./Beach", "പകൽ", "ഡെന്നി: സമയമെത്രായടാ?" and plain lines for action.`,
+- When writing text for append_to_document, use lines like "Scene: Int./Beach", "പകൽ", "ഡെന്നി: സമയമെത്രായടാ?" and plain lines for action.
+- Story World holds characters, locations and props for the script (list_story_items / create_story_item).`,
   drama: `Malayalam stage play (നാടകം): "## രംഗം ഒന്ന്" headings, stage directions in parentheses "(…)", dialogue as "പേര്: സംഭാഷണം".`,
   poem: `Malayalam poem (കവിത): one line per line, blank line between stanzas. Litma shows akshara counts and laghu/guru marks for metre (വൃത്തം); respect rhythm and prasam.`,
   lyrics: `Song lyrics: parts are labelled with "### പല്ലവി", "### അനുപല്ലവി", "### ചരണം"; one sung line per line; keep syllable counts matched between corresponding lines.`,

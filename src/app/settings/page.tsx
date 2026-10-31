@@ -6,6 +6,7 @@ import { RequireAuth } from "@/lib/auth";
 import { MCP_URL } from "@/lib/config";
 import { store } from "@/lib/store";
 import { getAIPrefs } from "@/components/editor/Panels";
+import { deleteAiKey, listAiKeys, saveAiKey, type AIProvider, type StoredKey } from "@/lib/functions";
 
 type Token = { id: string; name: string; created_at: string; last_used_at: string | null };
 
@@ -29,8 +30,6 @@ export default function SettingsPage() {
 }
 
 function Settings() {
-  const [ai, setAi] = useState(getAIPrefs);
-  const [savedAi, setSavedAi] = useState(false);
   const [tokens, setTokens] = useState<Token[]>([]);
   const [tokenName, setTokenName] = useState("Claude");
   const [fresh, setFresh] = useState<string | null>(null);
@@ -38,17 +37,8 @@ function Settings() {
   const cloud = store.isCloud();
 
   useEffect(() => {
-    setAi(getAIPrefs());
     if (cloud) store.listTokens().then((t) => setTokens(t as Token[]));
   }, [cloud]);
-
-  const saveAi = () => {
-    try {
-      localStorage.setItem("litma:ai", JSON.stringify(ai));
-      setSavedAi(true);
-      setTimeout(() => setSavedAi(false), 1600);
-    } catch {}
-  };
 
   const url = MCP_URL;
   const tok = fresh ?? "litma_YOUR_TOKEN";
@@ -59,44 +49,12 @@ function Settings() {
       <main className="mx-auto max-w-3xl space-y-12 px-5 pb-24 pt-4">
         <h1 className="text-3xl font-bold">Settings</h1>
 
-        <section>
-          <h2 className="text-xl font-semibold">AI writing companion</h2>
-          <p className="mt-1 text-sm text-muted">Keys are kept in this browser and sent only with your own requests. Leave empty to use keys configured on the server.</p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="mb-1 block text-sm">Default assistant</span>
-              <select className="field" value={ai.provider ?? "anthropic"} onChange={(e) => setAi({ ...ai, provider: e.target.value as "anthropic" | "openai" })}>
-                <option value="anthropic">Claude (Anthropic)</option>
-                <option value="openai">GPT (OpenAI)</option>
-              </select>
-            </label>
-            <div />
-            <label className="block">
-              <span className="mb-1 block text-sm">Anthropic API key</span>
-              <input className="field font-mono !text-[13px]" type="password" placeholder="sk-ant-…" value={ai.anthropicKey ?? ""} onChange={(e) => setAi({ ...ai, anthropicKey: e.target.value })} />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm">Claude model</span>
-              <input className="field font-mono !text-[13px]" placeholder="claude-sonnet-5-5" value={ai.anthropicModel ?? ""} onChange={(e) => setAi({ ...ai, anthropicModel: e.target.value })} />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm">OpenAI API key</span>
-              <input className="field font-mono !text-[13px]" type="password" placeholder="sk-…" value={ai.openaiKey ?? ""} onChange={(e) => setAi({ ...ai, openaiKey: e.target.value })} />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm">GPT model</span>
-              <input className="field font-mono !text-[13px]" placeholder="gpt-4.1-mini" value={ai.openaiModel ?? ""} onChange={(e) => setAi({ ...ai, openaiModel: e.target.value })} />
-            </label>
-          </div>
-          <button className="btn btn-primary mt-4" onClick={saveAi}>
-            {savedAi ? "Saved" : "Save AI settings"}
-          </button>
-        </section>
+        <AIKeys />
 
         <section>
           <h2 className="text-xl font-semibold">Connect AI assistants (MCP)</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            Litma is an MCP server at {url}. Claude, ChatGPT, IBM Bob, Cursor or any MCP client can list and read your works, send suggestions to your inbox, append text and transliterate Manglish.
+            Litma is an MCP server at {url}. Connect the AI assistant you already use — Claude, ChatGPT, IBM Bob, Cursor, VS Code — with your own account. It can then read and write your works, manage Story World, look words up in the dictionary, assemble books and prepare PDFs. Each writer creates their own token below; it only ever sees that writer’s work.
           </p>
           {!cloud ? (
             <p className="mt-4 rounded-lg border border-kasavu/40 bg-kasavu-soft px-4 py-3 text-sm">MCP needs Litma’s cloud sync. Sign in to create tokens.</p>
@@ -176,5 +134,130 @@ function Settings() {
         </section>
       </main>
     </div>
+  );
+}
+
+const PROVIDERS: { id: AIProvider; name: string; placeholder: string; model: string; where: string }[] = [
+  { id: "anthropic", name: "Claude (Anthropic)", placeholder: "sk-ant-…", model: "claude-sonnet-5-5", where: "console.anthropic.com → API keys" },
+  { id: "openai", name: "GPT (OpenAI)", placeholder: "sk-…", model: "gpt-4.1-mini", where: "platform.openai.com → API keys" },
+  { id: "gemini", name: "Gemini (Google)", placeholder: "AIza…", model: "gemini-2.5-flash", where: "aistudio.google.com → Get API key" },
+];
+
+/** Each writer's own AI keys: stored encrypted on the server (cloud) or in this browser (local mode). */
+function AIKeys() {
+  const cloud = store.isCloud();
+  const [keys, setKeys] = useState<StoredKey[] | null>(null);
+  const [draft, setDraft] = useState<Record<string, { key: string; model: string }>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ kind: "error" | "info"; text: string } | null>(null);
+  const [def, setDef] = useState<AIProvider>("anthropic");
+
+  useEffect(() => {
+    setDef(getAIPrefs().provider ?? "anthropic");
+    if (cloud) listAiKeys().then(setKeys).catch((e) => setMsg({ kind: "error", text: e.message }));
+    else setKeys([]);
+  }, [cloud]);
+
+  const saved = (p: AIProvider) => keys?.find((k) => k.provider === p);
+  const setDefault = (p: AIProvider) => {
+    setDef(p);
+    try {
+      localStorage.setItem("litma:ai", JSON.stringify({ ...getAIPrefs(), provider: p }));
+    } catch {}
+  };
+
+  async function save(p: AIProvider) {
+    const d = draft[p];
+    if (!d?.key?.trim()) return;
+    setBusy(p);
+    setMsg(null);
+    try {
+      if (cloud) {
+        await saveAiKey(p, d.key.trim(), d.model?.trim() || undefined);
+        setKeys(await listAiKeys());
+      } else {
+        localStorage.setItem("litma:ai", JSON.stringify({ ...getAIPrefs(), [`${p}Key`]: d.key.trim() }));
+      }
+      setDraft((x) => ({ ...x, [p]: { key: "", model: "" } }));
+      setMsg({ kind: "info", text: `${PROVIDERS.find((x) => x.id === p)!.name} key saved.` });
+    } catch (e) {
+      setMsg({ kind: "error", text: e instanceof Error ? e.message : "Couldn't save the key." });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <section>
+      <h2 className="text-xl font-semibold">Your AI keys</h2>
+      <p className="mt-1 text-sm leading-relaxed text-muted">
+        The writing companion uses your own account with the AI provider, so usage is billed to you and nobody else can use your key.
+        {cloud ? " Keys are encrypted on the server and never shown again — only the last four characters." : " In local mode, keys stay in this browser."}
+      </p>
+      <div className="mt-5 space-y-4">
+        {PROVIDERS.map((p) => {
+          const s = saved(p.id);
+          return (
+            <div key={p.id} className="rounded-xl bg-paper p-4" style={{ boxShadow: "var(--sheet-shadow)" }}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div className="font-semibold">{p.name}</div>
+                  <div className="text-xs text-muted">Get a key: {p.where}</div>
+                </div>
+                <label className="flex items-center gap-2 text-xs">
+                  <input type="radio" name="default-ai" className="accent-[var(--kayal)]" checked={def === p.id} onChange={() => setDefault(p.id)} /> Default
+                </label>
+              </div>
+              {s && (
+                <div className="mt-3 flex items-center justify-between rounded-lg bg-kayal-soft px-3 py-2 text-sm">
+                  <span>
+                    Saved key ••••{s.last4}
+                    {s.model ? ` · model ${s.model}` : ""}
+                  </span>
+                  <button
+                    className="text-xs text-danger underline"
+                    onClick={async () => {
+                      await deleteAiKey(p.id);
+                      setKeys(await listAiKeys());
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+              <form
+                className="mt-3 grid gap-2 sm:grid-cols-[1fr_12rem_auto]"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  save(p.id);
+                }}
+              >
+                <input
+                  className="field font-mono !text-[13px]"
+                  type="password"
+                  autoComplete="off"
+                  placeholder={s ? "Replace with a new key" : p.placeholder}
+                  value={draft[p.id]?.key ?? ""}
+                  onChange={(e) => setDraft((x) => ({ ...x, [p.id]: { model: x[p.id]?.model ?? "", key: e.target.value } }))}
+                  aria-label={`${p.name} API key`}
+                />
+                <input
+                  className="field font-mono !text-[13px]"
+                  placeholder={p.model}
+                  value={draft[p.id]?.model ?? ""}
+                  onChange={(e) => setDraft((x) => ({ ...x, [p.id]: { key: x[p.id]?.key ?? "", model: e.target.value } }))}
+                  aria-label={`${p.name} model (optional)`}
+                  title="Model (optional)"
+                />
+                <button className="btn btn-primary justify-center" disabled={busy === p.id || !draft[p.id]?.key}>
+                  {busy === p.id ? "Saving…" : "Save key"}
+                </button>
+              </form>
+            </div>
+          );
+        })}
+      </div>
+      {msg && <p className={`mt-3 text-sm ${msg.kind === "error" ? "text-danger" : "text-kayal"}`}>{msg.text}</p>}
+    </section>
   );
 }

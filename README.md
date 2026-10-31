@@ -36,7 +36,7 @@ npm run preview        # serve out/ at http://localhost:4173/litma/
 Every push to `main` runs `.github/workflows/deploy.yml`, modelled on the main website:
 
 1. installs, type-checks and builds the static export (`out/`)
-2. syncs `out/` to **public_html/litma** over FTPS (`SamKirkland/FTP-Deploy-Action`, incremental, `dangerous-clean-slate: false` with a guard step)
+2. uploads `out/` to **public_html/litma** over FTPS with `lftp mirror` — parallel, retries and reconnects on cPanel's connection resets, skips files that haven't changed, and never deletes anything on the server (a guard step fails the build if a delete flag is added)
 3. if `SUPABASE_ACCESS_TOKEN` is set: deploys the three Edge Functions, and with `SUPABASE_DB_PASSWORD` also runs `supabase db push`
 
 ### One-time setup
@@ -63,7 +63,7 @@ Every push to `main` runs `.github/workflows/deploy.yml`, modelled on the main w
 - Site URL: `https://www.jayageetham.com/litma`
 - Redirect URLs: `https://www.jayageetham.com/litma/**` and `http://localhost:3000/litma/**`
 
-Optional: Authentication → Providers → Google (for "Continue with Google"); Edge Functions → Secrets → `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` (otherwise writers paste their own key in Settings).
+Optional: Authentication → Providers → Google (for "Continue with Google"). No AI keys are needed on the server — writers add their own.
 
 ## Features
 
@@ -78,15 +78,27 @@ Optional: Authentication → Providers → Google (for "Continue with Google"); 
 - Outline, find & replace, focus and typewriter modes, night desk, zoom, notes & character bank, import `.txt`/`.md`, export PDF/Word/Markdown/text/HTML, public read-only links, keyboard shortcuts (`Ctrl/⌘+/`).
 - **AI:** Claude/GPT companion in the editor, and an **MCP server** so Claude, ChatGPT, IBM Bob, Cursor or VS Code can read your works and send suggestions to the editor's live inbox.
 
-## MCP
+## AI — every writer brings their own
 
-Create a token in **Settings → MCP**, then e.g.
+**In the editor:** the ✦ panel streams Claude, GPT or Gemini (continue, rewrite, polish, proofread, synonyms, പ്രാസം rhymes, dialogue, description, titles, summary, translation, editor's notes, or ask anything). Each writer adds **their own API key** in **Settings → Your AI keys**; it is AES-GCM encrypted by the `litma-ai` Edge Function and stored in `ai_keys`, a table browsers cannot read. Only the last four characters are ever shown again. No shared server key is needed.
+
+**Over MCP:** each writer connects the assistant they already use (Claude, ChatGPT, IBM Bob, Cursor, VS Code…) with their own Litma token from **Settings → MCP**:
 
 ```bash
 claude mcp add --transport http litma https://www.jayageetham.com/litma/mcp --header "Authorization: Bearer litma_…"
 ```
 
-Tools: `list_documents`, `search_documents`, `read_document`, `get_writing_guide`, `suggest_edit`, `append_to_document`, `create_document`, `transliterate`.
+30 tools, all scoped to the token's owner:
+
+| Area | Tools |
+|---|---|
+| Documents | `list_documents` `search_documents` `read_document` `create_document` `append_to_document` `replace_text` `update_document` `trash_document` |
+| Versions | `list_versions` `save_version` `restore_version` |
+| Inbox | `suggest_edit` (appears live in the editor) `list_suggestions` |
+| Story World | `list_story_items` `create_story_item` `update_story_item` `delete_story_item` |
+| Language | `dictionary_lookup` (meanings, synonyms, translations, opposites) `transliterate` `get_writing_guide` |
+| Books | `list_books` `get_book` `create_book` `update_book` `add_to_book` `remove_from_book` `reorder_book` `export_pdf` |
+| Writer | `get_profile` `writing_stats` |
 
 ## Project layout
 

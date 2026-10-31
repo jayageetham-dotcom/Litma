@@ -21,7 +21,7 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 
 ## Design system
 - **All tokens live in `src/styles/theme.css`** (light in `:root`, dark in `.dark`): canvas · surface · subtle · paper · header · ink · muted · line · primary · accent · highlight · danger, plus radius, shadows, fonts and `--brand-gradient`. Edit there to restyle the app.
-- Use the generated classes (`bg-surface`, `text-accent`, `bg-primary text-primary-ink`, `text-highlight`…); never hard-code colours in components. Buttons: `.btn` + `btn-primary` (ink-black) / `btn-accent` (violet) / `btn-outline` / `btn-ghost`. Top bars: `.app-bar` (sticky, translucent) or `bg-header`. Brand gradient only via `.brand-text` / `.brand-bar`.
+- Use the generated classes (`bg-surface`, `text-accent`, `bg-primary text-primary-ink`, `text-highlight`…); never hard-code colours in components. Buttons: `.btn` + `btn-primary` (ink-black) / `btn-accent` (indigo) / `btn-outline` / `btn-ghost`. Top bars: `.app-bar` (sticky, translucent) or `bg-header`. Brand gradient only via `.brand-text` / `.brand-bar`.
 - The document page uses `--paper` so writing stays black on white; colour belongs to the chrome, not the text.
 
 ## Layout (mobile-first, mirrors the planned native app)

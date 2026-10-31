@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { TryManglish } from "@/components/TryManglish";
-import { TemplatePreview } from "@/components/TemplatePreview";
-import { TEMPLATES } from "@/lib/templates";
+import { TypesMarquee } from "@/components/landing/TypesMarquee";
+import { HowItWorks } from "@/components/landing/HowItWorks";
 import { HeroActions, HomeNav } from "@/components/HomeActions";
 
 const FEATURES: [string, React.ReactNode][] = [
@@ -59,19 +59,15 @@ export default function Home() {
           <div className="mx-auto max-w-6xl px-5">
             <h2 className="text-2xl font-bold">ഒൻപത് സാഹിത്യരൂപങ്ങൾ · Nine writing types, each set the way it is printed</h2>
             <p className="mt-2 max-w-2xl text-muted">Pick a സാഹിത്യരൂപം (writing type) and Litma sets up the page, the typeface and the toolbar for it.</p>
-            <div className="scrollbar-thin mt-8 flex gap-6 overflow-x-auto pb-4">
-              {TEMPLATES.filter((t) => t.kind !== "blank").map((t) => (
-                <div key={t.kind} className="shrink-0">
-                  <TemplatePreview kind={t.kind} width={168} />
-                  <div className="mt-3 font-semibold">{t.ml}</div>
-                  <div className="text-sm text-muted">{t.en}</div>
-                </div>
-              ))}
-            </div>
+          </div>
+          <div className="mt-6">
+            <TypesMarquee />
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-5 py-16">
+        <HowItWorks />
+
+        <section className="mx-auto max-w-6xl border-t border-line px-5 py-16">
           <dl className="grid gap-x-12 gap-y-9 md:grid-cols-2">
             {FEATURES.map(([t, d]) => (
               <div key={t} className="border-l-2 border-highlight pl-5">

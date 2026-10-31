@@ -35,15 +35,15 @@
   /* Actions */
   --primary: #111113; /* main buttons: ink-black */
   --primary-ink: #ffffff;
-  --accent: #7c3aed; /* violet: links, focus rings, active tabs, selections */
+  --accent: #4f46e5; /* indigo ink: links, focus rings, active tabs, selections */
   --accent-ink: #ffffff;
-  --accent-soft: #f1eafe;
-  --highlight: #c2417a; /* berry: writing-type labels, badges, goal bars */
-  --highlight-soft: #fbe9f1;
+  --accent-soft: #eceefe;
+  --highlight: #c2610c; /* lamplight amber: writing-type labels, badges, goal bars */
+  --highlight-soft: #fdf1e3;
   --danger: #dc2626;
 
   /* Brand gradient (logo, small accents only — never behind text you read) */
-  --brand-gradient: linear-gradient(100deg, #5b5bf0 0%, #9b4fe8 50%, #e2547f 100%); /* Litma dusk: periwinkle → orchid → berry */
+  --brand-gradient: linear-gradient(100deg, #3730a3 0%, #2563eb 55%, #0891b2 100%); /* "ink to sky": indigo → blue → cyan */
 
   /* Shape */
   --radius-sm: 8px;
@@ -73,12 +73,12 @@
 
   --primary: #f4f4f5;
   --primary-ink: #09090b;
-  --accent: #a78bfa;
+  --accent: #a5b4fc;
   --accent-ink: #09090b;
-  --accent-soft: #241c3a;
-  --highlight: #ec8db4;
-  --highlight-soft: #36182a;
-  --brand-gradient: linear-gradient(100deg, #8a8cff 0%, #b98cf5 50%, #f08aa8 100%);
+  --accent-soft: #1e2140;
+  --highlight: #f5b366;
+  --highlight-soft: #33240f;
+  --brand-gradient: linear-gradient(100deg, #a5b4fc 0%, #60a5fa 55%, #22d3ee 100%);
   --danger: #f87171;
 
   --sheet-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);

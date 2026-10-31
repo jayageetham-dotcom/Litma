@@ -180,3 +180,101 @@ body {
     cursor: not-allowed;
   }
 }
+
+/* ── Landing: writing-type marquee ── */
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.marquee-track {
+  display: flex;
+  gap: 1.75rem;
+  width: max-content;
+  padding: 0.75rem 0 1.25rem;
+  animation: litma-marquee 70s linear infinite;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+.marquee-sheet {
+  border-radius: 4px;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s;
+  animation: litma-bob 6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.7s);
+}
+.marquee-card:hover .marquee-sheet {
+  transform: translateY(-8px) rotate(-1deg);
+  box-shadow: var(--pop-shadow);
+}
+@keyframes litma-marquee {
+  to {
+    transform: translateX(calc(-50% - 0.875rem));
+  }
+}
+@keyframes litma-bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .marquee-track {
+    animation: none;
+  }
+  .marquee-track > [aria-hidden="true"] {
+    display: none;
+  }
+}
+
+/* ── Landing: "how it works" demos ── */
+.demo-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.demo-stage {
+  position: relative;
+  height: 220px;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.demo-fade {
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.demo-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.05em;
+  margin-left: 1px;
+  vertical-align: -0.15em;
+  background: var(--accent);
+  animation: litma-blink 1s steps(1) infinite;
+}
+@keyframes litma-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes litma-line {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}

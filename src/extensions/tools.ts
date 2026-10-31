@@ -172,25 +172,48 @@ export const Search = Extension.create({
 });
 
 // ─── Typewriter scrolling ────────────────────────────────────────────────
-// Keeps the line being written at the vertical centre of the screen.
+// Keeps the line being written at the vertical centre of the screen, but only while typing:
+// clicking into the text, selecting words or moving with the mouse never scrolls the page.
 
-export const Typewriter = Extension.create<object, { enabled: boolean }>({
+export const Typewriter = Extension.create<object, { enabled: boolean; lastKey: number }>({
   name: "typewriter",
   addStorage() {
-    return { enabled: false };
+    return { enabled: false, lastKey: 0 };
   },
-  onSelectionUpdate() {
-    if (!this.storage.enabled) return;
+  addProseMirrorPlugins() {
+    const storage = this.storage;
+    return [
+      new Plugin({
+        key: new PluginKey("typewriterKeys"),
+        props: {
+          handleKeyDown: (_view, e) => {
+            // keys that write or move the line being written (not shortcuts like Ctrl+S)
+            if (!e.metaKey && !e.ctrlKey && (e.key.length === 1 || ["Enter", "Backspace", "Delete", "ArrowUp", "ArrowDown"].includes(e.key))) storage.lastKey = Date.now();
+            return false;
+          },
+          handleTextInput: () => {
+            storage.lastKey = Date.now(); // IME / on-screen keyboards
+            return false;
+          },
+        },
+      }),
+    ];
+  },
+  onTransaction({ transaction }) {
+    if (!this.storage.enabled || Date.now() - this.storage.lastKey > 700) return;
+    if (!transaction.docChanged && !transaction.selectionSet) return;
     const view = this.editor.view;
-    try {
-      const coords = view.coordsAtPos(view.state.selection.head);
-      const scroller = view.dom.closest(".desk-scroll") as HTMLElement | null;
-      if (!scroller) return;
-      const rect = scroller.getBoundingClientRect();
-      const target = rect.top + rect.height * 0.45;
-      scroller.scrollBy({ top: coords.top - target, behavior: "smooth" });
-    } catch {
-      /* ignore */
-    }
+    requestAnimationFrame(() => {
+      try {
+        const coords = view.coordsAtPos(view.state.selection.head);
+        const scroller = view.dom.closest(".desk-scroll") as HTMLElement | null;
+        if (!scroller) return;
+        const rect = scroller.getBoundingClientRect();
+        const delta = coords.top - (rect.top + rect.height * 0.45);
+        if (Math.abs(delta) > 24) scroller.scrollBy({ top: delta, behavior: "smooth" });
+      } catch {
+        /* ignore */
+      }
+    });
   },
 });

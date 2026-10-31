@@ -5,7 +5,6 @@ import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import {
   ArrowLeft,
   BookA,
-  BookOpen,
   Download,
   Eye,
   FileText,
@@ -50,6 +49,7 @@ import { DictionaryPanel } from "./DictionaryPanel";
 import { StoryPanel } from "./StoryPanel";
 import { CueSuggest } from "./CueSuggest";
 import { StoryWorld } from "@/components/story/StoryWorld";
+import { TypewriterIcon } from "@/components/icons/Typewriter";
 
 type PanelId = "ai" | "dict" | "inbox" | "story" | "history" | "keys" | "page";
 const PANELS: { id: PanelId; label: string; short: string; icon: React.ComponentType<{ size?: number }> }[] = [
@@ -686,7 +686,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} badge={p.id === "inbox" ? inboxCount : 0} />
               ))}
               <span className="mx-1.5 my-1 h-px shrink-0 bg-line" />
-              <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" hint="Keep the line you type centred" icon={BookOpen} />
+              <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" hint="While you type, keep the line you are writing in the middle of the screen" icon={TypewriterIcon} />
               {store.isCloud() && shareId && isPublic && (
                 <a href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-[9px] text-muted hover:bg-subtle hover:text-ink" aria-label="Open reader view">
                   <Eye size={17} className="shrink-0" />
@@ -723,7 +723,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
               <Tile key={p.id} icon={p.icon} label={p.short} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />
             ))}
             <Tile icon={Search} label="Find" onClick={() => { setPhoneSheet(null); setFindOpen(true); }} />
-            <Tile icon={BookOpen} label="Typewriter" active={typewriter} onClick={() => setTypewriter((t) => !t)} />
+            <Tile icon={TypewriterIcon} label="Typewriter" active={typewriter} onClick={() => setTypewriter((t) => !t)} />
             <Tile icon={Maximize2} label="Focus" onClick={() => { setPhoneSheet(null); setFocus(true); }} />
             {store.isCloud() && shareId && isPublic && <Tile icon={Eye} label="Reader" onClick={() => window.open(`${BASE}/read/?s=${shareId}`, "_blank")} />}
           </div>

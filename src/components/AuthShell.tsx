@@ -1,9 +1,12 @@
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
-const LINES = [
+const LINES: { ml: string; en?: string; by?: string }[] = [
   { ml: "ഓരോ വാക്കും ഒരു വാതിലാണ്.", en: "Every word is a door." },
-  { ml: "എഴുതിത്തുടങ്ങൂ; താളുകൾ കാത്തിരിക്കുന്നു.", en: "Start writing; the pages are waiting." },
+  {
+    ml: "“എഴുത്തുകാരനാവുക. വലിയ ബുദ്ധിയൊന്നും വേണ്ട. ചുമ്മാ എവിടെയെങ്കിലും കുത്തിയിരുന്ന് എഴുതിയാൽ മതി. അനുഭവങ്ങൾ ഇച്ചിരിപ്പിടിയോളം ഉണ്ടല്ലോ. അവനെയൊക്കെ കാച്ചിയാൽ മതി, എഴുതി. അങ്ങനെ ഞാൻ എഴുത്തുകാരനായി.”",
+    by: "വൈക്കം മുഹമ്മദ് ബഷീർ",
+  },
 ];
 
 /** Shared frame for sign-in, sign-up and password screens. */
@@ -20,12 +23,17 @@ export function AuthShell({ children, line = 0 }: { children: React.ReactNode; l
         <div className="rounded-xl bg-paper p-7" style={{ boxShadow: "var(--sheet-shadow)" }}>
           {children}
         </div>
-        <aside className="relative hidden aspect-[210/297] max-h-[560px] justify-self-center bg-paper px-12 pt-16 md:block" style={{ boxShadow: "var(--sheet-shadow)" }} aria-hidden>
+        <aside className="relative hidden aspect-[210/297] max-h-[560px] justify-self-center bg-paper px-10 pt-14 md:block" style={{ boxShadow: "var(--sheet-shadow)" }} aria-hidden>
           <div className="kasavu-rule absolute inset-x-0 top-0" />
-          <p className="text-[1.6rem] leading-[1.7] text-ink" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+          <p className={`${l.ml.length > 80 ? "text-[1.15rem] leading-[1.9]" : "text-[1.6rem] leading-[1.7]"} text-ink`} style={{ fontFamily: "'Noto Serif Malayalam'" }}>
             {l.ml}
           </p>
-          <p className="mt-3 text-sm text-muted">{l.en}</p>
+          {l.by && (
+            <p className="mt-5 text-right text-[0.95rem] font-semibold text-kasavu" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+              — {l.by}
+            </p>
+          )}
+          {l.en && <p className="mt-3 text-sm text-muted">{l.en}</p>}
           <span className="absolute bottom-5 left-1/2 -translate-x-1/2 text-xs text-muted">1</span>
         </aside>
       </main>

@@ -217,7 +217,7 @@ function AIKeys() {
       </p>
       {cloud && (
         <p className="mt-3 rounded-lg bg-accent-soft px-4 py-3 text-sm leading-relaxed">
-          <b>Have Claude Pro or Max?</b> You don’t need an API key. Add the Litma connector to Claude (see <b>MCP</b> below), then choose <b>Claude app</b> in the editor’s AI panel. Claude reads your work and sends its suggestions to the Assistant inbox, on your Claude plan.
+          <b>Have Claude Pro or Max?</b> You don’t need an API key. Add the Litma connector to Claude (see <b>MCP</b> below). Without a key, the editor’s AI panel asks before opening Claude with a ready request; Claude reads your work and its answer comes back to the Assistant inbox, on your Claude plan.
         </p>
       )}
       <div className="mt-5 space-y-4">

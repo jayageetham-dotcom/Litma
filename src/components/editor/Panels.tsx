@@ -7,7 +7,9 @@ import { TextSelection } from "@tiptap/pm/state";
 import { Check, Copy, CornerDownLeft, History, Loader2, RotateCcw, Square, X } from "lucide-react";
 import { AI_ACTIONS, type AIAction } from "@/shared/ai-prompts";
 import { store } from "@/lib/store";
-import { aiStream, type AIProvider } from "@/lib/functions";
+import { aiStream, listAiKeys, type AIProvider } from "@/lib/functions";
+import { useConfirm } from "@/components/ui/Confirm";
+import { BASE } from "@/lib/config";
 import type { DocSettings, DocVersion, LitmaDoc, Suggestion } from "@/lib/types";
 import { FONTS } from "@/lib/templates";
 import { PAGE_SIZES, type PageSizeKey } from "@/extensions/pagination";
@@ -118,7 +120,8 @@ function claudeAppPrompt(o: { action: AIAction; instruction: string; title: stri
     `Using the Litma connector, open my work “${o.title}” (document id ${o.docId}) and read it for context.`,
     `Task: ${task}${o.action !== "custom" && o.instruction.trim() ? `. Also: ${o.instruction.trim()}` : ""}.`,
     sel ? `Work on this passage:\n"""\n${quoted}\n"""` : "Work from where the text ends.",
-    "Write in Malayalam script. Send the result to my editor with suggest_edit so I can review it; don't change the document directly.",
+    o.action === "toEnglish" ? "Write the result in English." : "Write in Malayalam script.",
+    "Send the result to my editor with suggest_edit so I can review it: kind “replace” with target_text for a rewritten passage, “insert” for new text, “comment” for lists, ideas or notes. Don't change the document directly.",
   ].join("\n\n");
 }
 
@@ -132,8 +135,20 @@ export function getAIPrefs() {
 
 export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: string; docId: string; title: string }) {
   const prefs = useMemo(getAIPrefs, []);
-  const [provider, setProvider] = useState<Engine>(prefs.provider ?? (store.isCloud() ? "claude-app" : "anthropic"));
+  const [provider, setProvider] = useState<AIProvider>(prefs.provider && prefs.provider !== "claude-app" ? prefs.provider : "anthropic");
   const [sent, setSent] = useState<string | null>(null);
+  const [confirmDialog, ask] = useConfirm();
+  // which providers this writer has a key for: account keys (cloud) or this browser's keys (local mode)
+  const [keyed, setKeyed] = useState<AIProvider[] | null>(null);
+  useEffect(() => {
+    if (store.isCloud())
+      listAiKeys()
+        .then((k) => setKeyed(k.map((x) => x.provider)))
+        .catch(() => setKeyed([]));
+    else setKeyed((["anthropic", "openai", "gemini"] as AIProvider[]).filter((p) => !!prefs[`${p}Key` as const]));
+  }, [prefs]);
+  const hasKey = keyed?.includes(provider) ?? false;
+  const noKeys = keyed !== null && keyed.length === 0;
   const [instruction, setInstruction] = useState("");
   const [out, setOut] = useState("");
   const [busy, setBusy] = useState<AIAction | null>(null);
@@ -147,7 +162,34 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
   async function run(action: AIAction) {
     const { from, to, empty } = editor.state.selection;
     const selection = empty ? "" : editor.state.doc.textBetween(from, to, "\n");
-    if (provider === "claude-app") {
+    if (!hasKey) {
+      // no API key for this provider: offer Claude (the writer's own plan), only with their permission
+      const go =
+        localStorage.getItem("litma:claude-app-ok") === "1" ||
+        (await ask({
+          title: "Open this in Claude?",
+          body: (
+            <>
+              <span className="block">
+                {noKeys ? "You haven’t added an AI key to Litma." : `You haven’t added a key for ${provider === "anthropic" ? "Claude" : provider === "openai" ? "GPT" : "Gemini"}.`} Litma can open Claude in a new tab with the request already written for “{AI_ACTIONS[action].label}”.
+              </span>
+              <span className="mt-2 block">Send it there, then come back: Claude reads this work through your Litma connector and its answer appears here, in the Assistant inbox. It uses your own Claude plan.</span>
+              <span className="mt-2 block">
+                Needs the Litma connector in Claude (Settings → MCP). Prefer answers right here?{" "}
+                <a className="text-accent underline" href={`${BASE}/settings/`} target="_blank" rel="noreferrer">
+                  Add an API key
+                </a>
+                .
+              </span>
+              <label className="mt-3 flex items-center gap-2 text-ink">
+                <input type="checkbox" className="accent-[var(--accent)]" onChange={(e) => (e.target.checked ? localStorage.setItem("litma:claude-app-ok", "1") : localStorage.removeItem("litma:claude-app-ok"))} />
+                Don’t ask again
+              </label>
+            </>
+          ),
+          confirm: "Open Claude",
+        }));
+      if (!go) return;
       const prompt = claudeAppPrompt({ action, instruction, title, docId, selection });
       try {
         await navigator.clipboard.writeText(prompt);
@@ -206,6 +248,7 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
 
   return (
     <div className="flex flex-col gap-3">
+      {confirmDialog}
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted">Answer with</span>
         <Select
@@ -214,7 +257,7 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
           aria-label="AI provider"
           value={provider}
           onChange={(x) => {
-            const v = x as Engine;
+            const v = x as AIProvider;
             setSent(null);
             setProvider(v);
             try {
@@ -222,24 +265,27 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
             } catch {}
           }}
           options={[
-            ...(store.isCloud() ? [{ value: "claude-app", label: "Claude app", hint: "Your Claude plan, no API key" }] : []),
-            { value: "anthropic", label: "Claude API", hint: "Anthropic key" },
-            { value: "openai", label: "GPT", hint: "OpenAI key" },
-            { value: "gemini", label: "Gemini", hint: "Google key" },
+            { value: "anthropic", label: "Claude", hint: keyed?.includes("anthropic") ? "Your API key" : "No key: opens Claude" },
+            { value: "openai", label: "GPT", hint: keyed?.includes("openai") ? "Your API key" : "No key added" },
+            { value: "gemini", label: "Gemini", hint: keyed?.includes("gemini") ? "Your API key" : "No key added" },
           ]}
         />
       </div>
       <p className="-mt-2 text-xs text-muted">{hasSel ? "Working on your selection." : "Select text to rewrite, polish or translate it."}</p>
-      {provider === "claude-app" && !sent && (
-        <p className="rounded-lg bg-accent-soft px-3 py-2 text-xs leading-relaxed text-ink">
-          Opens Claude in a new tab with the request filled in. Claude reads this work through your Litma connector, and its answer arrives in the <b>Assistant inbox</b>. Uses your Claude Pro or Max plan, no API credit.
+      {keyed !== null && !hasKey && !sent && (
+        <p className="rounded-lg bg-subtle px-3 py-2 text-xs leading-relaxed text-muted">
+          No API key for this provider, so actions will ask before opening Claude in a new tab. Answers come back to the Assistant inbox here.{" "}
+          <a className="text-accent underline" href={`${BASE}/settings/`} target="_blank" rel="noreferrer">
+            Add a key
+          </a>{" "}
+          to get answers right in this panel.
         </p>
       )}
       {sent && (
         <div className="rounded-lg border border-line bg-paper p-3 text-xs leading-relaxed">
-          <p className="font-semibold text-ink">Sent to Claude.</p>
+          <p className="font-semibold text-ink">Opened in Claude.</p>
           <p className="mt-1 text-muted">
-            Press Enter in the Claude tab. When Claude is done, its suggestion appears in the Assistant inbox (the tray icon in the side bar) to accept or dismiss. The request is also on your clipboard if the tab didn’t open.
+            Press Enter in the Claude tab, then come back here. The answer appears in the Assistant inbox (the tray icon in the side bar) for you to accept or dismiss. The request is also on your clipboard if the tab didn’t open.
           </p>
           <div className="mt-2 flex gap-1.5">
             <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => navigator.clipboard.writeText(sent).catch(() => {})}>
@@ -290,16 +336,12 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
             {err ? (
               <span className="block text-[13px] leading-relaxed text-danger" style={{ fontFamily: "var(--font-ui)" }}>
                 {err}
-                {/no API credit/.test(err) && provider !== "claude-app" && (
+                {/no API credit/.test(err) && (
                   <>
                     <a href={BILLING[provider][1]} target="_blank" rel="noreferrer" className="mt-2 block font-semibold text-accent underline">
                       Open {BILLING[provider][0]} billing ↗
                     </a>
-                    {store.isCloud() && (
-                      <button className="mt-1 block font-semibold text-accent underline" onClick={() => (setProvider("claude-app"), setErr(null))}>
-                        Or use the Claude app with your plan instead
-                      </button>
-                    )}
+
                   </>
                 )}
               </span>

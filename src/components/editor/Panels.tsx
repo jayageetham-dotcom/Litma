@@ -159,48 +159,75 @@ export function AIPanel({ editor, kind, docId, title }: { editor: Editor; kind: 
 
   const hasSel = !editor.state.selection.empty;
 
-  async function run(action: AIAction) {
-    const { from, to, empty } = editor.state.selection;
-    const selection = empty ? "" : editor.state.doc.textBetween(from, to, "\n");
-    if (!hasKey) {
-      // no API key for this provider: offer Claude (the writer's own plan), only with their permission
-      const go =
-        localStorage.getItem("litma:claude-app-ok") === "1" ||
-        (await ask({
-          title: "Open this in Claude?",
-          body: (
-            <>
-              <span className="block">
-                {noKeys ? "You haven’t added an AI key to Litma." : `You haven’t added a key for ${provider === "anthropic" ? "Claude" : provider === "openai" ? "GPT" : "Gemini"}.`} Litma can open Claude in a new tab with the request already written for “{AI_ACTIONS[action].label}”.
-              </span>
-              <span className="mt-2 block">Send it there, then come back: Claude reads this work through your Litma connector and its answer appears here, in the Assistant inbox. It uses your own Claude plan.</span>
-              <span className="mt-2 block">
-                Needs the Litma connector in Claude (Settings → MCP). Prefer answers right here?{" "}
-                <a className="text-accent underline" href={`${BASE}/settings/`} target="_blank" rel="noreferrer">
-                  Add an API key
+  type Why = "nokey" | "nocredit" | "badkey";
+  const providerName = provider === "anthropic" ? "Claude" : provider === "openai" ? "GPT" : "Gemini";
+  const lastRun = useRef<{ action: AIAction; selection: string } | null>(null);
+
+  /** Hand the request to the Claude app (the writer's own plan), only with their permission. */
+  async function openInClaude(action: AIAction, selection: string, why: Why) {
+    const reason =
+      why === "nokey"
+        ? noKeys
+          ? "You haven’t added an AI key to Litma."
+          : `You haven’t added a key for ${providerName}.`
+        : why === "nocredit"
+          ? `Your ${providerName} API key has no credit left. API use is billed separately from chat plans like Claude Pro.`
+          : `Your ${providerName} API key wasn’t accepted.`;
+    const remembered = why === "nokey" && localStorage.getItem("litma:claude-app-ok") === "1";
+    const go =
+      remembered ||
+      (await ask({
+        title: "Open this in Claude?",
+        body: (
+          <>
+            <span className="block">
+              {reason} Litma can open Claude in a new tab with the request already written for “{AI_ACTIONS[action].label}”.
+            </span>
+            <span className="mt-2 block">Send it there, then come back: Claude reads this work through your Litma connector and its answer appears here, in the Assistant inbox. It uses your own Claude plan.</span>
+            <span className="mt-2 block">
+              Needs the Litma connector in Claude (Settings → MCP).{" "}
+              {why === "nocredit" ? (
+                <a className="text-accent underline" href={BILLING[provider][1]} target="_blank" rel="noreferrer">
+                  Add API credit instead
                 </a>
-                .
-              </span>
+              ) : (
+                <a className="text-accent underline" href={`${BASE}/settings/`} target="_blank" rel="noreferrer">
+                  {why === "badkey" ? "Fix the key instead" : "Add an API key instead"}
+                </a>
+              )}
+              .
+            </span>
+            {why === "nokey" && (
               <label className="mt-3 flex items-center gap-2 text-ink">
                 <input type="checkbox" className="accent-[var(--accent)]" onChange={(e) => (e.target.checked ? localStorage.setItem("litma:claude-app-ok", "1") : localStorage.removeItem("litma:claude-app-ok"))} />
                 Don’t ask again
               </label>
-            </>
-          ),
-          confirm: "Open Claude",
-        }));
-      if (!go) return;
-      const prompt = claudeAppPrompt({ action, instruction, title, docId, selection });
-      try {
-        await navigator.clipboard.writeText(prompt);
-      } catch {}
-      window.open(`https://claude.ai/new?q=${encodeURIComponent(prompt)}`, "_blank", "noopener");
-      setSent(prompt);
-      setOut("");
-      setErr(null);
-      return;
+            )}
+          </>
+        ),
+        confirm: "Open Claude",
+      }));
+    if (!go) return;
+    const prompt = claudeAppPrompt({ action, instruction, title, docId, selection });
+    try {
+      await navigator.clipboard.writeText(prompt);
+    } catch {}
+    window.open(`https://claude.ai/new?q=${encodeURIComponent(prompt)}`, "_blank", "noopener");
+    setSent(prompt);
+    setOut("");
+    setErr(null);
+  }
+
+  async function run(action: AIAction) {
+    const { from, to, empty } = editor.state.selection;
+    const selection = empty ? "" : editor.state.doc.textBetween(from, to, "\n");
+    if (!hasKey) {
+      // without cloud sync there is no Litma connector for Claude to use, so a key is the only way
+      if (!store.isCloud()) return setErr("Add your API key in Settings → AI to use the companion.");
+      return openInClaude(action, selection, "nokey");
     }
     setSent(null);
+    lastRun.current = { action, selection };
     const context = editor.state.doc.textBetween(0, from, "\n").slice(-6000);
     selRange.current = empty ? null : { from, to };
     setUsedSelection(!empty);

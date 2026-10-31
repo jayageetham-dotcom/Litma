@@ -10,3 +10,32 @@ verify_jwt = false
 
 [functions.litma-ai]
 verify_jwt = true
+
+# ── Auth emails ─────────────────────────────────────────────────────────────
+# Branded Litma templates, built by `node scripts/build-email-templates.mjs`.
+# Paste each file into Dashboard → Authentication → Emails → Templates.
+# (Don't run `supabase config push` until the rest of [auth] — site_url, redirect URLs,
+#  SMTP — is described here too, or it would overwrite the dashboard settings.)
+[auth.email.template.confirmation]
+subject = "Confirm your email for Litma"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.magic_link]
+subject = "Your Litma sign-in link"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.recovery]
+subject = "Reset your Litma password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your new email for Litma"
+content_path = "./supabase/templates/email_change.html"
+
+[auth.email.template.invite]
+subject = "You’re invited to Litma"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.reauthentication]
+subject = "Your Litma verification code"
+content_path = "./supabase/templates/reauthentication.html"

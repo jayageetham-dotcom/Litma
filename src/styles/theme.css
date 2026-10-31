@@ -11,7 +11,7 @@
  *    text-accent bg-accent-soft border-accent ring-accent   ← links, selection, active
  *    text-highlight bg-highlight-soft      ← writing-type labels, badges, goals
  *    text-danger bg-danger
- *    .brand-text  .brand-bar               ← the Litma gradient
+ *    .brand-text  .brand-bar               ← the logo colour and its accent line
  *
  *  Light values sit in :root, dark values in .dark. Change a hex here and the
  *  whole app (editor, desk, book, print chrome) follows. The document page
@@ -42,8 +42,9 @@
   --highlight-soft: #fdf1e3;
   --danger: #dc2626;
 
-  /* Brand gradient (logo, small accents only — never behind text you read) */
-  --brand-gradient: linear-gradient(100deg, #3730a3 0%, #2563eb 55%, #0891b2 100%); /* "ink to sky": indigo → blue → cyan */
+  /* Brand: one solid colour, no gradients. The logo word uses --brand; .brand-bar is a thin line of it. */
+  --brand: #111113;
+  --brand-mark: #4f46e5; /* the small dot in the logo and thin accent lines */
 
   /* Shape */
   --radius-sm: 8px;
@@ -78,7 +79,8 @@
   --accent-soft: #1e2140;
   --highlight: #f5b366;
   --highlight-soft: #33240f;
-  --brand-gradient: linear-gradient(100deg, #a5b4fc 0%, #60a5fa 55%, #22d3ee 100%);
+  --brand: #f4f4f5;
+  --brand-mark: #a5b4fc;
   --danger: #f87171;
 
   --sheet-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);

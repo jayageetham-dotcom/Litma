@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { TryManglish } from "@/components/TryManglish";
-import { TypesMarquee } from "@/components/landing/TypesMarquee";
+import { TypesShowcase } from "@/components/landing/TypesShowcase";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { HeroActions, HomeNav } from "@/components/HomeActions";
 
@@ -55,13 +55,13 @@ export default function Home() {
           <TryManglish />
         </section>
 
-        <section id="types" className="border-y border-line bg-subtle/60 py-16">
+        <section id="types" className="border-y border-line bg-subtle/50 py-16">
           <div className="mx-auto max-w-6xl px-5">
             <h2 className="text-2xl font-bold">ഒൻപത് സാഹിത്യരൂപങ്ങൾ · Nine writing types, each set the way it is printed</h2>
             <p className="mt-2 max-w-2xl text-muted">Pick a സാഹിത്യരൂപം (writing type) and Litma sets up the page, the typeface and the toolbar for it.</p>
-          </div>
-          <div className="mt-6">
-            <TypesMarquee />
+            <div className="mt-10">
+              <TypesShowcase />
+            </div>
           </div>
         </section>
 

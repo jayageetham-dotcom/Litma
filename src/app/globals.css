@@ -50,16 +50,13 @@ body {
   -webkit-backdrop-filter: saturate(180%) blur(14px);
 }
 
-/* Brand gradient: the logo word and thin accent bars only */
+/* Brand: solid logo colour and a hairline accent */
 .brand-text {
-  background: var(--brand-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--brand);
 }
 .brand-bar {
-  height: 3px;
-  background: var(--brand-gradient);
+  height: 2px;
+  background: var(--brand-mark);
 }
 
 :focus-visible {
@@ -181,58 +178,26 @@ body {
   }
 }
 
-/* ── Landing: writing-type marquee ── */
-.marquee {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-}
-.marquee-track {
-  display: flex;
-  gap: 1.75rem;
-  width: max-content;
-  padding: 0.75rem 0 1.25rem;
-  animation: litma-marquee 70s linear infinite;
-}
-.marquee:hover .marquee-track,
-.marquee:focus-within .marquee-track {
-  animation-play-state: paused;
-}
-.marquee-sheet {
-  border-radius: 4px;
-  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s;
-  animation: litma-bob 6s ease-in-out infinite;
-  animation-delay: calc(var(--i) * -0.7s);
-}
-.marquee-card:hover .marquee-sheet {
-  transform: translateY(-8px) rotate(-1deg);
-  box-shadow: var(--pop-shadow);
-}
-@keyframes litma-marquee {
+/* ── Landing: writing-type showcase ── */
+@keyframes litma-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
   to {
-    transform: translateX(calc(-50% - 0.875rem));
+    opacity: 1;
+    transform: none;
   }
 }
-@keyframes litma-bob {
-  0%,
-  100% {
-    translate: 0 0;
-  }
-  50% {
-    translate: 0 -4px;
-  }
+.rise-in {
+  animation: litma-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-@media (prefers-reduced-motion: reduce) {
-  .marquee {
-    overflow-x: auto;
-    -webkit-mask-image: none;
-    mask-image: none;
+@keyframes litma-progress {
+  from {
+    transform: scaleX(0);
   }
-  .marquee-track {
-    animation: none;
-  }
-  .marquee-track > [aria-hidden="true"] {
-    display: none;
+  to {
+    transform: scaleX(1);
   }
 }
 
@@ -246,7 +211,7 @@ body {
 }
 .demo-stage {
   position: relative;
-  height: 220px;
+  height: 260px;
   background: var(--canvas);
   border-bottom: 1px solid var(--line);
   overflow: hidden;

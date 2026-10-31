@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Check, FileDown } from "lucide-react";
+import { BookA, Check, FileDown, Sparkles } from "lucide-react";
 
 /**
  * "How it works" — four tiny looping demos of what happens inside the editor.
@@ -177,8 +177,8 @@ function BookDemo() {
           );
         })}
         <div
-          className="demo-fade absolute inset-0 flex flex-col justify-end rounded-[3px] p-2.5 text-white shadow-[var(--pop-shadow)]"
-          style={{ background: "var(--brand-gradient)", opacity: step >= 5 ? 1 : 0, transform: step >= 5 ? "none" : "translateY(14px)" }}
+          className="demo-fade absolute inset-0 flex flex-col justify-end rounded-[3px] bg-primary p-2.5 text-primary-ink shadow-[var(--pop-shadow)]"
+          style={{ opacity: step >= 5 ? 1 : 0, transform: step >= 5 ? "none" : "translateY(14px)" }}
         >
           <div className="text-[11px] font-bold leading-tight" style={{ fontFamily: "'Anek Malayalam'" }}>
             കടൽ കാണാത്ത വീട്
@@ -195,10 +195,96 @@ function BookDemo() {
   );
 }
 
+
+/* ─────────── 5 · AI companion ─────────── */
+const AI_BEFORE = "അവൾ പതുക്കെ നടന്നു പോയി.";
+const AI_AFTER = "ഒച്ചയുണ്ടാക്കാതെ അവൾ ഇടവഴിയിലൂടെ നടന്നകന്നു.";
+const AI_STREAM = Array.from({ length: 12 }, (_, k) => k);
+const AI_FRAMES = [700, 700, 600, ...AI_STREAM.map(() => 110), 900, 700, 2200];
+
+function AIDemo() {
+  const { ref, step } = useTimeline(AI_FRAMES);
+  const selected = step >= 1;
+  const asked = step >= 2;
+  const streamed = Math.max(0, Math.min(AI_STREAM.length, step - 2));
+  const shown = AI_AFTER.slice(0, Math.ceil((AI_AFTER.length * streamed) / AI_STREAM.length));
+  const ready = step >= 3 + AI_STREAM.length;
+  const accepted = step >= 4 + AI_STREAM.length;
+  return (
+    <div ref={ref} aria-hidden className="demo-stage grid place-items-center px-5">
+      <div className="w-full max-w-[20rem]">
+        <div className="rounded-md bg-paper px-4 py-3 text-[14px] leading-relaxed shadow-[var(--sheet-shadow)]" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+          പടിവാതിൽ ചാരി.{" "}
+          <span className={`rounded-sm transition-colors duration-300 ${accepted ? "bg-highlight-soft" : selected ? "bg-accent-soft" : ""}`}>{accepted ? AI_AFTER : AI_BEFORE}</span>
+        </div>
+        <div className={`demo-fade mt-2.5 rounded-lg border border-line bg-surface p-2.5 text-[12px] shadow-[var(--sheet-shadow)] ${asked && !accepted ? "opacity-100" : "translate-y-1 opacity-0"}`}>
+          <div className="mb-1.5 flex items-center gap-1.5 font-semibold text-accent">
+            <Sparkles size={12} /> മിനുക്കുക · Polish
+          </div>
+          <p className="min-h-9 leading-relaxed" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+            {shown}
+            {asked && !ready && <span className="demo-caret" />}
+          </p>
+          <div className={`demo-fade mt-1.5 flex gap-1.5 ${ready ? "opacity-100" : "opacity-0"}`}>
+            <span className={`rounded-md px-2 py-0.5 font-semibold ${step >= 3 + AI_STREAM.length ? "bg-primary text-primary-ink" : ""}`}>Replace</span>
+            <span className="rounded-md border border-line px-2 py-0.5">Insert below</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────── 6 · Dictionary ─────────── */
+const SYN = ["വർഷം", "മാരി", "വൃഷ്ടി"];
+const D_FRAMES = [700, 800, 500, 400, 400, 400, 900, 900, 2000];
+
+function DictionaryDemo() {
+  const { ref, step } = useTimeline(D_FRAMES);
+  const selected = step >= 1;
+  const open = step >= 2 && step < 7;
+  const syn = Math.max(0, Math.min(SYN.length, step - 2));
+  const picking = step === 6;
+  const swapped = step >= 7;
+  return (
+    <div ref={ref} aria-hidden className="demo-stage grid place-items-center px-5">
+      <div className="relative w-full max-w-[20rem]">
+        <div className="rounded-md bg-paper px-4 py-3 text-[15px] leading-relaxed shadow-[var(--sheet-shadow)]" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+          രാത്രി മുഴുവൻ{" "}
+          <span className={`rounded-sm px-0.5 transition-colors duration-300 ${swapped ? "bg-highlight-soft" : selected ? "bg-accent-soft" : ""}`}>{swapped ? "മാരി" : "മഴ"}</span> പെയ്തു.
+        </div>
+        <div className={`demo-fade absolute left-4 right-4 top-[3.6rem] z-10 rounded-lg border border-line bg-surface p-3 text-[12px] shadow-[var(--pop-shadow)] ${open ? "opacity-100" : "pointer-events-none translate-y-1 opacity-0"}`}>
+          <div className="flex items-baseline justify-between">
+            <span className="text-[15px] font-bold" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+              മഴ <span className="text-[11px] font-normal text-muted">നാമം</span>
+            </span>
+            <span className="flex items-center gap-1 text-muted">
+              <BookA size={12} /> rain
+            </span>
+          </div>
+          <p className="mt-1 text-muted" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+            ആകാശത്തുനിന്നു പെയ്യുന്ന വെള്ളം
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1">
+            <span className="text-[11px] text-muted">പര്യായം:</span>
+            {SYN.slice(0, syn).map((w) => (
+              <span key={w} className={`rise-in rounded-full border px-2 py-px ${picking && w === "മാരി" ? "border-accent bg-accent-soft text-accent" : "border-line"}`} style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+                {w}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const DEMOS = [
   { title: "Pick the right word", body: "Type Manglish; Litma offers the Malayalam spellings as you go. Space takes the first, 1–7 picks another.", Demo: ManglishDemo },
   { title: "Pages fill like paper", body: "Text flows onto real A4 sheets with page numbers, so you always know how long the work really is.", Demo: PagesDemo },
   { title: "Scripts set themselves", body: "Scene headings, cast and two-column dialogue snap into the Malayalam screenplay layout as you type.", Demo: ScreenplayDemo },
+  { title: "An AI companion beside you", body: "Select a passage and ask to continue, polish or translate. The answer streams in, and you choose whether it replaces your text — with your own Claude, GPT or Gemini key, or any AI assistant over MCP.", Demo: AIDemo },
+  { title: "Dictionary one click away", body: "Select a word for its meaning, English sense and synonyms from Olam’s open datasets — tap a synonym to swap it in.", Demo: DictionaryDemo },
   { title: "Works become a book", body: "Gather chapters, add a cover and front pages, and export one print-ready PDF.", Demo: BookDemo },
 ];
 
@@ -209,7 +295,7 @@ export function HowItWorks() {
         എങ്ങനെ? · How it works
       </h2>
       <p className="mt-2 max-w-2xl text-muted">A look inside the desk — the small things Litma does while you write.</p>
-      <div className="mt-8 grid gap-5 sm:grid-cols-2">
+      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {DEMOS.map(({ title, body, Demo }) => (
           <article key={title} className="demo-card">
             <Demo />

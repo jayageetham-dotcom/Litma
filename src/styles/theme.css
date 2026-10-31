@@ -42,6 +42,11 @@
   --highlight-soft: #fdf1e3;
   --danger: #dc2626;
 
+  /* Menus and dropdowns: hovered row, and the chosen row */
+  --option-hover: #f0f0f3;
+  --option-selected: #e3e5fc;
+  --option-selected-ink: #3730a3;
+
   /* Brand: one solid colour, no gradients. The logo word uses --brand; .brand-bar is a thin line of it. */
   --brand: #111113;
   --brand-mark: #4f46e5; /* the small dot in the logo and thin accent lines */
@@ -88,6 +93,9 @@
   --highlight-soft: #33240f;
   --brand: #f4f4f5;
   --brand-mark: #a5b4fc;
+  --option-hover: #26262c;
+  --option-selected: #2c2f5c;
+  --option-selected-ink: #c7d0ff;
   --danger: #f87171;
 
   --demo-stage: #0d0d10;

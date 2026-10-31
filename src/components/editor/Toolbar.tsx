@@ -33,6 +33,7 @@ import { BLOCK_VARIANTS } from "@/extensions/blocks";
 import { SCREENPLAY_ELEMENTS, setScreenplayElement } from "@/extensions/screenplay";
 import type { InputMode } from "@/extensions/manglish";
 import { Select } from "@/components/ui/Select";
+import { boldIsOn } from "@/extensions/bold";
 
 function Btn({
   onClick,
@@ -220,7 +221,7 @@ export function Toolbar({
       />
       <Sep />
 
-      <Btn title="Bold (Ctrl+B)" active={e.isActive("bold")} onClick={() => chain().toggleBold().run()}>
+      <Btn title="Bold (Ctrl+B)" active={boldIsOn(e)} onClick={() => chain().toggleSmartBold().run()}>
         <Bold size={16} />
       </Btn>
       <Btn title="Italic (Ctrl+I)" active={e.isActive("italic")} onClick={() => chain().toggleItalic().run()}>
@@ -281,21 +282,30 @@ export function Toolbar({
       </Btn>
       <Sep />
 
+      {(() => {
+        // alignment works on titles, headings, paragraphs and action lines; screenplay scene/dialogue blocks keep their layout
+        const canAlign = ["paragraph", "heading", "styledBlock", "action", "transition"].includes(parentName);
+        const why = canAlign ? "" : " — not available for this script element";
+        return (
+          <>
+            <Btn title={`Align left${why}`} disabled={!canAlign} active={canAlign && e.isActive({ textAlign: "left" })} onClick={() => chain().setTextAlign("left").run()}>
+              <AlignLeft size={16} />
+            </Btn>
+            <Btn title={`Centre${why}`} disabled={!canAlign} active={canAlign && e.isActive({ textAlign: "center" })} onClick={() => chain().setTextAlign("center").run()}>
+              <AlignCenter size={16} />
+            </Btn>
+            <Btn title={`Align right${why}`} disabled={!canAlign} active={canAlign && e.isActive({ textAlign: "right" })} onClick={() => chain().setTextAlign("right").run()}>
+              <AlignRight size={16} />
+            </Btn>
+            <Btn title={`Justify${why}`} disabled={!canAlign} active={canAlign && e.isActive({ textAlign: "justify" })} onClick={() => chain().setTextAlign("justify").run()}>
+              <AlignJustify size={16} />
+            </Btn>
+          </>
+        );
+      })()}
+      <Sep />
       {!inScreenplay && (
         <>
-          <Btn title="Align left" active={e.isActive({ textAlign: "left" })} onClick={() => chain().setTextAlign("left").run()}>
-            <AlignLeft size={16} />
-          </Btn>
-          <Btn title="Centre" active={e.isActive({ textAlign: "center" })} onClick={() => chain().setTextAlign("center").run()}>
-            <AlignCenter size={16} />
-          </Btn>
-          <Btn title="Align right" active={e.isActive({ textAlign: "right" })} onClick={() => chain().setTextAlign("right").run()}>
-            <AlignRight size={16} />
-          </Btn>
-          <Btn title="Justify" active={e.isActive({ textAlign: "justify" })} onClick={() => chain().setTextAlign("justify").run()}>
-            <AlignJustify size={16} />
-          </Btn>
-          <Sep />
           <Btn title="Bulleted list" active={e.isActive("bulletList")} onClick={() => chain().toggleBulletList().run()}>
             <List size={16} />
           </Btn>
@@ -407,7 +417,7 @@ export function MobileFormatStrip({
               </B>
             ))
           : null}
-        <B t="Bold" on={() => chain().toggleBold().run()} act={e.isActive("bold")}>
+        <B t="Bold" on={() => chain().toggleSmartBold().run()} act={boldIsOn(e)}>
           <Bold size={18} />
         </B>
         <B t="Italic" on={() => chain().toggleItalic().run()} act={e.isActive("italic")}>

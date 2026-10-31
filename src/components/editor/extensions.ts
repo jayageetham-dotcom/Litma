@@ -16,6 +16,7 @@ import { Pagination, geometryFor } from "@/extensions/pagination";
 import { PageBreak, StyledBlock } from "@/extensions/blocks";
 import { ScreenplayKeys, ScreenplayNodes } from "@/extensions/screenplay";
 import { Metre, Search, Typewriter } from "@/extensions/tools";
+import { SmartBold } from "@/extensions/bold";
 import type { DocKind, DocSettings } from "@/lib/types";
 
 const VARIANT_PLACEHOLDER: Record<string, string> = {
@@ -52,10 +53,11 @@ export function buildExtensions(kind: DocKind, settings: DocSettings, inputMode:
     StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
     Underline,
     TextStyle,
+    SmartBold,
     Color,
     FontFamily,
     Highlight.configure({ multicolor: true }),
-    TextAlign.configure({ types: ["heading", "paragraph", "styledBlock", "action"] }),
+    TextAlign.configure({ types: ["heading", "paragraph", "styledBlock", "action", "transition"] }),
     Link.configure({ openOnClick: false, autolink: true }),
     Subscript,
     Superscript,

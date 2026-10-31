@@ -1,3 +1,6 @@
+"use client";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -45,11 +48,29 @@ export function AuthShell({ children, line = 0 }: { children: React.ReactNode; l
   );
 }
 
-export function Field({ label, hint, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {
+export function Field({ label, hint, type, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {
+  const [shown, setShown] = useState(false);
+  const isPassword = type === "password";
   return (
     <label className="block">
       <span className="mb-1 block text-sm">{label}</span>
-      <input className="field" {...props} />
+      {isPassword ? (
+        <span className="relative block">
+          <input className="field !pr-11" type={shown ? "text" : "password"} {...props} />
+          <button
+            type="button"
+            onClick={() => setShown((v) => !v)}
+            aria-label={shown ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+            aria-pressed={shown}
+            title={shown ? "Hide password" : "Show password"}
+            className="absolute inset-y-0 right-1 my-auto grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-subtle hover:text-ink"
+          >
+            {shown ? <EyeOff size={17} /> : <Eye size={17} />}
+          </button>
+        </span>
+      ) : (
+        <input className="field" type={type} {...props} />
+      )}
       {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
     </label>
   );

@@ -1,0 +1,12 @@
+# Supabase CLI config for Litma (used by `supabase functions deploy` / `supabase db push` in CI).
+project_id = "jdexadomaxjtxlvgtldu"
+
+[functions.litma-transliterate]
+verify_jwt = false
+
+[functions.litma-mcp]
+# authenticates Litma MCP tokens itself
+verify_jwt = false
+
+[functions.litma-ai]
+verify_jwt = true

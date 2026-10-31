@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Litma palette — "Kayal & Kasavu": backwater green and the gold border of a Kerala mundu. */
+:root {
+  --desk: #e3e9e6;
+  --desk-2: #d7dfdb;
+  --paper: #ffffff;
+  --ink: #1a2220;
+  --muted: #5d6b67;
+  --line: #cbd5d1;
+  --kayal: #1d5a52;
+  --kayal-ink: #ffffff;
+  --kayal-soft: #d8e8e3;
+  --kasavu: #a17a28;
+  --kasavu-soft: #f3ead6;
+  --danger: #a3372b;
+  --sheet-shadow: 0 1px 2px rgba(18, 40, 36, 0.12), 0 8px 28px rgba(18, 40, 36, 0.08);
+  color-scheme: light;
+}
+
+.dark {
+  --desk: #121917;
+  --desk-2: #19221f;
+  --paper: #1d2624;
+  --ink: #e1e7e4;
+  --muted: #92a19c;
+  --line: #2c3936;
+  --kayal: #6fb3a6;
+  --kayal-ink: #0d1614;
+  --kayal-soft: #213531;
+  --kasavu: #d2ad5c;
+  --kasavu-soft: #2e2918;
+  --danger: #e0806f;
+  --sheet-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-desk: var(--desk);
+  --color-desk-2: var(--desk-2);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-kayal: var(--kayal);
+  --color-kayal-ink: var(--kayal-ink);
+  --color-kayal-soft: var(--kayal-soft);
+  --color-kasavu: var(--kasavu);
+  --color-kasavu-soft: var(--kasavu-soft);
+  --color-danger: var(--danger);
+  --font-ui: "Anek Malayalam", "Noto Sans Malayalam", system-ui, sans-serif;
+  --font-serif: "Noto Serif Malayalam", Georgia, serif;
+}
+
+html,
+body {
+  background: var(--desk);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The brand device: a kasavu double rule. Used once per screen, at the top. */
+.kasavu-rule {
+  height: 5px;
+  background:
+    linear-gradient(var(--kasavu), var(--kasavu)) top / 100% 2px no-repeat,
+    linear-gradient(var(--kasavu), var(--kasavu)) bottom / 100% 1px no-repeat;
+}
+
+:focus-visible {
+  outline: 2px solid var(--kayal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Small UI primitives */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--kayal);
+  color: var(--kayal-ink);
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.btn-ghost {
+  color: var(--ink);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--desk-2);
+}
+.btn-outline {
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.btn-outline:hover:not(:disabled) {
+  border-color: var(--kayal);
+}
+.field {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.95rem;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--kayal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kayal) 20%, transparent);
+}
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}

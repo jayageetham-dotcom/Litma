@@ -1,0 +1,521 @@
+// Litma — page & manuscript typography.
+// Layout variables are set inline on .page-stack by the editor:
+//   --page-w --m-top --m-right --m-left --doc-font --doc-size --doc-lh
+
+$mm: 3.7795275591px;
+
+.page-stack {
+  position: relative;
+  width: var(--page-w);
+  margin: 0 auto;
+  transform-origin: top center;
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background: var(--paper);
+  box-shadow: var(--sheet-shadow);
+  border-radius: 2px;
+  pointer-events: none;
+
+  .sheet-head,
+  .sheet-foot {
+    position: absolute;
+    left: var(--m-left);
+    right: var(--m-right);
+    font-family: var(--font-ui);
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  .sheet-head {
+    top: calc(var(--m-top) * 0.45);
+  }
+  .sheet-foot {
+    bottom: calc(var(--m-bottom) * 0.45);
+    justify-content: center;
+    font-size: 11px;
+    color: var(--ink);
+  }
+}
+
+.page-content {
+  position: relative;
+  z-index: 1;
+}
+
+.ProseMirror {
+  display: flex;
+  flex-direction: column;
+  padding: var(--m-top) var(--m-right) 0 var(--m-left);
+  min-height: calc(var(--page-h) - var(--m-bottom));
+  outline: none;
+  font-family: var(--doc-font), "Noto Serif Malayalam", serif;
+  font-size: var(--doc-size);
+  line-height: var(--doc-lh);
+  color: var(--ink);
+  caret-color: var(--kayal);
+  word-wrap: break-word;
+  font-variant-ligatures: common-ligatures;
+  counter-reset: scene chapter;
+
+  > * {
+    flex: none;
+  }
+
+  p {
+    margin: 0 0 0.65em;
+  }
+  h1,
+  h2,
+  h3 {
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  h1 {
+    font-size: 1.7em;
+    margin: 0.6em 0 0.4em;
+  }
+  h2 {
+    font-size: 1.35em;
+    margin: 0.8em 0 0.35em;
+  }
+  h3 {
+    font-size: 1.12em;
+    margin: 0.8em 0 0.3em;
+  }
+  ul,
+  ol {
+    padding-left: 1.6em;
+    margin: 0 0 0.65em;
+    li p {
+      margin: 0 0 0.2em;
+    }
+  }
+  ul {
+    list-style: disc;
+  }
+  ol {
+    list-style: decimal;
+  }
+  blockquote {
+    border-left: 3px solid var(--kasavu);
+    padding-left: 1em;
+    margin: 0.6em 0 0.9em;
+    color: color-mix(in srgb, var(--ink) 85%, var(--muted));
+    font-style: italic;
+  }
+  hr {
+    border: 0;
+    margin: 1.2em 0;
+    height: 1.5em;
+    text-align: center;
+    &::after {
+      content: "⁂";
+      color: var(--muted);
+      font-size: 1.1em;
+    }
+    &.ProseMirror-selectednode {
+      outline: 2px solid var(--kayal-soft);
+    }
+  }
+  a {
+    color: var(--kayal);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  mark {
+    background: #fbeaa6;
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  code {
+    font-family: ui-monospace, monospace;
+    font-size: 0.88em;
+    background: var(--desk-2);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+  }
+
+  .page-break {
+    height: 0;
+    margin: 0;
+    border-top: 1px dashed var(--line);
+    position: relative;
+    &::after {
+      content: "പേജ് ബ്രേക്ക്";
+      position: absolute;
+      right: 0;
+      top: -0.8em;
+      font: 10px var(--font-ui);
+      color: var(--muted);
+      background: var(--paper);
+      padding: 0 4px;
+    }
+  }
+
+  .page-spacer {
+    pointer-events: none;
+    user-select: none;
+  }
+
+  // Placeholders
+  .is-empty::before,
+  p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: color-mix(in srgb, var(--muted) 70%, transparent);
+    float: left;
+    height: 0;
+    pointer-events: none;
+    font-style: normal;
+    text-indent: 0;
+  }
+
+  // Styled literary blocks
+  .sb {
+    margin: 0 0 0.5em;
+  }
+  .sb-title {
+    font-size: 2.05em;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    margin: 0.4em 0 0.25em;
+  }
+  .sb-subtitle {
+    font-size: 1.2em;
+    text-align: center;
+    color: var(--muted);
+  }
+  .sb-author {
+    text-align: center;
+    font-size: 1.05em;
+    margin-bottom: 1.6em;
+    color: color-mix(in srgb, var(--ink) 80%, var(--muted));
+  }
+  .sb-epigraph {
+    font-style: italic;
+    text-align: right;
+    margin: 1em 0 1.6em 35%;
+    color: var(--muted);
+  }
+  .sb-chapter {
+    text-align: center;
+    font-size: 1.35em;
+    font-weight: 700;
+    margin: 2.4em 0 1.4em;
+    counter-increment: chapter;
+    &::after {
+      content: "";
+      display: block;
+      width: 3em;
+      height: 2px;
+      margin: 0.55em auto 0;
+      background: var(--kasavu);
+    }
+  }
+  .sb-kicker {
+    font-family: var(--font-ui);
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--kasavu);
+    margin-bottom: 0.2em;
+  }
+  .sb-standfirst {
+    font-size: 1.18em;
+    line-height: 1.6;
+    color: color-mix(in srgb, var(--ink) 85%, var(--muted));
+    margin-bottom: 0.6em;
+  }
+  .sb-byline {
+    font-family: var(--font-ui);
+    font-size: 0.85em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.8em;
+    margin-bottom: 1.2em;
+  }
+  .sb-subhead {
+    font-size: 1.15em;
+    font-weight: 700;
+    margin: 1.2em 0 0.35em;
+  }
+  .sb-pullquote {
+    font-size: 1.35em;
+    line-height: 1.5;
+    font-weight: 600;
+    text-align: center;
+    color: var(--kayal);
+    border-top: 2px solid var(--kasavu);
+    border-bottom: 1px solid var(--kasavu);
+    padding: 0.6em 1.2em;
+    margin: 1em 8%;
+  }
+  .sb-caption {
+    font-family: var(--font-ui);
+    font-size: 0.82em;
+    color: var(--muted);
+    text-align: center;
+  }
+  .sb-part {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.88em;
+    color: var(--kasavu);
+    margin: 1.3em 0 0.35em;
+  }
+  .sb-stage {
+    font-style: italic;
+    color: color-mix(in srgb, var(--ink) 75%, var(--muted));
+    margin: 0.5em 0 0.7em 2.5em;
+    &:not(.is-empty)::before {
+      content: "(";
+    }
+    &:not(.is-empty)::after {
+      content: ")";
+    }
+  }
+  .sb-dateline {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    color: var(--kayal);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.3em;
+    margin: 1.4em 0 0.8em;
+  }
+
+  // Manglish composition & search
+  .manglish-composing {
+    background: var(--kasavu-soft);
+    text-decoration: underline dotted var(--kasavu);
+    text-underline-offset: 3px;
+    border-radius: 2px;
+  }
+  .search-hit {
+    background: #fdf0b5;
+    color: #1a2220;
+    border-radius: 2px;
+    &.current {
+      background: var(--kasavu);
+      color: #fff;
+    }
+  }
+}
+
+// ─── Templates ──────────────────────────────────────────────────────────
+
+.tpl-novel,
+.tpl-story {
+  .ProseMirror > p {
+    text-indent: 1.6em;
+    text-align: justify;
+    margin: 0 0 0.15em;
+  }
+  .ProseMirror > .sb + p,
+  .ProseMirror > hr + p,
+  .ProseMirror > .page-spacer + p {
+    text-indent: 0;
+  }
+  .ProseMirror > .sb-chapter + p::first-letter {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: var(--kayal);
+  }
+}
+
+.tpl-essay,
+.tpl-feature,
+.tpl-diary {
+  .ProseMirror > p {
+    text-align: justify;
+  }
+}
+
+.tpl-poem,
+.tpl-lyrics {
+  .ProseMirror > p {
+    margin: 0;
+    min-height: 1em;
+    position: relative;
+  }
+  .ProseMirror > p:empty,
+  .ProseMirror > p:has(> br:only-child) {
+    margin-bottom: 0.9em;
+  }
+}
+
+.show-metre {
+  .ProseMirror [data-aksharas] {
+    position: relative;
+    &::after {
+      content: attr(data-metre);
+      position: absolute;
+      left: calc(100% + 5mm);
+      top: 0.35em;
+      max-width: calc(var(--m-right) - 7mm);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font: 9px/1.4 var(--font-ui);
+      letter-spacing: 0.5px;
+      color: var(--kasavu);
+      text-indent: 0;
+      pointer-events: none;
+    }
+    &::before {
+      content: attr(data-aksharas);
+      position: absolute;
+      right: calc(100% + 5mm);
+      top: 0.3em;
+      font: 600 10px/1.4 var(--font-ui);
+      color: var(--muted);
+      float: none;
+      height: auto;
+    }
+  }
+}
+
+// Malayalam screenplay (തിരക്കഥ)
+.tpl-screenplay .ProseMirror {
+  .sp-scene {
+    font-size: 0.95em;
+    font-weight: 700;
+    margin: 1.8em 0 0;
+    counter-increment: scene;
+    &::before {
+      content: "Scene: " counter(scene);
+      display: block;
+      font-size: 1.3em;
+      margin-bottom: 0.1em;
+      float: none;
+      height: auto;
+      color: var(--ink);
+    }
+    &.is-empty::after {
+      content: attr(data-placeholder);
+      color: color-mix(in srgb, var(--muted) 70%, transparent);
+      font-weight: 400;
+    }
+  }
+  > .sp-scene:first-child {
+    margin-top: 0;
+  }
+  .sp-time {
+    margin: 0 0 0.3em;
+    font-weight: 500;
+  }
+  .sp-cast {
+    text-align: right;
+    margin: 0 0 1em 55%;
+    font-size: 0.88em;
+    line-height: 1.55;
+    &.is-empty::before {
+      float: right;
+    }
+  }
+  .sp-action {
+    width: 54%;
+    margin: 0.2em 0 0.9em;
+  }
+  .sp-dialogue {
+    display: grid;
+    grid-template-columns: 46% minmax(0, 42%);
+    column-gap: 1.1em;
+    margin: 0 0 0.9em;
+  }
+  .sp-cue {
+    text-align: right;
+    &:not(.is-empty)::after {
+      content: ":";
+    }
+    &.is-empty::before {
+      float: right;
+    }
+  }
+  .sp-transition {
+    text-align: right;
+    font-weight: 600;
+    margin: 0.4em 0 1em;
+    &.is-empty::before {
+      float: right;
+    }
+  }
+}
+
+// Stage play: speaker on the left, speech hanging
+.tpl-drama .ProseMirror {
+  .sp-dialogue {
+    display: grid;
+    grid-template-columns: 7.5em minmax(0, 1fr);
+    column-gap: 0.8em;
+    margin: 0 0 0.7em;
+  }
+  .sp-cue {
+    font-weight: 700;
+    &:not(.is-empty)::after {
+      content: ":";
+    }
+  }
+}
+
+// ─── Focus mode: dim everything except the active paragraph ─────────────
+.focus-mode .ProseMirror > *:not(.page-spacer) {
+  transition: opacity 0.25s;
+  opacity: 0.28;
+}
+.focus-mode .ProseMirror > .has-focus {
+  opacity: 1;
+}
+
+// ─── Print / PDF ────────────────────────────────────────────────────────
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+  .no-print,
+  .sheet,
+  .page-spacer {
+    display: none !important;
+  }
+  .desk-scroll {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
+  }
+  .page-stack {
+    width: auto !important;
+    transform: none !important;
+    height: auto !important;
+  }
+  .ProseMirror {
+    padding: 0 !important;
+    min-height: 0 !important;
+    color: #000;
+  }
+  .page-break {
+    break-after: page;
+    border: 0 !important;
+    &::after {
+      display: none;
+    }
+  }
+  .sp-dialogue,
+  .sb-title,
+  .sb-chapter,
+  .sp-scene {
+    break-inside: avoid;
+  }
+  .sb-chapter,
+  .sp-scene,
+  .sb-subhead {
+    break-after: avoid;
+  }
+  .is-empty::before {
+    display: none !important;
+  }
+}

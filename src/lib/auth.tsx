@@ -1,0 +1,63 @@
+"use client";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
+import { getSupabase } from "./supabase/client";
+import { isSupabaseConfigured } from "./supabase/config";
+import { BASE, appUrl } from "./config";
+
+/** Current Supabase user (null when signed out; undefined while loading). Local mode returns null. */
+export function useUser() {
+  const [user, setUser] = useState<User | null | undefined>(isSupabaseConfigured ? undefined : null);
+  useEffect(() => {
+    const sb = getSupabase();
+    if (!sb) return;
+    sb.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
+    const { data } = sb.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null));
+    return () => data.subscription.unsubscribe();
+  }, []);
+  return user;
+}
+
+/** Gate for signed-in pages. In local mode (no Supabase) it lets everyone through. */
+export function RequireAuth({ children }: { children: React.ReactNode }) {
+  const user = useUser();
+  const router = useRouter();
+  const path = usePathname();
+  useEffect(() => {
+    if (isSupabaseConfigured && user === null) {
+      const here = typeof window !== "undefined" ? window.location.pathname.replace(BASE, "") + window.location.search : path;
+      router.replace(`/login/?next=${encodeURIComponent(here)}`);
+    }
+  }, [user, router, path]);
+  if (isSupabaseConfigured && !user)
+    return (
+      <div className="grid h-dvh place-items-center text-muted" aria-busy="true">
+        <span className="animate-pulse" style={{ fontFamily: "'Anek Malayalam'" }}>
+          ലിറ്റ്മ…
+        </span>
+      </div>
+    );
+  return <>{children}</>;
+}
+
+/** Where Supabase should send people back to after email links / OAuth. */
+export const authRedirect = (next = "/desk/") => appUrl(`/auth/callback/?next=${encodeURIComponent(next)}`);
+
+/** Only allow in-app relative redirects. */
+export function safeNext(next: string | null, fallback = "/desk/") {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
+  return next;
+}
+
+/** Plain-language auth errors. */
+export function authMessage(e: unknown): string {
+  const m = e instanceof Error ? e.message : String(e ?? "");
+  if (/invalid login credentials/i.test(m)) return "That email and password don't match. Check them, or reset your password.";
+  if (/email not confirmed/i.test(m)) return "Confirm your email first — open the link we sent you, then sign in.";
+  if (/already registered|already exists/i.test(m)) return "An account with this email already exists. Sign in instead.";
+  if (/password should be at least/i.test(m)) return "Use a password of at least 8 characters.";
+  if (/rate limit|too many/i.test(m)) return "Too many attempts. Wait a minute, then try again.";
+  if (/network|fetch/i.test(m)) return "Can't reach the server. Check your connection and try again.";
+  return m || "Something went wrong. Try again.";
+}

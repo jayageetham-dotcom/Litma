@@ -1,0 +1,118 @@
+"use client";
+import { Suspense, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AuthShell, Field, GoogleButton, Notice } from "@/components/AuthShell";
+import { getSupabase } from "@/lib/supabase/client";
+import { authMessage, authRedirect, safeNext } from "@/lib/auth";
+
+function strength(p: string) {
+  let s = 0;
+  if (p.length >= 8) s++;
+  if (p.length >= 12) s++;
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s++;
+  if (/\d/.test(p)) s++;
+  if (/[^A-Za-z0-9]/.test(p)) s++;
+  return Math.min(s, 4);
+}
+const LABELS = ["Too short", "Weak", "Fair", "Good", "Strong"];
+
+function SignupForm() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const next = safeNext(params.get("next"));
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const sb = getSupabase();
+  const st = strength(password);
+  const mismatch = confirm.length > 0 && confirm !== password;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!sb) return;
+    if (password.length < 8) return setError("Use a password of at least 8 characters.");
+    if (password !== confirm) return setError("The two passwords don't match.");
+    setBusy(true);
+    setError(null);
+    try {
+      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name.trim() }, emailRedirectTo: authRedirect(next) } });
+      if (error) throw error;
+      if (data.session) router.replace(next);
+      else setSent(true);
+    } catch (err) {
+      setError(authMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (sent)
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold">Check your email</h1>
+        <p className="text-muted">
+          We sent a confirmation link to <b className="text-ink">{email}</b>. Open it to finish creating your account — it takes you straight to your desk.
+        </p>
+        <p className="text-sm text-muted">No email after a few minutes? Check spam, or go back and check the address.</p>
+        <button className="btn btn-outline" onClick={() => setSent(false)}>
+          Use a different email
+        </button>
+      </div>
+    );
+
+  return (
+    <form onSubmit={submit} className="space-y-4" noValidate>
+      <div>
+        <h1 className="text-2xl font-bold">Create your account</h1>
+        <p className="mt-1 text-sm text-muted">
+          Already have one?{" "}
+          <Link href={`/login/?next=${encodeURIComponent(next)}`} className="font-medium text-kayal underline underline-offset-2">
+            Sign in
+          </Link>
+        </p>
+      </div>
+      <Field label="Name or pen name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="ഉദാ: ജഗത്" />
+      <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <div>
+        <Field label="Password" type="password" required minLength={8} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        {password && (
+          <div className="mt-1.5 flex items-center gap-2 text-xs text-muted">
+            <span className="flex h-1.5 flex-1 gap-1">
+              {[0, 1, 2, 3].map((i) => (
+                <span key={i} className={`flex-1 rounded-full ${i < st ? (st < 2 ? "bg-danger" : st < 3 ? "bg-kasavu" : "bg-kayal") : "bg-desk-2"}`} />
+              ))}
+            </span>
+            {LABELS[password.length < 8 ? 0 : st]}
+          </div>
+        )}
+      </div>
+      <Field label="Confirm password" type="password" required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} aria-invalid={mismatch} hint={mismatch ? "Doesn't match yet." : undefined} />
+      {error && <Notice kind="error">{error}</Notice>}
+      <button className="btn btn-primary w-full justify-center !py-2.5" disabled={busy || !email || !password || !confirm}>
+        {busy ? "Creating account…" : "Create account"}
+      </button>
+      <div className="flex items-center gap-3 text-xs text-muted">
+        <span className="h-px flex-1 bg-line" />
+        or
+        <span className="h-px flex-1 bg-line" />
+      </div>
+      <GoogleButton onClick={() => sb?.auth.signInWithOAuth({ provider: "google", options: { redirectTo: authRedirect(next) } })} />
+      <p className="text-xs leading-relaxed text-muted">Your writing stays private unless you share a link to it.</p>
+    </form>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <AuthShell line={1}>
+      <Suspense>
+        <SignupForm />
+      </Suspense>
+    </AuthShell>
+  );
+}

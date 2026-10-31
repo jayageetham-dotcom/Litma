@@ -2,6 +2,18 @@ import type { DocKind } from "./types";
 
 export type StoryKind = "character" | "location" | "item" | "beat" | "event" | "note";
 
+/** Data keys that new cards get automatically (beat column, status, colour) — not the writer's content. */
+const AUTO_KEYS = new Set(["group", "status", "color"]);
+/** A card nobody has written anything in yet (e.g. "Add character" then closed). */
+export function isBlankItem(it: Pick<StoryItem, "name" | "summary" | "image_url" | "data">): boolean {
+  return (
+    !it.name?.trim() &&
+    !it.summary?.trim() &&
+    !it.image_url &&
+    Object.entries(it.data ?? {}).every(([k, v]) => AUTO_KEYS.has(k) || !String(v ?? "").trim())
+  );
+}
+
 export interface StoryItem {
   id: string;
   document_id: string;

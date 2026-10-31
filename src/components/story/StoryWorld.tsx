@@ -4,7 +4,7 @@ import { Select } from "@/components/ui/Select";
 import type { Editor } from "@tiptap/react";
 import { Camera, GripVertical, Loader2, Plus, Trash2, X } from "lucide-react";
 import { store } from "@/lib/store";
-import { BEAT_COLORS, FIELDS, defaultGroups, tabsFor, type StoryTab, type StoryItem, type StoryKind } from "@/lib/story";
+import { BEAT_COLORS, FIELDS, defaultGroups, isBlankItem, tabsFor, type StoryTab, type StoryItem, type StoryKind } from "@/lib/story";
 import { resizeImage } from "@/lib/image";
 import { manglish } from "@/shared/manglish";
 import type { LitmaDoc } from "@/lib/types";
@@ -13,7 +13,19 @@ import { proseReport, scriptReport, verseReport } from "./reports";
 const ml = { fontFamily: "'Noto Sans Malayalam'" } as const;
 
 /** Full-screen Story World: characters, locations, props, beat board, timeline, notes and reports. */
-export function StoryWorld({ doc, editor, onClose }: { doc: LitmaDoc; editor: Editor | null; onClose: () => void }) {
+export function StoryWorld({
+  doc,
+  editor,
+  columns,
+  onColumns,
+  onClose,
+}: {
+  doc: LitmaDoc;
+  editor: Editor | null;
+  columns?: string[];
+  onColumns?: (c: string[]) => void;
+  onClose: () => void;
+}) {
   const tabs = tabsFor(doc.kind);
   const [tab, setTab] = useState<StoryTab>(tabs[0]);
   const [items, setItems] = useState<StoryItem[] | null>(null);
@@ -28,6 +40,12 @@ export function StoryWorld({ doc, editor, onClose }: { doc: LitmaDoc; editor: Ed
       if (!list.some((i) => i.kind === "character") && legacy.length) {
         for (const [i, c] of legacy.entries()) await store.saveStory({ document_id: doc.id, kind: "character", name: c.name, summary: c.note, position: i });
         list = await store.listStory(doc.id);
+      }
+      // tidy away cards that were opened with "Add …" but never written in
+      const blank = list.filter(isBlankItem);
+      if (blank.length) {
+        await Promise.all(blank.map((b) => store.deleteStory(b.id).catch(() => {})));
+        list = list.filter((i) => !isBlankItem(i));
       }
       setItems(list);
     } catch (e) {
@@ -65,6 +83,17 @@ export function StoryWorld({ doc, editor, onClose }: { doc: LitmaDoc; editor: Ed
     await store.deleteStory(it.id);
     setItems((x) => (x ?? []).filter((y) => y.id !== it.id));
     setEditing(null);
+  }
+
+  /** Closing the card editor: a card left empty is discarded, like an empty work. */
+  async function closeEditor(latest: StoryItem) {
+    setEditing(null);
+    if (isBlankItem(latest)) {
+      setItems((x) => (x ?? []).filter((y) => y.id !== latest.id));
+      await store.deleteStory(latest.id).catch(() => {});
+    } else if (latest !== editing) {
+      await save(latest).catch(() => {});
+    }
   }
 
   const content = editor?.getJSON() ?? doc.content;
@@ -106,7 +135,7 @@ export function StoryWorld({ doc, editor, onClose }: { doc: LitmaDoc; editor: Ed
         ) : tab.kind === "report" ? (
           <Reports doc={doc} content={content} items={items} />
         ) : tab.kind === "beat" ? (
-          <BeatBoard doc={doc} items={ofKind("beat")} onAdd={(group) => create("beat", { data: { group, status: "Idea", color: "kayal" } })} onOpen={setEditing} onMove={save} />
+          <BeatBoard doc={doc} items={ofKind("beat")} columns={columns} onColumns={onColumns ?? (() => {})} onAdd={(group) => create("beat", { data: { group, status: "Idea", color: "kayal" } })} onOpen={setEditing} onMove={save} />
         ) : tab.kind === "event" ? (
           <Timeline items={ofKind("event")} onAdd={() => create("event")} onOpen={setEditing} />
         ) : (
@@ -114,7 +143,7 @@ export function StoryWorld({ doc, editor, onClose }: { doc: LitmaDoc; editor: Ed
         )}
       </main>
 
-      {editing && <ItemEditor item={editing} tab={tabs.find((t) => t.kind === editing.kind) ?? tab} onSave={save} onDelete={remove} onClose={() => setEditing(null)} />}
+      {editing && <ItemEditor item={editing} tab={tabs.find((t) => t.kind === editing.kind) ?? tab} onSave={save} onDelete={remove} onClose={closeEditor} />}
     </div>
   );
 }
@@ -161,93 +190,176 @@ function CardGrid({ tab, items, onAdd, onOpen, onInsert }: { tab: StoryTab; item
   );
 }
 
-function BeatBoard({ doc, items, onAdd, onOpen, onMove }: { doc: LitmaDoc; items: StoryItem[]; onAdd: (group: string) => void; onOpen: (i: StoryItem) => void; onMove: (i: StoryItem) => Promise<StoryItem> }) {
-  const groups = useMemo(() => {
-    const g = new Set(defaultGroups(doc.kind));
+function BeatBoard({
+  doc,
+  items,
+  columns,
+  onColumns,
+  onAdd,
+  onOpen,
+  onMove,
+}: {
+  doc: LitmaDoc;
+  items: StoryItem[];
+  columns?: string[];
+  onColumns: (c: string[]) => void;
+  onAdd: (group: string) => void;
+  onOpen: (i: StoryItem) => void;
+  onMove: (i: StoryItem) => Promise<StoryItem>;
+}) {
+  const cols = useMemo(() => {
+    const g = new Set(columns ?? defaultGroups(doc.kind));
     items.forEach((i) => i.data?.group && g.add(i.data.group));
     return [...g];
-  }, [items, doc.kind]);
-  const [dragId, setDragId] = useState<string | null>(null);
-  const [extra, setExtra] = useState<string[]>([]);
-  const cols = [...groups, ...extra.filter((e) => !groups.includes(e))];
+  }, [items, doc.kind, columns]);
+  const first = cols[0];
+  const inCol = (g: string) => items.filter((i) => (i.data?.group ?? first) === g).sort((a, b) => a.position - b.position);
 
-  const drop = async (group: string, before?: StoryItem) => {
-    const it = items.find((i) => i.id === dragId);
-    setDragId(null);
-    if (!it) return;
-    const col = items.filter((i) => (i.data?.group ?? cols[0]) === group && i.id !== it.id).sort((a, b) => a.position - b.position);
+  const [drag, setDrag] = useState<{ kind: "card" | "col"; id: string } | null>(null);
+  const [over, setOver] = useState<string | null>(null); // card id or "col:<name>"
+
+  const dropCard = async (group: string, before?: StoryItem) => {
+    const it = drag?.kind === "card" ? items.find((i) => i.id === drag.id) : null;
+    setDrag(null);
+    setOver(null);
+    if (!it || before?.id === it.id) return;
+    const col = inCol(group).filter((i) => i.id !== it.id);
     const idx = before ? col.findIndex((c) => c.id === before.id) : col.length;
     const prev = col[idx - 1]?.position ?? 0;
     const next = col[idx]?.position ?? prev + 2;
     await onMove({ ...it, position: (prev + next) / 2, data: { ...it.data, group } });
   };
+  const dropCol = (target: string) => {
+    const from = drag?.kind === "col" ? drag.id : null;
+    setDrag(null);
+    setOver(null);
+    if (!from || from === target) return;
+    const next = cols.filter((c) => c !== from);
+    next.splice(next.indexOf(target), 0, from);
+    onColumns(next);
+  };
+  const rename = async (from: string, raw: string) => {
+    const to = raw.trim();
+    if (!to || to === from || cols.includes(to)) return;
+    onColumns(cols.map((c) => (c === from ? to : c)));
+    for (const it of inCol(from)) await onMove({ ...it, data: { ...it.data, group: to } });
+  };
 
   return (
-    <div className="scrollbar-thin flex gap-4 overflow-x-auto pb-4">
-      {cols.map((g) => (
-        <section
-          key={g}
-          className="flex w-72 shrink-0 flex-col rounded-lg bg-subtle/70 p-3"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            drop(g);
-          }}
-        >
-          <h3 className="mb-3 px-1 text-sm font-semibold" style={ml}>
-            {g}
-          </h3>
-          <div className="flex flex-col gap-2.5">
-            {items
-              .filter((i) => (i.data?.group ?? cols[0]) === g)
-              .sort((a, b) => a.position - b.position)
-              .map((it) => (
+    <div className="scrollbar-thin flex items-start gap-4 overflow-x-auto pb-4">
+      {cols.map((g) => {
+        const cards = inCol(g);
+        const colOver = over === `col:${g}`;
+        return (
+          <section
+            key={g}
+            aria-label={g}
+            className={`flex w-72 shrink-0 flex-col rounded-xl border bg-surface p-2.5 transition-[border-color,opacity,box-shadow] ${colOver ? "border-accent shadow-[var(--pop-shadow)]" : "border-line"} ${drag?.kind === "col" && drag.id === g ? "opacity-40" : ""}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (drag?.kind === "col" || (drag?.kind === "card" && !cards.length)) setOver(`col:${g}`);
+            }}
+            onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setOver(null)}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (drag?.kind === "col") dropCol(g);
+              else dropCard(g);
+            }}
+          >
+            <header className="group/col mb-2 flex items-center gap-1">
+              <span
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = "move";
+                  setDrag({ kind: "col", id: g });
+                }}
+                onDragEnd={() => (setDrag(null), setOver(null))}
+                className="grid h-7 w-5 shrink-0 cursor-grab place-items-center rounded text-muted hover:bg-subtle active:cursor-grabbing"
+                title="Drag to reorder columns"
+                aria-hidden
+              >
+                <GripVertical size={14} />
+              </span>
+              <input
+                key={g}
+                defaultValue={g}
+                aria-label={`Column name: ${g}`}
+                className="min-w-0 flex-1 rounded-md bg-transparent px-1.5 py-1 text-sm font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none"
+                style={ml}
+                onBlur={(e) => rename(g, e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") e.currentTarget.blur();
+                  if (e.key === "Escape") {
+                    e.currentTarget.value = g;
+                    e.currentTarget.blur();
+                  }
+                }}
+              />
+              <span className="rounded-full bg-subtle px-1.5 text-[11px] text-muted">{cards.length}</span>
+              {cards.length === 0 && (
+                <button className="grid h-7 w-7 place-items-center rounded text-muted opacity-0 hover:bg-subtle hover:text-danger focus:opacity-100 group-hover/col:opacity-100" onClick={() => onColumns(cols.filter((c) => c !== g))} aria-label={`Remove empty column ${g}`} title="Remove column">
+                  <X size={14} />
+                </button>
+              )}
+            </header>
+            <div className="flex flex-col gap-2">
+              {cards.map((it) => (
                 <div
                   key={it.id}
                   draggable
-                  onDragStart={() => setDragId(it.id)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
+                  onDragStart={(e) => {
+                    e.stopPropagation();
+                    e.dataTransfer.effectAllowed = "move";
+                    setDrag({ kind: "card", id: it.id });
+                  }}
+                  onDragEnd={() => (setDrag(null), setOver(null))}
+                  onDragOver={(e) => {
+                    if (drag?.kind !== "card") return;
                     e.preventDefault();
                     e.stopPropagation();
-                    drop(g, it);
+                    setOver(it.id);
                   }}
-                  className={`cursor-grab rounded-md bg-paper p-3 shadow-sm ${dragId === it.id ? "opacity-40" : ""}`}
+                  onDrop={(e) => {
+                    if (drag?.kind !== "card") return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropCard(g, it);
+                  }}
+                  className={`relative cursor-grab rounded-lg border border-line bg-paper p-3 shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-[box-shadow,transform,opacity] hover:-translate-y-px hover:shadow-[var(--sheet-shadow)] active:cursor-grabbing ${drag?.kind === "card" && drag.id === it.id ? "opacity-40" : ""}`}
                   style={{ borderLeft: `4px solid ${BEAT_COLORS[it.data?.color ?? "kayal"] ?? BEAT_COLORS.kayal}` }}
                 >
+                  {over === it.id && drag?.id !== it.id && <span className="absolute -top-[5px] left-1 right-1 h-0.5 rounded-full bg-accent" aria-hidden />}
                   <button className="w-full text-left" onClick={() => onOpen(it)}>
-                    <div className="flex items-start gap-1.5">
-                      <GripVertical size={14} className="mt-0.5 shrink-0 text-muted" aria-hidden />
-                      <div className="min-w-0">
-                        <div className="font-semibold leading-snug" style={ml}>
-                          {it.name || <span className="text-muted">Untitled beat</span>}
-                        </div>
-                        <p className="mt-1 line-clamp-3 text-[13px] text-muted" style={ml}>
-                          {it.summary}
-                        </p>
-                        {it.data?.status && <span className="mt-1.5 inline-block rounded bg-subtle px-1.5 text-[11px] text-muted">{it.data.status}</span>}
-                      </div>
+                    <div className="font-semibold leading-snug" style={ml}>
+                      {it.name || <span className="text-muted">Untitled beat</span>}
                     </div>
+                    {it.summary && (
+                      <p className="mt-1 line-clamp-3 text-[13px] text-muted" style={ml}>
+                        {it.summary}
+                      </p>
+                    )}
+                    {it.data?.status && <span className="mt-2 inline-block rounded-full bg-subtle px-2 py-px text-[11px] text-muted">{it.data.status}</span>}
                   </button>
                 </div>
               ))}
-            <button onClick={() => onAdd(g)} className="rounded-md border border-dashed border-line px-3 py-2 text-left text-sm text-muted hover:border-accent hover:text-accent">
-              <Plus size={14} className="mr-1 inline" /> Add card
-            </button>
-          </div>
-        </section>
-      ))}
+              <button onClick={() => onAdd(g)} className="rounded-lg border border-dashed border-line px-3 py-2 text-left text-sm text-muted hover:border-accent hover:bg-accent-soft/40 hover:text-accent">
+                <Plus size={14} className="mr-1 inline" /> Add card
+              </button>
+            </div>
+          </section>
+        );
+      })}
       <form
         className="w-60 shrink-0"
         onSubmit={(e) => {
           e.preventDefault();
           const f = new FormData(e.currentTarget);
-          const name = manglish(String(f.get("g") ?? "").trim());
-          if (name) setExtra((x) => [...x, name]);
+          const name = String(f.get("g") ?? "").trim();
+          if (name && !cols.includes(name)) onColumns([...cols, name]);
           e.currentTarget.reset();
         }}
       >
-        <input name="g" className="field !py-2 !text-sm" placeholder="+ New column (act, chapter…)" />
+        <input name="g" className="field !py-2 !text-sm" placeholder="+ New column (act, chapter…)" aria-label="New column name" />
       </form>
     </div>
   );
@@ -283,8 +395,19 @@ function Timeline({ items, onAdd, onOpen }: { items: StoryItem[]; onAdd: () => v
   );
 }
 
-function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem; tab: StoryTab; onSave: (i: StoryItem) => Promise<StoryItem>; onDelete: (i: StoryItem) => void; onClose: () => void }) {
+function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem; tab: StoryTab; onSave: (i: StoryItem) => Promise<StoryItem>; onDelete: (i: StoryItem) => void; onClose: (latest: StoryItem) => void }) {
   const [it, setIt] = useState(item);
+  const close = () => onClose(it);
+  useEffect(() => {
+    // capture phase: inputs with their own key handling (Manglish fields) can't swallow Esc
+    const k = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation(); // close only the card, not the whole Story World
+      onClose(it);
+    };
+    window.addEventListener("keydown", k, true);
+    return () => window.removeEventListener("keydown", k, true);
+  }, [it, onClose]);
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [uploading, setUploading] = useState(false);
   const fields = FIELDS[item.kind];
@@ -308,7 +431,7 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
   const mlBlur = (v: string) => (/[A-Za-z]/.test(v) && !/[ഀ-ൿ]/.test(v) ? v : v); // keep what the writer typed
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end bg-black/30" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex justify-end bg-black/30" onClick={close}>
       <aside className="scrollbar-thin h-full w-full max-w-lg overflow-y-auto bg-paper p-6 shadow-2xl" onClick={(e) => e.stopPropagation()} aria-label="Edit card">
         <div className="mb-4 flex items-center justify-between">
           <span className="text-xs font-semibold text-highlight">
@@ -317,7 +440,7 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
           <span className="text-xs text-muted" aria-live="polite">
             {state === "saving" ? "Saving…" : state === "saved" ? "Saved" : state === "error" ? "Couldn't save" : ""}
           </span>
-          <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label="Close">
+          <button className="btn btn-ghost !p-1.5" onClick={close} aria-label="Close">
             <X size={16} />
           </button>
         </div>
@@ -401,7 +524,7 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
           >
             <Trash2 size={15} /> Delete
           </button>
-          <button className="btn btn-primary" onClick={onClose}>
+          <button className="btn btn-primary" onClick={close}>
             Done
           </button>
         </div>

@@ -22,6 +22,8 @@ export interface DocSettings {
   showMetre?: boolean;
   goal?: number;
   notes?: string;
+  /** Beat board columns (acts, chapters…) in order; undefined = the writing type's defaults. */
+  beatColumns?: string[];
   characters?: CharacterNote[];
   header?: string;
   inputMode?: InputMode;

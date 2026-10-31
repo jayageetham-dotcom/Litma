@@ -725,7 +725,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         </Sheet>
       )}
 
-      {storyOpen && <StoryWorld doc={docRef.current} editor={editor} onClose={() => setStoryOpen(false)} />}
+      {storyOpen && <StoryWorld doc={docRef.current} editor={editor} columns={settings.beatColumns} onColumns={(beatColumns) => updateSettings({ beatColumns })} onClose={() => setStoryOpen(false)} />}
       {showKeys && <ShortcutsDialog onClose={() => setShowKeys(false)} screenplay={!!template.screenplay} />}
 
       {/* ── Phone: keyboard accessory while writing, tab bar otherwise ── */}

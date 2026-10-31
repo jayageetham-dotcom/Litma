@@ -1,4 +1,5 @@
 import { Node, mergeAttributes } from "@tiptap/core";
+import { TextSelection } from "@tiptap/pm/state";
 
 /** Hard page break — forces the next block onto a new A4 page (and a new printed page). */
 export const PageBreak = Node.create({
@@ -26,7 +27,45 @@ export const PageBreak = Node.create({
     };
   },
   addKeyboardShortcuts() {
-    return { "Mod-Enter": () => this.editor.commands.insertPageBreak() };
+    return {
+      "Mod-Enter": () => this.editor.commands.insertPageBreak(),
+      // Like Google Docs: Backspace at the very start of a page removes the break before it.
+      // On an empty inserted page (empty line between two breaks) it removes the whole page.
+      Backspace: ({ editor }) => {
+        const { state } = editor;
+        const { selection } = state;
+        if (!selection.empty) return false;
+        const { $from } = selection;
+        if ($from.depth !== 1 || $from.parentOffset !== 0) return false;
+        const blockStart = $from.before(1);
+        const before = state.doc.resolve(blockStart).nodeBefore;
+        if (before?.type.name !== "pageBreak") return false;
+        const block = $from.parent;
+        const blockEnd = $from.after(1);
+        const after = state.doc.resolve(blockEnd).nodeAfter;
+        const tr = state.tr;
+        if (block.content.size === 0 && after?.type.name === "pageBreak") {
+          // empty page between two breaks: drop the empty line and the break after it
+          tr.delete(blockStart, blockEnd + after.nodeSize);
+        }
+        tr.delete(blockStart - before.nodeSize, blockStart);
+        // cursor to the end of the text before the removed break
+        const pos = Math.max(0, blockStart - before.nodeSize);
+        tr.setSelection(TextSelection.near(tr.doc.resolve(pos), -1));
+        editor.view.dispatch(tr.scrollIntoView());
+        return true;
+      },
+      // Delete at the very end of a line removes a page break that follows it
+      Delete: ({ editor }) => {
+        const { state } = editor;
+        const { $from, empty } = state.selection;
+        if (!empty || $from.depth !== 1 || $from.parentOffset !== $from.parent.content.size) return false;
+        const after = state.doc.resolve($from.after(1)).nodeAfter;
+        if (after?.type.name !== "pageBreak") return false;
+        editor.view.dispatch(state.tr.delete($from.after(1), $from.after(1) + after.nodeSize));
+        return true;
+      },
+    };
   },
 });
 

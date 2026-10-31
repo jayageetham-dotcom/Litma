@@ -146,6 +146,20 @@ $mm: 3.7795275591px;
     margin: 0;
     border-top: 1px dashed var(--line);
     position: relative;
+    cursor: pointer;
+    // a taller invisible hit area, so the break can be clicked (then Backspace/Delete removes it)
+    &::before {
+      content: "";
+      position: absolute;
+      inset: -9px 0 -9px 0;
+    }
+    &.ProseMirror-selectednode {
+      border-top: 2px solid var(--accent);
+      &::after {
+        content: "പേജ് ബ്രേക്ക് · Delete ⌫ to remove";
+        color: var(--accent);
+      }
+    }
     &::after {
       content: "പേജ് ബ്രേക്ക്";
       position: absolute;

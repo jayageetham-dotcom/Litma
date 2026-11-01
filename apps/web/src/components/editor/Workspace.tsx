@@ -57,15 +57,16 @@ import { StoryWorld } from "@/components/story/StoryWorld";
 import { TypewriterIcon } from "@/components/icons/Typewriter";
 
 type PanelId = "ai" | "dict" | "saved" | "inbox" | "story" | "history" | "keys" | "page";
-const PANELS: { id: PanelId; label: string; short: string; icon: React.ComponentType<{ size?: number }> }[] = [
-  { id: "ai", short: "AI", label: "AI companion", icon: Sparkles },
-  { id: "dict", short: "Dictionary", label: "Dictionary & thesaurus", icon: BookA },
-  { id: "saved", short: "Saved", label: "Saved words", icon: Bookmark },
-  { id: "inbox", short: "Inbox", label: "Assistant inbox (MCP)", icon: Inbox },
-  { id: "story", short: "Story", label: "Story World", icon: NotebookPen },
-  { id: "history", short: "History", label: "Version history", icon: HistoryIcon },
-  { id: "keys", short: "Keyboard", label: "Malayalam keyboard", icon: Keyboard },
-  { id: "page", short: "Page", label: "Page & type", icon: Settings2 },
+/** `tint`: the soft home-page colour of each tool's icon in the rail (icons only; labels stay neutral). */
+const PANELS: { id: PanelId; label: string; short: string; icon: React.ComponentType<{ size?: number }>; tint: string }[] = [
+  { id: "ai", short: "AI", label: "AI companion", icon: Sparkles, tint: "text-tint-violet" },
+  { id: "dict", short: "Dictionary", label: "Dictionary & thesaurus", icon: BookA, tint: "text-tint-tangerine" },
+  { id: "saved", short: "Saved", label: "Saved words", icon: Bookmark, tint: "text-tint-coral" },
+  { id: "inbox", short: "Inbox", label: "Assistant inbox (MCP)", icon: Inbox, tint: "text-tint-violet" },
+  { id: "story", short: "Story", label: "Story World", icon: NotebookPen, tint: "text-tint-lime" },
+  { id: "history", short: "History", label: "Version history", icon: HistoryIcon, tint: "text-tint-sky" },
+  { id: "keys", short: "Keyboard", label: "Malayalam keyboard", icon: Keyboard, tint: "text-tint-tangerine" },
+  { id: "page", short: "Page", label: "Page & type", icon: Settings2, tint: "text-tint-coral" },
 ];
 
 type SaveState = SaveStatus;
@@ -705,13 +706,13 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           // Collapsed it's a thin icon rail; hovering (or tabbing into) it slides out labels over the page.
           <nav className="group/rail no-print relative w-12 shrink-0" aria-label="Panels">
             <div className="absolute inset-y-0 right-0 z-40 flex w-12 flex-col gap-0.5 overflow-hidden border-l border-line bg-surface px-1.5 py-3 transition-[width,box-shadow] duration-200 ease-out group-hover/rail:w-56 group-hover/rail:shadow-[var(--pop-shadow)] group-hover/rail:delay-150 group-has-[:focus-visible]/rail:w-56 group-has-[:focus-visible]/rail:shadow-[var(--pop-shadow)]">
-              <RailBtn active={outline} onClick={() => setOutline((o) => !o)} label="Outline" hint="Chapters and headings" icon={ListTree} />
+              <RailBtn active={outline} onClick={() => setOutline((o) => !o)} label="Outline" hint="Chapters and headings" icon={ListTree} tint="text-tint-sky" />
               <span className="mx-1.5 my-1 h-px shrink-0 bg-line" />
               {PANELS.map((p) => (
-                <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} badge={p.id === "inbox" ? inboxCount : 0} />
+                <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} />
               ))}
               <span className="mx-1.5 my-1 h-px shrink-0 bg-line" />
-              <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" hint="While you type, keep the line you are writing in the middle of the screen" icon={TypewriterIcon} />
+              <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" hint="While you type, keep the line you are writing in the middle of the screen" icon={TypewriterIcon} tint="text-tint-lime" />
               {store.isCloud() && shareId && isPublic && (
                 <a href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-[9px] text-muted hover:bg-subtle hover:text-ink" aria-label="Open reader view">
                   <Eye size={17} className="shrink-0" />
@@ -745,10 +746,10 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         <Sheet mode="sheet" bottomOffset={kb} title="More" onClose={() => setPhoneSheet(null)}>
           <div className="grid grid-cols-4 gap-1.5">
             {PANELS.filter((p) => !["story", "dict"].includes(p.id)).map((p) => (
-              <Tile key={p.id} icon={p.icon} label={p.short} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />
+              <Tile key={p.id} icon={p.icon} label={p.short} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />
             ))}
             <Tile icon={Search} label="Find" onClick={() => { setPhoneSheet(null); setFindOpen(true); }} />
-            <Tile icon={TypewriterIcon} label="Typewriter" active={typewriter} onClick={() => setTypewriter((t) => !t)} />
+            <Tile icon={TypewriterIcon} label="Typewriter" tint="text-tint-lime" active={typewriter} onClick={() => setTypewriter((t) => !t)} />
             <Tile icon={Maximize2} label="Focus" onClick={() => { setPhoneSheet(null); setFocus(true); }} />
             {store.isCloud() && shareId && isPublic && <Tile icon={Eye} label="Reader" onClick={() => window.open(`${BASE}/read/?s=${shareId}`, "_blank")} />}
           </div>
@@ -862,17 +863,19 @@ function TabBtn({ icon: Icon, label, active, onClick, badge = 0 }: { icon: React
   );
 }
 
-function Tile({ icon: Icon, label, onClick, active, badge = 0 }: { icon: React.ComponentType<{ size?: number }>; label: string; onClick: () => void; active?: boolean; badge?: number }) {
+function Tile({ icon: Icon, label, onClick, active, badge = 0, tint = "" }: { icon: React.ComponentType<{ size?: number }>; label: string; onClick: () => void; active?: boolean; badge?: number; tint?: string }) {
   return (
     <button onClick={onClick} aria-pressed={active} className={`relative flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 text-[11.5px] leading-tight ${active ? "bg-accent-soft text-accent" : "bg-paper text-ink active:bg-subtle"}`}>
-      <Icon size={20} />
+      <span className={active ? "" : tint}>
+        <Icon size={20} />
+      </span>
       <span className="text-center">{label}</span>
       {badge > 0 && <span className="absolute right-2 top-2 grid h-4 min-w-4 place-items-center rounded-full bg-highlight px-1 text-[10px] font-bold text-white">{badge}</span>}
     </button>
   );
 }
 
-function RailBtn({ active, onClick, label, hint, icon: Icon, badge = 0 }: { active: boolean; onClick: () => void; label: string; hint?: string; icon: React.ComponentType<{ size?: number; className?: string }>; badge?: number }) {
+function RailBtn({ active, onClick, label, hint, icon: Icon, badge = 0, tint = "" }: { active: boolean; onClick: () => void; label: string; hint?: string; icon: React.ComponentType<{ size?: number; className?: string }>; badge?: number; tint?: string }) {
   return (
     <button
       onClick={onClick}
@@ -881,7 +884,7 @@ function RailBtn({ active, onClick, label, hint, icon: Icon, badge = 0 }: { acti
       title={hint}
       className={`relative flex h-9 w-full shrink-0 items-center gap-3 rounded-lg px-[9px] text-left ${active ? "bg-accent-soft text-accent" : "text-muted hover:bg-subtle hover:text-ink"}`}
     >
-      <Icon size={17} className="shrink-0" />
+      <Icon size={17} className={`shrink-0 ${active ? "" : tint}`} />
       <span className="whitespace-nowrap text-[13px] font-medium opacity-0 transition-opacity duration-150 group-hover/rail:opacity-100 group-hover/rail:delay-150 group-has-[:focus-visible]/rail:opacity-100">{label}</span>
       {badge > 0 && <span className="absolute left-5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-highlight px-1 text-[10px] font-bold text-white">{badge}</span>}
     </button>

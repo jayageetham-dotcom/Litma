@@ -17,6 +17,7 @@ import type { Book, DocKind, LitmaDoc } from "@/lib/types";
 import { useT } from "@/i18n/react";
 import type { MessageKey, Params } from "@litma/i18n";
 import { DesktopDownload } from "@/components/landing/DesktopDownload";
+import { kindDot } from "@/lib/tints";
 import { DeskSkeleton, BooksSkeleton, InkLoader } from "@/components/ui/Skeleton";
 
 function timeAgo(iso: string, t: (k: MessageKey, p?: Params) => string) {
@@ -302,7 +303,10 @@ function Desk() {
             const tpl = templateFor(d.kind);
             const card = (
               <>
-                <div className="text-xs font-semibold text-highlight">{tpl.ml}</div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-highlight">
+                  <span aria-hidden className={`size-1.5 shrink-0 rounded-full ${kindDot(d.kind)}`} />
+                  {tpl.ml}
+                </div>
                 <div className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-snug sm:mt-2 sm:text-lg">{d.title}</div>
                 <p className="mt-2 line-clamp-4 text-[13px] leading-relaxed text-muted sm:mt-3 sm:line-clamp-5 sm:text-sm" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
                   {d.excerpt || "—"}

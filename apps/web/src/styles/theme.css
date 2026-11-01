@@ -27,9 +27,9 @@
 :root,
 html:has(.landing) {
   /* Surfaces — neutral, so the writing is the colour on screen */
-  --canvas: #f4f4f5; /* app background, the desk behind the pages */
+  --canvas: #f5f4f9; /* app background, the desk behind the pages (a faint lilac from the home page) */
   --surface: #ffffff; /* cards, panels, menus */
-  --subtle: #ececee; /* hover, chips, segmented controls */
+  --subtle: #edecf3; /* hover, chips, segmented controls */
   --paper: #ffffff; /* the document page */
   --header: rgba(255, 255, 255, 0.86); /* top bars (translucent over content) */
 
@@ -42,9 +42,9 @@ html:has(.landing) {
   /* Actions */
   --primary: #111113; /* main buttons: ink-black */
   --primary-ink: #ffffff;
-  --accent: #4f46e5; /* indigo ink: links, focus rings, active tabs, selections */
+  --accent: #5b3ef0; /* violet ink (the home page violet, AA on white): links, focus rings, active tabs, selections */
   --accent-ink: #ffffff;
-  --accent-soft: #eceefe;
+  --accent-soft: #efecff;
   --highlight: #a84d08; /* lamplight amber: writing-type labels, badges, goal bars (≥ 4.5:1 on white and on highlight-soft) */
   --highlight-soft: #fdf1e3;
   --danger: #c81e1e;
@@ -56,13 +56,13 @@ html:has(.landing) {
   --disabled-ink: #6b6b76;
 
   /* Menus and dropdowns: hovered row, and the chosen row */
-  --option-hover: #f0f0f3;
-  --option-selected: #e3e5fc;
-  --option-selected-ink: #3730a3;
+  --option-hover: #f1f0f7;
+  --option-selected: #e6e1ff;
+  --option-selected-ink: #4527d6;
 
   /* Brand: one solid colour, no gradients. The logo word uses --brand; .brand-bar is a thin line of it. */
   --brand: #111113;
-  --brand-mark: #4f46e5; /* thin accent lines */
+  --brand-mark: #6b4eff; /* thin accent lines and the logo dot */
 
   /* Landing "How it works" demos */
   --demo-stage: #eef0f6; /* cool, slightly tinted so white pages pop */
@@ -70,6 +70,14 @@ html:has(.landing) {
   --demo-paper-line: #dfe1ea;
   --demo-cover: #312e81; /* book cloth: deep indigo */
   --demo-cover-ink: #eef0ff;
+
+  /* Tool tints: one soft colour per tool icon in the editor rail and per writing type on the desk.
+     Icons and small dots only (never text or the page), ≥ 3:1 on surface for non-text contrast. */
+  --tint-violet: #6b4eff;
+  --tint-coral: #e0466a;
+  --tint-sky: #2b8fd6;
+  --tint-lime: #5f9e1a;
+  --tint-tangerine: #d06c00;
 
   /* Home page palette (the colourful landing): bright fills with dark text on them,
      a deep "night" for the dark bands, and a soft lilac "mist" behind everything */
@@ -118,16 +126,16 @@ html:has(.landing) {
 
   --primary: #f4f4f5;
   --primary-ink: #09090b;
-  --accent: #a5b4fc;
+  --accent: #b4a7ff;
   --accent-ink: #09090b;
-  --accent-soft: #1e2140;
+  --accent-soft: #231d45;
   --highlight: #f5b366;
   --highlight-soft: #33240f;
   --brand: #f4f4f5;
-  --brand-mark: #a5b4fc;
+  --brand-mark: #b4a7ff;
   --option-hover: #26262c;
-  --option-selected: #2c2f5c;
-  --option-selected-ink: #c7d0ff;
+  --option-selected: #2f2763;
+  --option-selected-ink: #d3cbff;
   --danger: #f87171;
   --danger-soft: #3a1717;
   --danger-ink: #1a0505;
@@ -139,6 +147,12 @@ html:has(.landing) {
   --demo-paper-line: #26262c;
   --demo-cover: #f4f4f5;
   --demo-cover-ink: #111113;
+
+  --tint-violet: #a897ff;
+  --tint-coral: #ff8aa2;
+  --tint-sky: #8ad1ff;
+  --tint-lime: #b9e05a;
+  --tint-tangerine: #ffb066;
 
   --mist: #0d0b1f;
   --night: #1c1846;

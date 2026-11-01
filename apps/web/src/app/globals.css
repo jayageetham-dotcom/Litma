@@ -24,6 +24,11 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-line-strong: var(--line-strong);
+  --color-tint-violet: var(--tint-violet);
+  --color-tint-coral: var(--tint-coral);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-lime: var(--tint-lime);
+  --color-tint-tangerine: var(--tint-tangerine);
   --color-mist: var(--mist);
   --color-night: var(--night);
   --color-night-ink: var(--night-ink);

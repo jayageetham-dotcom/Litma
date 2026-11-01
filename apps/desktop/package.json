@@ -1,7 +1,7 @@
 {
   "name": "@litma/desktop",
   "productName": "Litma",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Litma for Mac and Windows: the Litma web app in its own window, offline-first, with automatic updates.",
   "author": "Jayageetham",

@@ -157,54 +157,53 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
     );
 
   if (variant === "card")
-    // the desk: a smaller take on the home page's violet download card
+    // the desk: a quiet card (neutral surface, a faint violet glow) so it never pulls focus from the works
     return (
-      <section className="relative isolate mt-16 overflow-hidden rounded-[2rem] bg-violet px-6 py-8 text-night-ink sm:mt-20 sm:px-10 sm:py-10" aria-label={t("download.deskTitle")}>
-        <div aria-hidden className="absolute -bottom-24 -right-16 -z-10 size-72 rounded-full bg-lime/30 blur-3xl" />
-        <div aria-hidden className="absolute -left-16 -top-24 -z-10 size-64 rounded-full bg-sky/30 blur-3xl" />
-        <div aria-hidden className="dot-grid absolute inset-0 -z-10 text-night-ink/10" />
-        <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
+      <section className="relative isolate mt-16 overflow-hidden rounded-2xl border border-line bg-surface px-6 py-7 sm:mt-20 sm:px-8 sm:py-8" aria-label={t("download.deskTitle")}>
+        <div aria-hidden className="absolute -right-20 -top-24 -z-10 size-64 rounded-full bg-violet/10 blur-3xl" />
+        <div aria-hidden className="dot-grid absolute inset-0 -z-10 text-ink/[0.035] [mask-image:linear-gradient(to_left,black,transparent_60%)]" />
+        <div className="grid items-center gap-7 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
           <div>
-            <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-night-ink/85">
-              <span className="size-1.5 rounded-full bg-lime" aria-hidden />
+            <p className="mb-2.5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-accent">
+              <span className="size-1.5 rounded-full bg-[var(--brand-mark)]" aria-hidden />
               {t("download.kicker")}
             </p>
-            <h2 className="text-2xl font-extrabold leading-tight sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
+            <h2 className="text-xl font-bold leading-tight sm:text-2xl" style={{ fontFamily: "var(--font-display)" }}>
               {t("download.deskTitle")}
             </h2>
-            <p className="mt-3 max-w-md leading-relaxed text-night-ink/85">{t("download.deskBody")}</p>
-            <Link href="/download/" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold underline decoration-lime decoration-2 underline-offset-4 hover:text-lime">
+            <p className="mt-2.5 max-w-md text-[15px] leading-relaxed text-muted">{t("download.deskBody")}</p>
+            <Link href="/download/" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline">
               {t("download.deskMore")}: iPhone, Android <ArrowRight size={14} aria-hidden />
             </Link>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {items.map((it) => {
               const inner = (
                 <>
                   {/* logos always sit on white, so Apple's black mark shows in both themes */}
-                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-night-ink ring-1 ring-line">
-                    <it.icon size={22} />
+                  <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-night-ink ring-1 ring-line">
+                    <it.icon size={20} />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-bold">{it.label}</span>
-                    <span className="block text-[13px] text-muted group-hover:text-on-pop/70">{it.href ? it.hint : release === undefined ? t("common.loading") : t("download.soon")}</span>
+                    <span className="block text-[15px] font-semibold">{it.label}</span>
+                    <span className="block text-[13px] text-muted">{it.href ? it.hint : release === undefined ? t("common.loading") : t("download.soon")}</span>
                   </span>
                 </>
               );
-              const cls = "group flex items-center gap-4 rounded-2xl bg-surface p-3.5 pr-4 text-ink shadow-lg transition";
+              const cls = "group flex items-center gap-3.5 rounded-xl border border-line bg-canvas/60 p-3 pr-4 text-ink transition-colors";
               return it.href ? (
-                <a key={it.id} href={it.href} className={`${cls} hover:-translate-y-0.5 hover:bg-lime hover:text-on-pop`}>
+                <a key={it.id} href={it.href} className={`${cls} hover:border-accent hover:bg-accent-soft`}>
                   {inner}
-                  <Download size={18} className="shrink-0 opacity-70 transition group-hover:translate-y-0.5 group-hover:opacity-100" aria-hidden />
+                  <Download size={17} className="shrink-0 text-muted transition group-hover:translate-y-0.5 group-hover:text-accent" aria-hidden />
                 </a>
               ) : (
                 <span key={it.id} className={cls} aria-disabled="true">
                   {inner}
-                  <span className="rounded-full bg-subtle px-2.5 py-1 text-[11px] font-bold text-muted">{t("download.soonBadge")}</span>
+                  <span className="rounded-full bg-subtle px-2.5 py-1 text-[11px] font-semibold text-muted">{t("download.soonBadge")}</span>
                 </span>
               );
             })}
-            {release?.version && <p className="pl-1 font-mono text-xs text-night-ink/75">v{release.version}</p>}
+            {release?.version && <p className="pl-1 text-xs text-muted">Version {release.version}</p>}
           </div>
         </div>
       </section>

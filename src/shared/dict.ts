@@ -169,21 +169,54 @@ export function createDictionary(fetchJson: DictFetch) {
     }
     if (!m) return res;
     res.head = head;
-    const syn = new Set<string>();
+    // Rank synonyms so the closest words come first (കാട് → വനം, അടവി, കാനനം… before rare or
+    // far-off senses). Each Malayalam word scores from every thesaurus set it appears in, weighted by
+    // how good that set's English headword is as a translation (Olam lists the best translations
+    // first in `e`), so words shared by several strong sets rise to the top.
+    const score = new Map<string, { s: number; order: number }>();
+    let order = 0;
+    const add = (w: string, weight: number) => {
+      if (!w || w === head) return;
+      const cur = score.get(w);
+      if (cur) cur.s += weight;
+      else score.set(w, { s: weight, order: order++ });
+    };
     for (const [p, defs] of Object.entries(m.d ?? {})) {
       res.meanings.push({ pos: p, defs });
-      defs.forEach((d) =>
+      // short comma-separated glosses in the definitions; the first sense counts most.
+      // "പ്ര." holds usage examples and idioms, not synonyms.
+      if (p.startsWith("പ്ര")) continue;
+      defs.forEach((d, di) =>
         d
           .split(/[,;]/)
           .map((x) => x.trim())
-          .forEach((x) => x && !/\s/.test(x) && [...x].length <= 18 && x !== head && syn.add(x))
+          .forEach((x) => x && !/\s/.test(x) && [...x].length <= 18 && add(x, 0.5 / (1 + di)))
       );
     }
-    for (const [enHead, si, ji] of m.r ?? []) {
+    const enRank = new Map((m.e ?? []).map((w, i) => [w.toLowerCase(), i]));
+    const refs = [...(m.r ?? [])].sort((a, b) => (enRank.get(a[0].toLowerCase()) ?? 99) - (enRank.get(b[0].toLowerCase()) ?? 99));
+    for (const [enHead, si, ji] of refs) {
       const e = await getEn(enHead);
-      e?.s?.[si]?.ml?.[ji]?.forEach((w) => w !== head && syn.add(w));
+      const set = e?.s?.[si]?.ml?.[ji];
+      if (!set) continue;
+      const w = 1 / (1 + (enRank.get(enHead.toLowerCase()) ?? 20)) ** 1.5;
+      // within a set the first words are the plainest; huge sets (fire has 400 epithets) count less each
+      const damp = set.length > 60 ? 0.5 : 1;
+      set.forEach((x, i) => add(x, w * damp * (i < 12 ? 1 : 0.5)));
     }
-    res.synonyms = [...syn].slice(0, 40);
+    const words = (w: string) => w.split(/\s+/).length;
+    res.synonyms = [...score.entries()]
+      .sort(([a, x], [b, y]) => {
+        // single words before phrases, then by score, then shorter, then first seen
+        const pa = words(a) > 1 ? 1 : 0;
+        const pb = words(b) > 1 ? 1 : 0;
+        if (pa !== pb) return pa - pb;
+        if (Math.abs(y.s - x.s) > 1e-9) return y.s - x.s;
+        if ([...a].length !== [...b].length) return [...a].length - [...b].length;
+        return x.order - y.order;
+      })
+      .map(([w]) => w)
+      .slice(0, 40);
     res.translations = (m.e ?? []).slice(0, 15);
     return res;
   }

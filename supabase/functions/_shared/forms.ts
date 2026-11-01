@@ -84,7 +84,7 @@ const dlg = (): JSONContent => ({ type: "dialogue", content: [node("dialogueCue"
 export function starterContent(kind: DocKind): JSONContent {
   switch (kind) {
     case "novel":
-      return { type: "doc", content: [sb("title"), sb("author"), sb("epigraph"), { type: "pageBreak" }, sb("chapter"), p()] };
+      return { type: "doc", content: [sb("title"), sb("author"), sb("epigraph"), sb("chapter"), p()] };
     case "story":
     case "essay":
       return { type: "doc", content: [sb("title"), sb("author"), p()] };
@@ -97,7 +97,7 @@ export function starterContent(kind: DocKind): JSONContent {
     case "drama":
       return {
         type: "doc",
-        content: [sb("title"), sb("author"), sb("subhead", "കഥാപാത്രങ്ങൾ"), p(), { type: "pageBreak" }, sb("chapter", "രംഗം ഒന്ന്"), sb("stage"), dlg()],
+        content: [sb("title"), sb("author"), sb("subhead", "കഥാപാത്രങ്ങൾ"), p(), sb("chapter", "രംഗം ഒന്ന്"), sb("stage"), dlg()],
       };
     case "lyrics":
       return { type: "doc", content: [sb("title"), sb("subtitle"), sb("part", "പല്ലവി"), p(), sb("part", "അനുപല്ലവി"), p(), sb("part", "ചരണം"), p()] };

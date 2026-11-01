@@ -6,7 +6,7 @@
 import type { JSONContent } from "@tiptap/core";
 import { getSupabase } from "./supabase/client";
 import { settingsFor, templateFor } from "./templates";
-import type { Book, DocKind, DocVersion, LitmaDoc, Profile, Suggestion } from "./types";
+import type { Book, DocKind, DocVersion, LitmaDoc, Profile, Suggestion, WordBookmark } from "./types";
 import type { StoryItem, StoryKind } from "./story";
 import { textToNodes } from "@/shared/serialize";
 import { countWords } from "@/shared/manglish";
@@ -15,6 +15,7 @@ const LS_DOCS = "litma:docs";
 const LS_VERSIONS = "litma:versions";
 const LS_STORY = "litma:story";
 const LS_BOOKS = "litma:books";
+const LS_BOOKMARKS = "litma:bookmarks";
 
 function lsGet<T>(key: string, fallback: T): T {
   try {
@@ -448,6 +449,55 @@ export const store = {
     const sb = getSupabase();
     if (!sb) return;
     await sb.from("mcp_tokens").delete().eq("id", id);
+  },
+};
+
+/** the bookmarks table arrives with a migration; until it exists, keep bookmarks in this browser */
+const missingTable = (e: unknown) => {
+  const err = e as { code?: string; message?: string } | null;
+  return err?.code === "42P01" || err?.code === "PGRST205" || /word_bookmarks/.test(err?.message ?? "");
+};
+function notifyBookmarks() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("litma:bookmarks"));
+}
+
+/** Words saved from the dictionary (Supabase when available, else localStorage). */
+export const bookmarks = {
+  async list(): Promise<WordBookmark[]> {
+    const sb = getSupabase();
+    if (sb) {
+      const { data, error } = await sb.from("word_bookmarks").select("id,word,lang,meaning,synonyms,note,created_at").order("created_at", { ascending: false });
+      if (!error) return (data ?? []) as WordBookmark[];
+      if (!missingTable(error)) throw error;
+    }
+    return lsGet<WordBookmark[]>(LS_BOOKMARKS, []);
+  },
+  async add(b: Omit<WordBookmark, "id" | "created_at">): Promise<WordBookmark> {
+    const sb = getSupabase();
+    const row = { ...b, meaning: b.meaning?.slice(0, 600) ?? null, synonyms: (b.synonyms ?? []).slice(0, 12) };
+    if (sb) {
+      const { data, error } = await sb.from("word_bookmarks").upsert(row, { onConflict: "user_id,word" }).select("id,word,lang,meaning,synonyms,note,created_at").single();
+      if (!error) {
+        notifyBookmarks();
+        return data as WordBookmark;
+      }
+      if (!missingTable(error)) throw error;
+    }
+    const all = lsGet<WordBookmark[]>(LS_BOOKMARKS, []).filter((x) => x.word !== b.word);
+    const item: WordBookmark = { ...row, id: uuid(), created_at: new Date().toISOString() };
+    lsSet(LS_BOOKMARKS, [item, ...all]);
+    notifyBookmarks();
+    return item;
+  },
+  async remove(word: string) {
+    const sb = getSupabase();
+    if (sb) {
+      const { error } = await sb.from("word_bookmarks").delete().eq("word", word);
+      if (!error) return notifyBookmarks();
+      if (!missingTable(error)) throw error;
+    }
+    lsSet(LS_BOOKMARKS, lsGet<WordBookmark[]>(LS_BOOKMARKS, []).filter((x) => x.word !== word));
+    notifyBookmarks();
   },
 };
 

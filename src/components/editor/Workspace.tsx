@@ -26,6 +26,7 @@ import {
   MoreHorizontal,
   Search,
   Type,
+  Bookmark,
 } from "lucide-react";
 import { buildExtensions } from "./extensions";
 import { MobileFormatStrip, MobileSelectionBar, Toolbar } from "./Toolbar";
@@ -48,16 +49,18 @@ import { exportDocx, exportHTML, exportMarkdown, exportText } from "@/lib/export
 import { BASE, appUrl } from "@/lib/config";
 import { DocSaver, clearJournal, readJournal, type SaveStatus } from "@/lib/autosave";
 import { ShortcutsDialog } from "./ShortcutsDialog";
+import { SavedWordsPanel } from "./SavedWordsPanel";
 import { DictionaryPanel } from "./DictionaryPanel";
 import { StoryPanel } from "./StoryPanel";
 import { CueSuggest } from "./CueSuggest";
 import { StoryWorld } from "@/components/story/StoryWorld";
 import { TypewriterIcon } from "@/components/icons/Typewriter";
 
-type PanelId = "ai" | "dict" | "inbox" | "story" | "history" | "keys" | "page";
+type PanelId = "ai" | "dict" | "saved" | "inbox" | "story" | "history" | "keys" | "page";
 const PANELS: { id: PanelId; label: string; short: string; icon: React.ComponentType<{ size?: number }> }[] = [
   { id: "ai", short: "AI", label: "AI companion", icon: Sparkles },
   { id: "dict", short: "Dictionary", label: "Dictionary & thesaurus", icon: BookA },
+  { id: "saved", short: "Saved", label: "Saved words", icon: Bookmark },
   { id: "inbox", short: "Inbox", label: "Assistant inbox (MCP)", icon: Inbox },
   { id: "story", short: "Story", label: "Story World", icon: NotebookPen },
   { id: "history", short: "History", label: "Version history", icon: HistoryIcon },
@@ -482,7 +485,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       <>
         {id === "ai" && <AIPanel editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} />}
         {id === "inbox" && <InboxPanel editor={editor} docId={initial.id} onCount={setInboxCount} />}
-        {id === "dict" && <DictionaryPanel editor={editor} />}
+        {id === "dict" && <DictionaryPanel editor={editor} onSaved={() => openPanel("saved")} />}
+        {id === "saved" && <SavedWordsPanel editor={editor} />}
         {id === "story" && <StoryPanel editor={editor} doc={docRef.current} settings={settings} onChange={updateSettings} onOpen={() => setStoryOpen(true)} refresh={storyOpen ? 0 : 1} />}
         {id === "history" && <HistoryPanel editor={editor} doc={docRef.current} onSnapshot={(l) => saveContent(editor, l)} />}
         {id === "keys" && <KeysPanel editor={editor} />}
@@ -542,7 +546,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
               <span className="font-semibold text-highlight">{template.ml}</span>
               {phone ? (
                 <span>
-                  {stats.words.toLocaleString("en-IN")} words · {stats.pages} {stats.pages === 1 ? "page" : "pages"}
+                  {stats.words.toLocaleString("en-IN")} {stats.words === 1 ? "word" : "words"} · {stats.pages} {stats.pages === 1 ? "page" : "pages"}
                 </span>
               ) : (
                 <span>{settings.pageSize}</span>

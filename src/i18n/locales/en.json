@@ -157,5 +157,26 @@
     "windows": "Download for Windows",
     "windowsHint": "Windows 10 and 11 · .exe",
     "allReleases": "All versions"
+  },
+  "manglish": {
+    "escHint": "Esc keeps English",
+    "keepEnglish": "Keep English",
+    "keepEnglishAria": "Keep “{word}” in English",
+    "keysHint": "Space accepts · ↑↓ or 1–7 to pick · Esc keeps English"
+  },
+  "saved": {
+    "title": "Saved words",
+    "add": "Save this word for later",
+    "remove": "Remove from saved words",
+    "save": "Save",
+    "saved": "Saved",
+    "search": "Search saved words",
+    "emptyTitle": "No saved words yet",
+    "emptyBody": "Look a word up in the dictionary and press Save. Your saved words appear here while you write.",
+    "insert": "Put this word in your text",
+    "lookUp": "Look it up again",
+    "pickHint": "Tap a word or a synonym to put it in your text.",
+    "tab": "Saved ({n})",
+    "lookupTab": "Look up"
   }
 }

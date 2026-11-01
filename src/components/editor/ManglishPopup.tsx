@@ -4,6 +4,7 @@ import type { Editor } from "@tiptap/react";
 import type { Transaction } from "@tiptap/pm/state";
 import { transliterate } from "@/lib/functions";
 import { manglishKey, type ComposeState, type CommitInfo } from "@/extensions/manglish";
+import { useT } from "@/i18n/react";
 
 const cache = new Map<string, string[]>();
 
@@ -17,6 +18,7 @@ async function fetchCandidates(word: string): Promise<string[] | null> {
 
 /** Candidate list shown under the word being typed in Manglish mode. */
 export function ManglishPopup({ editor }: { editor: Editor }) {
+  const t = useT();
   const [st, setSt] = useState<ComposeState | null>(null);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -35,7 +37,11 @@ export function ManglishPopup({ editor }: { editor: Editor }) {
         const c = editor.view.coordsAtPos(s.from);
         const top = c.bottom + 6;
         const left = Math.min(c.left, window.innerWidth - 260);
-        setPos({ left, top: top + 200 > window.innerHeight ? c.top - 6 - 190 : top });
+        // phones: measure against the visible area above the on-screen keyboard
+        const vv = window.visualViewport;
+        const bottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+        const h = Math.min(260, 44 + (s.candidates.length || 1) * 34 + 44);
+        setPos({ left, top: top + h > bottom ? Math.max(8, c.top - 6 - h) : top });
       } catch {
         setPos(null);
       }
@@ -99,7 +105,7 @@ export function ManglishPopup({ editor }: { editor: Editor }) {
     >
       <div className="flex items-center justify-between border-b border-line bg-subtle/60 px-3 py-1 text-[11px] text-muted">
         <span className="font-mono">{st.word}</span>
-        <span>Esc keeps English</span>
+        <span className="[@media(hover:none)]:hidden">{t("manglish.escHint")}</span>
       </div>
       <ul className="py-1">
         {list.slice(0, 7).map((c, i) => (
@@ -108,11 +114,12 @@ export function ManglishPopup({ editor }: { editor: Editor }) {
               type="button"
               role="option"
               aria-selected={i === st.index}
+              onPointerDown={(e) => e.preventDefault()}
               onMouseDown={(e) => {
                 e.preventDefault();
                 editor.commands.commitManglish(i);
               }}
-              className={`flex w-full items-center gap-3 px-3 py-1 text-left text-[17px] ${i === st.index ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}
+              className={`flex w-full items-center gap-3 px-3 py-1 text-left text-[17px] [@media(hover:none)]:py-2 ${i === st.index ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}
               style={{ fontFamily: "'Noto Sans Malayalam'" }}
             >
               <span className="w-3 text-[11px] text-muted" style={{ fontFamily: "var(--font-ui)" }}>
@@ -123,7 +130,20 @@ export function ManglishPopup({ editor }: { editor: Editor }) {
           </li>
         ))}
       </ul>
-      <div className="border-t border-line px-3 py-1 text-[11px] text-muted">Space accepts · ↑↓ or 1–7 to pick</div>
+      {/* keep the word as typed: the touch-friendly version of Esc */}
+      <button
+        type="button"
+        onPointerDown={(e) => e.preventDefault()}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => editor.view.dispatch(editor.state.tr.setMeta(manglishKey, { dismiss: true }))}
+        className="flex w-full items-center gap-3 border-t border-line px-3 py-2 text-left hover:bg-subtle active:bg-subtle"
+        aria-label={t("manglish.keepEnglishAria", { word: st.word })}
+      >
+        <span className="grid h-5 min-w-5 place-items-center rounded bg-subtle px-1 text-[10px] font-semibold text-muted">Aa</span>
+        <span className="min-w-0 flex-1 truncate font-sans text-[15px]">{st.word}</span>
+        <span className="shrink-0 text-[11px] text-muted">{t("manglish.keepEnglish")}</span>
+      </button>
+      <div className="border-t border-line px-3 py-1 text-[11px] text-muted [@media(hover:none)]:hidden">{t("manglish.keysHint")}</div>
     </div>
   );
 }

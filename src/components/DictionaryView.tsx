@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import { BookmarkButton, useBookmarks } from "@/components/SavedWords";
+import { InkDots } from "@/components/ui/Skeleton";
 import { loadIndex, lookup, manglishCandidates, opposites, suggest, type LookupResult } from "@/lib/dictionary";
 
 const ml = { fontFamily: "'Noto Sans Malayalam'" } as const;
@@ -51,6 +53,8 @@ export function DictionaryView({
   const [available, setAvailable] = useState<boolean | null>(null);
   const [sources, setSources] = useState<{ name: string; url: string; license: string }[]>([]);
   const seq = useRef(0);
+  const sugSeq = useRef(0);
+  const saved = useBookmarks();
 
   useEffect(() => {
     loadIndex().then((i) => {
@@ -72,6 +76,7 @@ export function DictionaryView({
     if (!w) return;
     const id = ++seq.current;
     setBusy(true);
+    sugSeq.current++; // a suggestion list still loading must not reopen over the result
     setSugs([]);
     setOpp(null);
     const [r, m] = await Promise.all([lookup(w), manglishCandidates(w)]);
@@ -110,9 +115,14 @@ export function DictionaryView({
           placeholder="Malayalam, English or Manglish word"
           aria-label="Word to look up"
           onChange={async (e) => {
-            setQ(e.target.value);
-            setSugs(e.target.value.trim().length >= 2 ? await suggest(e.target.value, 8) : []);
+            const v = e.target.value;
+            setQ(v);
+            const id = ++sugSeq.current;
+            const list = v.trim().length >= 2 ? await suggest(v, 8) : [];
+            if (id === sugSeq.current) setSugs(list);
           }}
+          onBlur={() => setTimeout(() => setSugs([]), 150)}
+          onKeyDown={(e) => e.key === "Escape" && setSugs([])}
           style={ml}
         />
         {sugs.length > 0 && (
@@ -142,7 +152,7 @@ export function DictionaryView({
         </p>
       )}
 
-      {busy && <Loader2 size={18} className="animate-spin text-muted" />}
+      {busy && <InkDots className="py-2" />}
 
       {res && !busy && (
         <div className="space-y-4">
@@ -158,11 +168,12 @@ export function DictionaryView({
             </p>
           ) : (
             <>
-              <div className="flex items-baseline gap-2">
+              <div className="flex flex-wrap items-baseline gap-2">
                 <h3 className={`${compact ? "text-xl" : "text-3xl"} font-bold`} style={ml}>
                   {res.head}
                 </h3>
                 {res.head.toLowerCase() !== res.query.toLowerCase() && <span className="text-xs text-muted">for “{res.query}”</span>}
+                <BookmarkButton result={res} saved={!!saved?.some((b) => b.word === res.head)} />
               </div>
 
               {res.meanings.length > 0 && (
@@ -186,7 +197,7 @@ export function DictionaryView({
 
               <section>
                 <h4 className="mb-1.5 text-xs font-semibold text-highlight">വിപരീതം · Opposites</h4>
-                {opp === null ? <Loader2 size={14} className="animate-spin text-muted" /> : opp.length ? <Chips words={opp} onPick={pick} title="Opposite" /> : <p className="text-sm text-muted">None found.</p>}
+                {opp === null ? <InkDots /> : opp.length ? <Chips words={opp} onPick={pick} title="Opposite" /> : <p className="text-sm text-muted">None found.</p>}
               </section>
 
               {res.translations.length > 0 && (

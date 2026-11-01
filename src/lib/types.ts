@@ -120,3 +120,14 @@ export interface Book {
   created_at: string;
   updated_at: string;
 }
+
+/** A word saved from the dictionary for later. */
+export interface WordBookmark {
+  id: string;
+  word: string;
+  lang: "en" | "ml";
+  meaning: string | null;
+  synonyms: string[];
+  note?: string | null;
+  created_at: string;
+}

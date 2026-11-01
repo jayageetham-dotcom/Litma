@@ -2,6 +2,12 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.3.0 · 2026-11-01
+
+- Let the chapter drop cap take the writer's text colour
+- Bring back Insert page; no stretched word gaps in any writing type
+- Desktop release: build unsigned installers when no certificate is set
+
 ## 0.2.0 · 2026-11-01
 
 - Versioning, release workflow and automatic updates

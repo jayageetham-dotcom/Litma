@@ -63,15 +63,25 @@ function measure(view: EditorView, geo: PageGeometry) {
   const breaks: { pos: number; height: number }[] = [];
   let used = 0;
   const H = geo.contentHeight;
+  let forceNext = false;
   view.state.doc.forEach((node, offset) => {
-    if (node.type.name === "pageBreak") return; // legacy, removed by the editor
+    if (node.type.name === "pageBreak") {
+      // an inserted page: the break ends its page; two breaks in a row make an empty page between them
+      if (forceNext) {
+        breaks.push({ pos: offset, height: Math.max(0, H - used) + geo.gap });
+        used = 0;
+      }
+      forceNext = true;
+      return;
+    }
     const dom = view.nodeDOM(offset) as HTMLElement | null;
     if (!dom || !(dom instanceof HTMLElement)) return;
     const h = outerHeight(dom);
-    if (used + h > H + 0.5 && used > 0) {
+    if (forceNext || (used + h > H + 0.5 && used > 0)) {
       breaks.push({ pos: offset, height: Math.max(0, H - used) + geo.gap });
       used = 0;
     }
+    forceNext = false;
     used += h;
     while (used > H) used -= H; // blocks taller than a page simply flow on
   });

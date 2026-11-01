@@ -141,9 +141,13 @@ $mm: 3.7795275591px;
     border-radius: 3px;
   }
 
-  // legacy page breaks are stripped by the editor; never show one
+  // inserted pages: the break is invisible and takes no space; pagination does the rest
   .page-break {
-    display: none;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
   }
 
   .page-spacer {
@@ -307,7 +311,6 @@ $mm: 3.7795275591px;
   // body paragraphs only: styled blocks (titles, chapters…) are <p class="sb"> and keep their own alignment
   .ProseMirror > p:not(.sb) {
     text-indent: 1.6em;
-    text-align: justify;
     margin: 0 0 0.15em;
   }
   .ProseMirror > .sb + p,
@@ -322,8 +325,10 @@ $mm: 3.7795275591px;
   }
 }
 
-// Feature, essay and diary read like Google Docs: ragged-right body text, so short Malayalam
-// lines never open wide gaps between words. Writers can still justify a paragraph from the toolbar.
+// Every writing type reads like Google Docs: ragged-right body text, so short Malayalam lines never
+// open wide gaps between words. Writers can still justify a paragraph from the toolbar.
+.tpl-novel,
+.tpl-story,
 .tpl-essay,
 .tpl-feature,
 .tpl-diary {
@@ -565,7 +570,8 @@ $mm: 3.7795275591px;
   p.pp-cont {
     text-indent: 0 !important;
   }
-  p.pp-split {
+  // a justified paragraph split across two pages keeps its first half's last line full width
+  p.pp-split[style*="justify"] {
     text-align-last: justify;
   }
 }
@@ -714,7 +720,7 @@ $mm: 3.7795275591px;
   }
 }
 .pp-plain .pp-flow.ProseMirror > p:not(.sb) {
-  text-align: justify;
+  text-align: start;
 }
 .pp-cover {
   flex: none;

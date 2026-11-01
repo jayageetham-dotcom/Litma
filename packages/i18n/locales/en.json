@@ -197,5 +197,9 @@
     "webAuto": "The website updates itself; you'll see a reload prompt when a new version is live.",
     "check": "Check for updates",
     "whatsNew": "What's new"
+  },
+  "editor": {
+    "insertPage": "Insert page",
+    "insertPageAria": "Insert a blank page between pages {a} and {b}"
   }
 }

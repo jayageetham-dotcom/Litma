@@ -31,6 +31,7 @@ import {
 import { buildExtensions } from "./extensions";
 import { MobileFormatStrip, MobileSelectionBar, Toolbar } from "./Toolbar";
 import { keepSelectionNow } from "@/extensions/keep-selection";
+import { useT } from "@/i18n/react";
 import { TextSelection } from "@tiptap/pm/state";
 import { Sheet } from "@/components/ui/Sheet";
 import { useKeyboardInset, useScreen } from "@/lib/useLayout";
@@ -41,7 +42,6 @@ import { store } from "@/lib/store";
 import { templateFor } from "@/lib/templates";
 import type { DocSettings, LitmaDoc } from "@/lib/types";
 import { countWords, readingMinutes, aksharas } from "@litma/shared/manglish";
-import { stripPageBreaks } from "@/extensions/blocks";
 import { MM, PAGE_GAP_PX, PAGE_SIZES, geometryFor, paginationKey, remeasurePages } from "@/extensions/pagination";
 import { metreKey, searchKey } from "@/extensions/tools";
 import type { InputMode } from "@/extensions/manglish";
@@ -71,6 +71,7 @@ const PANELS: { id: PanelId; label: string; short: string; icon: React.Component
 type SaveState = SaveStatus;
 
 export function Workspace({ initial }: { initial: LitmaDoc }) {
+  const t = useT();
   const template = templateFor(initial.kind);
   const [title, setTitle] = useState(initial.title);
   const [settings, setSettings] = useState<DocSettings>(initial.settings);
@@ -135,7 +136,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   const editor = useEditor({
     extensions,
-    content: stripPageBreaks(startContent?.content ?? initial.content),
+    content: startContent?.content ?? initial.content,
     immediatelyRender: false,
     // phones: don't pop the keyboard (and hide the tab bar) just because a work opened
     autofocus: typeof window !== "undefined" && window.innerWidth < 768 ? false : "end",
@@ -301,8 +302,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       editor.storage.metre.enabled = showMetre;
       editor.view.dispatch(editor.state.tr.setMeta(metreKey, true));
     }
-    const t = setTimeout(remeasurePages, 60);
-    return () => clearTimeout(t);
+    const timer = setTimeout(remeasurePages, 60);
+    return () => clearTimeout(timer);
   }, [editor, settings, template.metre]);
 
   useEffect(() => {
@@ -652,6 +653,29 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                   </div>
                 ))}
                 <EditorContent editor={editor} className="page-content" />
+                {/* the gap between two sheets: "Insert page" adds a blank page there (Backspace on it removes it again) */}
+                {!focus &&
+                  editor &&
+                  Array.from({ length: stats.pages - 1 }, (_, i) => (
+                    <div
+                      key={`gap-${i}`}
+                      className="page-gap no-print group/gap absolute inset-x-0 z-10 flex items-center justify-center"
+                      style={{ top: (i + 1) * (pageH + PAGE_GAP_PX) - PAGE_GAP_PX, height: PAGE_GAP_PX }}
+                    >
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          const at = paginationKey.getState(editor.state)?.breaks[i]?.pos;
+                          if (at != null) editor.chain().focus().insertPageAt(at).run();
+                        }}
+                        className="flex items-center gap-1 rounded-full border border-line-strong bg-surface px-3 py-1 text-xs font-medium text-ink opacity-0 shadow-sm transition-[opacity,color,border-color] hover:border-accent hover:text-accent focus-visible:opacity-100 group-hover/gap:opacity-100 [@media(hover:none)]:opacity-100"
+                        aria-label={t("editor.insertPageAria", { a: i + 1, b: i + 2 })}
+                      >
+                        <Plus size={13} aria-hidden /> {t("editor.insertPage")}
+                      </button>
+                    </div>
+                  ))}
               </div>
             </div>
             {editor && <ManglishPopup editor={editor} />}

@@ -27,9 +27,16 @@ const toUrl = (f?: string | FileInfo) => {
   return /^https?:/.test(v) ? v : `${BASE}/downloads/${v}`;
 };
 
+/**
+ * Download links for a release. While it loads (undefined) there are none; if no release
+ * could be read at all (null) both buttons open the latest release on GitHub instead of
+ * dead-ending, and `viaGithub` tells the page not to claim a download has started.
+ */
 export function downloadsFor(r: Release | null | undefined) {
-  if (!r) return { mac: null, win: null, macSize: null, winSize: null };
+  if (r === undefined) return { mac: null, win: null, macSize: null, winSize: null, viaGithub: false };
+  if (r === null) return { mac: `${RELEASES_PAGE}/latest`, win: `${RELEASES_PAGE}/latest`, macSize: null, winSize: null, viaGithub: true };
   return {
+    viaGithub: false,
     mac: toUrl(r.desktop?.mac ?? r.mac),
     win: toUrl(r.desktop?.win ?? r.win),
     macSize: r.desktop?.mac?.size ?? null,
@@ -37,25 +44,55 @@ export function downloadsFor(r: Release | null | undefined) {
   };
 }
 
-/** latest.json from the website, with the releases repository as a fallback. undefined while loading, null if none. */
+/** Builds a Release from GitHub's API (the browser can read it; github.com download links have no CORS headers). */
+async function fromGithubApi(): Promise<Release | null> {
+  const r = await fetch(`https://api.github.com/repos/${RELEASES_REPO}/releases/latest`, { headers: { Accept: "application/vnd.github+json" } });
+  if (!r.ok) return null;
+  const j = (await r.json()) as { tag_name: string; published_at?: string; body?: string; assets?: { name: string; browser_download_url: string; size?: number }[] };
+  const asset = (re: RegExp): FileInfo | undefined => {
+    const a = j.assets?.find((x) => re.test(x.name));
+    return a ? { file: a.name, url: a.browser_download_url, size: a.size } : undefined;
+  };
+  const version = j.tag_name.replace(/^v/, "");
+  const mac = asset(/mac\.dmg$/i);
+  const win = asset(/win\.exe$/i);
+  if (!mac && !win) return null;
+  const notes = (j.body ?? "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => /^[-*] /.test(l))
+    .map((l) => l.slice(2).trim());
+  return { version, date: j.published_at, notes, desktop: { version, mac, win } };
+}
+
+/**
+ * latest.json from the website, then GitHub's API for the releases repository.
+ * undefined while loading, null if neither could be read (buttons then open the releases page).
+ */
 export function useRelease() {
   const [release, setRelease] = useState<Release | null | undefined>(undefined);
   useEffect(() => {
     let off = false;
     (async () => {
-      for (const url of [`${BASE}/downloads/latest.json`, `https://github.com/${RELEASES_REPO}/releases/latest/download/latest.json`]) {
-        try {
-          const r = await fetch(url, { cache: "no-store" });
-          if (r.ok) {
-            const j = (await r.json()) as Release;
+      try {
+        const r = await fetch(`${BASE}/downloads/latest.json`, { cache: "no-store" });
+        if (r.ok) {
+          const j = (await r.json()) as Release;
+          if (downloadsFor(j).mac || downloadsFor(j).win) {
             if (!off) setRelease(j);
             return;
           }
-        } catch {
-          /* try the next one */
         }
+      } catch {
+        /* not on this server (local preview) or unreadable: ask GitHub */
       }
-      if (!off) setRelease(null);
+      let fallback: Release | null = null;
+      try {
+        fallback = await fromGithubApi();
+      } catch {
+        /* offline or rate-limited */
+      }
+      if (!off) setRelease(fallback);
     })();
     return () => {
       off = true;

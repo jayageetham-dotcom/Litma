@@ -73,10 +73,10 @@ export default function DownloadPage() {
             ) : desktopOs ? (
               links[desktopOs] ? (
                 <>
-                  <a href={links[desktopOs]!} onClick={() => start(desktopOs)} className="btn btn-primary !px-8 !py-4 !text-lg">
+                  <a href={links[desktopOs]!} onClick={() => !links.viaGithub && start(desktopOs)} className="btn btn-primary !px-8 !py-4 !text-lg">
                     <Download size={22} aria-hidden /> {t(desktopOs === "mac" ? "download.mac" : "download.windows")}
                   </a>
-                  <p className="text-sm text-muted">
+                  <p className="text-sm text-muted" hidden={links.viaGithub}>
                     {t("download.versionLine", { version: release?.version ?? "", date })}
                     {formatSize(desktopOs === "mac" ? links.macSize : links.winSize) && ` · ${formatSize(desktopOs === "mac" ? links.macSize : links.winSize)}`}
                     {" · "}
@@ -136,7 +136,7 @@ export default function DownloadPage() {
                 detail={t("download.macReq")}
                 current={platform === "mac"}
                 loading={release === undefined}
-                action={links.mac ? <a href={links.mac} onClick={() => start("mac")} className="btn btn-primary w-full justify-center"><Download size={16} aria-hidden /> {t("download.dmg")}</a> : null}
+                action={links.mac ? <a href={links.mac} onClick={() => !links.viaGithub && start("mac")} className="btn btn-primary w-full justify-center !py-3 hover:!bg-surface hover:!text-ink"><Download size={16} aria-hidden /> {t("download.dmg")}</a> : null}
                 youLabel={t("download.yourDevice")}
                 soon={t("download.soon")}
               />
@@ -147,7 +147,7 @@ export default function DownloadPage() {
                 detail={t("download.winReq")}
                 current={platform === "win"}
                 loading={release === undefined}
-                action={links.win ? <a href={links.win} onClick={() => start("win")} className="btn btn-primary w-full justify-center"><Download size={16} aria-hidden /> {t("download.exe")}</a> : null}
+                action={links.win ? <a href={links.win} onClick={() => !links.viaGithub && start("win")} className="btn btn-primary w-full justify-center !py-3 hover:!bg-surface hover:!text-ink"><Download size={16} aria-hidden /> {t("download.exe")}</a> : null}
                 youLabel={t("download.yourDevice")}
                 soon={t("download.soon")}
               />

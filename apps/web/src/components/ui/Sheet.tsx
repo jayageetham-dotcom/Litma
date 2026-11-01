@@ -31,8 +31,11 @@ export function Sheet({
   }, [mode, onClose]);
 
   const head = (
-    <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-sm font-semibold">{title}</h2>
+    <div className="-mx-1 mb-5 flex items-center justify-between border-b border-line pb-3.5">
+      <h2 className="flex items-center gap-2 px-1 text-[15px] font-semibold">
+        <span aria-hidden className="size-1.5 rounded-full bg-[var(--brand-mark)]" />
+        {title}
+      </h2>
       <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label={`Close ${title}`}>
         <X size={16} />
       </button>
@@ -41,7 +44,7 @@ export function Sheet({
 
   if (mode === "dock")
     return (
-      <aside className={`no-print scrollbar-thin w-80 shrink-0 overflow-y-auto bg-surface px-4 py-4 ${side === "right" ? "border-l" : "border-r"} border-line`} aria-label={title}>
+      <aside className={`no-print scrollbar-thin w-80 shrink-0 overflow-y-auto bg-surface px-5 py-5 ${side === "right" ? "border-l" : "border-r"} border-line`} aria-label={title}>
         {head}
         {children}
       </aside>
@@ -50,7 +53,7 @@ export function Sheet({
   if (mode === "drawer")
     return (
       <aside
-        className={`no-print scrollbar-thin absolute inset-y-0 z-30 w-[22rem] max-w-[90%] overflow-y-auto bg-surface px-4 py-4 shadow-2xl ${side === "right" ? "right-0 border-l" : "left-0 border-r"} border-line`}
+        className={`no-print scrollbar-thin absolute inset-y-0 z-30 w-[22rem] max-w-[90%] overflow-y-auto bg-surface px-5 py-5 shadow-2xl ${side === "right" ? "right-0 border-l" : "left-0 border-r"} border-line`}
         aria-label={title}
       >
         {head}
@@ -63,7 +66,7 @@ export function Sheet({
     // so a search field inside it never ends up hidden behind the keys
     <div className="fade-in no-print fixed inset-x-0 top-0 z-50 flex flex-col justify-end bg-black/35" style={{ bottom: bottomOffset }} onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
       <div
-        className="sheet-up scrollbar-thin overflow-y-auto overscroll-contain rounded-t-2xl bg-surface px-4 pt-2 shadow-2xl"
+        className="sheet-up scrollbar-thin overflow-y-auto overscroll-contain rounded-t-2xl bg-surface px-5 pt-2 shadow-2xl"
         style={{ maxHeight: bottomOffset ? `calc(100dvh - ${bottomOffset}px - 3rem)` : "78dvh", paddingBottom: bottomOffset ? "1rem" : "max(1.5rem, env(safe-area-inset-bottom))" }}
         onClick={(e) => e.stopPropagation()}
       >

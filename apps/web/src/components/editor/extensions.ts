@@ -1,7 +1,7 @@
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextStyle from "@tiptap/extension-text-style";
-import Color from "@tiptap/extension-color";
+import BaseColor from "@tiptap/extension-color";
 import FontFamily from "@tiptap/extension-font-family";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
@@ -47,6 +47,28 @@ const NODE_PLACEHOLDER: Record<string, string> = {
   transition: "കട്ട് ടു",
   heading: "തലക്കെട്ട്",
 };
+
+/**
+ * Text colour that stays readable in dark mode: besides `color`, each coloured span carries the
+ * writer's colour as `--tc`, and editor.scss lightens it on the dark page (.dark .tc). The stored
+ * colour, print and PDF are unchanged.
+ */
+const Color = BaseColor.extend({
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          color: {
+            default: null,
+            parseHTML: (el: HTMLElement) => el.style.getPropertyValue("--tc").trim() || el.style.color?.replace(/['"]+/g, "") || null,
+            renderHTML: (attrs: { color?: string | null }) => (attrs.color ? { class: "tc", style: `--tc: ${attrs.color}; color: ${attrs.color}` } : {}),
+          },
+        },
+      },
+    ];
+  },
+});
 
 export function buildExtensions(kind: DocKind, settings: DocSettings, inputMode: InputMode) {
   const usesDialogueKeys = kind === "screenplay" || kind === "drama";

@@ -253,9 +253,9 @@ export function AIPanel({ editor, kind, docId, title, onOpenInbox }: { editor: E
   const providerName = provider === "anthropic" ? "Claude" : provider === "openai" ? "GPT" : "Gemini";
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-muted">Answer with</span>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between gap-3 rounded-xl bg-subtle/60 py-2 pl-3.5 pr-2">
+        <span className="text-[13px] font-medium text-muted">Answer with</span>
         <Select
           size="sm"
           className="min-w-28"
@@ -276,41 +276,58 @@ export function AIPanel({ editor, kind, docId, title, onOpenInbox }: { editor: E
           ]}
         />
       </div>
-      <p className="-mt-2 text-xs text-muted">{hasSel ? "Working on your selection." : "Select text to rewrite, polish or translate it."}</p>
+      {/* actions in two groups: what works on the whole piece, and what needs a selection */}
+      {(
+        [
+          { id: "work", label: "For the whole work", hint: "Uses the text around your cursor.", dot: "bg-tint-violet", sel: false },
+          { id: "sel", label: "For selected text", hint: hasSel ? "Working on your selection." : "Select a passage first.", dot: "bg-tint-coral", sel: true },
+        ] as const
+      ).map((g) => (
+        <section key={g.id} aria-label={g.label}>
+          <h3 className="flex items-center gap-2 text-[13px] font-semibold text-ink">
+            <span aria-hidden className={`size-1.5 rounded-full ${g.dot}`} />
+            {g.label}
+          </h3>
+          <p className="mt-1 text-xs text-muted">{g.hint}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(Object.keys(AI_ACTIONS) as AIAction[])
+              .filter((a) => a !== "custom" && AI_ACTIONS[a].needsSelection === g.sel)
+              .map((a) => {
+                const meta = AI_ACTIONS[a];
+                const disabled = !!busy || (meta.needsSelection && !hasSel);
+                return (
+                  <button
+                    key={a}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => run(a)}
+                    disabled={disabled}
+                    title={meta.label}
+                    aria-label={meta.label}
+                    className={`rounded-full border px-3.5 py-1.5 text-[13px] transition-colors disabled:cursor-not-allowed disabled:border-transparent disabled:bg-subtle/60 disabled:text-muted ${busy === a ? "border-accent bg-accent-soft text-accent" : "border-line bg-surface text-ink hover:border-accent hover:bg-accent-soft hover:text-accent"}`}
+                  >
+                    {meta.ml}
+                  </button>
+                );
+              })}
+          </div>
+        </section>
+      ))}
 
-      <div className="flex flex-wrap gap-1.5">
-        {(Object.keys(AI_ACTIONS) as AIAction[])
-          .filter((a) => a !== "custom")
-          .map((a) => {
-            const meta = AI_ACTIONS[a];
-            const disabled = !!busy || (meta.needsSelection && !hasSel);
-            return (
-              <button
-                key={a}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => run(a)}
-                disabled={disabled}
-                title={meta.label}
-                aria-label={meta.label}
-                className={`rounded-full border px-2.5 py-1 text-[12.5px] transition-colors disabled:opacity-40 ${busy === a ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}
-              >
-                {meta.ml}
-              </button>
-            );
-          })}
-      </div>
+      <div className="border-t border-line pt-5">
+        <h3 className="mb-3 text-[13px] font-semibold text-ink">Ask in your own words</h3>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (instruction.trim()) run("custom");
         }}
-        className="flex gap-1.5"
+        className="flex gap-2"
       >
-        <input className="field !py-1.5 !text-sm" placeholder="Ask anything about your text…" value={instruction} onChange={(e) => setInstruction(e.target.value)} />
-        <button className="btn btn-primary !px-2.5" disabled={!!busy || !instruction.trim()} aria-label="Ask">
+        <input className="field !py-2 !text-sm" placeholder="Ask anything about your text…" value={instruction} onChange={(e) => setInstruction(e.target.value)} />
+        <button className="btn btn-accent !px-3" disabled={!!busy || !instruction.trim()} aria-label="Ask">
           <CornerDownLeft size={15} />
         </button>
       </form>
+      </div>
 
       {/* ── Hand-over to Claude ── */}
       {handoff && (

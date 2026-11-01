@@ -5,20 +5,24 @@ import type { Editor } from "@tiptap/react";
 import { Baseline, Highlighter, Ban, Pipette, Check } from "lucide-react";
 import { useT } from "@/i18n/react";
 
-/** Text colours: ink first, then readable mid-tones that hold up on white paper (all ≥ 4.5:1). */
+/**
+ * Text colours: ink first, then clear, fresh tones that all keep ≥ 4.5:1 on white paper
+ * (WCAG AA for body text). In dark mode the editor shows them lighter on the dark page
+ * (see .tc in editor.scss), so the stored colour never turns unreadable.
+ */
 export const TEXT_COLORS = [
-  { c: "#1a2220", n: "Ink" },
-  { c: "#5b6461", n: "Grey" },
-  { c: "#b42318", n: "Red" },
-  { c: "#b54708", n: "Orange" },
-  { c: "#8a6100", n: "Ochre" },
-  { c: "#1d6b40", n: "Green" },
-  { c: "#1d5a52", n: "Teal" },
-  { c: "#1f4fbf", n: "Blue" },
-  { c: "#4338ca", n: "Indigo" },
-  { c: "#7a2fa8", n: "Purple" },
-  { c: "#a3226b", n: "Magenta" },
-  { c: "#6b4423", n: "Brown" },
+  { c: "#1a1d24", n: "Ink" },
+  { c: "#5f6672", n: "Grey" },
+  { c: "#d92d20", n: "Red" },
+  { c: "#c2410c", n: "Orange" },
+  { c: "#a15c07", n: "Amber" },
+  { c: "#15803d", n: "Green" },
+  { c: "#0f766e", n: "Teal" },
+  { c: "#0369a1", n: "Sky" },
+  { c: "#2563eb", n: "Blue" },
+  { c: "#5b3ef0", n: "Violet" },
+  { c: "#9333ea", n: "Purple" },
+  { c: "#db2777", n: "Pink" },
 ];
 /** Highlights: soft backgrounds so black text stays readable. */
 export const HIGHLIGHT_COLORS = [
@@ -119,8 +123,8 @@ function Swatches({ colors, current, onPick, round }: { colors: { c: string; n: 
             aria-label={n}
             aria-pressed={on}
             onClick={() => onPick(c)}
-            className={`grid h-8 w-8 place-items-center border border-black/10 transition-transform hover:scale-110 focus-visible:scale-110 ${round ? "rounded-full" : "rounded-md"} ${on ? "ring-2 ring-accent ring-offset-2 ring-offset-surface" : ""}`}
-            style={{ background: c }}
+            className={`grid h-8 w-8 place-items-center border border-black/10 transition-transform hover:scale-110 focus-visible:scale-110 ${round ? "tc-swatch rounded-full" : "rounded-md"} ${on ? "ring-2 ring-accent ring-offset-2 ring-offset-surface" : ""}`}
+            style={{ background: c, ["--tc" as string]: c }}
           >
             {on && <Check size={14} className={round ? "text-white" : "text-ink"} aria-hidden />}
           </button>

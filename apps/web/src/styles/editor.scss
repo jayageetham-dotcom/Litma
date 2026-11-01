@@ -772,3 +772,21 @@ $mm: 3.7795275591px;
     text-decoration: underline dotted var(--highlight);
   }
 }
+
+/* ── Writer's colours in dark mode ──
+   Text colours are chosen for white paper. On the dark page they are shown lighter (same hue,
+   lightness raised to at least 0.78 in OKLCH, ≥ 7:1 on the dark paper); highlighted text turns
+   dark so the pastel highlights stay readable. Browsers without relative colours keep the original. */
+.dark .ProseMirror .tc {
+  color: oklch(from var(--tc) max(l, 0.78) c h) !important;
+}
+.dark .ProseMirror mark,
+.dark .ProseMirror mark * {
+  color: var(--on-pop) !important;
+}
+.dark .tc-swatch {
+  background: oklch(from var(--tc) max(l, 0.78) c h) !important;
+}
+.dark .tc-swatch svg {
+  color: var(--on-pop);
+}

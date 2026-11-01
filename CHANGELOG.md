@@ -2,6 +2,27 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.6.0 · 2026-11-01
+
+- Reader view: one continuous page with an outline, like Google Docs
+- Space out rows in dropdowns and menus
+- Reader view: proper layout and a Close button
+- Desk download card: quiet surface instead of bright violet
+- Desk: explain the stats with tooltips; download card in the home page style
+- Dictionary: clearer structure, typography and spacing
+- Fresher, readable text colours; roomier side panels
+- Bring a little of the home page's colour into the app
+- Desk: more breathing room in the header and between sections
+- Line up the pill nav with the page content
+- Show original platform logo files instead of drawn icons
+- Use the real platform logos on download links
+- Fix download buttons when latest.json can't be read
+- Auth quote card: drop the sticker, soften the glows
+- Restyle sign-in, sign-up and download pages; keep public pages light
+- Redesign the home page from the Figma Make design
+- Home page redesign: full-width ink hero, Malayalam-keyword features, ink download band
+- Download page: "Here's how to install it" is a link to the install steps
+
 ## 0.5.0 · 2026-11-01
 
 - Download page with OS detection, download links in header, hero and desk

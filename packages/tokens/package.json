@@ -1,6 +1,6 @@
 {
   "name": "@litma/tokens",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "Design tokens exported from apps/web/src/styles/theme.css for the native apps (npm run tokens).",
   "type": "module",

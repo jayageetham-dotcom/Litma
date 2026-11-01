@@ -1,4 +1,6 @@
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Extension, Node, mergeAttributes } from "@tiptap/core";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 
 import { TextSelection } from "@tiptap/pm/state";
@@ -138,3 +140,38 @@ declare module "@tiptap/core" {
     styledBlock: { setStyledBlock: (variant: string) => ReturnType };
   }
 }
+
+/**
+ * Paragraphs whose first letter has the writer's own text colour get the class `own-first-colour`,
+ * so decorative drop caps (novel/story chapters) don't paint over that colour.
+ */
+export const FirstLetterColour = Extension.create({
+  name: "firstLetterColour",
+  addProseMirrorPlugins() {
+    const build = (doc: import("@tiptap/pm/model").Node) => {
+      const decos: Decoration[] = [];
+      doc.forEach((node, offset) => {
+        if (node.type.name !== "paragraph") return;
+        const first = node.firstChild;
+        if (first?.isText && first.marks.some((m) => m.type.name === "textStyle" && m.attrs.color)) {
+          decos.push(Decoration.node(offset, offset + node.nodeSize, { class: "own-first-colour" }));
+        }
+      });
+      return DecorationSet.create(doc, decos);
+    };
+    return [
+      new Plugin({
+        key: new PluginKey("firstLetterColour"),
+        state: {
+          init: (_c, state) => build(state.doc),
+          apply: (tr, old) => (tr.docChanged ? build(tr.doc) : old),
+        },
+        props: {
+          decorations(state) {
+            return this.getState(state);
+          },
+        },
+      }),
+    ];
+  },
+});

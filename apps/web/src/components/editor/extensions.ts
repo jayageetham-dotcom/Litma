@@ -13,7 +13,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Focus from "@tiptap/extension-focus";
 import { Manglish, type InputMode } from "@/extensions/manglish";
 import { Pagination, geometryFor } from "@/extensions/pagination";
-import { PageBreak, StyledBlock } from "@/extensions/blocks";
+import { FirstLetterColour, PageBreak, StyledBlock } from "@/extensions/blocks";
 import { ScreenplayKeys, ScreenplayNodes } from "@/extensions/screenplay";
 import { Metre, Search, Typewriter } from "@/extensions/tools";
 import { SmartBold } from "@/extensions/bold";
@@ -82,6 +82,7 @@ export function buildExtensions(kind: DocKind, settings: DocSettings, inputMode:
     KeepSelection,
     Pagination.configure({ geometry: geometryFor(settings.pageSize, settings.margins) }),
     PageBreak,
+    FirstLetterColour,
     StyledBlock,
     ...ScreenplayNodes,
     ScreenplayKeys.configure({ enabled: () => usesDialogueKeys }),

@@ -318,9 +318,14 @@ $mm: 3.7795275591px;
   .ProseMirror > .page-spacer + p {
     text-indent: 0;
   }
+  // drop cap after a chapter heading. ::first-letter sits inside any coloured span, so its colour
+  // would override the writer's own text colour: the accent applies only when the first letter has
+  // no colour of its own (FirstLetterColour in extensions/blocks.ts marks those paragraphs).
   .ProseMirror > .sb-chapter + p::first-letter {
     font-size: 1.6em;
     font-weight: 700;
+  }
+  .ProseMirror > .sb-chapter + p:not(.own-first-colour)::first-letter {
     color: var(--accent);
   }
 }

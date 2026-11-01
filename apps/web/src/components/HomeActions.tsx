@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Download, PenLine } from "lucide-react";
+import { ArrowRight, Check, Download, PenLine } from "lucide-react";
 import { useUser } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { store } from "@/lib/store";
@@ -48,7 +48,7 @@ export function HomeNav() {
   if (state === "guest")
     return (
       <>
-        <DownloadNavLink />
+        <DownloadNavLink className="max-sm:!hidden" />
         <Link href="/login/" className="btn btn-ghost">
           Sign in
         </Link>
@@ -73,50 +73,86 @@ export function HomeNav() {
   );
 }
 
-/** "Get the app" link under the hero buttons (hidden inside the desktop app). */
+/** "Get the app" card under the hero buttons (hidden inside the desktop app). */
 function HeroDownload() {
   const t = useT();
   const inApp = useInDesktopApp();
   if (inApp) return null;
   return (
-    <Link href="/download/" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-ink hover:text-accent">
-      <span className="grid h-7 w-7 place-items-center rounded-full bg-accent-soft text-accent">
-        <Download size={14} aria-hidden />
+    <Link
+      href="/download/"
+      className="group mt-8 inline-flex items-center gap-3 rounded-2xl border border-line bg-surface/70 px-4 py-3 text-sm font-bold text-ink backdrop-blur transition hover:border-violet/40 hover:bg-surface"
+    >
+      <span className="grid size-8 place-items-center rounded-xl bg-violet text-night-ink">
+        <Download size={16} aria-hidden />
       </span>
-      {t("download.heroLink")} <ArrowRight size={14} aria-hidden />
+      {t("download.heroLink")}
+      <ArrowRight size={16} className="transition group-hover:translate-x-0.5" aria-hidden />
     </Link>
   );
 }
 
+const PERKS = ["Free to use", "Syncs on all your devices", "Saves every keystroke"];
+
 export function HeroActions() {
   const [state, profile] = useVisitor();
-  const big = "btn !px-5 !py-3 !text-base";
-  if (state === "loading") return <div className="mt-8 h-[52px]" aria-hidden />;
+  const big =
+    "group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-4 text-base font-bold text-primary-ink shadow-[var(--cta-shadow)] transition hover:-translate-y-0.5 hover:bg-violet hover:text-night-ink";
+  if (state === "loading") return <div className="mt-9 h-[58px]" aria-hidden />;
   if (state === "guest")
     return (
-      <div className="mt-8">
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-          <Link href="/signup/" className={`${big} btn-primary`}>
-            Start writing for free <ArrowRight size={18} />
+      <div className="mt-9">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+          <Link href="/signup/" className={big}>
+            Start writing for free <ArrowRight size={18} className="transition group-hover:translate-x-1" aria-hidden />
           </Link>
-          <Link href="/login/" className="text-sm font-medium text-accent underline-offset-4 hover:underline">
-            Already have an account? Sign in
+          <Link href="/login/" className="text-sm font-semibold text-muted hover:text-ink">
+            Already have an account? <span className="text-violet-text underline decoration-2 underline-offset-4">Sign in</span>
           </Link>
         </div>
-        <p className="mt-3 text-xs text-muted">Free to use. Your works stay in sync on all your devices.</p>
-        <HeroDownload />
+        <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-muted">
+          {PERKS.map((p) => (
+            <li key={p} className="flex items-center gap-1.5">
+              <span className="grid size-5 place-items-center rounded-full bg-lime text-on-pop">
+                <Check size={12} strokeWidth={3} aria-hidden />
+              </span>
+              {p}
+            </li>
+          ))}
+        </ul>
+        <div>
+          <HeroDownload />
+        </div>
       </div>
     );
   const name = profile?.pen_name || profile?.display_name;
   return (
-    <div className="mt-8">
-      {name && <p className="mb-3 text-sm text-muted">Welcome back, {name}.</p>}
-      <Link href="/desk/" className={`${big} btn-primary`}>
-        Continue writing <ArrowRight size={18} />
+    <div className="mt-9">
+      {name && <p className="mb-4 text-base font-semibold text-muted">Welcome back, {name}.</p>}
+      <Link href="/desk/" className={big}>
+        Continue writing <ArrowRight size={18} className="transition group-hover:translate-x-1" aria-hidden />
       </Link>
       <div>
         <HeroDownload />
       </div>
     </div>
+  );
+}
+
+/** The big closing line in the footer: starts a new writer, or takes a signed-in one back to the desk. */
+export function FooterCta() {
+  const [state] = useVisitor();
+  const writer = state === "writer" || state === "local";
+  const href = writer ? "/desk/" : "/signup/";
+  return (
+    <Link href={href} className="group inline-block" style={{ fontFamily: "var(--font-display)" }}>
+      <span className="inline-block bg-linear-to-r from-lime via-sky to-violet bg-clip-text pb-3 text-[clamp(3rem,10vw,8rem)] font-extrabold leading-none tracking-tight text-transparent">
+        എഴുതി തുടങ്ങാം.
+      </span>
+      <span className="mt-2 flex items-center gap-2 text-base font-bold text-muted transition group-hover:text-ink" style={{ fontFamily: "var(--font-landing)" }}>
+        {writer ? "Open your desk" : "Start writing for free"}
+        <ArrowRight size={18} className="transition group-hover:translate-x-1" aria-hidden />
+      </span>
+    </Link>
   );
 }

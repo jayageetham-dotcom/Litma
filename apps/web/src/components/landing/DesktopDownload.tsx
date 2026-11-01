@@ -10,7 +10,7 @@ import { useT } from "@/i18n/react";
  * desk for signed-in writers (variant "card"). The visitor's own system comes first; /download has
  * everything else. Hidden inside the desktop app.
  */
-export function DesktopDownload({ variant = "section" }: { variant?: "section" | "card" | "band" }) {
+export function DesktopDownload({ variant = "section" }: { variant?: "section" | "card" | "band" | "pop" }) {
   const t = useT();
   const release = useRelease();
   const platform = usePlatform();
@@ -50,6 +50,66 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
       )}
     </div>
   );
+
+  if (variant === "pop")
+    // home page close: the violet card from the colourful landing, with the visitor's system first
+    return (
+      <section id="download" className="px-4 py-24 md:py-32">
+        <div className="relative isolate mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-violet px-6 py-14 text-night-ink sm:px-10 md:px-16 md:py-20">
+          <div aria-hidden className="absolute -bottom-24 -right-20 size-96 rounded-full bg-lime/40 blur-3xl" />
+          <div aria-hidden className="absolute -left-20 -top-24 size-80 rounded-full bg-sky/40 blur-3xl" />
+          <div aria-hidden className="dot-grid absolute inset-0 text-night-ink/10" />
+          <span aria-hidden className="pointer-events-none absolute -bottom-16 -right-6 select-none text-[16rem] font-extrabold leading-none text-night-ink/10 md:text-[22rem]" style={{ fontFamily: "var(--font-display)" }}>
+            അ
+          </span>
+
+          <div className="relative grid items-center gap-12 lg:grid-cols-[1.3fr_1fr]">
+            <div>
+              <p className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em]">
+                <span className="size-2 rounded-full bg-lime" aria-hidden />
+                {t("download.kicker")}
+              </p>
+              <h2 className="text-5xl font-extrabold leading-[1.05] md:text-7xl" style={{ fontFamily: "var(--font-display)" }}>
+                {t("download.title")}.
+              </h2>
+              <p className="mt-6 max-w-lg text-lg text-night-ink/85">{t("download.body")}</p>
+              {release?.version && <p className="mt-3 font-mono text-sm text-night-ink/75">v{release.version}</p>}
+            </div>
+
+            <div className="space-y-3">
+              {items.map((it) => {
+                const inner = (
+                  <>
+                    <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-night text-night-ink">
+                      <it.icon size={22} aria-hidden />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-extrabold">{it.label}</span>
+                      <span className="block text-sm text-muted group-hover:text-on-pop/70">{it.href ? it.hint : release === undefined ? t("common.loading") : t("download.soon")}</span>
+                    </span>
+                  </>
+                );
+                const card = "group flex items-center gap-4 rounded-2xl bg-surface p-4 text-ink shadow-xl transition";
+                return it.href ? (
+                  <a key={it.id} href={it.href} className={`${card} hover:-translate-y-0.5 hover:bg-lime hover:text-on-pop`}>
+                    {inner}
+                    <Download size={20} className="mr-1 shrink-0 transition group-hover:translate-y-0.5" aria-hidden />
+                  </a>
+                ) : (
+                  <span key={it.id} className={card} aria-disabled="true">
+                    {inner}
+                    <span className="rounded-full bg-subtle px-2.5 py-1 text-[11px] font-bold text-muted">{t("download.soonBadge")}</span>
+                  </span>
+                );
+              })}
+              <Link href="/download/" className="inline-block pt-2 text-sm font-semibold text-night-ink/90 underline decoration-lime decoration-2 underline-offset-4 hover:text-lime">
+                {t("download.deskMore")}: iPhone, Android
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
 
   if (variant === "band")
     // home page close: a solid ink band (inverts in dark mode) with the app icon

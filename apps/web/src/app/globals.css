@@ -23,7 +23,19 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-line-strong: var(--line-strong);
+  --color-mist: var(--mist);
+  --color-night: var(--night);
+  --color-night-ink: var(--night-ink);
+  --color-on-pop: var(--on-pop);
+  --color-violet: var(--violet);
+  --color-violet-text: var(--violet-text);
+  --color-coral: var(--coral);
+  --color-coral-text: var(--coral-text);
+  --color-lime: var(--lime);
+  --color-sky: var(--sky);
+  --color-tangerine: var(--tangerine);
   --font-sans: var(--font-ui);
+  --font-landing: var(--font-landing);
   --font-display: var(--font-display);
 }
 
@@ -435,4 +447,64 @@ body {
   .field {
     font-size: 16px;
   }
+}
+
+/* ── Home page (the colourful landing) ── */
+/* dark bands (night background): ink, muted text and lines turn light inside them, in both themes */
+.on-night {
+  --ink: var(--night-ink);
+  --muted: color-mix(in srgb, var(--night-ink) 70%, transparent);
+  --line: color-mix(in srgb, var(--night-ink) 14%, transparent);
+  --subtle: color-mix(in srgb, var(--night-ink) 10%, transparent);
+  --brand: var(--night-ink);
+  --brand-mark: var(--lime);
+  color: var(--ink);
+}
+.dot-grid {
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+.marquee-track {
+  animation: litma-marquee 38s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes litma-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.float-a,
+.float-b {
+  animation: litma-float 7s ease-in-out infinite;
+}
+.float-b {
+  animation-duration: 11s;
+}
+@keyframes litma-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-14px) rotate(var(--r, 0deg));
+  }
+}
+.typing-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 2px;
+  vertical-align: -0.2em;
+  background: var(--lime);
+  animation: litma-blink 1s steps(1) infinite;
+}
+html:has(.landing) {
+  scroll-padding-top: 6rem;
+  scroll-behavior: smooth;
+}
+.landing ::selection {
+  background: var(--lime);
+  color: var(--on-pop);
 }

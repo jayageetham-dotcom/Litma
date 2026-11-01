@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { manglish } from "@litma/shared/manglish";
 import { transliterate } from "@/lib/functions";
 
@@ -98,6 +98,23 @@ export function TryManglish() {
   const view = touched ? live : demo;
   const input = touched ? text : demo.typed;
 
+  // keep the suggestion popup inside the page: shift it left near the right edge, open upwards when there is no room below
+  const pageRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLSpanElement>(null);
+  const [pop, setPop] = useState({ x: 0, up: false });
+  const hasPop = !!(view.partial && view.suggestions);
+  useLayoutEffect(() => {
+    const page = pageRef.current;
+    const el = popRef.current;
+    if (!hasPop || !page || !el) return;
+    const anchor = el.parentElement!.getBoundingClientRect();
+    const box = page.getBoundingClientRect();
+    const pad = 8;
+    const x = Math.min(0, box.right - pad - (anchor.left + el.offsetWidth));
+    const up = anchor.bottom + 8 + el.offsetHeight > box.bottom - pad && anchor.top - 8 - el.offsetHeight > box.top + pad;
+    setPop((p) => (p.x === x && p.up === up ? p : { x, up }));
+  }, [hasPop, view.output, view.partial]);
+
   return (
     <div className="relative">
       {/* two coloured sheets under the card */}
@@ -126,7 +143,7 @@ export function TryManglish() {
           </span>
           <span className="relative block">
             {!touched && (
-              <span aria-hidden className="pointer-events-none absolute inset-0 font-mono text-[15px] leading-[1.6rem] text-lime">
+              <span aria-hidden className="pointer-events-none block min-h-[1.6rem] break-words font-mono text-[15px] leading-[1.6rem] text-lime">
                 {input}
                 <span className="typing-caret" />
               </span>
@@ -146,19 +163,23 @@ export function TryManglish() {
               autoComplete="off"
               autoCapitalize="off"
               spellCheck={false}
-              className={`block w-full bg-transparent font-mono text-[16px] leading-[1.6rem] caret-lime outline-none placeholder:text-night-ink/35 md:text-[15px] ${touched ? "text-lime" : "text-transparent"}`}
+              className={`${touched ? "block" : "absolute inset-0"} w-full bg-transparent font-mono text-[16px] leading-[1.6rem] caret-lime outline-none placeholder:text-night-ink/35 md:text-[15px] ${touched ? "text-lime" : "text-transparent"}`}
             />
           </span>
         </label>
 
-        <div className="relative mt-3 min-h-[12rem] rounded-2xl border border-line bg-paper px-6 pb-10 pt-6" aria-live="polite">
+        <div ref={pageRef} className="relative mt-3 min-h-[12rem] rounded-2xl border border-line bg-paper px-6 pb-10 pt-6" aria-live="polite">
           <p className="text-[1.45rem] font-medium leading-[1.7] text-ink md:text-[1.55rem]" style={{ fontFamily: "var(--font-display)" }}>
             {view.output}
             {view.partial && (
               <span className="relative ml-1.5 inline-block">
                 <span className="rounded bg-violet/10 px-1 font-mono text-base text-violet-text underline decoration-dotted underline-offset-4">{view.partial}</span>
                 {view.suggestions && (
-                  <span className="rise-in absolute left-0 top-full z-10 mt-2 w-44 rounded-xl bg-surface p-1.5 shadow-[var(--pop-chip-shadow)] ring-1 ring-line">
+                  <span
+                    ref={popRef}
+                    style={{ translate: `${pop.x}px 0` }}
+                    className={`rise-in absolute left-0 z-10 w-44 ${pop.up ? "bottom-full mb-2" : "top-full mt-2"} rounded-xl bg-surface p-1.5 shadow-[var(--pop-chip-shadow)] ring-1 ring-line`}
+                  >
                     {view.suggestions.map((s, i) => (
                       <span key={s + i} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-base ${i === 0 ? "bg-violet text-night-ink" : "text-ink"}`}>
                         <span className={`font-mono text-[10px] ${i === 0 ? "text-night-ink/75" : "text-muted"}`}>{i + 1}</span>

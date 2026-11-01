@@ -59,7 +59,8 @@ export default function Home() {
                   <span aria-hidden className="absolute inset-x-[-0.08em] bottom-[0.12em] -z-10 h-[0.32em] -rotate-1 rounded-[0.12em] bg-lime" />
                   മലയാളത്തിൽ
                 </span>
-                <span className="text-coral">.</span>
+                <span className="sr-only">.</span>
+                <span aria-hidden className="ml-[0.16em] inline-block size-[0.17em] rounded-full bg-coral align-baseline" />
               </span>
             </h1>
 

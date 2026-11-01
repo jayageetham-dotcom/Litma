@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookA, LogOut, Settings, User } from "lucide-react";
 import { Logo } from "./Logo";
+import { DownloadNavLink } from "./landing/DesktopDownload";
 import { ThemeToggle } from "./ThemeToggle";
 import { store } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase/client";
@@ -59,6 +60,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
           <Logo href="/desk/" />
         </div>
         <div className="flex items-center gap-1">
+          <DownloadNavLink className="max-sm:!hidden" />
           <Link href="/dictionary/" className="btn btn-ghost !px-2.5 text-sm" title={t("nav.dictionaryTitle")}>
             <BookA size={17} /> <span className="hidden sm:inline">നിഘണ്ടു</span>
           </Link>

@@ -16,6 +16,7 @@ import { TEMPLATES, templateFor } from "@/lib/templates";
 import type { Book, DocKind, LitmaDoc } from "@/lib/types";
 import { useT } from "@/i18n/react";
 import type { MessageKey, Params } from "@litma/i18n";
+import { DesktopDownload } from "@/components/landing/DesktopDownload";
 import { DeskSkeleton, BooksSkeleton, InkLoader } from "@/components/ui/Skeleton";
 
 function timeAgo(iso: string, t: (k: MessageKey, p?: Params) => string) {
@@ -387,6 +388,7 @@ function Desk() {
             );
           })}
         </ul>
+        {view === "works" && docs && <DesktopDownload variant="card" />}
       </main>
 
       {/* Phone: floating action button, like a native app */}

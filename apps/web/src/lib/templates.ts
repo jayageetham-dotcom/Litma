@@ -26,7 +26,7 @@ const META: TemplateMeta[] = [
     kind: "novel",
     ml: "നോവൽ",
     en: "Novel",
-    blurb: "Chapters, scene breaks and an indented, justified body, set like a printed book.",
+    blurb: "Chapters, scene breaks and indented paragraphs, set like a printed book.",
     blocks: ["title", "author", "epigraph", "chapter"],
   },
   {

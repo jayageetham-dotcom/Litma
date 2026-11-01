@@ -2,12 +2,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, PenLine } from "lucide-react";
+import { ArrowRight, Download, PenLine } from "lucide-react";
 import { useUser } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { store } from "@/lib/store";
 import type { Profile } from "@/lib/types";
 import { Avatar } from "./AppHeader";
+import { DownloadNavLink } from "./landing/DesktopDownload";
+import { useInDesktopApp } from "@/lib/release";
+import { useT } from "@/i18n/react";
 
 /**
  * Landing-page buttons that know who is looking:
@@ -45,6 +48,7 @@ export function HomeNav() {
   if (state === "guest")
     return (
       <>
+        <DownloadNavLink />
         <Link href="/login/" className="btn btn-ghost">
           Sign in
         </Link>
@@ -55,6 +59,7 @@ export function HomeNav() {
     );
   return (
     <>
+      <DownloadNavLink />
       <Link href="/desk/" className="btn btn-primary">
         <PenLine size={16} /> <span className="hidden sm:inline">Open desk</span>
         <span className="sm:hidden">Desk</span>
@@ -65,6 +70,21 @@ export function HomeNav() {
         </Link>
       )}
     </>
+  );
+}
+
+/** "Get the app" link under the hero buttons (hidden inside the desktop app). */
+function HeroDownload() {
+  const t = useT();
+  const inApp = useInDesktopApp();
+  if (inApp) return null;
+  return (
+    <Link href="/download/" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-ink hover:text-accent">
+      <span className="grid h-7 w-7 place-items-center rounded-full bg-accent-soft text-accent">
+        <Download size={14} aria-hidden />
+      </span>
+      {t("download.heroLink")} <ArrowRight size={14} aria-hidden />
+    </Link>
   );
 }
 
@@ -84,6 +104,7 @@ export function HeroActions() {
           </Link>
         </div>
         <p className="mt-3 text-xs text-muted">Free to use. Your works stay in sync on all your devices.</p>
+        <HeroDownload />
       </div>
     );
   const name = profile?.pen_name || profile?.display_name;
@@ -93,6 +114,9 @@ export function HeroActions() {
       <Link href="/desk/" className={`${big} btn-primary`}>
         Continue writing <ArrowRight size={18} />
       </Link>
+      <div>
+        <HeroDownload />
+      </div>
     </div>
   );
 }

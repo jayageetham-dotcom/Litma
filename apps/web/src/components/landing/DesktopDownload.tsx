@@ -1,40 +1,69 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Apple, Download, Monitor } from "lucide-react";
-import { BASE } from "@/lib/config";
+import Link from "next/link";
+import { Apple, ArrowRight, Download, Monitor } from "lucide-react";
+import { downloadsFor, useInDesktopApp, usePlatform, useRelease } from "@/lib/release";
+import { StoreBadges } from "@/components/StoreBadges";
 import { useT } from "@/i18n/react";
 
-type Release = { version: string; date?: string; mac?: string; win?: string };
-
-/** old manifests list bare file names (hosted next to latest.json); new ones give full download URLs */
-const toUrl = (f: string) => (/^https?:/.test(f) ? f : `${BASE}/downloads/${f}`);
-
-import "@/lib/desktop";
-
-/** Home page: download the desktop app. Reads downloads/latest.json, written by the desktop release workflow. */
-export function DesktopDownload() {
+/**
+ * "Litma for your computer": the home page section (variant "section") and a slim card on the
+ * desk for signed-in writers (variant "card"). The visitor's own system comes first; /download has
+ * everything else. Hidden inside the desktop app.
+ */
+export function DesktopDownload({ variant = "section" }: { variant?: "section" | "card" }) {
   const t = useT();
-  const [release, setRelease] = useState<Release | null | undefined>(undefined);
-  const [os, setOs] = useState<"mac" | "win" | "other">("other");
-  const [inApp, setInApp] = useState(false);
-
-  useEffect(() => {
-    setInApp(!!window.litmaDesktop);
-    const ua = navigator.userAgent;
-    setOs(/Mac/i.test(ua) && !/iPhone|iPad/i.test(ua) ? "mac" : /Windows/i.test(ua) ? "win" : "other");
-    fetch(`${BASE}/downloads/latest.json`, { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j: Release | null) => setRelease(j))
-      .catch(() => setRelease(null));
-  }, []);
-
+  const release = useRelease();
+  const platform = usePlatform();
+  const inApp = useInDesktopApp();
   if (inApp) return null;
-  const href = (file?: string, fallback?: string) => toUrl(file ?? fallback ?? "");
-  const ready = !!release;
+  const links = downloadsFor(release);
   const items = [
-    { id: "mac" as const, icon: Apple, label: t("download.mac"), hint: t("download.macHint"), href: href(release?.mac, "Litma-mac.dmg") },
-    { id: "win" as const, icon: Monitor, label: t("download.windows"), hint: t("download.windowsHint"), href: href(release?.win, "Litma-win.exe") },
-  ].sort((a, b) => (a.id === os ? -1 : b.id === os ? 1 : 0));
+    { id: "mac" as const, icon: Apple, label: t("download.mac"), hint: t("download.macHint"), href: links.mac },
+    { id: "win" as const, icon: Monitor, label: t("download.windows"), hint: t("download.windowsHint"), href: links.win },
+  ].sort((a, b) => (a.id === platform ? -1 : b.id === platform ? 1 : 0));
+
+  const buttons = (
+    <div className={`flex flex-col gap-3 sm:flex-row ${variant === "section" ? "md:justify-end" : ""}`}>
+      {items.map((it, i) =>
+        it.href ? (
+          <a
+            key={it.id}
+            href={it.href}
+            className={`btn justify-start !rounded-xl !px-4 !py-3 ${i === 0 && (platform === "mac" || platform === "win") ? "btn-primary" : "btn-outline"}`}
+          >
+            <it.icon size={20} aria-hidden />
+            <span className="text-left">
+              <span className="block">{it.label}</span>
+              <span className="block text-xs font-normal opacity-75">{it.hint}</span>
+            </span>
+            <Download size={16} className="ml-auto opacity-70" aria-hidden />
+          </a>
+        ) : (
+          <span key={it.id} className="btn btn-outline justify-start !rounded-xl !px-4 !py-3" aria-disabled="true">
+            <it.icon size={20} aria-hidden />
+            <span className="text-left">
+              <span className="block">{it.label}</span>
+              <span className="block text-xs font-normal text-muted">{release === undefined ? t("common.loading") : t("download.soon")}</span>
+            </span>
+          </span>
+        )
+      )}
+    </div>
+  );
+
+  if (variant === "card")
+    return (
+      <section className="mt-12 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-line bg-surface p-5 sm:p-6" aria-label={t("download.deskTitle")}>
+        <div className="min-w-0 max-w-md">
+          <h2 className="text-lg font-semibold">{t("download.deskTitle")}</h2>
+          <p className="mt-1 text-sm leading-relaxed text-muted">{t("download.deskBody")}</p>
+          <Link href="/download/" className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
+            {t("download.deskMore")} <ArrowRight size={14} aria-hidden />
+          </Link>
+        </div>
+        {buttons}
+      </section>
+    );
 
   return (
     <section id="download" className="border-t border-line bg-surface">
@@ -48,35 +77,27 @@ export function DesktopDownload() {
               {release.date ? ` · ${new Date(release.date).toLocaleDateString("en-IN", { dateStyle: "medium" })}` : ""}
             </p>
           )}
+          <StoreBadges className="mt-5" />
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row md:justify-end">
-          {items.map((it, i) =>
-            ready ? (
-              <a
-                key={it.id}
-                href={it.href}
-                download
-                className={`btn justify-start !rounded-xl !px-4 !py-3 ${i === 0 && os !== "other" ? "btn-primary" : "btn-outline"}`}
-              >
-                <it.icon size={20} aria-hidden />
-                <span className="text-left">
-                  <span className="block">{it.label}</span>
-                  <span className="block text-xs font-normal opacity-75">{it.hint}</span>
-                </span>
-                <Download size={16} className="ml-auto opacity-70" aria-hidden />
-              </a>
-            ) : (
-              <span key={it.id} className="btn btn-outline justify-start !rounded-xl !px-4 !py-3" aria-disabled="true" title={t("download.soon")}>
-                <it.icon size={20} aria-hidden />
-                <span className="text-left">
-                  <span className="block">{it.label}</span>
-                  <span className="block text-xs font-normal text-muted">{release === undefined ? t("common.loading") : t("download.soon")}</span>
-                </span>
-              </span>
-            )
-          )}
+        <div className="flex flex-col gap-3">
+          {buttons}
+          <Link href="/download/" className="text-sm font-medium text-accent hover:underline md:text-right">
+            {t("download.deskMore")} →
+          </Link>
         </div>
       </div>
     </section>
+  );
+}
+
+/** Small "Download" link for top bars (hidden inside the desktop app). */
+export function DownloadNavLink({ className = "" }: { className?: string }) {
+  const t = useT();
+  const inApp = useInDesktopApp();
+  if (inApp) return null;
+  return (
+    <Link href="/download/" className={`btn btn-ghost !px-2.5 text-sm ${className}`} title={t("download.navTitle")}>
+      <Download size={17} aria-hidden /> <span className="hidden md:inline">{t("download.nav")}</span>
+    </Link>
   );
 }

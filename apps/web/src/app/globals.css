@@ -310,6 +310,35 @@ body {
   flex: none;
 }
 
+/* ── Landing: hero headline. Anek Malayalam's width axis settles from condensed to full,
+   like ink spreading into paper: the page's one orchestrated moment. ── */
+.hero-ink {
+  /* മലയാളത്തിൽ. is about 8 em wide: 10.6vw keeps it on one line from phones up */
+  font-size: clamp(2.3rem, 10.6vw, 8.4rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.012em;
+}
+.hero-line {
+  display: block;
+  font-stretch: 100%;
+  animation: litma-ink-settle 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes litma-ink-settle {
+  from {
+    font-stretch: 75%;
+    font-weight: 300;
+    opacity: 0;
+    transform: translateY(0.12em);
+  }
+  to {
+    font-stretch: 100%;
+    font-weight: 800;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* ── Landing: writing-type showcase ── */
 @keyframes litma-rise {
   from {

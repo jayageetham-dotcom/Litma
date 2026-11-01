@@ -10,7 +10,7 @@ import { useT } from "@/i18n/react";
  * desk for signed-in writers (variant "card"). The visitor's own system comes first; /download has
  * everything else. Hidden inside the desktop app.
  */
-export function DesktopDownload({ variant = "section" }: { variant?: "section" | "card" }) {
+export function DesktopDownload({ variant = "section" }: { variant?: "section" | "card" | "band" }) {
   const t = useT();
   const release = useRelease();
   const platform = usePlatform();
@@ -50,6 +50,50 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
       )}
     </div>
   );
+
+  if (variant === "band")
+    // home page close: a solid ink band (inverts in dark mode) with the app icon
+    return (
+      <section id="download" className="bg-primary text-primary-ink">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 md:grid-cols-[1fr_auto] md:gap-12">
+          <div className="max-w-xl">
+            <h2 className="text-3xl font-bold md:text-4xl" style={{ fontFamily: "var(--font-display)" }}>
+              {t("download.title")}
+            </h2>
+            <p className="mt-3 text-lg leading-relaxed opacity-80">{t("download.body")}</p>
+            {release?.version && <p className="mt-3 text-sm opacity-70">v{release.version}</p>}
+          </div>
+          <div className="flex flex-col gap-3">
+            {items.map((it, i) =>
+              it.href ? (
+                <a
+                  key={it.id}
+                  href={it.href}
+                  className={`btn justify-start !rounded-xl !px-5 !py-3.5 ${i === 0 ? "bg-primary-ink text-primary hover:opacity-90" : "border border-primary-ink/30 text-primary-ink hover:bg-primary-ink/10"}`}
+                >
+                  <it.icon size={20} aria-hidden />
+                  <span className="text-left">
+                    <span className="block">{it.label}</span>
+                    <span className="block text-xs font-normal opacity-75">{it.hint}</span>
+                  </span>
+                </a>
+              ) : (
+                <span key={it.id} className="btn justify-start border border-primary-ink/30 !rounded-xl !px-5 !py-3.5 opacity-70" aria-disabled="true">
+                  <it.icon size={20} aria-hidden />
+                  <span className="text-left">
+                    <span className="block">{it.label}</span>
+                    <span className="block text-xs font-normal">{release === undefined ? t("common.loading") : t("download.soon")}</span>
+                  </span>
+                </span>
+              )
+            )}
+            <Link href="/download/" className="mt-1 text-sm font-medium underline-offset-4 opacity-80 hover:underline hover:opacity-100">
+              {t("download.deskMore")}: iPhone, Android
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
 
   if (variant === "card")
     return (

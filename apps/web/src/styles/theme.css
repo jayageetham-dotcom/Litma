@@ -56,7 +56,7 @@
 
   /* Brand: one solid colour, no gradients. The logo word uses --brand; .brand-bar is a thin line of it. */
   --brand: #111113;
-  --brand-mark: #4f46e5; /* the small dot in the logo and thin accent lines */
+  --brand-mark: #4f46e5; /* thin accent lines */
 
   /* Landing "How it works" demos */
   --demo-stage: #eef0f6; /* cool, slightly tinted so white pages pop */

@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🚚 Get latest code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref || github.ref }}
 
@@ -51,7 +51,7 @@ jobs:
           echo "Upload is add/replace only — the rest of public_html is safe."
 
       - name: 🟢 Use Node.js 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: npm
@@ -67,7 +67,7 @@ jobs:
           git diff --exit-code -- packages/tokens/tokens.json || (echo "::error::Run 'npm run tokens' and commit." && exit 1)
 
       - name: 📚 Cache Olam dictionary downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .dict-cache
           key: olam-datasets-v1
@@ -137,7 +137,7 @@ jobs:
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       PROJECT_REF: jdexadomaxjtxlvgtldu
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref || github.ref }}
 

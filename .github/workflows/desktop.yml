@@ -48,7 +48,7 @@ jobs:
     outputs:
       version: ${{ steps.v.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.REF }}
       - name: Version
@@ -59,7 +59,7 @@ jobs:
           if [ -z "$V" ]; then V=$(node -p "require('./apps/desktop/package.json').version"); fi
           echo "version=$V" >> "$GITHUB_OUTPUT"
           echo "Litma desktop $V"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: npm
@@ -71,7 +71,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://jdexadomaxjtxlvgtldu.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XH6LhcIvUP_ENNbZFrmj7g_Z-YjUzP4' }}
           NEXT_PUBLIC_SITE_URL: https://www.jayageetham.com/litma
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: web-out
           path: apps/web/out
@@ -88,15 +88,15 @@ jobs:
           - { name: Windows, os: windows-latest, flag: --win }
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.REF }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: web-out
           path: apps/web/out
@@ -129,7 +129,7 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: installer-${{ matrix.name }}
           path: |
@@ -142,11 +142,11 @@ jobs:
     needs: [web, package]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.REF }}
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           pattern: installer-*
           path: downloads
@@ -185,7 +185,7 @@ jobs:
           '
           cat downloads/latest.json
       - name: GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.web.outputs.version }}
           name: Litma ${{ needs.web.outputs.version }}

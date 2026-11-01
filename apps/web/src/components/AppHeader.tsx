@@ -76,15 +76,15 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
                     <div className="truncate font-semibold">{profile?.pen_name || profile?.display_name || t("nav.writer")}</div>
                     <div className="truncate text-xs text-muted">{profile?.email}</div>
                   </div>
-                  <Link role="menuitem" href="/profile/" className="mt-0.5 flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-subtle">
+                  <Link role="menuitem" href="/profile/" className="mt-0.5 flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-sm hover:bg-subtle">
                     <User size={15} /> {t("nav.profile")}
                   </Link>
-                  <Link role="menuitem" href="/settings/" className="mt-0.5 flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-subtle">
+                  <Link role="menuitem" href="/settings/" className="mt-0.5 flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-sm hover:bg-subtle">
                     <Settings size={15} /> {t("nav.settings")}
                   </Link>
                   <button
                     role="menuitem"
-                    className="mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-subtle"
+                    className="mt-0.5 flex w-full items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-left text-sm hover:bg-subtle"
                     onClick={async () => {
                       await getSupabase()?.auth.signOut();
                       router.replace("/login/");

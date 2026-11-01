@@ -913,7 +913,7 @@ function Menu({ children, onClose, wide }: { children: React.ReactNode; onClose:
 
 function MenuItem({ onClick, icon, label, hint }: { onClick: () => void; icon: React.ReactNode; label: string; hint?: string }) {
   return (
-    <button role="menuitem" onClick={onClick} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-subtle">
+    <button role="menuitem" onClick={onClick} className="flex w-full items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-left text-sm hover:bg-subtle">
       {icon}
       <span className="flex-1">{label}</span>
       {hint && <span className="text-xs text-muted">{hint}</span>}

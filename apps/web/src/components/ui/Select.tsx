@@ -246,7 +246,7 @@ export function Select({ value, onChange, options, label, labelClassName, placeh
                   aria-disabled={o.disabled || undefined}
                   onPointerEnter={() => !o.disabled && setActive(i)}
                   onClick={() => choose(i)}
-                  className={`flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-ink transition-colors ${i === active && !sel ? "bg-[var(--option-hover)]" : ""} ${i === active && sel ? "ring-1 ring-inset ring-[var(--option-selected-ink)]/25" : ""} ${sel ? "bg-[var(--option-selected)] font-semibold text-[var(--option-selected-ink)]" : ""} ${o.disabled ? "cursor-not-allowed opacity-40" : ""}`}
+                  className={`flex cursor-pointer items-center gap-2 rounded-[6px] px-2.5 py-2 text-sm text-ink transition-colors ${i === active && !sel ? "bg-[var(--option-hover)]" : ""} ${i === active && sel ? "ring-1 ring-inset ring-[var(--option-selected-ink)]/25" : ""} ${sel ? "bg-[var(--option-selected)] font-semibold text-[var(--option-selected-ink)]" : ""} ${o.disabled ? "cursor-not-allowed opacity-40" : ""}`}
                   style={o.style}
                 >
                   <span className="min-w-0 flex-1">

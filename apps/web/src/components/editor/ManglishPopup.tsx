@@ -119,7 +119,7 @@ export function ManglishPopup({ editor }: { editor: Editor }) {
                 e.preventDefault();
                 editor.commands.commitManglish(i);
               }}
-              className={`flex w-full items-center gap-3 rounded-md px-2.5 py-1 text-left text-[17px] [@media(hover:none)]:py-2 ${i === st.index ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}
+              className={`flex w-full items-center gap-3 rounded-[6px] px-2.5 py-1 text-left text-[17px] [@media(hover:none)]:py-2 ${i === st.index ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}
               style={{ fontFamily: "'Noto Sans Malayalam'" }}
             >
               <span className="w-3 text-[11px] text-muted" style={{ fontFamily: "var(--font-ui)" }}>

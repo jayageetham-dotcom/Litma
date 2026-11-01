@@ -78,7 +78,7 @@ export function CueSuggest({ editor, names }: { editor: Editor; names: string[] 
             e.preventDefault();
             pick(n);
           }}
-          className="mx-1.5 mt-0.5 flex w-[calc(100%-0.75rem)] items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[15px] first-of-type:mt-1.5 hover:bg-accent-soft"
+          className="mx-1.5 mt-0.5 flex w-[calc(100%-0.75rem)] items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-left text-[15px] first-of-type:mt-1.5 hover:bg-accent-soft"
           style={{ fontFamily: "'Noto Sans Malayalam'" }}
         >
           <span className="w-3 text-[11px] text-muted">{i + 1}</span>

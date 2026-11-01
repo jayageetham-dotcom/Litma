@@ -6,7 +6,6 @@ import {
   AlignLeft,
   AlignRight,
   Bold,
-  Highlighter,
   Italic,
   Languages,
   Link2,
@@ -15,7 +14,6 @@ import {
   Quote,
   Redo2,
   Search,
-  SeparatorHorizontal,
   Strikethrough,
   Subscript as SubIcon,
   Superscript as SupIcon,
@@ -26,7 +24,12 @@ import {
   ChevronDown,
   Type,
   AudioLines,
+  BookA,
+  Sparkles,
+  Copy,
+  X,
 } from "lucide-react";
+import { useT } from "@/i18n/react";
 import type { Template } from "@/lib/templates";
 import { FONTS } from "@/lib/templates";
 import { BLOCK_VARIANTS } from "@/extensions/blocks";
@@ -34,6 +37,8 @@ import { SCREENPLAY_ELEMENTS, setScreenplayElement } from "@/extensions/screenpl
 import type { InputMode } from "@/extensions/manglish";
 import { Select } from "@/components/ui/Select";
 import { boldIsOn } from "@/extensions/bold";
+import { HighlightTool, TextColorTool } from "./ColorTools";
+import { MalayalamLayoutPicker } from "./KeyboardTools";
 
 function Btn({
   onClick,
@@ -68,13 +73,11 @@ function Btn({
 
 const Sep = () => <span className="mx-1 h-5 w-px shrink-0 bg-line" aria-hidden />;
 
-const COLORS = ["#1a2220", "#1d5a52", "#a17a28", "#a3372b", "#2b4c8c", "#6b3d8f"];
-const HIGHLIGHTS = ["#fbeaa6", "#d8e8e3", "#f6d6cf", "#dbe4f6"];
 
 export function InputModeSwitch({ mode, onChange }: { mode: InputMode; onChange: (m: InputMode) => void }) {
   const opts: [InputMode, string, string][] = [
     ["manglish", "Manglish", "Type in English letters, get Malayalam (Ctrl/⌘ + M to switch)"],
-    ["malayalam", "മലയാളം", "Use your own Malayalam keyboard (InScript, Mozhi, Swanalekha…)"],
+    ["malayalam", "മലയാളം", "Type Malayalam: Litma's InScript keyboard, or your device's own Malayalam keyboard"],
     ["english", "English", "Plain English typing"],
   ];
   return (
@@ -155,6 +158,7 @@ export function Toolbar({
       </Btn>
       <Sep />
       <InputModeSwitch mode={mode} onChange={onMode} />
+      {mode === "malayalam" && <MalayalamLayoutPicker editor={e} size={variant === "sheet" ? "md" : "sm"} />}
       <Sep />
 
       {!inScreenplay && (
@@ -240,30 +244,8 @@ export function Toolbar({
         <SubIcon size={16} />
       </Btn>
 
-      <details className="relative shrink-0">
-        <summary className="grid h-8 min-w-8 cursor-pointer list-none place-items-center rounded-md hover:bg-subtle" title="Text colour and highlight" aria-label="Colour">
-          <span className="flex flex-col items-center">
-            <Highlighter size={15} />
-          </span>
-        </summary>
-        <div className="absolute left-0 top-9 z-40 w-48 rounded-lg border border-line bg-paper p-3 shadow-lg">
-          <div className="mb-1.5 text-xs text-muted">Text colour</div>
-          <div className="flex gap-1.5">
-            {COLORS.map((c) => (
-              <button key={c} className="h-6 w-6 rounded-full border border-line" style={{ background: c }} aria-label={`Colour ${c}`} onMouseDown={(ev) => ev.preventDefault()} onClick={() => chain().setColor(c).run()} />
-            ))}
-          </div>
-          <div className="mb-1.5 mt-3 text-xs text-muted">Highlight</div>
-          <div className="flex gap-1.5">
-            {HIGHLIGHTS.map((c) => (
-              <button key={c} className="h-6 w-6 rounded border border-line" style={{ background: c }} aria-label={`Highlight ${c}`} onMouseDown={(ev) => ev.preventDefault()} onClick={() => chain().toggleHighlight({ color: c }).run()} />
-            ))}
-          </div>
-          <button className="mt-3 text-xs text-accent underline" onMouseDown={(ev) => ev.preventDefault()} onClick={() => chain().unsetColor().unsetHighlight().run()}>
-            Clear colours
-          </button>
-        </div>
-      </details>
+      <TextColorTool editor={e} size={variant} />
+      <HighlightTool editor={e} size={variant} />
       <Btn title="Clear formatting" onClick={() => chain().unsetAllMarks().run()}>
         <RemoveFormatting size={16} />
       </Btn>
@@ -320,9 +302,6 @@ export function Toolbar({
           </Btn>
         </>
       )}
-      <Btn title="Page break (Ctrl+Enter)" onClick={() => chain().insertPageBreak().run()}>
-        <SeparatorHorizontal size={16} />
-      </Btn>
       <Sep />
       <Btn title="Convert selected Manglish to Malayalam (Ctrl+Shift+M)" onClick={() => chain().convertSelectionToMalayalam().run()} disabled={e.state.selection.empty}>
         <Languages size={16} />
@@ -362,6 +341,8 @@ export function MobileFormatStrip({
   onMode,
   onMore,
   onDone,
+  onLookUp,
+  onAskAI,
 }: {
   editor: Editor;
   template: Template;
@@ -369,7 +350,12 @@ export function MobileFormatStrip({
   onMode: (m: InputMode) => void;
   onMore: () => void;
   onDone: () => void;
+  /** open the dictionary for the selected word (keeps the selection, hides the keyboard) */
+  onLookUp: () => void;
+  /** open the AI companion on the selection */
+  onAskAI: () => void;
 }) {
+  const t = useT();
   const e = editor;
   const chain = () => e.chain().focus();
   const parentName = e.state.selection.$from.parent.type.name;
@@ -432,12 +418,71 @@ export function MobileFormatStrip({
           </B>
         )}
       </div>
-      <B t="All formatting" on={onMore}>
+      <span className="mx-0.5 h-6 w-px shrink-0 bg-line" aria-hidden />
+      <B t={t("mobile.lookUp")} on={onLookUp}>
+        <BookA size={18} />
+      </B>
+      <B t={t("mobile.askAI")} on={onAskAI}>
+        <Sparkles size={18} />
+      </B>
+      <B t={t("mobile.allFormatting")} on={onMore}>
         <Type size={18} />
       </B>
-      <B t="Hide keyboard" on={onDone}>
+      <B t={t("mobile.hideKeyboard")} on={onDone}>
         <ChevronDown size={20} />
       </B>
+    </div>
+  );
+}
+
+/**
+ * Phones: a floating bar for the current selection, above the keyboard strip or the tab bar.
+ * Look up and Ask AI keep the selection (see extensions/keep-selection.ts) and close the keyboard,
+ * so the sheet that opens has the whole screen and still knows which words you chose.
+ */
+export function MobileSelectionBar({ editor, onLookUp, onAskAI, onClear }: { editor: Editor; onLookUp: () => void; onAskAI: () => void; onClear: () => void }) {
+  const t = useT();
+  const e = editor;
+  const keep = (ev: React.MouseEvent | React.PointerEvent) => ev.preventDefault();
+  const { from, to } = e.state.selection;
+  const text = e.state.doc.textBetween(from, to, " ").trim();
+  const isWord = text.length > 0 && text.length <= 40 && text.split(/\s+/).length <= 3;
+  const Item = ({ label, on, act, children }: { label: string; on: () => void; act?: boolean; children: React.ReactNode }) => (
+    <button
+      type="button"
+      onPointerDown={keep}
+      onMouseDown={keep}
+      onClick={on}
+      aria-label={label}
+      aria-pressed={act}
+      className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors ${act ? "bg-accent-soft text-accent" : "text-ink active:bg-subtle"}`}
+    >
+      {children}
+    </button>
+  );
+  return (
+    <div className="pop-in no-print mx-2 mb-2 flex items-center gap-0.5 overflow-x-auto rounded-full border border-line bg-surface p-1 shadow-[var(--pop-shadow)] scrollbar-none" role="toolbar" aria-label={t("mobile.selection")}>
+      {isWord && (
+        <Item label={t("mobile.lookUp")} on={onLookUp}>
+          <BookA size={16} /> {t("mobile.lookUp")}
+        </Item>
+      )}
+      <Item label={t("mobile.askAI")} on={onAskAI}>
+        <Sparkles size={16} /> {t("mobile.askAI")}
+      </Item>
+      <span className="mx-0.5 h-5 w-px shrink-0 bg-line" aria-hidden />
+      <Item label="Bold" on={() => e.chain().focus().toggleSmartBold().run()} act={boldIsOn(e)}>
+        <Bold size={16} />
+      </Item>
+      <Item label="Italic" on={() => e.chain().focus().toggleItalic().run()} act={e.isActive("italic")}>
+        <Italic size={16} />
+      </Item>
+      <Item label="Copy" on={() => navigator.clipboard?.writeText(e.state.doc.textBetween(from, to, "\n"))}>
+        <Copy size={16} />
+      </Item>
+      <Item label={t("common.close")} on={onClear}>
+        <X size={16} />
+      </Item>
     </div>
   );
 }

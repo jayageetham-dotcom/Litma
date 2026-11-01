@@ -2,6 +2,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { InkLoader } from "@/components/ui/Skeleton";
 import { ArrowDown, ArrowLeft, ArrowUp, Camera, ExternalLink, FileText, GripVertical, ListOrdered, Loader2, PanelTop, Plus, Printer, Settings2, X } from "lucide-react";
 import { useScreen } from "@/lib/useLayout";
 import { Select } from "@/components/ui/Select";
@@ -91,7 +92,7 @@ function BookEditor() {
   }, [flush]);
 
   const docMap = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs]);
-  if (book === undefined) return <Loader2 className="mx-auto mt-24 animate-spin text-muted" />;
+  if (book === undefined) return <InkLoader label="loading.book" />;
   if (!book)
     return (
       <div className="mx-auto max-w-md px-5 pt-24 text-center">
@@ -127,7 +128,7 @@ function BookEditor() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <header className="safe-top flex items-center gap-1.5 border-b border-line bg-header px-2 py-1.5 sm:gap-3 sm:px-4 sm:py-2">
+      <header className="flex items-center gap-1.5 border-b border-line bg-header px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] sm:gap-3 sm:px-4 sm:py-2">
         <Link href="/desk/" className="btn btn-ghost !p-2" aria-label="Back to desk">
           <ArrowLeft size={18} />
         </Link>

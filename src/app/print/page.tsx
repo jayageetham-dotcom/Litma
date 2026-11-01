@@ -1,7 +1,8 @@
 "use client";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Loader2, Printer } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
+import { PagesSkeleton } from "@/components/ui/Skeleton";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { paginate, type PageSpec, type Section } from "@/lib/paginate";
@@ -92,7 +93,7 @@ function PrintView() {
         In the print dialog choose <b>Save as PDF</b>, margins <b>None</b>, and turn on <b>Background graphics</b> for covers.
       </p>
       {error && <p className="mx-auto mt-10 max-w-md text-center text-danger">{error}</p>}
-      {!state && !error && <Loader2 className="mx-auto mt-16 animate-spin text-muted" />}
+      {!state && !error && <PagesSkeleton />}
       <div className="pp-root py-8" style={{ zoom: pages === null ? 1 : zoom }}>
         {state?.book && hasCover && <CoverFront book={state.book} w={state.spec.w} h={state.spec.h} className="pp-cover" />}
         <div ref={root} className="pp-root" />

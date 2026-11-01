@@ -1,0 +1,27 @@
+{
+  "id": "ml-inscript",
+  "name": "Malayalam InScript (Enhanced)",
+  "standard": "Enhanced InScript, Government of India (BIS IS 16350:2016), as shipped in Windows, macOS and Linux",
+  "notes": "Keys are KeyboardEvent.code values (physical positions on a US/QWERTY keyboard). AltGr = Right Alt, or Ctrl+Alt on Windows. ] after a consonant + ് makes the atomic chillu (ൻ ർ ൽ ൾ ൺ ൿ).",
+  "base": {
+    "Backquote": "ൊ", "Equal": "ൃ",
+    "KeyQ": "ൌ", "KeyW": "ൈ", "KeyE": "ാ", "KeyR": "ീ", "KeyT": "ൂ", "KeyY": "ബ", "KeyU": "ഹ", "KeyI": "ഗ", "KeyO": "ദ", "KeyP": "ജ", "BracketLeft": "ഡ", "BracketRight": "‍",
+    "KeyA": "ോ", "KeyS": "േ", "KeyD": "്", "KeyF": "ി", "KeyG": "ു", "KeyH": "പ", "KeyJ": "ര", "KeyK": "ക", "KeyL": "ത", "Semicolon": "ച", "Quote": "ട",
+    "KeyZ": "െ", "KeyX": "ം", "KeyC": "മ", "KeyV": "ന", "KeyB": "വ", "KeyN": "ല", "KeyM": "സ", "Slash": "യ"
+  },
+  "shift": {
+    "Backquote": "ഒ", "Digit3": "്ര", "Digit4": "ര്", "Digit5": "ജ്ഞ", "Digit6": "ത്ര", "Digit7": "ക്ഷ", "Digit8": "ശ്ര", "Minus": "ഃ", "Equal": "ഋ",
+    "KeyQ": "ഔ", "KeyW": "ഐ", "KeyE": "ആ", "KeyR": "ഈ", "KeyT": "ഊ", "KeyY": "ഭ", "KeyU": "ങ", "KeyI": "ഘ", "KeyO": "ധ", "KeyP": "ഝ", "BracketLeft": "ഢ", "BracketRight": "ഞ",
+    "KeyA": "ഓ", "KeyS": "ഏ", "KeyD": "അ", "KeyF": "ഇ", "KeyG": "ഉ", "KeyH": "ഫ", "KeyJ": "റ", "KeyK": "ഖ", "KeyL": "ഥ", "Semicolon": "ഛ", "Quote": "ഠ",
+    "KeyZ": "എ", "KeyX": "ഁ", "KeyC": "ണ", "KeyB": "ഴ", "KeyN": "ള", "KeyM": "ശ", "Comma": "ഷ"
+  },
+  "altgr": {
+    "Digit1": "൧", "Digit2": "൨", "Digit3": "൩", "Digit4": "₹", "Digit5": "൫", "Digit6": "൬", "Digit7": "൭", "Digit8": "൮", "Digit9": "൯", "Digit0": "൦",
+    "KeyR": "ൠ", "KeyF": "ഌ", "Equal": "ൄ", "KeyX": "ഀ", "Backslash": "‌",
+    "KeyV": "ൻ", "KeyJ": "ർ", "KeyN": "ൽ", "KeyK": "ൿ", "KeyC": "ൺ"
+  },
+  "altgrShift": {
+    "KeyN": "ൾ", "Digit4": "൪", "KeyX": "ൎ", "Period": "഻", "KeyD": "ഽ"
+  },
+  "chillu": { "ണ്": "ൺ", "ന്": "ൻ", "ര്": "ർ", "ല്": "ൽ", "ള്": "ൾ", "ക്": "ൿ" }
+}

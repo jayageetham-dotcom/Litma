@@ -2,6 +2,7 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey, EditorState } from "@tiptap/pm/state";
 import { Decoration, DecorationSet, EditorView } from "@tiptap/pm/view";
 import { manglish, manglishWord, MANGLISH_WORD_RE } from "@/shared/manglish";
+import { LAYOUTS, keyToText, readLayout, storeLayout, type MalayalamLayout } from "@/keyboards";
 
 export type InputMode = "manglish" | "malayalam" | "english";
 
@@ -34,6 +35,8 @@ declare module "@tiptap/core" {
       setInputMode: (mode: InputMode) => ReturnType;
       commitManglish: (index?: number) => ReturnType;
       convertSelectionToMalayalam: () => ReturnType;
+      setMalayalamLayout: (layout: MalayalamLayout) => ReturnType;
+      typeMalayalamKey: (text: string) => ReturnType;
     };
   }
 }
@@ -80,7 +83,23 @@ function commit(view: EditorView, index?: number): boolean {
   return true;
 }
 
-export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: InputMode }>({
+/** Insert text from a Malayalam layout; "]" (ZWJ) after consonant + ് becomes the atomic chillu. */
+function typeLayoutText(view: EditorView, text: string): boolean {
+  const { state } = view;
+  const { from, to, empty } = state.selection;
+  if (text === "\u200d" && empty && from >= 2) {
+    const before = state.doc.textBetween(from - 2, from, undefined, "￼");
+    const chillu = LAYOUTS.inscript.chillu[before];
+    if (chillu) {
+      view.dispatch(state.tr.insertText(chillu, from - 2, from).scrollIntoView());
+      return true;
+    }
+  }
+  view.dispatch(state.tr.insertText(text, from, to).scrollIntoView());
+  return true;
+}
+
+export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: InputMode; layout: MalayalamLayout }>({
   name: "manglish",
   priority: 1000,
 
@@ -89,7 +108,7 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
   },
 
   addStorage() {
-    return { mode: this.options.defaultMode };
+    return { mode: this.options.defaultMode, layout: typeof window === "undefined" ? "inscript" : readLayout() };
   },
 
   addCommands() {
@@ -101,6 +120,17 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
           if (dispatch) tr.setMeta(manglishKey, { reset: true });
           return true;
         },
+      setMalayalamLayout:
+        (layout) =>
+        () => {
+          this.storage.layout = layout;
+          storeLayout(layout);
+          return true;
+        },
+      typeMalayalamKey:
+        (text) =>
+        ({ view }) =>
+          typeLayoutText(view, text),
       commitManglish:
         (index) =>
         ({ view }) =>
@@ -144,6 +174,20 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
   addProseMirrorPlugins() {
     const ext = this;
     return [
+      // Built-in Malayalam keyboard (InScript): maps physical keys when the system layout types English
+      new Plugin({
+        key: new PluginKey("malayalamKeyboard"),
+        props: {
+          handleKeyDown(view, event) {
+            if (ext.storage.mode !== "malayalam" || ext.storage.layout === "system" || event.isComposing) return false;
+            const layout = LAYOUTS[ext.storage.layout];
+            const text = layout && keyToText(layout, event);
+            if (text == null) return false;
+            event.preventDefault();
+            return typeLayoutText(view, text);
+          },
+        },
+      }),
       new Plugin<ComposeState>({
         key: manglishKey,
         state: {

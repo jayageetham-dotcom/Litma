@@ -28,7 +28,9 @@ import {
   Type,
 } from "lucide-react";
 import { buildExtensions } from "./extensions";
-import { MobileFormatStrip, Toolbar } from "./Toolbar";
+import { MobileFormatStrip, MobileSelectionBar, Toolbar } from "./Toolbar";
+import { keepSelectionNow } from "@/extensions/keep-selection";
+import { TextSelection } from "@tiptap/pm/state";
 import { Sheet } from "@/components/ui/Sheet";
 import { useKeyboardInset, useScreen } from "@/lib/useLayout";
 import { ManglishPopup } from "./ManglishPopup";
@@ -38,6 +40,7 @@ import { store } from "@/lib/store";
 import { templateFor } from "@/lib/templates";
 import type { DocSettings, LitmaDoc } from "@/lib/types";
 import { countWords, readingMinutes, aksharas } from "@/shared/manglish";
+import { stripPageBreaks } from "@/extensions/blocks";
 import { MM, PAGE_GAP_PX, PAGE_SIZES, geometryFor, paginationKey, remeasurePages } from "@/extensions/pagination";
 import { metreKey, searchKey } from "@/extensions/tools";
 import type { InputMode } from "@/extensions/manglish";
@@ -129,7 +132,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   const editor = useEditor({
     extensions,
-    content: startContent?.content ?? initial.content,
+    content: stripPageBreaks(startContent?.content ?? initial.content),
     immediatelyRender: false,
     // phones: don't pop the keyboard (and hide the tab bar) just because a work opened
     autofocus: typeof window !== "undefined" && window.innerWidth < 768 ? false : "end",
@@ -492,9 +495,22 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     setPanel(id);
   };
   const hideKeyboard = () => {
+    // remember the selection first: phones collapse it when the keyboard goes away
+    if (editor && !editor.state.selection.empty) keepSelectionNow(editor.view);
     (document.activeElement as HTMLElement | null)?.blur();
     editor?.commands.blur();
   };
+  /** phones: open a tool on the current selection with the keyboard out of the way */
+  const openWithSelection = (id: PanelId) => {
+    hideKeyboard();
+    openPanel(id);
+  };
+  const clearSelection = () => {
+    if (!editor) return;
+    const { to } = editor.state.selection;
+    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, to)));
+  };
+  const showSelectionBar = phone && !focus && !!editor && !editor.state.selection.empty && !panel && !phoneSheet && !storyOpen;
 
   return (
     <div className={`flex h-dvh flex-col ${focus ? "focus-shell" : ""}`}>
@@ -502,7 +518,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
       {/* ── Top bar ── */}
       {!focus && (
-        <header className="no-print safe-top flex items-center gap-1 border-b border-line bg-header px-2 py-1.5 md:gap-2 md:px-3 md:py-2">
+        <header className="no-print flex items-center gap-1 border-b border-line bg-header px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] md:gap-2 md:px-3 md:py-2">
           <button onClick={goToDesk} className="btn btn-ghost !p-2" title="Back to desk" aria-label="Back to desk">
             <ArrowLeft size={phone ? 20 : 18} />
           </button>
@@ -632,25 +648,6 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                   </div>
                 ))}
                 <EditorContent editor={editor} className="page-content" />
-                {/* the gap between two sheets: hover to insert a blank page there */}
-                {!focus &&
-                  editor &&
-                  Array.from({ length: stats.pages - 1 }, (_, i) => (
-                    <div key={`gap-${i}`} className="page-gap no-print group/gap absolute inset-x-0 z-10 flex items-center justify-center" style={{ top: (i + 1) * (pageH + PAGE_GAP_PX) - PAGE_GAP_PX, height: PAGE_GAP_PX }}>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          const at = paginationKey.getState(editor.state)?.breaks[i]?.pos;
-                          if (at != null) editor.chain().focus().insertPageAt(at).run();
-                        }}
-                        className="flex items-center gap-1 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-muted opacity-0 shadow-sm transition-opacity hover:text-accent focus-visible:opacity-100 group-hover/gap:opacity-100 [@media(hover:none)]:opacity-100"
-                        aria-label={`Insert a blank page between pages ${i + 1} and ${i + 2}`}
-                      >
-                        <Plus size={13} /> Insert page
-                      </button>
-                    </div>
-                  ))}
               </div>
             </div>
             {editor && <ManglishPopup editor={editor} />}
@@ -700,24 +697,24 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
       {/* ── Phone: bottom sheets ── */}
       {phone && panel && editor && (
-        <Sheet mode="sheet" title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+        <Sheet mode="sheet" bottomOffset={kb} title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
           {panelBody(panel)}
         </Sheet>
       )}
       {phone && phoneSheet === "format" && editor && (
-        <Sheet mode="sheet" title="Format" onClose={() => setPhoneSheet(null)}>
+        <Sheet mode="sheet" bottomOffset={kb} title="Format" onClose={() => setPhoneSheet(null)}>
           <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => { setPhoneSheet(null); setFindOpen(true); }} variant="sheet" metre={metreToggle} />
         </Sheet>
       )}
       {phone && phoneSheet === "outline" && editor && (
-        <Sheet mode="sheet" title="Contents" onClose={() => setPhoneSheet(null)}>
+        <Sheet mode="sheet" bottomOffset={kb} title="Contents" onClose={() => setPhoneSheet(null)}>
           <div onClickCapture={(e) => (e.target as HTMLElement).closest("button") && setTimeout(() => setPhoneSheet(null), 120)}>
             <OutlinePanel editor={editor} title={false} />
           </div>
         </Sheet>
       )}
       {phone && phoneSheet === "more" && (
-        <Sheet mode="sheet" title="More" onClose={() => setPhoneSheet(null)}>
+        <Sheet mode="sheet" bottomOffset={kb} title="More" onClose={() => setPhoneSheet(null)}>
           <div className="grid grid-cols-4 gap-1.5">
             {PANELS.filter((p) => !["story", "dict"].includes(p.id)).map((p) => (
               <Tile key={p.id} icon={p.icon} label={p.short} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />
@@ -750,9 +747,25 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       {/* ── Phone: keyboard accessory while writing, tab bar otherwise ── */}
       {phone && !focus && editor && (editing ? (
         <div className={kb ? "fixed inset-x-0 z-40" : ""} style={kb ? { bottom: kb } : undefined}>
-          <MobileFormatStrip editor={editor} template={template} mode={mode} onMode={changeMode} onMore={() => { hideKeyboard(); setPhoneSheet("format"); }} onDone={hideKeyboard} />
+          {showSelectionBar && <MobileSelectionBar editor={editor} onLookUp={() => openWithSelection("dict")} onAskAI={() => openWithSelection("ai")} onClear={clearSelection} />}
+          <MobileFormatStrip
+            editor={editor}
+            template={template}
+            mode={mode}
+            onMode={changeMode}
+            onMore={() => { hideKeyboard(); setPhoneSheet("format"); }}
+            onDone={hideKeyboard}
+            onLookUp={() => openWithSelection("dict")}
+            onAskAI={() => openWithSelection("ai")}
+          />
         </div>
       ) : (
+        <div className="relative">
+        {showSelectionBar && (
+          <div className="absolute inset-x-0 bottom-full">
+            <MobileSelectionBar editor={editor} onLookUp={() => openWithSelection("dict")} onAskAI={() => openWithSelection("ai")} onClear={clearSelection} />
+          </div>
+        )}
         <nav className="no-print safe-bottom grid grid-cols-5 border-t border-line bg-paper" aria-label="Writing tools">
           <TabBtn icon={Type} label="Format" active={phoneSheet === "format"} onClick={() => { setPanel(null); setPhoneSheet(phoneSheet === "format" ? null : "format"); }} />
           <TabBtn icon={ListTree} label="Contents" active={phoneSheet === "outline"} onClick={() => { setPanel(null); setPhoneSheet(phoneSheet === "outline" ? null : "outline"); }} />
@@ -760,11 +773,12 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           <TabBtn icon={BookA} label="Dictionary" active={panel === "dict"} onClick={() => openPanel(panel === "dict" ? null : "dict")} />
           <TabBtn icon={MoreHorizontal} label="More" active={phoneSheet === "more"} badge={inboxCount} onClick={() => { setPanel(null); setPhoneSheet(phoneSheet === "more" ? null : "more"); }} />
         </nav>
+        </div>
       ))}
 
       {/* ── Status bar ── */}
       {(!phone || focus) && (
-        <footer className="no-print safe-bottom flex items-center gap-4 border-t border-line bg-paper px-4 py-1.5 text-[12px] text-muted">
+        <footer className="no-print flex items-center gap-4 border-t border-line bg-paper px-4 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] text-[12px] text-muted">
           {focus && (
             <button className="btn btn-ghost !px-2 !py-0.5 !text-xs" onClick={() => setFocus(false)}>
               <Minimize2 size={13} /> Exit focus

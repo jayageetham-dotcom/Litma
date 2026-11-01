@@ -27,7 +27,9 @@ export function DictionaryPanel({ editor }: { editor: Editor }) {
         query={word}
         pickLabel="Click a word to put it in your text (replaces the selection)."
         onPick={(w) => {
-          editor.chain().focus().insertContent(w).run();
+          // touch screens: don't pop the keyboard back up just to place a word
+          const touch = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
+          (touch ? editor.chain() : editor.chain().focus()).insertContent(w).run();
         }}
       />
     </div>

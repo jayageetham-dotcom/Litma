@@ -7,6 +7,7 @@ import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { settingsFor } from "@/lib/templates";
 import type { LitmaDoc } from "@/lib/types";
+import { EditorSkeleton } from "@/components/ui/Skeleton";
 
 function Writer() {
   const id = useSearchParams().get("id") ?? "";
@@ -31,21 +32,14 @@ function Writer() {
         </Link>
       </div>
     );
-  if (!doc)
-    return (
-      <div className="grid h-dvh place-items-center text-muted" aria-busy="true">
-        <span className="animate-pulse" style={{ fontFamily: "'Anek Malayalam'" }}>
-          താൾ തുറക്കുന്നു…
-        </span>
-      </div>
-    );
+  if (!doc) return <EditorSkeleton />;
   return <Workspace key={doc.id} initial={doc} />;
 }
 
 export default function WritePage() {
   return (
     <RequireAuth>
-      <Suspense>
+      <Suspense fallback={<EditorSkeleton />}>
         <Writer />
       </Suspense>
     </RequireAuth>

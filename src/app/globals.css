@@ -21,6 +21,8 @@
   --color-highlight: var(--highlight);
   --color-highlight-soft: var(--highlight-soft);
   --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-line-strong: var(--line-strong);
   --font-sans: var(--font-ui);
   --font-display: var(--font-display);
 }
@@ -92,8 +94,17 @@ body {
   transform: scale(0.98);
 }
 .btn:disabled {
-  opacity: 0.45;
   cursor: not-allowed;
+}
+/* filled buttons turn into a quiet grey chip when disabled instead of a washed-out black */
+.btn-primary:disabled,
+.btn-accent:disabled {
+  background: var(--disabled-bg);
+  color: var(--disabled-ink);
+}
+.btn-outline:disabled,
+.btn-ghost:disabled {
+  color: var(--disabled-ink);
 }
 .btn-primary {
   background: var(--primary);
@@ -109,6 +120,13 @@ body {
 .btn-accent:hover:not(:disabled) {
   opacity: 0.9;
 }
+.btn-danger {
+  background: var(--danger);
+  color: var(--danger-ink);
+}
+.btn-danger:hover:not(:disabled) {
+  opacity: 0.9;
+}
 .btn-ghost {
   color: var(--ink);
 }
@@ -116,7 +134,7 @@ body {
   background: var(--subtle);
 }
 .btn-outline {
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   background: var(--surface);
   color: var(--ink);
 }
@@ -125,7 +143,7 @@ body {
 }
 .field {
   width: 100%;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   background: var(--surface);
   color: var(--ink);
   border-radius: var(--radius-sm);
@@ -176,6 +194,120 @@ body {
   button:disabled {
     cursor: not-allowed;
   }
+}
+
+/* ── Motion and loading (see components/ui/Skeleton.tsx) ── */
+@keyframes litma-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+.skeleton {
+  background-color: var(--subtle);
+  background-image: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--surface) 70%, transparent) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: litma-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes litma-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: litma-fade 0.35s ease-out both;
+}
+@keyframes litma-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.pop-in {
+  animation: litma-pop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes litma-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+.sheet-up {
+  animation: litma-sheet-up 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* the nib writing a line: draws, holds, lifts, again */
+@keyframes litma-ink-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  55%,
+  75% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+.ink-line path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: litma-ink-draw 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes litma-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.ink-dot {
+  display: inline-block;
+  animation: litma-dot 1.6s ease-in-out infinite;
+}
+.ink-dots > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  animation: litma-dot 1.1s ease-in-out infinite;
+}
+.ink-dots > span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.ink-dots > span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes litma-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ink-spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-top-color: currentColor;
+  animation: litma-spin 0.7s linear infinite;
+  flex: none;
 }
 
 /* ── Landing: writing-type showcase ── */

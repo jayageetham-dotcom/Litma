@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Select } from "@/components/ui/Select";
 import type { Editor } from "@tiptap/react";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Camera, GripVertical, Loader2, Plus, Trash2, X } from "lucide-react";
 import { store } from "@/lib/store";
 import { BEAT_COLORS, FIELDS, defaultGroups, isBlankItem, tabsFor, type StoryTab, type StoryItem, type StoryKind } from "@/lib/story";
@@ -100,7 +101,7 @@ export function StoryWorld({
 
   return (
     <div className="no-print fixed inset-0 z-50 flex flex-col bg-canvas" role="dialog" aria-modal="true" aria-label="Story World">
-      <header className="safe-top flex items-center gap-3 border-b border-line bg-header px-5 py-3">
+      <header className="flex items-center gap-3 border-b border-line bg-header px-5 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-bold" style={{ fontFamily: "'Anek Malayalam'" }}>
             കഥാലോകം <span className="text-sm font-normal text-muted">Story World · {doc.title}</span>
@@ -129,9 +130,9 @@ export function StoryWorld({
       </nav>
 
       <main className="scrollbar-thin flex-1 overflow-y-auto px-5 py-6">
-        {error && <p className="mb-4 rounded-lg bg-danger/10 px-4 py-2 text-sm text-danger">{error}</p>}
+        {error && <p className="mb-4 rounded-lg bg-danger-soft px-4 py-2 text-sm text-danger">{error}</p>}
         {!items ? (
-          <Loader2 className="animate-spin text-muted" />
+          <ListSkeleton rows={5} />
         ) : tab.kind === "report" ? (
           <Reports doc={doc} content={content} items={items} />
         ) : tab.kind === "beat" ? (

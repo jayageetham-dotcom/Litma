@@ -10,7 +10,7 @@
  *    bg-primary text-primary-ink           ← main buttons
  *    text-accent bg-accent-soft border-accent ring-accent   ← links, selection, active
  *    text-highlight bg-highlight-soft      ← writing-type labels, badges, goals
- *    text-danger bg-danger
+ *    text-danger bg-danger bg-danger-soft  border-line-strong (fields and controls)
  *    .brand-text  .brand-bar               ← the logo colour and its accent line
  *
  *  Light values sit in :root, dark values in .dark. Change a hex here and the
@@ -29,8 +29,9 @@
 
   /* Text and lines */
   --ink: #111113;
-  --muted: #6b6b76;
-  --line: #e2e2e6;
+  --muted: #55555f; /* secondary text: 7.4:1 on surface, 6.2:1 on subtle (WCAG AA ≥ 4.5) */
+  --line: #e2e2e6; /* dividers and card edges (decorative) */
+  --line-strong: #8b8b96; /* edges of fields and controls: ≥ 3:1 against surface and canvas (WCAG 1.4.11) */
 
   /* Actions */
   --primary: #111113; /* main buttons: ink-black */
@@ -38,9 +39,15 @@
   --accent: #4f46e5; /* indigo ink: links, focus rings, active tabs, selections */
   --accent-ink: #ffffff;
   --accent-soft: #eceefe;
-  --highlight: #c2610c; /* lamplight amber: writing-type labels, badges, goal bars */
+  --highlight: #a84d08; /* lamplight amber: writing-type labels, badges, goal bars (≥ 4.5:1 on white and on highlight-soft) */
   --highlight-soft: #fdf1e3;
-  --danger: #dc2626;
+  --danger: #c81e1e;
+  --danger-soft: #fdecec;
+  --danger-ink: #ffffff;
+
+  /* Disabled controls: readable, clearly inactive (no faded black) */
+  --disabled-bg: #ececee;
+  --disabled-ink: #6b6b76;
 
   /* Menus and dropdowns: hovered row, and the chosen row */
   --option-hover: #f0f0f3;
@@ -81,8 +88,9 @@
   --header: rgba(20, 20, 23, 0.86);
 
   --ink: #ececf0;
-  --muted: #9b9ba6;
+  --muted: #a8a8b3;
   --line: #2a2a30;
+  --line-strong: #6a6a76;
 
   --primary: #f4f4f5;
   --primary-ink: #09090b;
@@ -97,6 +105,10 @@
   --option-selected: #2c2f5c;
   --option-selected-ink: #c7d0ff;
   --danger: #f87171;
+  --danger-soft: #3a1717;
+  --danger-ink: #1a0505;
+  --disabled-bg: #26262c;
+  --disabled-ink: #9b9ba6;
 
   --demo-stage: #0d0d10;
   --demo-dots: rgba(165, 180, 252, 0.06);

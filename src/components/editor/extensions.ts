@@ -17,6 +17,7 @@ import { PageBreak, StyledBlock } from "@/extensions/blocks";
 import { ScreenplayKeys, ScreenplayNodes } from "@/extensions/screenplay";
 import { Metre, Search, Typewriter } from "@/extensions/tools";
 import { SmartBold } from "@/extensions/bold";
+import { KeepSelection } from "@/extensions/keep-selection";
 import type { DocKind, DocSettings } from "@/lib/types";
 
 const VARIANT_PLACEHOLDER: Record<string, string> = {
@@ -78,6 +79,7 @@ export function buildExtensions(kind: DocKind, settings: DocSettings, inputMode:
       },
     }),
     Manglish.configure({ defaultMode: inputMode }),
+    KeepSelection,
     Pagination.configure({ geometry: geometryFor(settings.pageSize, settings.margins) }),
     PageBreak,
     StyledBlock,

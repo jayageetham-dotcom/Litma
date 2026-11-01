@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { Copy, KeyRound, Trash2 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
+import { LanguagePicker } from "@/components/LanguagePicker";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { AppHeader } from "@/components/AppHeader";
 import { RequireAuth } from "@/lib/auth";
 import { MCP_DIRECT_URL, MCP_URL } from "@/lib/config";
@@ -49,6 +51,8 @@ function Settings() {
       <AppHeader />
       <main className="mx-auto max-w-3xl space-y-12 px-5 pb-24 pt-4">
         <h1 className="text-3xl font-bold">Settings</h1>
+
+        <LanguagePicker />
 
         <AIKeys />
 
@@ -220,7 +224,12 @@ function AIKeys() {
           <b>Have Claude Pro or Max?</b> You don’t need an API key. Add the Litma connector to Claude (see <b>MCP</b> below). Without a key, the editor’s AI panel asks before opening Claude with a ready request; Claude reads your work and its answer comes back to the Assistant inbox, on your Claude plan.
         </p>
       )}
-      <div className="mt-5 space-y-4">
+      {cloud && keys === null && (
+        <div className="mt-5 rounded-xl bg-paper p-4" style={{ boxShadow: "var(--sheet-shadow)" }}>
+          <ListSkeleton rows={3} />
+        </div>
+      )}
+      <div className={`mt-5 space-y-4 ${cloud && keys === null ? "hidden" : "fade-in"}`}>
         {PROVIDERS.map((p) => {
           const s = saved(p.id);
           return (
@@ -275,7 +284,7 @@ function AIKeys() {
                   title="Model (optional)"
                 />
                 <button className="btn btn-primary justify-center" disabled={busy === p.id || !draft[p.id]?.key}>
-                  {busy === p.id ? "Saving…" : "Save key"}
+                  {busy === p.id ? <><span className="ink-spinner" aria-hidden /> Saving…</> : "Save key"}
                 </button>
               </form>
               <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">

@@ -4,7 +4,9 @@ import { Select } from "@/components/ui/Select";
 import type { Editor } from "@tiptap/react";
 import type { JSONContent } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
-import { Check, Copy, CornerDownLeft, History, Inbox, Loader2, RotateCcw, Square, X } from "lucide-react";
+import { InkDots, ListSkeleton } from "@/components/ui/Skeleton";
+import { MalayalamKeyboardSettings } from "./KeyboardTools";
+import { Check, Copy, CornerDownLeft, History, Inbox, RotateCcw, Square, X } from "lucide-react";
 import { AI_ACTIONS, type AIAction } from "@/shared/ai-prompts";
 import { store } from "@/lib/store";
 import { aiStream, listAiKeys, type AIProvider } from "@/lib/functions";
@@ -402,7 +404,7 @@ export function AIPanel({ editor, kind, docId, title, onOpenInbox }: { editor: E
             ) : (
               out
             )}
-            {busy && !out && <Loader2 size={16} className="animate-spin text-muted" />}
+            {busy && !out && <InkDots className="py-1.5" />}
           </div>
           <div className="flex flex-wrap gap-1 border-t border-line p-1.5">
             {busy ? (
@@ -602,7 +604,7 @@ export function HistoryPanel({ editor, doc, onSnapshot }: { editor: Editor; doc:
         <button className="btn btn-primary !px-2.5 !py-1.5 !text-xs">Save</button>
       </form>
       {!versions ? (
-        <Loader2 size={16} className="animate-spin text-muted" />
+        <ListSkeleton rows={4} />
       ) : versions.length === 0 ? (
         <p className="text-sm text-muted">Litma saves a version automatically every 10 minutes while you write. Press Ctrl+S to save one now.</p>
       ) : (
@@ -671,6 +673,7 @@ const GUIDE: [string, string][] = [
 export function KeysPanel({ editor }: { editor: Editor }) {
   return (
     <div className="space-y-4">
+      <MalayalamKeyboardSettings editor={editor} />
       {PALETTE.map(([label, keys]) => (
         <div key={label}>
           <div className="mb-1 text-xs text-muted">{label}</div>

@@ -59,8 +59,14 @@ export function Sheet({
     );
 
   return (
-    <div className="no-print fixed inset-x-0 top-0 z-50 flex flex-col justify-end bg-black/35" style={{ bottom: bottomOffset }} onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
-      <div className="scrollbar-thin max-h-[78dvh] overflow-y-auto rounded-t-2xl bg-surface px-4 pb-6 pt-2 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    // phones: the sheet always sits above the on-screen keyboard (bottomOffset = keyboard height),
+    // so a search field inside it never ends up hidden behind the keys
+    <div className="fade-in no-print fixed inset-x-0 top-0 z-50 flex flex-col justify-end bg-black/35" style={{ bottom: bottomOffset }} onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
+      <div
+        className="sheet-up scrollbar-thin overflow-y-auto overscroll-contain rounded-t-2xl bg-surface px-4 pt-2 shadow-2xl"
+        style={{ maxHeight: bottomOffset ? `calc(100dvh - ${bottomOffset}px - 3rem)` : "78dvh", paddingBottom: bottomOffset ? "1rem" : "max(1.5rem, env(safe-area-inset-bottom))" }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-line" aria-hidden />
         {head}
         {children}

@@ -62,28 +62,16 @@ function outerHeight(el: HTMLElement) {
 function measure(view: EditorView, geo: PageGeometry) {
   const breaks: { pos: number; height: number }[] = [];
   let used = 0;
-  let forceNext = false;
   const H = geo.contentHeight;
   view.state.doc.forEach((node, offset) => {
+    if (node.type.name === "pageBreak") return; // legacy, removed by the editor
     const dom = view.nodeDOM(offset) as HTMLElement | null;
     if (!dom || !(dom instanceof HTMLElement)) return;
     const h = outerHeight(dom);
-    if (node.type.name === "pageBreak") {
-      // a break marker always stays at the end of its page (it never overflows onto the next one);
-      // two breaks in a row make an empty page between them
-      if (forceNext && used > 0) {
-        breaks.push({ pos: offset, height: Math.max(0, H - used) + geo.gap });
-        used = 0;
-      }
-      forceNext = true;
-      used += Math.max(h, 1);
-      return;
-    }
-    if ((forceNext && used > 0) || (used + h > H + 0.5 && used > 0)) {
+    if (used + h > H + 0.5 && used > 0) {
       breaks.push({ pos: offset, height: Math.max(0, H - used) + geo.gap });
       used = 0;
     }
-    forceNext = node.type.name === "pageBreak";
     used += h;
     while (used > H) used -= H; // blocks taller than a page simply flow on
   });

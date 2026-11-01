@@ -8,6 +8,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { store } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
+import { useT } from "@/i18n/react";
 
 export function Avatar({ profile, size = 32 }: { profile: Pick<Profile, "avatar_url" | "display_name" | "pen_name"> | null; size?: number }) {
   const name = profile?.pen_name || profile?.display_name || "";
@@ -25,6 +26,7 @@ export function Avatar({ profile, size = 32 }: { profile: Pick<Profile, "avatar_
 /** Top bar for signed-in pages: logo, theme, and the account menu. */
 export function AppHeader({ children }: { children?: React.ReactNode }) {
   const router = useRouter();
+  const t = useT();
   const [profile, setProfile] = useState<(Profile & { email?: string }) | null>(null);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -57,26 +59,26 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
           <Logo href="/desk/" />
         </div>
         <div className="flex items-center gap-1">
-          <Link href="/dictionary/" className="btn btn-ghost !px-2.5 text-sm" title="Malayalam dictionary & thesaurus">
+          <Link href="/dictionary/" className="btn btn-ghost !px-2.5 text-sm" title={t("nav.dictionaryTitle")}>
             <BookA size={17} /> <span className="hidden sm:inline">നിഘണ്ടു</span>
           </Link>
           <ThemeToggle />
           {store.isCloud() ? (
             <div className="relative" ref={ref}>
-              <button className="ml-1 rounded-full ring-offset-2 ring-offset-canvas hover:ring-2 hover:ring-accent" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label="Account menu">
+              <button className="ml-1 rounded-full ring-offset-2 ring-offset-canvas hover:ring-2 hover:ring-accent" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={t("nav.accountMenu")}>
                 <Avatar profile={profile} size={34} />
               </button>
               {open && (
-                <div className="absolute right-0 top-11 z-50 w-60 rounded-xl border border-line bg-paper py-1.5 shadow-xl" role="menu">
+                <div className="pop-in absolute right-0 top-11 z-50 w-60 origin-top-right rounded-xl border border-line bg-surface py-1.5 shadow-[var(--pop-shadow)]" role="menu">
                   <div className="border-b border-line px-4 pb-2.5 pt-1.5">
-                    <div className="truncate font-semibold">{profile?.pen_name || profile?.display_name || "Writer"}</div>
+                    <div className="truncate font-semibold">{profile?.pen_name || profile?.display_name || t("nav.writer")}</div>
                     <div className="truncate text-xs text-muted">{profile?.email}</div>
                   </div>
                   <Link role="menuitem" href="/profile/" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-subtle">
-                    <User size={15} /> Profile
+                    <User size={15} /> {t("nav.profile")}
                   </Link>
                   <Link role="menuitem" href="/settings/" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-subtle">
-                    <Settings size={15} /> Settings &amp; AI
+                    <Settings size={15} /> {t("nav.settings")}
                   </Link>
                   <button
                     role="menuitem"
@@ -86,7 +88,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
                       router.replace("/login/");
                     }}
                   >
-                    <LogOut size={15} /> Sign out
+                    <LogOut size={15} /> {t("nav.signOut")}
                   </button>
                 </div>
               )}

@@ -36,17 +36,17 @@ function ConfirmDialog({ title, body, confirm, danger, onDone }: Opts & { onDone
     return () => window.removeEventListener("keydown", k);
   }, [onDone]);
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 sm:items-center sm:p-4" onClick={() => onDone(false)}>
+    <div className="fade-in fixed inset-0 z-[70] flex items-end justify-center bg-black/45 backdrop-blur-[2px] sm:items-center sm:p-6" onClick={() => onDone(false)}>
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
-        className="safe-bottom w-full rounded-t-2xl bg-paper p-5 shadow-2xl sm:max-w-md sm:rounded-xl"
+        className="pop-in w-full rounded-t-2xl border border-line bg-surface p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-2xl sm:pb-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex gap-3">
           {danger && (
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-danger/10 text-danger">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-danger-soft text-danger">
               <AlertTriangle size={19} />
             </span>
           )}
@@ -57,12 +57,12 @@ function ConfirmDialog({ title, body, confirm, danger, onDone }: Opts & { onDone
             {body && <div className="mt-1.5 text-sm leading-relaxed text-muted">{body}</div>}
           </div>
         </div>
-        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
           <button ref={cancelRef} className="btn btn-outline justify-center !py-2.5 sm:!py-2" onClick={() => onDone(false)}>
             Cancel
           </button>
           <button
-            className={`btn justify-center !py-2.5 sm:!py-2 ${danger ? "bg-danger text-white hover:opacity-90" : "btn-primary"}`}
+            className={`btn justify-center !py-2.5 sm:!py-2 ${danger ? "btn-danger" : "btn-primary"}`}
             onClick={() => onDone(true)}
           >
             {confirm}

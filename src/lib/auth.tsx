@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import { getSupabase } from "./supabase/client";
 import { isSupabaseConfigured } from "./supabase/config";
 import { BASE, appUrl } from "./config";
+import { InkLoader } from "@/components/ui/Skeleton";
 
 /** Current Supabase user (null when signed out; undefined while loading). Local mode returns null. */
 export function useUser() {
@@ -31,13 +32,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
     }
   }, [user, router, path]);
   if (isSupabaseConfigured && !user)
-    return (
-      <div className="grid h-dvh place-items-center text-muted" aria-busy="true">
-        <span className="animate-pulse" style={{ fontFamily: "'Anek Malayalam'" }}>
-          ലിറ്റ്മ…
-        </span>
-      </div>
-    );
+    return <InkLoader />;
   return <>{children}</>;
 }
 

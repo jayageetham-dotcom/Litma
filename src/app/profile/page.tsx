@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, Loader2, Trash2 } from "lucide-react";
+import { FormSkeleton } from "@/components/ui/Skeleton";
 import { MobileNav } from "@/components/MobileNav";
 import { Select } from "@/components/ui/Select";
 import { AppHeader, Avatar } from "@/components/AppHeader";
@@ -86,8 +87,8 @@ function ProfileView() {
 
   if (!p)
     return (
-      <div className="grid h-60 place-items-center text-muted">
-        <Loader2 className="animate-spin" />
+      <div className="pt-6">
+        <FormSkeleton cards={3} />
       </div>
     );
 

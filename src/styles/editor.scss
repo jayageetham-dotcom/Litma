@@ -141,35 +141,9 @@ $mm: 3.7795275591px;
     border-radius: 3px;
   }
 
+  // legacy page breaks are stripped by the editor; never show one
   .page-break {
-    height: 0;
-    margin: 0;
-    border-top: 1px dashed var(--line);
-    position: relative;
-    cursor: pointer;
-    // a taller invisible hit area, so the break can be clicked (then Backspace/Delete removes it)
-    &::before {
-      content: "";
-      position: absolute;
-      inset: -9px 0 -9px 0;
-    }
-    &.ProseMirror-selectednode {
-      border-top: 2px solid var(--accent);
-      &::after {
-        content: "പേജ് ബ്രേക്ക് · Delete ⌫ to remove";
-        color: var(--accent);
-      }
-    }
-    &::after {
-      content: "പേജ് ബ്രേക്ക്";
-      position: absolute;
-      right: 0;
-      top: -0.8em;
-      font: 10px var(--font-ui);
-      color: var(--muted);
-      background: var(--paper);
-      padding: 0 4px;
-    }
+    display: none;
   }
 
   .page-spacer {
@@ -302,6 +276,12 @@ $mm: 3.7795275591px;
     margin: 1.4em 0 0.8em;
   }
 
+  // the selection, kept while a panel or sheet has focus (phones collapse it otherwise)
+  .kept-selection {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    border-radius: 2px;
+  }
+
   // Manglish composition & search
   .manglish-composing {
     background: var(--highlight-soft);
@@ -324,7 +304,8 @@ $mm: 3.7795275591px;
 
 .tpl-novel,
 .tpl-story {
-  .ProseMirror > p {
+  // body paragraphs only: styled blocks (titles, chapters…) are <p class="sb"> and keep their own alignment
+  .ProseMirror > p:not(.sb) {
     text-indent: 1.6em;
     text-align: justify;
     margin: 0 0 0.15em;
@@ -341,11 +322,13 @@ $mm: 3.7795275591px;
   }
 }
 
+// Feature, essay and diary read like Google Docs: ragged-right body text, so short Malayalam
+// lines never open wide gaps between words. Writers can still justify a paragraph from the toolbar.
 .tpl-essay,
 .tpl-feature,
 .tpl-diary {
-  .ProseMirror > p {
-    text-align: justify;
+  .ProseMirror > p:not(.sb) {
+    text-align: start;
   }
 }
 
@@ -730,7 +713,7 @@ $mm: 3.7795275591px;
     margin-top: 5mm;
   }
 }
-.pp-plain .pp-flow.ProseMirror > p {
+.pp-plain .pp-flow.ProseMirror > p:not(.sb) {
   text-align: justify;
 }
 .pp-cover {

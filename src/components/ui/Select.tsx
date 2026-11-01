@@ -213,7 +213,7 @@ export function Select({ value, onChange, options, label, labelClassName, placeh
         onMouseDown={preventFocusSteal ? (e) => e.preventDefault() : undefined}
         onClick={() => (open ? close() : openList())}
         onKeyDown={onKeyDown}
-        className={`inline-flex shrink-0 items-center justify-between border border-line bg-paper text-left text-ink transition-colors hover:border-[color-mix(in_srgb,var(--accent)_45%,var(--line))] focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_20%,transparent)] disabled:opacity-50 ${open ? "border-accent" : ""} ${sizing} ${className}`}
+        className={`inline-flex shrink-0 items-center justify-between border border-line-strong bg-paper text-left text-ink transition-colors hover:border-[color-mix(in_srgb,var(--accent)_45%,var(--line))] focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_20%,transparent)] disabled:opacity-50 ${open ? "border-accent" : ""} ${sizing} ${className}`}
         style={{ ...selected?.style, ...buttonStyle }}
       >
         <span id={valueId} className={`min-w-0 truncate ${selected ? "" : "text-muted"}`}>

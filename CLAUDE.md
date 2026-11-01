@@ -32,8 +32,12 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 - `supabase/functions/litma-ai` streams Claude/GPT/Gemini with the writer's own key; `litma-transliterate` proxies Google Input Tools.
 
 ## Editor behaviour (keep these working)
-- Pages: `extensions/pagination.ts` measures top-level blocks and inserts spacer decorations; breaks live in `paginationKey` state (`breaks[i].pos` = first block of page i+2). A page-break node always stays at the end of its page; two breaks in a row make an empty page.
-- Insert page: hover the gap between sheets → "+ Insert page" (always visible on touch) → `insertPageAt(pos)` adds `[pageBreak] [empty paragraph] [pageBreak]`. **Backspace** at the start of a page removes the break before it; on an empty inserted page it removes the whole page (Google Docs behaviour, in `PageBreak.addKeyboardShortcuts`). Delete at line end removes a following break. Don't add delete buttons for pages.
+- Pages flow naturally (Google Docs style): `extensions/pagination.ts` measures top-level blocks and inserts spacer decorations; breaks live in `paginationKey` state (`breaks[i].pos` = first block of page i+2). A page exists only while text reaches it, so deleting the last character of a page removes it.
+- **No manual page breaks** (the owner found them annoying): no toolbar button, no Ctrl+Enter, no "Insert page". `pageBreak` stays in the schema only so old documents load; `stripPageBreaks()` cleans stored content and a plugin removes any break that reaches the editor. Don't bring page-break UI back.
+- Feature, essay and diary body text is ragged-right (`text-align: start`) like Google Docs; novel/story keep justified body. Justify/indent rules use `> p:not(.sb)` so styled blocks (title, standfirst…) never inherit them.
+- Text colour and highlight are two tools (`components/editor/ColorTools.tsx`): swatches, a custom colour picker with recent colours, "Automatic" / "None".
+- `extensions/keep-selection.ts` keeps the selection when the editor blurs (phones collapse it when the keyboard closes) and shows it as `.kept-selection`. Phones get a floating selection bar (Look up · Ask AI · B · I · Copy) and Look up / Ask AI buttons in the keyboard strip; sheets take `bottomOffset={kb}` so they sit above the on-screen keyboard.
+- Malayalam input mode has a built-in **Enhanced InScript** keyboard (`src/keyboards/ml-inscript.json`, physical `KeyboardEvent.code` → text; `]` after consonant+് makes the atomic chillu). It only translates ASCII key output, so a system Malayalam keyboard passes through. Layout "system" leaves typing to the device (default on touch screens). Keyboard map popover in `KeyboardTools.tsx`.
 - Bold: `toggleSmartBold` (Ctrl/⌘+B) can un-bold naturally bold blocks (titles, chapters) via `textStyle.fontWeight = "400"`; `boldIsOn()` drives the button state.
 - Alignment buttons show for every writing type; disabled on screenplay scene/dialogue nodes.
 - Metre marks (akshara count, laghu/guru) are hidden by default; toolbar toggle വൃത്തം and Ctrl/⌘+Alt+V, saved as `settings.showMetre`.
@@ -50,8 +54,15 @@ Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`)
 - Beat/plot board columns are saved per work in `settings.beatColumns` (passed from Workspace as `columns`/`onColumns`). Columns: rename in place, remove when empty, drag (desktop) or ← → buttons. Cards: drag (desktop) or ↑ ↓ ← → buttons (always visible on touch).
 - Esc in the card editor closes only the card (capture-phase listener).
 
+## i18n
+- UI strings live in `src/i18n/locales/<code>.json` (en is the source; others fall back to it). Use `useT()` from `@/i18n/react`: `t("desk.newWork")`, `t("common.words", { count })` (plural keys `_one`/`_other`). Add a language by adding a JSON file and a line in `LOCALES` (`src/i18n/index.ts`). The JSON is plain data so Electron and the Flutter app share it. Settings → Language switches it (per device, `litma:locale`). New UI text goes into the JSON files, not inline.
+
+## Loading
+- `components/ui/Skeleton.tsx`: `Skeleton`, `SkeletonLines`, `DeskSkeleton`, `BooksSkeleton`, `EditorSkeleton`, `ListSkeleton`, `FormSkeleton`, `PagesSkeleton`, `InkLoader` (full screen: a nib writing a line under ലിറ്റ്മ), `InkDots`; CSS `.skeleton`, `.ink-spinner`, `.fade-in`, `.pop-in`, `.sheet-up` in globals.css. Shape skeletons like the content that is coming; don't use bare spinners.
+
 ## Design system
 - **All tokens live in `src/styles/theme.css`** (light in `:root`, dark in `.dark`): canvas · surface · subtle · paper · header · ink · muted · line · primary · accent (indigo) · highlight (amber) · danger, option-hover/selected, demo-*, plus radius, shadows, fonts and the solid `--brand` / `--brand-mark`. Edit there to restyle the app.
+- Contrast: text tokens meet WCAG AA (muted ≥ 6:1, highlight ≥ 4.5:1 on its soft background); `--line` is for decorative dividers, `--line-strong` (≥ 3:1) for field, select and outline-button edges. Disabled filled buttons use `--disabled-bg/-ink`, not opacity. Danger buttons: `.btn-danger`.
 - Use the generated classes (`bg-surface`, `text-accent`, `bg-primary text-primary-ink`, `text-highlight`…); never hard-code colours in components. Buttons: `.btn` + `btn-primary` (ink-black) / `btn-accent` (indigo) / `btn-outline` / `btn-ghost`. Top bars: `.app-bar` (sticky, translucent) or `bg-header`.
 - **No gradients** (the owner rejected Instagram-like ones): the logo is solid ink `ലിറ്റ്മ` with an indigo dot (`.brand-text`), thin accent lines `.brand-bar`.
 - The document page uses `--paper` so writing stays black on white; colour belongs to the chrome, not the text. Page thumbnails (`.tpl-preview`) are ragged-right so tiny justified lines don't look gappy.

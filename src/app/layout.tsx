@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "@/styles/editor.scss";
+import { I18nProvider } from "@/i18n/react";
 
 export const metadata: Metadata = {
   title: "Litma · മലയാളം എഴുത്തുമേശ",
@@ -37,7 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/icon.svg`} type="image/svg+xml" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-dvh">{children}</body>
+      <body className="min-h-dvh">
+        <I18nProvider>{children}</I18nProvider>
+      </body>
     </html>
   );
 }

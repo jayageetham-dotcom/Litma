@@ -1,73 +1,47 @@
 import { Node, mergeAttributes } from "@tiptap/core";
-import { TextSelection } from "@tiptap/pm/state";
 
-/** Hard page break — forces the next block onto a new A4 page (and a new printed page). */
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import type { JSONContent } from "@tiptap/core";
+
+/**
+ * Legacy hard page break. Pages now flow naturally (like Google Docs), so writers never see
+ * or insert breaks. The node stays in the schema only so older documents still load; any
+ * break that reaches the editor (old content, paste, an assistant edit) is removed at once.
+ */
 export const PageBreak = Node.create({
   name: "pageBreak",
   group: "block",
   atom: true,
-  selectable: true,
+  selectable: false,
   parseHTML: () => [{ tag: "div[data-page-break]" }],
   renderHTML: ({ HTMLAttributes }) => ["div", mergeAttributes(HTMLAttributes, { "data-page-break": "", class: "page-break" })],
-  addCommands() {
-    return {
-      insertPageBreak:
-        () =>
-        ({ chain }) =>
-          chain().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(),
-      insertPageAt:
-        (pos: number) =>
-        ({ state, chain }) => {
-          // a blank page at the boundary `pos` (the start of a page): …page N [break] new page [break] page N+1…
-          const before = state.doc.resolve(pos).nodeBefore;
-          const nodes = [...(before?.type.name === "pageBreak" ? [] : [{ type: "pageBreak" }]), { type: "paragraph" }, { type: "pageBreak" }];
-          const firstPara = pos + (before?.type.name === "pageBreak" ? 0 : 1) + 1;
-          return chain().insertContentAt(pos, nodes).setTextSelection(firstPara).scrollIntoView().run();
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey("stripPageBreaks"),
+        appendTransaction(trs, _old, state) {
+          if (!trs.some((t) => t.docChanged)) return null;
+          const found: { pos: number; size: number }[] = [];
+          state.doc.forEach((node, offset) => {
+            if (node.type.name === "pageBreak") found.push({ pos: offset, size: node.nodeSize });
+          });
+          if (!found.length) return null;
+          const tr = state.tr;
+          for (const f of found.reverse()) tr.delete(f.pos, f.pos + f.size);
+          return tr.setMeta("addToHistory", false);
         },
-    };
-  },
-  addKeyboardShortcuts() {
-    return {
-      "Mod-Enter": () => this.editor.commands.insertPageBreak(),
-      // Like Google Docs: Backspace at the very start of a page removes the break before it.
-      // On an empty inserted page (empty line between two breaks) it removes the whole page.
-      Backspace: ({ editor }) => {
-        const { state } = editor;
-        const { selection } = state;
-        if (!selection.empty) return false;
-        const { $from } = selection;
-        if ($from.depth !== 1 || $from.parentOffset !== 0) return false;
-        const blockStart = $from.before(1);
-        const before = state.doc.resolve(blockStart).nodeBefore;
-        if (before?.type.name !== "pageBreak") return false;
-        const block = $from.parent;
-        const blockEnd = $from.after(1);
-        const after = state.doc.resolve(blockEnd).nodeAfter;
-        const tr = state.tr;
-        if (block.content.size === 0 && after?.type.name === "pageBreak") {
-          // empty page between two breaks: drop the empty line and the break after it
-          tr.delete(blockStart, blockEnd + after.nodeSize);
-        }
-        tr.delete(blockStart - before.nodeSize, blockStart);
-        // cursor to the end of the text before the removed break
-        const pos = Math.max(0, blockStart - before.nodeSize);
-        tr.setSelection(TextSelection.near(tr.doc.resolve(pos), -1));
-        editor.view.dispatch(tr.scrollIntoView());
-        return true;
-      },
-      // Delete at the very end of a line removes a page break that follows it
-      Delete: ({ editor }) => {
-        const { state } = editor;
-        const { $from, empty } = state.selection;
-        if (!empty || $from.depth !== 1 || $from.parentOffset !== $from.parent.content.size) return false;
-        const after = state.doc.resolve($from.after(1)).nodeAfter;
-        if (after?.type.name !== "pageBreak") return false;
-        editor.view.dispatch(state.tr.delete($from.after(1), $from.after(1) + after.nodeSize));
-        return true;
-      },
-    };
+      }),
+    ];
   },
 });
+
+/** Drop legacy page breaks from stored content before it reaches the editor. */
+export function stripPageBreaks<T extends JSONContent | null | undefined>(doc: T): T {
+  if (!doc || !Array.isArray(doc.content)) return doc;
+  const content = doc.content.filter((n) => n.type !== "pageBreak");
+  if (content.length === doc.content.length) return doc;
+  return { ...doc, content: content.length ? content : [{ type: "paragraph" }] } as T;
+}
 
 /**
  * Literary block variants — one node, many roles. Each template exposes the
@@ -132,7 +106,6 @@ export const StyledBlock = Node.create({
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
-    pageBreak: { insertPageBreak: () => ReturnType; insertPageAt: (pos: number) => ReturnType };
     styledBlock: { setStyledBlock: (variant: string) => ReturnType };
   }
 }

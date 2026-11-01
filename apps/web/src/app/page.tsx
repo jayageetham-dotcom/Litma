@@ -1,11 +1,9 @@
-import Link from "next/link";
-import { Logo } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { TryManglish } from "@/components/TryManglish";
 import { TypesShowcase } from "@/components/landing/TypesShowcase";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Marquee } from "@/components/landing/Marquee";
-import { FooterCta, HeroActions, HomeNav } from "@/components/HomeActions";
+import { HeroActions } from "@/components/HomeActions";
+import { ColourField, LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
 import { DesktopDownload } from "@/components/landing/DesktopDownload";
 
 const display = { fontFamily: "var(--font-display)" };
@@ -36,42 +34,15 @@ const FEATURES: { ml: string; title: string; body: React.ReactNode; dot: string;
   { ml: "കൂട്ട്", title: "AI that reads along", dot: "bg-sky", hover: "group-hover:text-sky", body: "Ask Claude, GPT or Gemini to continue, polish or translate, or connect any AI assistant over MCP." },
 ];
 
-const NAV = [
-  { href: "#types", label: "Writing types" },
-  { href: "#how", label: "How it works" },
-  { href: "#desk", label: "Features" },
-];
-
 export default function Home() {
   return (
-    <div className="landing min-h-dvh overflow-x-clip bg-mist" style={{ fontFamily: "var(--font-landing)" }}>
-      {/* ── floating pill nav ── */}
-      <header className="fixed inset-x-0 top-0 z-40 px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:px-4 sm:pt-[calc(env(safe-area-inset-top)+1rem)]">
-        <nav aria-label="Main" className="bg-header mx-auto flex max-w-6xl items-center justify-between gap-2 rounded-full border border-line py-1.5 pl-4 pr-1.5 shadow-[var(--pop-chip-shadow)] sm:py-2 sm:pl-5 sm:pr-2 [&_.btn]:!rounded-full">
-          <Logo />
-          <div className="hidden items-center gap-7 text-sm font-semibold text-muted lg:flex">
-            {NAV.map((n) => (
-              <a key={n.href} href={n.href} className="transition hover:text-ink">
-                {n.label}
-              </a>
-            ))}
-          </div>
-          <div className="flex items-center gap-1 sm:gap-1.5">
-            <ThemeToggle className="max-sm:!hidden" />
-            <HomeNav />
-          </div>
-        </nav>
-      </header>
+    <div className="landing min-h-dvh overflow-x-clip bg-mist">
+      <LandingNav />
 
       <main>
         {/* ── Hero ── */}
         <section className="relative overflow-hidden pb-24 pt-32 md:pb-32 md:pt-44">
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            <div className="absolute -left-32 -top-40 size-[34rem] rounded-full bg-violet/30 blur-[110px]" />
-            <div className="absolute right-[-10rem] top-20 size-[30rem] rounded-full bg-coral/30 blur-[110px]" />
-            <div className="absolute bottom-[-12rem] left-1/3 size-[28rem] rounded-full bg-lime/50 blur-[120px] dark:bg-lime/20" />
-            <div className="dot-grid absolute inset-0 text-ink/[0.06] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]" />
-          </div>
+          <ColourField />
 
           <div className="relative mx-auto max-w-7xl px-5 md:px-10">
             <p className="mb-8 inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 py-1.5 pl-1.5 pr-4 text-xs font-bold text-muted backdrop-blur">
@@ -85,7 +56,7 @@ export default function Home() {
               <span className="hero-line">എഴുതൂ,</span>
               <span className="hero-line pb-2" style={{ animationDelay: "140ms" }}>
                 <span className="relative isolate inline-block text-violet-text">
-                  <span aria-hidden className="absolute inset-x-[-0.08em] bottom-[0.12em] -z-10 h-[0.32em] -rotate-1 rounded-[0.12em] bg-lime dark:bg-lime/35" />
+                  <span aria-hidden className="absolute inset-x-[-0.08em] bottom-[0.12em] -z-10 h-[0.32em] -rotate-1 rounded-[0.12em] bg-lime" />
                   മലയാളത്തിൽ
                 </span>
                 <span className="text-coral">.</span>
@@ -141,31 +112,7 @@ export default function Home() {
         <DesktopDownload variant="pop" />
       </main>
 
-      <footer className="on-night bg-night">
-        <div className="mx-auto max-w-7xl px-5 pb-10 pt-20 md:px-10">
-          <FooterCta />
-          <div className="mt-16 flex flex-wrap items-end justify-between gap-6 border-t border-line pt-8">
-            <div>
-              <Logo />
-              <p className="mt-2 text-sm text-muted" style={display}>
-                മലയാളം എഴുത്തുമേശ
-              </p>
-            </div>
-            <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-muted" aria-label="Footer">
-              <Link href="/download/" className="hover:text-lime">
-                Download
-              </Link>
-              <Link href="/dictionary/" className="hover:text-lime">
-                Dictionary
-              </Link>
-              <Link href="/login/" className="hover:text-lime">
-                Sign in
-              </Link>
-              <ThemeToggle />
-            </nav>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }

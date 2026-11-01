@@ -2,9 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Apple, ArrowRight, Check, Download, Globe, Monitor, RefreshCw, ShieldCheck, Smartphone } from "lucide-react";
-import { Logo } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { HomeNav } from "@/components/HomeActions";
+import { ColourField, LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
 import { MobileNav } from "@/components/MobileNav";
 import { StoreBadges } from "@/components/StoreBadges";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -46,25 +44,24 @@ export default function DownloadPage() {
   };
 
   return (
-    <div className="min-h-dvh">
-      <header className="app-bar">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-5 py-2.5">
-          <Logo />
-          <nav className="flex items-center gap-1.5 sm:gap-2">
-            <ThemeToggle />
-            <HomeNav />
-          </nav>
-        </div>
-      </header>
+    <div className="landing min-h-dvh overflow-x-clip bg-mist">
+      <LandingNav />
 
       <main>
         {/* ── Hero: the right download for this device ── */}
-        <section className="mx-auto max-w-6xl px-5 pb-14 pt-12 text-center md:pt-20">
-          <p className="text-sm font-semibold text-highlight">{t("download.kicker")}</p>
-          <h1 className="mx-auto mt-3 max-w-3xl text-[2.6rem] font-extrabold leading-[1.1] tracking-tight md:text-6xl">
+        <section className="relative overflow-hidden pb-24 pt-32 text-center md:pt-44">
+          <ColourField />
+          <div className="relative mx-auto max-w-6xl px-5">
+          <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 py-1.5 pl-1.5 pr-4 text-xs font-bold uppercase tracking-[0.16em] text-muted backdrop-blur">
+            <span className="grid size-6 place-items-center rounded-full bg-lime text-on-pop">
+              <Download size={13} aria-hidden />
+            </span>
+            {t("download.kicker")}
+          </p>
+          <h1 className="mx-auto mt-6 max-w-4xl text-[2.8rem] font-extrabold leading-[1.05] tracking-tight md:text-7xl" style={{ fontFamily: "var(--font-display)" }}>
             {platform ? t("download.heroTitle", { platform: name[platform] }) : t("download.heroTitleAny")}
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-muted">{t("download.heroBody")}</p>
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted md:text-xl">{t("download.heroBody")}</p>
 
           <div className="mt-9 flex min-h-[72px] flex-col items-center gap-3">
             {inApp ? (
@@ -76,7 +73,7 @@ export default function DownloadPage() {
             ) : desktopOs ? (
               links[desktopOs] ? (
                 <>
-                  <a href={links[desktopOs]!} onClick={() => start(desktopOs)} className="btn btn-primary !rounded-xl !px-7 !py-4 !text-lg">
+                  <a href={links[desktopOs]!} onClick={() => start(desktopOs)} className="btn btn-primary !px-8 !py-4 !text-lg">
                     <Download size={22} aria-hidden /> {t(desktopOs === "mac" ? "download.mac" : "download.windows")}
                   </a>
                   <p className="text-sm text-muted">
@@ -100,7 +97,7 @@ export default function DownloadPage() {
             ) : (
               <>
                 <p className="max-w-md text-muted">{t("download.linuxSoon")}</p>
-                <Link href="/desk/" className="btn btn-primary !rounded-xl !px-6 !py-3.5">
+                <Link href="/desk/" className="btn btn-primary !px-7 !py-3.5">
                   <Globe size={18} aria-hidden /> {t("download.useWeb")}
                 </Link>
               </>
@@ -121,17 +118,21 @@ export default function DownloadPage() {
               </p>
             )}
           </div>
+          </div>
         </section>
 
         {/* ── Every platform ── */}
-        <section className="border-y border-line bg-surface py-14">
-          <div className="mx-auto max-w-6xl px-5">
-            <h2 className="text-2xl font-bold">{t("download.allTitle")}</h2>
-            <p className="mt-1 text-muted">{t("download.allBody")}</p>
-            <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="bg-surface py-24 md:py-28">
+          <div className="mx-auto max-w-7xl px-5 md:px-10">
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-violet-text">{t("download.allTitle")}</p>
+            <h2 className="text-4xl font-extrabold leading-[1.15] md:text-5xl" style={{ fontFamily: "var(--font-display)" }}>
+              എല്ലായിടത്തും. <span className="text-ink/40">{t("download.allBody")}</span>
+            </h2>
+            <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               <PlatformCard
                 icon={Apple}
                 title="Mac"
+                fill="bg-violet text-night-ink"
                 detail={t("download.macReq")}
                 current={platform === "mac"}
                 loading={release === undefined}
@@ -142,6 +143,7 @@ export default function DownloadPage() {
               <PlatformCard
                 icon={Monitor}
                 title="Windows"
+                fill="bg-sky text-on-pop"
                 detail={t("download.winReq")}
                 current={platform === "win"}
                 loading={release === undefined}
@@ -152,6 +154,7 @@ export default function DownloadPage() {
               <PlatformCard
                 icon={Smartphone}
                 title="iPhone & iPad"
+                fill="bg-coral text-on-pop"
                 detail={t("download.iosReq")}
                 current={platform === "ios"}
                 action={<StoreBadges only="ios" className="[&>*]:w-full" />}
@@ -161,6 +164,7 @@ export default function DownloadPage() {
               <PlatformCard
                 icon={Smartphone}
                 title="Android"
+                fill="bg-lime text-on-pop"
                 detail={t("download.androidReq")}
                 current={platform === "android"}
                 action={<StoreBadges only="android" className="[&>*]:w-full" />}
@@ -168,15 +172,18 @@ export default function DownloadPage() {
                 soon={t("download.soon")}
               />
             </ul>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-paper px-5 py-4">
-              <div className="flex items-center gap-3">
-                <Globe size={20} className="text-accent" aria-hidden />
+            <div className="on-night relative mt-5 flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-[2rem] bg-night px-6 py-6 sm:px-8">
+              <div aria-hidden className="dot-grid absolute inset-0 text-night-ink/[0.06]" />
+              <div className="relative flex items-center gap-4">
+                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-lime text-on-pop">
+                  <Globe size={22} aria-hidden />
+                </span>
                 <div>
-                  <div className="font-semibold">{t("download.webTitle")}</div>
+                  <div className="text-lg font-extrabold">{t("download.webTitle")}</div>
                   <div className="text-sm text-muted">{t("download.webBody")}</div>
                 </div>
               </div>
-              <Link href="/desk/" className="btn btn-outline">
+              <Link href="/desk/" className="btn relative bg-night-ink !px-5 !py-3 text-on-pop hover:bg-lime">
                 {t("download.useWeb")} <ArrowRight size={16} aria-hidden />
               </Link>
             </div>
@@ -184,13 +191,13 @@ export default function DownloadPage() {
         </section>
 
         {/* ── Install steps (follows the download) ── */}
-        <section ref={helpRef} id="install" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-14">
-          <div className="grid gap-10 md:grid-cols-[1.2fr_1fr]">
+        <section ref={helpRef} id="install" className="mx-auto max-w-7xl scroll-mt-28 px-5 py-24 md:px-10 md:py-28">
+          <div className="grid gap-14 md:grid-cols-[1.2fr_1fr]">
             <div>
-              <h2 className="text-2xl font-bold">{t("download.installTitle")}</h2>
-              <div className="mt-4 inline-flex rounded-lg bg-subtle p-0.5 text-sm" role="tablist">
+              <h2 className="text-3xl font-extrabold md:text-4xl" style={{ fontFamily: "var(--font-display)" }}>{t("download.installTitle")}</h2>
+              <div className="mt-5 inline-flex rounded-full border border-line bg-surface p-1 text-sm" role="tablist">
                 {(["mac", "win"] as const).map((p) => (
-                  <button key={p} role="tab" aria-selected={helpFor === p} onClick={() => setHelpFor(p)} className={`rounded-md px-3.5 py-1.5 ${helpFor === p ? "bg-paper font-semibold text-accent shadow-sm" : "text-muted hover:text-ink"}`}>
+                  <button key={p} role="tab" aria-selected={helpFor === p} onClick={() => setHelpFor(p)} className={`rounded-full px-4 py-1.5 font-semibold ${helpFor === p ? "bg-night text-night-ink" : "text-muted hover:text-ink"}`}>
                     {p === "mac" ? "Mac" : "Windows"}
                   </button>
                 ))}
@@ -198,19 +205,19 @@ export default function DownloadPage() {
               <ol className="mt-6 space-y-4">
                 {(helpFor === "mac" ? ["mac1", "mac2", "mac3"] : ["win1", "win2", "win3"]).map((k, i) => (
                   <li key={k} className="fade-in flex gap-4" style={{ animationDelay: `${i * 60}ms` }}>
-                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent">{i + 1}</span>
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-sm font-extrabold text-on-pop">{i + 1}</span>
                     <p className="pt-1 leading-relaxed">{t(`download.steps.${k}` as "download.steps.mac1")}</p>
                   </li>
                 ))}
               </ol>
-              <p className="mt-6 flex items-start gap-2 rounded-xl bg-highlight-soft px-4 py-3 text-sm leading-relaxed">
+              <p className="mt-8 flex items-start gap-3 rounded-2xl bg-tangerine/15 px-5 py-4 text-sm leading-relaxed">
                 <ShieldCheck size={18} className="mt-0.5 shrink-0 text-highlight" aria-hidden />
                 {t("download.unsignedNote")}
               </p>
             </div>
             <div>
-              <h2 className="flex items-center gap-2 text-2xl font-bold">
-                <RefreshCw size={20} className="text-accent" aria-hidden /> {t("download.newTitle")}
+              <h2 className="flex items-center gap-3 text-3xl font-extrabold md:text-4xl" style={{ fontFamily: "var(--font-display)" }}>
+                <span className="grid size-10 place-items-center rounded-2xl bg-violet text-night-ink"><RefreshCw size={18} aria-hidden /></span> {t("download.newTitle")}
               </h2>
               <p className="mt-1 text-sm text-muted">{t("download.autoUpdate")}</p>
               {release?.notes && release.notes.length > 0 ? (
@@ -235,7 +242,7 @@ export default function DownloadPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-line py-8 text-center text-sm text-muted">Litma · മലയാളം എഴുത്തുമേശ</footer>
+      <LandingFooter />
       <MobileNav />
     </div>
   );
@@ -250,6 +257,7 @@ function PlatformCard({
   loading,
   youLabel,
   soon,
+  fill,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   title: string;
@@ -259,14 +267,19 @@ function PlatformCard({
   loading?: boolean;
   youLabel: string;
   soon: string;
+  /** background and text colour classes from the home palette */
+  fill: string;
 }) {
   return (
-    <li className={`relative flex flex-col rounded-2xl border bg-paper p-5 transition-shadow ${current ? "border-accent shadow-[var(--pop-shadow)]" : "border-line"}`}>
-      {current && <span className="absolute right-4 top-4 rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold text-accent-ink">{youLabel}</span>}
-      <Icon size={28} className="text-ink" aria-hidden />
-      <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-      <p className="mt-1 flex-1 text-sm leading-relaxed text-muted">{detail}</p>
-      <div className="mt-5">{loading ? <Skeleton className="h-10 w-full rounded-lg" /> : action ?? <span className="text-sm text-muted">{soon}</span>}</div>
+    <li className={`relative flex flex-col overflow-hidden rounded-[2rem] p-6 transition duration-300 hover:-translate-y-1 ${fill} ${current ? "shadow-[var(--pop-lift-shadow)] ring-4 ring-night" : ""}`}>
+      <div aria-hidden className="dot-grid absolute inset-0 opacity-10" />
+      {current && <span className="absolute right-5 top-5 rounded-full bg-night px-2.5 py-1 text-[11px] font-bold text-night-ink">{youLabel}</span>}
+      <span className="relative grid size-12 place-items-center rounded-2xl bg-night text-night-ink">
+        <Icon size={24} aria-hidden />
+      </span>
+      <h3 className="relative mt-6 text-2xl font-extrabold">{title}</h3>
+      <p className="relative mt-1.5 flex-1 text-sm leading-relaxed opacity-80">{detail}</p>
+      <div className="relative mt-6">{loading ? <Skeleton className="h-11 w-full rounded-full" /> : action ?? <span className="text-sm font-semibold opacity-80">{soon}</span>}</div>
     </li>
   );
 }

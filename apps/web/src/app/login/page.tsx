@@ -43,7 +43,7 @@ function LoginForm() {
 
   if (!isSupabaseConfigured)
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         <h1 className="text-2xl font-bold">You’re in local mode</h1>
         <p className="text-muted">No Supabase project is connected, so your writing is saved in this browser only.</p>
         <Link href="/desk/" className="btn btn-primary">
@@ -53,7 +53,7 @@ function LoginForm() {
     );
 
   return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
+    <form onSubmit={submit} className="space-y-5" noValidate>
       <div>
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="mt-1 text-sm text-muted">
@@ -73,7 +73,7 @@ function LoginForm() {
         </div>
       )}
       {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
-      <button className="btn btn-primary w-full justify-center !py-2.5" disabled={busy || !email || (!magic && !password)}>
+      <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy || !email || (!magic && !password)}>
         {busy ? "Signing in…" : magic ? "Email me a sign-in link" : "Sign in"}
       </button>
       <button type="button" className="w-full text-center text-sm text-muted underline underline-offset-2 hover:text-ink" onClick={() => setMagic((m) => !m)}>
@@ -91,7 +91,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <AuthShell>
+    <AuthShell switchTo={{ href: "/signup/", label: "Create account" }}>
       <Suspense>
         <LoginForm />
       </Suspense>

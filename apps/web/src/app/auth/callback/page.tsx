@@ -3,6 +3,8 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabase } from "@/lib/supabase/client";
+import { AuthShell } from "@/components/AuthShell";
+import { InkDots } from "@/components/ui/Skeleton";
 import { authMessage, safeNext } from "@/lib/auth";
 
 /** Landing page for email confirmation, magic links, password reset and Google sign-in. */
@@ -27,19 +29,23 @@ function Callback() {
     })();
   }, [params, router, error]);
   return (
-    <div className="grid h-dvh place-items-center px-5 text-center">
+    <AuthShell quote={false}>
       {error ? (
-        <div className="max-w-sm">
-          <h1 className="text-xl font-bold">Couldn’t sign you in</h1>
-          <p className="mt-2 text-muted">{error}</p>
-          <Link href="/login/" className="btn btn-primary mt-6">
+        <div className="space-y-3">
+          <h1>Couldn’t sign you in</h1>
+          <p className="text-muted">{error}</p>
+          <Link href="/login/" className="btn btn-primary mt-3 !px-6 !py-3">
             Back to sign in
           </Link>
         </div>
       ) : (
-        <span className="animate-pulse text-muted">Signing you in…</span>
+        <div className="space-y-3 py-4 text-center" role="status">
+          <InkDots />
+          <h1>സ്വാഗതം.</h1>
+          <p className="text-muted">Signing you in…</p>
+        </div>
       )}
-    </div>
+    </AuthShell>
   );
 }
 

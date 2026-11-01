@@ -9,10 +9,13 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const css = readFileSync(join(root, "apps/web/src/styles/theme.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
 function block(selector) {
-  const m = css.match(new RegExp(`${selector.replace(".", "\\.")}\\s*\\{([\\s\\S]*?)\\n\\}`));
+  // a rule whose selector list includes `selector` (e.g. ":root" in ":root, html:has(.landing)")
   const out = {};
-  if (!m) return out;
-  for (const [, name, value] of m[1].matchAll(/--([\w-]+):\s*([^;]+);/g)) out[name] = value.trim();
+  for (const m of css.matchAll(/(^|\n)([^{}\n][^{}]*?)\{([\s\S]*?)\n\}/g)) {
+    if (!m[2].split(",").map((x) => x.trim()).includes(selector)) continue;
+    for (const [, name, value] of m[3].matchAll(/--([\w-]+):\s*([^;]+);/g)) out[name] = value.trim();
+    return out;
+  }
   return out;
 }
 

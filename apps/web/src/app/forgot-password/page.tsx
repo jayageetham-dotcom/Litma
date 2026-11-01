@@ -11,9 +11,9 @@ export default function ForgotPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "error" | "info"; text: string } | null>(null);
   return (
-    <AuthShell>
+    <AuthShell quote={false} switchTo={{ href: "/login/", label: "Sign in" }}>
       <form
-        className="space-y-4"
+        className="space-y-5"
         onSubmit={async (e) => {
           e.preventDefault();
           const sb = getSupabase();
@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
         <p className="text-sm text-muted">Enter your email and we’ll send a link to choose a new password.</p>
         <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
-        <button className="btn btn-primary w-full justify-center !py-2.5" disabled={busy || !email}>
+        <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy || !email}>
           {busy ? "Sending…" : "Send reset link"}
         </button>
         <Link href="/login/" className="block text-center text-sm text-muted underline underline-offset-2 hover:text-ink">

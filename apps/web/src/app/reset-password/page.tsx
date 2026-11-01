@@ -13,9 +13,9 @@ export default function ResetPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   return (
-    <AuthShell>
+    <AuthShell quote={false}>
       <form
-        className="space-y-4"
+        className="space-y-5"
         onSubmit={async (e) => {
           e.preventDefault();
           if (password.length < 8) return setError("Use a password of at least 8 characters.");
@@ -32,7 +32,7 @@ export default function ResetPasswordPage() {
         <Field label="New password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <Field label="Confirm new password" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
         {error && <Notice kind="error">{error}</Notice>}
-        <button className="btn btn-primary w-full justify-center !py-2.5" disabled={busy || !user}>
+        <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy || !user}>
           {busy ? "Saving…" : "Save password"}
         </button>
       </form>

@@ -14,6 +14,7 @@
  *    .brand-text  .brand-bar               ← the logo colour and its accent line
  *    bg-mist bg-night text-night-ink text-on-pop bg-violet bg-coral bg-lime bg-sky bg-tangerine
  *    text-violet-text text-coral-text      ← the home page palette; .on-night re-maps ink/muted for dark bands
+ *  Public pages (.landing) are always light: see html:has(.landing) below.
  *
  *  Light values sit in :root, dark values in .dark. Change a hex here and the
  *  whole app (editor, desk, book, print chrome) follows. The document page
@@ -21,7 +22,10 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-:root {
+/* Public pages (home, sign-in, sign-up, download…) carry .landing and always use the light
+   values: html:has(.landing) out-ranks .dark, so the writer's dark theme only applies inside the app. */
+:root,
+html:has(.landing) {
   /* Surfaces — neutral, so the writing is the colour on screen */
   --canvas: #f4f4f5; /* app background, the desk behind the pages */
   --surface: #ffffff; /* cards, panels, menus */

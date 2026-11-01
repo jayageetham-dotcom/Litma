@@ -54,7 +54,7 @@ function SignupForm() {
 
   if (sent)
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         <h1 className="text-2xl font-bold">Check your email</h1>
         <p className="text-muted">
           We sent a confirmation link to <b className="text-ink">{email}</b>. Open it to finish creating your account. It takes you straight to your desk.
@@ -67,7 +67,7 @@ function SignupForm() {
     );
 
   return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
+    <form onSubmit={submit} className="space-y-5" noValidate>
       <div>
         <h1 className="text-2xl font-bold">Create your account</h1>
         <p className="mt-1 text-sm text-muted">
@@ -94,7 +94,7 @@ function SignupForm() {
       </div>
       <Field label="Confirm password" type="password" required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} aria-invalid={mismatch} hint={mismatch ? "Doesn't match yet." : undefined} />
       {error && <Notice kind="error">{error}</Notice>}
-      <button className="btn btn-primary w-full justify-center !py-2.5" disabled={busy || !email || !password || !confirm}>
+      <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy || !email || !password || !confirm}>
         {busy ? "Creating account…" : "Create account"}
       </button>
       <div className="flex items-center gap-3 text-xs text-muted">
@@ -110,7 +110,7 @@ function SignupForm() {
 
 export default function SignupPage() {
   return (
-    <AuthShell line={1}>
+    <AuthShell line={1} switchTo={{ href: "/login/", label: "Sign in" }}>
       <Suspense>
         <SignupForm />
       </Suspense>

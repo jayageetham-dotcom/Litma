@@ -2,7 +2,8 @@
 /* All design tokens live in src/styles/theme.css — edit colours, radii and fonts there. */
 @import "../styles/theme.css";
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* dark: utilities apply inside the app only; public pages (.landing) are always light */
+@custom-variant dark (&:where(.dark:not(:has(.landing)), .dark:not(:has(.landing)) *));
 
 @theme inline {
   --color-canvas: var(--canvas);
@@ -503,6 +504,35 @@ body {
 html:has(.landing) {
   scroll-padding-top: 6rem;
   scroll-behavior: smooth;
+}
+/* public pages: violet is the accent, controls are rounded and buttons are pills */
+.landing {
+  --accent: var(--violet-text);
+  --accent-soft: color-mix(in srgb, var(--violet) 12%, var(--surface));
+  --brand-mark: var(--violet);
+  --option-selected-ink: var(--violet-text);
+  font-family: var(--font-landing);
+}
+.landing .btn {
+  border-radius: 999px;
+}
+.landing .btn-primary:not(:disabled) {
+  box-shadow: var(--cta-shadow);
+  transition: background-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.landing .btn-primary:hover:not(:disabled) {
+  background: var(--violet);
+  color: var(--night-ink);
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.landing .field {
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+}
+.landing .field:focus {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--violet) 20%, transparent);
 }
 .landing ::selection {
   background: var(--lime);

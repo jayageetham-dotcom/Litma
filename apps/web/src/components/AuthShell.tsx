@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { Logo } from "./Logo";
-import { ThemeToggle } from "./ThemeToggle";
+import Link from "next/link";
+import { ColourField, LandingNav } from "./landing/LandingChrome";
+import { DownloadNavLink } from "./landing/DesktopDownload";
 
 const LINES: { ml: string; en?: string; by?: string }[] = [
   {
@@ -15,34 +16,71 @@ const LINES: { ml: string; en?: string; by?: string }[] = [
   },
 ];
 
-/** Shared frame for sign-in, sign-up and password screens. */
-export function AuthShell({ children, line = 0 }: { children: React.ReactNode; line?: number }) {
+/** Shared frame for sign-in, sign-up and password screens, in the home page's colourful style (always light). */
+export function AuthShell({
+  children,
+  line = 0,
+  switchTo,
+  quote = true,
+}: {
+  children: React.ReactNode;
+  line?: number;
+  /** the other way in, shown in the nav pill (e.g. Create account on the sign-in screen) */
+  switchTo?: { href: string; label: string };
+  /** false: one centred card, no quote (callback, password reset) */
+  quote?: boolean;
+}) {
   const l = LINES[line % LINES.length];
+  const display = { fontFamily: "var(--font-display)" };
   return (
-    <div className="min-h-dvh">
-      <header className="app-bar">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-2.5">
-        <Logo />
-        <ThemeToggle />
+    <div className="landing relative min-h-dvh overflow-x-clip bg-mist">
+      <ColourField />
+      <LandingNav
+        links={false}
+        right={
+          <>
+            <DownloadNavLink className="max-sm:!hidden" />
+            {switchTo && (
+              <Link href={switchTo.href} className="btn btn-ghost">
+                {switchTo.label}
+              </Link>
+            )}
+          </>
+        }
+      />
+      <main className={`relative mx-auto grid items-center gap-14 px-5 pb-20 pt-28 md:pt-36 ${quote ? "max-w-6xl lg:grid-cols-[minmax(0,27rem)_1fr] lg:gap-20" : "max-w-md"}`}>
+        {/* the form sits on a little stack of coloured sheets, like the demo on the home page */}
+        <div className="relative w-full">
+          <div aria-hidden className="absolute inset-0 translate-x-3 translate-y-4 rotate-2 rounded-[2rem] bg-lime" />
+          <div aria-hidden className="absolute inset-0 -translate-x-2 translate-y-2 -rotate-1 rounded-[2rem] bg-violet" />
+          <div className="relative rounded-[2rem] bg-surface p-7 shadow-[var(--pop-lift-shadow)] sm:p-9 [&_h1]:text-[2rem] [&_h1]:font-extrabold [&_h1]:leading-tight [&_h1]:tracking-tight [&_h1]:[font-family:var(--font-display)]">
+            {children}
+          </div>
         </div>
-      </header>
-      <main className="mx-auto grid max-w-6xl items-start gap-12 px-5 pb-16 pt-6 md:grid-cols-[minmax(0,26rem)_1fr] md:pt-12">
-        <div className="rounded-xl bg-paper p-7" style={{ boxShadow: "var(--sheet-shadow)" }}>
-          {children}
-        </div>
-        <aside className="relative hidden aspect-[210/297] max-h-[560px] justify-self-center bg-paper px-10 pt-14 md:block" style={{ boxShadow: "var(--sheet-shadow)" }} aria-hidden>
-          <div className="brand-bar absolute inset-x-0 top-0" />
-          <p className={`${l.ml.length > 80 ? "text-[1.15rem] leading-[1.9]" : "text-[1.6rem] leading-[1.7]"} text-ink`} style={{ fontFamily: "'Noto Serif Malayalam'" }}>
-            {l.ml}
-          </p>
-          {l.by && (
-            <p className="mt-5 text-right text-[0.95rem] font-semibold text-highlight" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
-              {l.by}
+
+        {quote && (
+          <aside aria-hidden className="relative hidden overflow-hidden rounded-[2.5rem] bg-night px-12 pb-14 pt-16 text-night-ink lg:block">
+            <div className="dot-grid absolute inset-0 text-night-ink/[0.07]" />
+            <div className={`absolute -right-24 -top-24 size-80 rounded-full blur-3xl ${line % 2 ? "bg-coral/40" : "bg-violet/50"}`} />
+            <div className="absolute -bottom-28 -left-16 size-80 rounded-full bg-lime/25 blur-3xl" />
+            <span className="relative block select-none text-[7rem] font-extrabold leading-[0.6] text-coral" style={display}>
+              “
+            </span>
+            <p className={`relative mt-6 ${l.ml.length > 80 ? "text-[1.35rem] leading-[1.75]" : "text-[1.9rem] leading-[1.6]"} font-medium`} style={display}>
+              {l.ml.replace(/^“|”$/g, "")}
             </p>
-          )}
-          {l.en && <p className="mt-3 text-sm text-muted">{l.en}</p>}
-          <span className="absolute bottom-5 left-1/2 -translate-x-1/2 text-xs text-muted">1</span>
-        </aside>
+            {l.by && (
+              <p className="relative mt-8 flex items-center gap-3 text-lg font-bold text-lime" style={display}>
+                <span className="h-0.5 w-10 rounded-full bg-lime" />
+                {l.by}
+              </p>
+            )}
+            {l.en && <p className="relative mt-3 text-sm text-night-ink/70">{l.en}</p>}
+            <span style={{ ["--r" as string]: "6deg" }} className="float-b absolute bottom-6 right-8 rounded-full bg-sky px-4 py-2 text-sm font-extrabold text-on-pop shadow-lg">
+              Manglish → മലയാളം
+            </span>
+          </aside>
+        )}
       </main>
     </div>
   );
@@ -53,7 +91,7 @@ export function Field({ label, hint, type, ...props }: React.InputHTMLAttributes
   const isPassword = type === "password";
   return (
     <label className="block">
-      <span className="mb-1 block text-sm">{label}</span>
+      <span className="mb-1.5 block text-sm font-semibold">{label}</span>
       {isPassword ? (
         <span className="relative block">
           <input className="field !pr-11" type={shown ? "text" : "password"} {...props} />
@@ -63,7 +101,7 @@ export function Field({ label, hint, type, ...props }: React.InputHTMLAttributes
             aria-label={shown ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
             aria-pressed={shown}
             title={shown ? "Hide password" : "Show password"}
-            className="absolute inset-y-0 right-1 my-auto grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-subtle hover:text-ink"
+            className="absolute inset-y-0 right-1.5 my-auto grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-subtle hover:text-ink"
           >
             {shown ? <EyeOff size={17} /> : <Eye size={17} />}
           </button>
@@ -78,7 +116,7 @@ export function Field({ label, hint, type, ...props }: React.InputHTMLAttributes
 
 export function Notice({ kind, children }: { kind: "error" | "info"; children: React.ReactNode }) {
   return (
-    <p role={kind === "error" ? "alert" : "status"} className={`rounded-lg px-3 py-2 text-sm ${kind === "error" ? "bg-danger/10 text-danger" : "bg-accent-soft text-accent"}`}>
+    <p role={kind === "error" ? "alert" : "status"} className={`rounded-2xl px-4 py-2.5 text-sm ${kind === "error" ? "bg-danger/10 text-danger" : "bg-accent-soft text-accent"}`}>
       {children}
     </p>
   );
@@ -86,7 +124,7 @@ export function Notice({ kind, children }: { kind: "error" | "info"; children: R
 
 export function GoogleButton({ onClick, disabled }: { onClick: () => void; disabled?: boolean }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className="btn btn-outline w-full justify-center !py-2.5">
+    <button type="button" onClick={onClick} disabled={disabled} className="btn btn-outline w-full justify-center !py-3">
       <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden>
         <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
         <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />

@@ -81,7 +81,7 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
               {items.map((it) => {
                 const inner = (
                   <>
-                    <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-mist text-ink">
+                    <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-night-ink ring-1 ring-line">
                       <it.icon size={22} />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -157,16 +157,56 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
     );
 
   if (variant === "card")
+    // the desk: a smaller take on the home page's violet download card
     return (
-      <section className="mt-16 flex flex-wrap items-center justify-between gap-6 rounded-2xl border border-line bg-surface p-6 sm:mt-20 sm:p-8" aria-label={t("download.deskTitle")}>
-        <div className="min-w-0 max-w-md">
-          <h2 className="text-lg font-semibold">{t("download.deskTitle")}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted">{t("download.deskBody")}</p>
-          <Link href="/download/" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
-            {t("download.deskMore")} <ArrowRight size={14} aria-hidden />
-          </Link>
+      <section className="relative isolate mt-16 overflow-hidden rounded-[2rem] bg-violet px-6 py-8 text-night-ink sm:mt-20 sm:px-10 sm:py-10" aria-label={t("download.deskTitle")}>
+        <div aria-hidden className="absolute -bottom-24 -right-16 -z-10 size-72 rounded-full bg-lime/30 blur-3xl" />
+        <div aria-hidden className="absolute -left-16 -top-24 -z-10 size-64 rounded-full bg-sky/30 blur-3xl" />
+        <div aria-hidden className="dot-grid absolute inset-0 -z-10 text-night-ink/10" />
+        <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
+          <div>
+            <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-night-ink/85">
+              <span className="size-1.5 rounded-full bg-lime" aria-hidden />
+              {t("download.kicker")}
+            </p>
+            <h2 className="text-2xl font-extrabold leading-tight sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
+              {t("download.deskTitle")}
+            </h2>
+            <p className="mt-3 max-w-md leading-relaxed text-night-ink/85">{t("download.deskBody")}</p>
+            <Link href="/download/" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold underline decoration-lime decoration-2 underline-offset-4 hover:text-lime">
+              {t("download.deskMore")}: iPhone, Android <ArrowRight size={14} aria-hidden />
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {items.map((it) => {
+              const inner = (
+                <>
+                  {/* logos always sit on white, so Apple's black mark shows in both themes */}
+                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-night-ink ring-1 ring-line">
+                    <it.icon size={22} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-bold">{it.label}</span>
+                    <span className="block text-[13px] text-muted group-hover:text-on-pop/70">{it.href ? it.hint : release === undefined ? t("common.loading") : t("download.soon")}</span>
+                  </span>
+                </>
+              );
+              const cls = "group flex items-center gap-4 rounded-2xl bg-surface p-3.5 pr-4 text-ink shadow-lg transition";
+              return it.href ? (
+                <a key={it.id} href={it.href} className={`${cls} hover:-translate-y-0.5 hover:bg-lime hover:text-on-pop`}>
+                  {inner}
+                  <Download size={18} className="shrink-0 opacity-70 transition group-hover:translate-y-0.5 group-hover:opacity-100" aria-hidden />
+                </a>
+              ) : (
+                <span key={it.id} className={cls} aria-disabled="true">
+                  {inner}
+                  <span className="rounded-full bg-subtle px-2.5 py-1 text-[11px] font-bold text-muted">{t("download.soonBadge")}</span>
+                </span>
+              );
+            })}
+            {release?.version && <p className="pl-1 font-mono text-xs text-night-ink/75">v{release.version}</p>}
+          </div>
         </div>
-        {buttons}
       </section>
     );
 

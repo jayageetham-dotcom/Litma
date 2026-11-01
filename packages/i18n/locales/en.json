@@ -36,6 +36,9 @@
     "stats": "{works} · {words}",
     "today": "{n} today",
     "streak": "{n}-day streak",
+    "todayHint": "Words you have written today, across all your works.",
+    "streakHint": "You have written on {n} days in a row. Write a little every day to keep it going.",
+    "wordsHint": "Total words across all your works.",
     "tabs": {
       "works": "Works",
       "books": "Books",

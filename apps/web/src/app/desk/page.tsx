@@ -18,6 +18,7 @@ import { useT } from "@/i18n/react";
 import type { MessageKey, Params } from "@litma/i18n";
 import { DesktopDownload } from "@/components/landing/DesktopDownload";
 import { kindDot } from "@/lib/tints";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { DeskSkeleton, BooksSkeleton, InkLoader } from "@/components/ui/Skeleton";
 
 function timeAgo(iso: string, t: (k: MessageKey, p?: Params) => string) {
@@ -137,12 +138,18 @@ function Desk() {
                   <>
                     <span className="font-medium text-ink">{t("common.works", { count: docs.length })}</span>
                     <span aria-hidden>·</span>
-                    <span>{t("common.words", { count: totalWords })}</span>
+                    <Tooltip label={t("desk.wordsHint")} className="rounded underline decoration-dotted decoration-line-strong underline-offset-4 hover:text-ink">
+                      {t("common.words", { count: totalWords })}
+                    </Tooltip>
                     {today && today.words > 0 && (
-                      <span className="ml-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent">{t("desk.today", { n: today.words })}</span>
+                      <Tooltip label={t("desk.todayHint")} className="ml-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent">
+                        {t("desk.today", { n: today.words })}
+                      </Tooltip>
                     )}
                     {today && today.streak > 1 && (
-                      <span className="rounded-full bg-highlight-soft px-2.5 py-1 text-xs font-medium text-highlight">{t("desk.streak", { n: today.streak })}</span>
+                      <Tooltip label={t("desk.streakHint", { n: today.streak })} className="rounded-full bg-highlight-soft px-2.5 py-1 text-xs font-medium text-highlight">
+                        {t("desk.streak", { n: today.streak })}
+                      </Tooltip>
                     )}
                   </>
                 ) : (

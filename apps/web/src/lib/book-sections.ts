@@ -1,6 +1,6 @@
 "use client";
-import { generateHTML, type JSONContent } from "@tiptap/core";
-import { buildExtensions } from "@/components/editor/extensions";
+import type { JSONContent } from "@tiptap/core";
+import { renderDocHtml } from "./doc-html";
 import { settingsFor } from "./templates";
 import { PAGE_SIZES } from "@/extensions/pagination";
 import type { Book, BookItem, LitmaDoc } from "./types";
@@ -9,8 +9,7 @@ import type { PageSpec, Section } from "./paginate";
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 function docHtml(doc: Pick<LitmaDoc, "kind" | "settings">, content: JSONContent) {
-  const s = { ...settingsFor(doc.kind), ...doc.settings };
-  return generateHTML(content, buildExtensions(doc.kind, s, "english"));
+  return renderDocHtml(doc, content);
 }
 
 function varsFor(font: string, size: number, lh: number): Record<string, string> {

@@ -1,0 +1,19 @@
+"use client";
+import { generateHTML, type JSONContent } from "@tiptap/core";
+import { buildExtensions } from "@/components/editor/extensions";
+import { settingsFor } from "./templates";
+import type { LitmaDoc } from "./types";
+
+/**
+ * A work as HTML for reading, books and print, with the same classes the editor adds live:
+ * paragraphs that start with the writer's own text colour get `own-first-colour`, so a
+ * novel or story drop cap keeps that colour instead of the accent (FirstLetterColour in
+ * extensions/blocks.ts does this in the editor, but plugins don't run in generateHTML).
+ */
+export function renderDocHtml(doc: Pick<LitmaDoc, "kind" | "settings">, content: JSONContent): string {
+  const s = { ...settingsFor(doc.kind), ...doc.settings };
+  const html = generateHTML(content, buildExtensions(doc.kind, s, "english"));
+  return html.replace(/<p((?:\s[^>]*)?)>(?=<span[^>]*\bclass="[^"]*\btc\b)/g, (_m, attrs: string) =>
+    /\bclass="/.test(attrs) ? `<p${attrs.replace(/\bclass="/, 'class="own-first-colour ')}>` : `<p class="own-first-colour"${attrs}>`
+  );
+}

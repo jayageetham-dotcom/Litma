@@ -543,3 +543,9 @@ html:has(.landing) {
   background: var(--lime);
   color: var(--on-pop);
 }
+
+/* Reader view: one continuous sheet; a page the writer inserted is a small pause in the flow */
+.reader-sheet .page-break {
+  display: block !important;
+  height: 2.5em !important;
+}

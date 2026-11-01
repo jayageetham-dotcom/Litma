@@ -19,7 +19,8 @@
     "emails": "node scripts/build-email-templates.mjs",
     "desktop": "npm run build:desktop -w @litma/web && npm run start -w @litma/desktop",
     "desktop:dist": "npm run dist -w @litma/desktop",
-    "desktop:web": "npm run build:desktop -w @litma/web"
+    "desktop:web": "npm run build:desktop -w @litma/web",
+    "release:dry": "node scripts/release.mjs --dry-run"
   },
   "engines": {
     "node": ">=20"

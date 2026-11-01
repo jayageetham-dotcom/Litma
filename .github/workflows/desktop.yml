@@ -1,19 +1,35 @@
 name: 🖥️ Desktop app
 
 # Builds Litma for macOS (.dmg, universal) and Windows (.exe) and publishes them:
-#   - attached to a GitHub release
-#   - uploaded to public_html/litma/downloads/ (add/replace only) with latest.json,
-#     which the home page reads to show the download buttons.
-# Run it by pushing a tag like desktop-v0.1.0, or by hand from the Actions tab.
+#   - attached to the GitHub release for the version
+#   - uploaded to public_html/litma/downloads/ (add/replace only) with latest.json, which
+#     the home page reads for its download buttons and installed desktop apps read to update themselves.
+# Normally run by the Release workflow. Can also run from a pushed tag (v1.2.3 or desktop-v1.2.3)
+# or by hand from the Actions tab.
 
 on:
   push:
-    tags: ["desktop-v*"]
+    tags: ["v[0-9]*", "desktop-v*"]
   workflow_dispatch:
     inputs:
       version:
-        description: "Version (e.g. 0.1.0). Defaults to apps/desktop/package.json"
+        description: "Version (e.g. 0.2.0). Defaults to apps/desktop/package.json"
         required: false
+      min_version:
+        description: "Oldest desktop version still allowed (older apps must update). Leave empty for none"
+        required: false
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      ref:
+        type: string
+        required: true
+      min_version:
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -22,12 +38,27 @@ concurrency:
   group: desktop-release
   cancel-in-progress: false
 
+env:
+  REF: ${{ inputs.ref || github.ref }}
+
 jobs:
   web:
     name: 🌐 Web app for the desktop
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+      - name: Version
+        id: v
+        run: |
+          V="${{ inputs.version }}"
+          if [ -z "$V" ] && [[ "$GITHUB_REF_NAME" =~ ^(desktop-)?v[0-9] ]]; then V="${GITHUB_REF_NAME#desktop-}"; V="${V#v}"; fi
+          if [ -z "$V" ]; then V=$(node -p "require('./apps/desktop/package.json').version"); fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Litma desktop $V"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -36,6 +67,7 @@ jobs:
       - name: Build (empty base path)
         run: npm run build:desktop -w @litma/web
         env:
+          LITMA_VERSION: ${{ steps.v.outputs.version }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://jdexadomaxjtxlvgtldu.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XH6LhcIvUP_ENNbZFrmj7g_Z-YjUzP4' }}
           NEXT_PUBLIC_SITE_URL: https://www.jayageetham.com/litma
@@ -57,6 +89,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -68,11 +102,7 @@ jobs:
           path: apps/web/out
       - name: Set version
         shell: bash
-        run: |
-          V="${{ github.event.inputs.version }}"
-          if [ -z "$V" ] && [[ "$GITHUB_REF_NAME" == desktop-v* ]]; then V="${GITHUB_REF_NAME#desktop-v}"; fi
-          if [ -n "$V" ]; then npm pkg set version="$V" -w @litma/desktop; fi
-          node -p "'Litma desktop ' + require('./apps/desktop/package.json').version"
+        run: npm pkg set version="${{ needs.web.outputs.version }}" -w @litma/desktop
       - name: Build installer
         shell: bash
         working-directory: apps/desktop
@@ -98,32 +128,61 @@ jobs:
 
   publish:
     name: 🚀 Publish
-    needs: package
+    needs: [web, package]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+          fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
           pattern: installer-*
           path: downloads
           merge-multiple: true
-      - name: Version and latest.json
-        id: v
+      - name: Versioned copies, release notes and latest.json
+        env:
+          V: ${{ needs.web.outputs.version }}
+          MIN: ${{ inputs.min_version }}
         run: |
-          V="${{ github.event.inputs.version }}"
-          if [ -z "$V" ] && [[ "$GITHUB_REF_NAME" == desktop-v* ]]; then V="${GITHUB_REF_NAME#desktop-v}"; fi
-          if [ -z "$V" ]; then V=$(node -p "require('./apps/desktop/package.json').version"); fi
-          echo "version=$V" >> "$GITHUB_OUTPUT"
-          printf '{"version":"%s","date":"%s","mac":"Litma-mac.dmg","win":"Litma-win.exe"}\n' "$V" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > downloads/latest.json
-          ls -la downloads
+          cp downloads/Litma-mac.dmg "downloads/Litma-$V-mac.dmg"
+          cp downloads/Litma-win.exe "downloads/Litma-$V-win.exe"
+          # notes: this version's section of CHANGELOG.md (written by the Release workflow)
+          node -e '
+            const fs = require("fs"); const v = process.env.V;
+            const cl = fs.existsSync("CHANGELOG.md") ? fs.readFileSync("CHANGELOG.md", "utf8") : "";
+            const m = cl.match(new RegExp("## " + v.replace(/\./g, "\\.") + "[^\\n]*\\n([\\s\\S]*?)(?=\\n## |$)"));
+            const notes = (m ? m[1] : "").split("\n").map(s => s.replace(/^- /, "").trim()).filter(Boolean).slice(0, 12);
+            fs.writeFileSync("notes.md", notes.map(n => "- " + n).join("\n") || "- Maintenance release");
+            const crypto = require("crypto");
+            const file = (f) => ({ file: f, sha256: crypto.createHash("sha256").update(fs.readFileSync("downloads/" + f)).digest("hex"), size: fs.statSync("downloads/" + f).size });
+            const latest = {
+              version: v,
+              date: new Date().toISOString(),
+              notes,
+              mac: "Litma-" + v + "-mac.dmg",
+              win: "Litma-" + v + "-win.exe",
+              desktop: {
+                version: v,
+                minimumVersion: process.env.MIN || null,
+                mac: file("Litma-" + v + "-mac.dmg"),
+                win: file("Litma-" + v + "-win.exe")
+              },
+              mobile: { version: null, minimumVersion: null, ios: null, android: null }
+            };
+            fs.writeFileSync("downloads/latest.json", JSON.stringify(latest, null, 2) + "\n");
+          '
+          cat downloads/latest.json
       - name: GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: desktop-v${{ steps.v.outputs.version }}
-          name: Litma desktop ${{ steps.v.outputs.version }}
+          tag_name: v${{ needs.web.outputs.version }}
+          name: Litma ${{ needs.web.outputs.version }}
+          body_path: notes.md
           files: |
-            downloads/Litma-mac.dmg
-            downloads/Litma-win.exe
+            downloads/Litma-${{ needs.web.outputs.version }}-mac.dmg
+            downloads/Litma-${{ needs.web.outputs.version }}-win.exe
+            downloads/latest.json
       # Same guard as deploy.yml: public_html also holds the main site and /onnayi.
       - name: 🔒 Refuse to delete files on the server
         run: |
@@ -140,6 +199,10 @@ jobs:
           FTP_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
         run: |
           if [ -z "$FTP_PASSWORD" ]; then echo "::warning::No FTP_PASSWORD secret; skipping the website upload."; exit 0; fi
+          # installers first, latest.json last, so apps never see a version whose files aren't there yet
+          mkdir -p upload-files upload-manifest
+          mv downloads/latest.json upload-manifest/
+          mv downloads/* upload-files/
           for attempt in 1 2 3; do
             if lftp -u "$FTP_USER","$FTP_PASSWORD" ftp.jayageetham.com <<LFTP
           set ftp:ssl-force true
@@ -150,7 +213,8 @@ jobs:
           set net:max-retries 8
           set cmd:fail-exit true
           mkdir -pf ${FTP_DIR%/}/downloads
-          mirror --reverse --ignore-time --no-perms --verbose=1 ./downloads/ ${FTP_DIR%/}/downloads/
+          mirror --reverse --ignore-time --no-perms --verbose=1 ./upload-files/ ${FTP_DIR%/}/downloads/
+          mirror --reverse --ignore-time --no-perms --verbose=1 ./upload-manifest/ ${FTP_DIR%/}/downloads/
           bye
           LFTP
             then echo "Uploaded"; exit 0; fi

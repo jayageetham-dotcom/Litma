@@ -16,6 +16,13 @@ on:
       - "apps/mobile/**"
       - ".github/workflows/desktop.yml"
   workflow_dispatch:
+  # called by the Release workflow with the release tag
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: false
+        default: ""
 
 concurrency:
   group: deploy-litma
@@ -28,6 +35,8 @@ jobs:
     steps:
       - name: 🚚 Get latest code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       # public_html also holds the main site and /onnayi (whose uploads/ and
       # api/config.php exist nowhere else). Litma's FTP account is locked to
@@ -122,13 +131,15 @@ jobs:
     name: ⚡ Edge Functions & database
     runs-on: ubuntu-latest
     # Runs only once SUPABASE_ACCESS_TOKEN is added as a repository secret.
-    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.ref == 'refs/heads/main' || inputs.ref != '' }}
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       PROJECT_REF: jdexadomaxjtxlvgtldu
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Skip when no Supabase token
         id: check

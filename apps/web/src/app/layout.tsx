@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "@/styles/editor.scss";
 import { I18nProvider } from "@/i18n/react";
+import { UpdateNotice } from "@/components/UpdateNotice";
 
 export const metadata: Metadata = {
   title: "Litma · മലയാളം എഴുത്തുമേശ",
@@ -39,7 +40,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-dvh">
-        <I18nProvider>{children}</I18nProvider>
+        <I18nProvider>
+          {children}
+          <UpdateNotice />
+        </I18nProvider>
       </body>
     </html>
   );

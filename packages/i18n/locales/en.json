@@ -179,5 +179,23 @@
     "pickHint": "Tap a word or a synonym to put it in your text.",
     "tab": "Saved ({n})",
     "lookupTab": "Look up"
+  },
+  "update": {
+    "webTitle": "Litma {version} is ready",
+    "webBody": "Reload to get the newest version. Your writing is safe on this device.",
+    "reload": "Reload now",
+    "desktopTitle": "Litma {version} is available",
+    "desktopBody": "You have {current}. The update downloads in the background and installs when you restart.",
+    "required": "This version is required to keep syncing your work. Update now.",
+    "updateNow": "Update",
+    "later": "Later",
+    "downloading": "Downloading… {n}%",
+    "restart": "Restart and update",
+    "about": "About",
+    "desktopApp": "desktop app",
+    "desktopAuto": "Checks for updates every few hours and installs them when you say so.",
+    "webAuto": "The website updates itself; you'll see a reload prompt when a new version is live.",
+    "check": "Check for updates",
+    "whatsNew": "What's new"
   }
 }

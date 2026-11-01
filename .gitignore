@@ -11,3 +11,4 @@ apps/web/public/dict
 apps/desktop/dist
 apps/desktop/release
 apps/desktop/app
+/release

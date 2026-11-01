@@ -27,6 +27,12 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Electron serves the web build (made with `npm run build:desktop -w @litma/web`, empty base path, `NEXT_PUBLIC_DESKTOP=1`) from `app://litma/`; `/dict/*` is fetched from the website. OAuth returns to the website's `/auth/callback/`, which the main process redirects into `app://litma/auth/callback/`. External links open in the browser. Preload exposes `window.litmaDesktop` (the home page hides its download section there).
 - Releases: push tag `desktop-vX.Y.Z` → `.github/workflows/desktop.yml` builds `Litma-mac.dmg` (universal) and `Litma-win.exe`, attaches them to a GitHub release and uploads them plus `latest.json` to `public_html/litma/downloads/` (add-only). `DesktopDownload` on the home page reads `latest.json`. Signing is optional via secrets (see `apps/desktop/README.md`).
 
+## Versions and releases
+- One semver version for web, desktop and mobile: root `package.json` (+ every workspace), `CHANGELOG.md`. Don't bump by hand: Actions → **Release** (`release.yml`) runs `scripts/release.mjs`, commits `Release vX.Y.Z`, tags `vX.Y.Z`, then calls `deploy.yml` and `desktop.yml` (both `workflow_call`-able with a `ref`).
+- Web: `next.config.ts` inlines `NEXT_PUBLIC_APP_VERSION` and `NEXT_PUBLIC_BUILD_ID` (version+commit); `scripts/write-version.mjs` writes `out/version.json`; `UpdateNotice` offers a reload when it changes. Settings → About shows the version.
+- Desktop: `apps/desktop/src/updater.ts` reads `downloads/latest.json` (`desktop.version`, `minimumVersion`, per-platform file + sha256), downloads, verifies, installs (NSIS `/S --force-run`; macOS dmg swap script). The web app's `UpdateNotice` renders the card via `window.litmaDesktop` (`lib/desktop.ts`). `LITMA_UPDATE_FEED` / `LITMA_UPDATE_PLATFORM` env vars point it at a test server.
+- `latest.json` also carries a `mobile` block (version, minimumVersion, store links) for the Flutter app.
+
 ## Map
 - `src/extensions/` manglish · pagination (A4) · screenplay · blocks (styled blocks; legacy page breaks are stripped) · tools (metre, search, typewriter) · bold (`SmartBold`) · keep-selection
 - `src/lib/store.ts` data layer (Supabase or localStorage) · `auth.tsx` guards/helpers · `functions.ts` Edge Function calls · `useLayout.ts` screen classes + keyboard inset

@@ -30,6 +30,28 @@ scripts            dictionary builder, shared-code sync, token export, auth emai
 
 The site is static, so there are no server secrets on cPanel. Service keys stay inside Supabase.
 
+## Releases, versions and updates
+
+Litma has **one version number** for the website, the desktop app and the mobile app ([semver](https://semver.org): `major.minor.patch`), kept in the root `package.json` and every workspace, with the history in `CHANGELOG.md`.
+
+**Make a release:** GitHub → Actions → **Release** → Run workflow, choose `patch` (fixes), `minor` (new features), `major` (big changes) or an exact version. It:
+
+1. bumps the version everywhere, writes the changelog from the commit summaries since the last release, commits `Release vX.Y.Z` to `main` and tags it `vX.Y.Z`
+2. deploys the website from the tag
+3. builds the Mac and Windows apps, creates the GitHub release with notes, and uploads the installers and `downloads/latest.json` to the website
+
+Locally, `npm run release:dry -- minor` previews the next version and notes without changing anything.
+
+**How each app updates itself**
+
+| App | How it updates |
+|---|---|
+| Website | Every push to `main` deploys. Open tabs poll `version.json`; when a newer build is live they offer a reload (writing is journalled on the device, so nothing is lost). |
+| Desktop | The app checks `downloads/latest.json` after launch and every 4 hours (and from **Check for Updates…** in the menu). A card offers **Update**; it downloads the installer, verifies its SHA-256 and installs on restart: silent installer on Windows, in-place app swap on macOS. Works without code-signing. A release can set a minimum desktop version to make the update required. The desktop app bundles the web app, so web changes reach it with the next release. |
+| Mobile (planned) | Store updates, plus an in-app prompt and an optional forced minimum version from the same `latest.json` (see `apps/mobile/README.md`). |
+
+Pushing a tag yourself (`git tag v1.2.3 && git push --tags`) also builds and publishes the desktop apps, without bumping files.
+
 ## Dictionary data
 
 `npm run dict` downloads Olam's open datasets (Datuk — ODbL, EnMl — ODbL, E.K. Kurup — CC BY-SA 4.0) and writes sharded JSON to `apps/web/public/dict/` (git-ignored). CI does this on every deploy (cached), so the dictionary is served from `/litma/dict/`.

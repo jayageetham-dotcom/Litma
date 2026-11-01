@@ -6,11 +6,7 @@ import { useT } from "@/i18n/react";
 
 type Release = { version: string; date?: string; mac?: string; win?: string };
 
-declare global {
-  interface Window {
-    litmaDesktop?: { platform: string; version: string };
-  }
-}
+import "@/lib/desktop";
 
 /** Home page: download the desktop app. Reads downloads/latest.json, written by the desktop release workflow. */
 export function DesktopDownload() {

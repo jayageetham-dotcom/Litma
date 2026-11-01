@@ -1,0 +1,89 @@
+name: 🏷️ Release
+
+# One click (Actions → Release → Run workflow) makes a new Litma version:
+#   1. bumps the version everywhere (patch / minor / major / exact), writes CHANGELOG.md,
+#      commits "Release vX.Y.Z" to main and tags it vX.Y.Z
+#   2. deploys the website from that tag (it then shows the new version number)
+#   3. builds and publishes the desktop apps; installed apps find the update in latest.json
+# Pushes made with the workflow token don't start other workflows, so this one calls them directly.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "patch (fixes) · minor (new features) · major (big changes) · or an exact version like 1.0.0"
+        required: true
+        default: patch
+      notes:
+        description: "Optional headline for the release notes"
+        required: false
+      min_desktop:
+        description: "Force desktop apps older than this version to update (e.g. 0.3.0). Leave empty normally"
+        required: false
+      desktop:
+        description: "Build and publish the desktop apps"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: litma-release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: 🔢 Bump version
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Bump, changelog
+        id: bump
+        env:
+          BUMP: ${{ inputs.bump }}
+          NOTES: ${{ inputs.notes }}
+          MIN: ${{ inputs.min_desktop }}
+        run: |
+          set -- "$BUMP"
+          [ -n "$NOTES" ] && set -- "$@" --notes "$NOTES"
+          [ -n "$MIN" ] && set -- "$@" --min-desktop "$MIN"
+          node scripts/release.mjs "$@"
+          echo "version=$(cat release/version.txt)" >> "$GITHUB_OUTPUT"
+      - name: Commit and tag
+        env:
+          V: ${{ steps.bump.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- package.json package-lock.json CHANGELOG.md apps/*/package.json packages/*/package.json
+          git commit -m "Release v$V" -m "$(cat release/notes.md)"
+          git tag -a "v$V" -m "Litma $V"
+          git push origin HEAD:main "v$V"
+
+  website:
+    name: 🌐 Website
+    needs: version
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: v${{ needs.version.outputs.version }}
+    secrets: inherit
+
+  desktop:
+    name: 🖥️ Desktop
+    needs: version
+    if: inputs.desktop
+    uses: ./.github/workflows/desktop.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
+      ref: v${{ needs.version.outputs.version }}
+      min_version: ${{ inputs.min_desktop }}
+    secrets: inherit

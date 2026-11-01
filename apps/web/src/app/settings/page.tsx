@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Copy, KeyRound, Trash2 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 import { LanguagePicker } from "@/components/LanguagePicker";
+import { AboutLitma } from "@/components/UpdateNotice";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { AppHeader } from "@/components/AppHeader";
 import { RequireAuth } from "@/lib/auth";
@@ -155,6 +156,7 @@ function Settings() {
             </p>
           </div>
         </section>
+        <AboutLitma />
       </main>
       <MobileNav />
     </div>

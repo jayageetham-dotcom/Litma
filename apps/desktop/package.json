@@ -3,7 +3,7 @@
   "productName": "Litma",
   "version": "0.1.0",
   "private": true,
-  "description": "Litma for Mac and Windows: the Litma web app in its own window, with offline-first loading.",
+  "description": "Litma for Mac and Windows: the Litma web app in its own window, offline-first, with automatic updates.",
   "author": "Jayageetham",
   "homepage": "https://www.jayageetham.com/litma",
   "main": "dist/main.js",

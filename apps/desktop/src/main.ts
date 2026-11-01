@@ -6,7 +6,8 @@
  * working when the network drops (writing is journalled locally and synced by the app itself).
  * Accounts, documents and AI still talk to Supabase over the network, exactly like the website.
  */
-import { app, BrowserWindow, Menu, nativeTheme, net, protocol, shell, type MenuItemConstructorOptions } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, nativeTheme, net, protocol, shell, type MenuItemConstructorOptions } from "electron";
+import { checkForUpdates, currentState, downloadUpdate, installUpdate, startUpdateChecks } from "./updater";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize, sep } from "node:path";
@@ -153,7 +154,25 @@ function createWindow(url = `${ORIGIN}/desk/`) {
 function buildMenu() {
   const mac = process.platform === "darwin";
   const template: MenuItemConstructorOptions[] = [
-    ...(mac ? [{ role: "appMenu" as const }] : []),
+    ...(mac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: "about" as const },
+              { label: "Check for Updates…", click: () => checkForUpdates(true) },
+              { type: "separator" as const },
+              { role: "services" as const },
+              { type: "separator" as const },
+              { role: "hide" as const },
+              { role: "hideOthers" as const },
+              { role: "unhide" as const },
+              { type: "separator" as const },
+              { role: "quit" as const },
+            ],
+          },
+        ]
+      : []),
     {
       label: "File",
       submenu: [
@@ -182,6 +201,9 @@ function buildMenu() {
     {
       role: "help",
       submenu: [
+        ...(mac ? [] : [{ label: "Check for updates…", click: () => checkForUpdates(true) }, { type: "separator" as const }]),
+        { label: `Litma ${app.getVersion()}`, enabled: false },
+        { label: "What's new", click: () => shell.openExternal("https://github.com/jayageetham-dotcom/Litma/blob/main/CHANGELOG.md") },
         { label: "Litma on the web", click: () => shell.openExternal(SITE) },
         { label: "Report a problem", click: () => shell.openExternal("mailto:jagath.gj@gmail.com?subject=Litma%20desktop") },
       ],
@@ -202,7 +224,12 @@ if (!app.requestSingleInstanceLock()) {
   });
   app.whenReady().then(() => {
     protocol.handle(SCHEME, serve);
+    ipcMain.handle("litma:update:check", () => checkForUpdates(true));
+    ipcMain.handle("litma:update:state", () => currentState());
+    ipcMain.handle("litma:update:download", () => downloadUpdate());
+    ipcMain.handle("litma:update:install", () => installUpdate());
     buildMenu();
+    startUpdateChecks();
     createWindow();
     app.on("activate", () => BrowserWindow.getAllWindows().length === 0 && createWindow());
   });

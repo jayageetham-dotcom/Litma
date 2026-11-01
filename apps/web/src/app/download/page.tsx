@@ -106,8 +106,18 @@ export default function DownloadPage() {
               </>
             )}
             {started && (
-              <p className="pop-in mt-2 flex items-center gap-2 text-sm font-medium text-accent" role="status">
+              <p className="pop-in mt-2 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-sm font-medium text-accent" role="status">
                 <Check size={16} aria-hidden /> {t("download.started")}
+                <a
+                  href="#install"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    helpRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="inline-flex items-center gap-1 underline underline-offset-4 hover:no-underline"
+                >
+                  {t("download.startedLink")} <ArrowRight size={14} className="rotate-90" aria-hidden />
+                </a>
               </p>
             )}
           </div>

@@ -168,7 +168,7 @@
     "yourDevice": "Your device",
     "inApp": "You're already using the Litma app.",
     "versionLine": "Version {version} · {date}",
-    "started": "Your download has started. Here's how to install it.",
+    "started": "Your download has started.",
     "allTitle": "All platforms",
     "allBody": "Pick another device or get Litma for someone else.",
     "macReq": "macOS 11 Big Sur or later. One app for Apple silicon and Intel.",
@@ -199,7 +199,8 @@
     "autoUpdate": "Litma updates itself: when a new version is out, the app offers to install it.",
     "deskTitle": "Write in the Litma app",
     "deskBody": "Faster to open, its own window, and it keeps working when the connection drops.",
-    "deskMore": "All downloads"
+    "deskMore": "All downloads",
+    "startedLink": "Here's how to install it"
   },
   "manglish": {
     "escHint": "Esc keeps English",

@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Apple, ArrowRight, Check, Download, Globe, Monitor, RefreshCw, ShieldCheck, Smartphone } from "lucide-react";
+import { ArrowRight, Check, Download, Globe, RefreshCw, ShieldCheck } from "lucide-react";
+import { AndroidLogo, AppleLogo, WindowsLogo } from "@/components/icons/Brands";
 import { ColourField, LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
 import { MobileNav } from "@/components/MobileNav";
 import { StoreBadges } from "@/components/StoreBadges";
@@ -130,7 +131,7 @@ export default function DownloadPage() {
             </h2>
             <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               <PlatformCard
-                icon={Apple}
+                icon={AppleLogo}
                 title="Mac"
                 fill="bg-violet text-night-ink"
                 detail={t("download.macReq")}
@@ -141,7 +142,7 @@ export default function DownloadPage() {
                 soon={t("download.soon")}
               />
               <PlatformCard
-                icon={Monitor}
+                icon={WindowsLogo}
                 title="Windows"
                 fill="bg-sky text-on-pop"
                 detail={t("download.winReq")}
@@ -152,7 +153,7 @@ export default function DownloadPage() {
                 soon={t("download.soon")}
               />
               <PlatformCard
-                icon={Smartphone}
+                icon={AppleLogo}
                 title="iPhone & iPad"
                 fill="bg-coral text-on-pop"
                 detail={t("download.iosReq")}
@@ -162,7 +163,7 @@ export default function DownloadPage() {
                 soon={t("download.soon")}
               />
               <PlatformCard
-                icon={Smartphone}
+                icon={AndroidLogo}
                 title="Android"
                 fill="bg-lime text-on-pop"
                 detail={t("download.androidReq")}
@@ -274,7 +275,7 @@ function PlatformCard({
     <li className={`relative flex flex-col overflow-hidden rounded-[2rem] p-6 transition duration-300 hover:-translate-y-1 ${fill} ${current ? "shadow-[var(--pop-lift-shadow)] ring-4 ring-night" : ""}`}>
       <div aria-hidden className="dot-grid absolute inset-0 opacity-10" />
       {current && <span className="absolute right-5 top-5 rounded-full bg-night px-2.5 py-1 text-[11px] font-bold text-night-ink">{youLabel}</span>}
-      <span className="relative grid size-12 place-items-center rounded-2xl bg-night text-night-ink">
+      <span className="relative grid size-12 place-items-center rounded-2xl bg-surface text-ink shadow-sm">
         <Icon size={24} aria-hidden />
       </span>
       <h3 className="relative mt-6 text-2xl font-extrabold">{title}</h3>

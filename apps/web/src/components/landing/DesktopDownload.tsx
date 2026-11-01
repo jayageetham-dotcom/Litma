@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { Apple, ArrowRight, Download, Monitor } from "lucide-react";
+import { ArrowRight, Download } from "lucide-react";
+import { AppleLogo, WindowsLogo } from "@/components/icons/Brands";
 import { downloadsFor, useInDesktopApp, usePlatform, useRelease } from "@/lib/release";
 import { StoreBadges } from "@/components/StoreBadges";
 import { useT } from "@/i18n/react";
@@ -18,8 +19,8 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
   if (inApp) return null;
   const links = downloadsFor(release);
   const items = [
-    { id: "mac" as const, icon: Apple, label: t("download.mac"), hint: t("download.macHint"), href: links.mac },
-    { id: "win" as const, icon: Monitor, label: t("download.windows"), hint: t("download.windowsHint"), href: links.win },
+    { id: "mac" as const, icon: AppleLogo, label: t("download.mac"), hint: t("download.macHint"), href: links.mac },
+    { id: "win" as const, icon: WindowsLogo, label: t("download.windows"), hint: t("download.windowsHint"), href: links.win },
   ].sort((a, b) => (a.id === platform ? -1 : b.id === platform ? 1 : 0));
 
   const buttons = (
@@ -80,7 +81,7 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
               {items.map((it) => {
                 const inner = (
                   <>
-                    <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-night text-night-ink">
+                    <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-mist text-ink">
                       <it.icon size={22} aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">

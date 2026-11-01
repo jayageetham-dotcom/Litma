@@ -1,5 +1,5 @@
 "use client";
-import { Apple, Play } from "lucide-react";
+import { AppleLogo, GooglePlayLogo } from "@/components/icons/Brands";
 import { STORE_LINKS } from "@/lib/release";
 import { useT } from "@/i18n/react";
 
@@ -7,15 +7,15 @@ import { useT } from "@/i18n/react";
 export function StoreBadges({ only, className = "" }: { only?: "ios" | "android"; className?: string }) {
   const t = useT();
   const items = [
-    { id: "ios" as const, icon: Apple, small: t("download.appStoreSmall"), big: "App Store", href: STORE_LINKS.ios },
-    { id: "android" as const, icon: Play, small: t("download.playSmall"), big: "Google Play", href: STORE_LINKS.android },
+    { id: "ios" as const, icon: AppleLogo, small: t("download.appStoreSmall"), big: "App Store", href: STORE_LINKS.ios },
+    { id: "android" as const, icon: GooglePlayLogo, small: t("download.playSmall"), big: "Google Play", href: STORE_LINKS.android },
   ].filter((x) => !only || x.id === only);
   return (
     <div className={`flex flex-wrap gap-3 ${className}`}>
       {items.map((it) => {
         const body = (
           <>
-            <it.icon size={26} aria-hidden className={it.id === "android" ? "fill-current" : ""} />
+            <it.icon size={it.id === "ios" ? 26 : 22} />
             <span className="text-left leading-tight">
               <span className="block text-[10.5px] opacity-80">{it.href ? it.small : t("download.comingSoon")}</span>
               <span className="block text-[17px] font-semibold tracking-tight">{it.big}</span>

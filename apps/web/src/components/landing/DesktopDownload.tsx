@@ -6,6 +6,9 @@ import { useT } from "@/i18n/react";
 
 type Release = { version: string; date?: string; mac?: string; win?: string };
 
+/** old manifests list bare file names (hosted next to latest.json); new ones give full download URLs */
+const toUrl = (f: string) => (/^https?:/.test(f) ? f : `${BASE}/downloads/${f}`);
+
 import "@/lib/desktop";
 
 /** Home page: download the desktop app. Reads downloads/latest.json, written by the desktop release workflow. */
@@ -26,7 +29,7 @@ export function DesktopDownload() {
   }, []);
 
   if (inApp) return null;
-  const href = (file?: string, fallback?: string) => `${BASE}/downloads/${file ?? fallback}`;
+  const href = (file?: string, fallback?: string) => toUrl(file ?? fallback ?? "");
   const ready = !!release;
   const items = [
     { id: "mac" as const, icon: Apple, label: t("download.mac"), hint: t("download.macHint"), href: href(release?.mac, "Litma-mac.dmg") },

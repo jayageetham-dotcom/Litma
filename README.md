@@ -38,7 +38,7 @@ Litma has **one version number** for the website, the desktop app and the mobile
 
 1. bumps the version everywhere, writes the changelog from the commit summaries since the last release, commits `Release vX.Y.Z` to `main` and tags it `vX.Y.Z`
 2. deploys the website from the tag
-3. builds the Mac and Windows apps, creates the GitHub release with notes, and uploads the installers and `downloads/latest.json` to the website
+3. builds the Mac and Windows apps and publishes the installers on the public `litma-releases` repository's GitHub Releases (the web host's quota is too small for them), with `downloads/latest.json` on the website pointing to them (setup: `apps/desktop/README.md` → Publishing)
 
 Locally, `npm run release:dry -- minor` previews the next version and notes without changing anything.
 

@@ -17,6 +17,16 @@ npm run desktop:dist                     # current OS: release/Litma-mac.dmg or 
 
 CI does this for both platforms: push a tag like `desktop-v0.1.0` (or run the **Desktop app** workflow by hand). `.github/workflows/desktop.yml` builds the web app once, packages it on macOS and Windows runners, attaches the installers to a GitHub release and uploads them to `public_html/litma/downloads/` (add/replace only). The home page reads `downloads/latest.json` and shows the download buttons.
 
+## Publishing
+
+The installers (100–200 MB each) don't fit the web host's disk quota, so they are published on **GitHub Releases of a small public repository**, `jayageetham-dotcom/litma-releases` (no code in it, only downloads). The website keeps just `downloads/latest.json`, which points to them. One-time setup:
+
+1. On GitHub, create a new **public** repository named `litma-releases` (tick "Add a README" so it isn't empty).
+2. Create a fine-grained token: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate. Repository access: only `litma-releases`. Permissions: **Contents: Read and write**. Pick an expiry you're happy with.
+3. In the Litma repository: Settings → Secrets and variables → Actions → New repository secret, name `RELEASES_TOKEN`, value the token.
+
+To use another repository name, add a repository variable `RELEASES_REPO` (e.g. `owner/name`).
+
 ## Signing
 
 Without certificates the installers are unsigned:

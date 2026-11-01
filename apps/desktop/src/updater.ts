@@ -1,7 +1,8 @@
 /**
  * Litma desktop updates.
  *
- * Every release publishes downloads/latest.json on the website (see .github/workflows/desktop.yml).
+ * Every release publishes downloads/latest.json on the website (see .github/workflows/desktop.yml);
+ * the installers it points to are on the public litma-releases repository's GitHub Releases.
  * The app checks it shortly after launch and every few hours. When a newer version exists it tells
  * the window (an in-app card offers "Update and restart"), downloads the installer for this platform,
  * checks its SHA-256 and installs it:
@@ -21,9 +22,11 @@ import { join } from "node:path";
 // LITMA_UPDATE_FEED / LITMA_UPDATE_PLATFORM exist for testing the updater against a local server
 const FEED = process.env.LITMA_UPDATE_FEED || "https://www.jayageetham.com/litma/downloads";
 const PLATFORM = process.env.LITMA_UPDATE_PLATFORM || process.platform;
+/** installers are published on this public repository's GitHub Releases (the web host is too small for them) */
+const RELEASES_FEED = "https://github.com/jayageetham-dotcom/litma-releases/releases/latest/download";
 const CHECK_EVERY_MS = 4 * 60 * 60 * 1000;
 
-type FileInfo = { file: string; sha256: string; size: number };
+type FileInfo = { file: string; url?: string; sha256: string; size: number };
 type Latest = { version: string; notes?: string[]; desktop?: { version: string; minimumVersion?: string | null; mac?: FileInfo; win?: FileInfo } };
 
 export type UpdateState =
@@ -62,8 +65,10 @@ export async function checkForUpdates(manual = false) {
   if (state.status === "downloading" || state.status === "ready") return state;
   broadcast({ status: "checking", current: app.getVersion() });
   try {
-    const res = await net.fetch(`${FEED}/latest.json?t=${Date.now()}`, { cache: "no-store" });
-    if (!res.ok) throw new Error(`The update server answered ${res.status}`);
+    // the website's copy first; GitHub's copy if the site can't be reached
+    let res = await net.fetch(`${FEED}/latest.json?t=${Date.now()}`, { cache: "no-store" }).catch(() => null);
+    if (!res?.ok && !process.env.LITMA_UPDATE_FEED) res = await net.fetch(`${RELEASES_FEED}/latest.json`, { cache: "no-store" });
+    if (!res?.ok) throw new Error(`The update server answered ${res?.status ?? "nothing"}`);
     latest = (await res.json()) as Latest;
     const v = latest.desktop?.version ?? latest.version;
     const current = app.getVersion();
@@ -92,7 +97,7 @@ export async function downloadUpdate() {
     mkdirSync(dir, { recursive: true });
     const target = join(dir, f.file);
     broadcast({ status: "downloading", ...info, progress: 0 });
-    const res = await net.fetch(`${FEED}/${encodeURIComponent(f.file)}`, { cache: "no-store" });
+    const res = await net.fetch(f.url ?? `${FEED}/${encodeURIComponent(f.file)}`, { cache: "no-store" });
     if (!res.ok || !res.body) throw new Error(`Download failed (${res.status})`);
     const total = Number(res.headers.get("content-length")) || f.size || 0;
     const hash = createHash("sha256");

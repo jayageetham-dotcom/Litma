@@ -232,7 +232,7 @@ export function Select({ value, onChange, options, label, labelClassName, placeh
             aria-label={label ? undefined : ariaLabel}
             tabIndex={-1}
             onMouseDown={(e) => e.preventDefault()}
-            className="scrollbar-thin fixed z-[80] max-w-[min(22rem,calc(100vw-16px))] overflow-y-auto rounded-xl border border-line bg-surface py-1 shadow-[var(--pop-shadow)]"
+            className="scrollbar-thin fixed z-[80] max-w-[min(22rem,calc(100vw-16px))] overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-[var(--pop-shadow)] [&>li+li]:mt-0.5"
             style={{ left: pos.left, top: pos.top, bottom: pos.bottom, minWidth: Math.max(pos.minWidth, 160), maxHeight: pos.maxHeight }}
           >
             {options.map((o, i) => {
@@ -246,7 +246,7 @@ export function Select({ value, onChange, options, label, labelClassName, placeh
                   aria-disabled={o.disabled || undefined}
                   onPointerEnter={() => !o.disabled && setActive(i)}
                   onClick={() => choose(i)}
-                  className={`mx-1 flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm text-ink transition-colors ${i === active && !sel ? "bg-[var(--option-hover)]" : ""} ${i === active && sel ? "ring-1 ring-inset ring-[var(--option-selected-ink)]/25" : ""} ${sel ? "bg-[var(--option-selected)] font-semibold text-[var(--option-selected-ink)]" : ""} ${o.disabled ? "cursor-not-allowed opacity-40" : ""}`}
+                  className={`flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-ink transition-colors ${i === active && !sel ? "bg-[var(--option-hover)]" : ""} ${i === active && sel ? "ring-1 ring-inset ring-[var(--option-selected-ink)]/25" : ""} ${sel ? "bg-[var(--option-selected)] font-semibold text-[var(--option-selected-ink)]" : ""} ${o.disabled ? "cursor-not-allowed opacity-40" : ""}`}
                   style={o.style}
                 >
                   <span className="min-w-0 flex-1">

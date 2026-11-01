@@ -905,7 +905,7 @@ function Menu({ children, onClose, wide }: { children: React.ReactNode; onClose:
     };
   }, [onClose]);
   return (
-    <div data-menu className={`absolute right-0 top-10 z-50 rounded-lg border border-line bg-paper py-1 shadow-xl ${wide ? "w-80" : "w-56"}`} role="menu">
+    <div data-menu className={`absolute right-0 top-10 z-50 rounded-xl border border-line bg-paper p-1.5 shadow-xl [&>button+button]:mt-0.5 ${wide ? "w-80" : "w-56"}`} role="menu">
       {children}
     </div>
   );
@@ -913,7 +913,7 @@ function Menu({ children, onClose, wide }: { children: React.ReactNode; onClose:
 
 function MenuItem({ onClick, icon, label, hint }: { onClick: () => void; icon: React.ReactNode; label: string; hint?: string }) {
   return (
-    <button role="menuitem" onClick={onClick} className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-subtle">
+    <button role="menuitem" onClick={onClick} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-subtle">
       {icon}
       <span className="flex-1">{label}</span>
       {hint && <span className="text-xs text-muted">{hint}</span>}

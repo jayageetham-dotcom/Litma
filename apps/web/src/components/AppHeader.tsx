@@ -71,20 +71,20 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
                 <Avatar profile={profile} size={34} />
               </button>
               {open && (
-                <div className="pop-in absolute right-0 top-11 z-50 w-60 origin-top-right rounded-xl border border-line bg-surface py-1.5 shadow-[var(--pop-shadow)]" role="menu">
-                  <div className="border-b border-line px-4 pb-2.5 pt-1.5">
+                <div className="pop-in absolute right-0 top-11 z-50 w-60 origin-top-right rounded-xl border border-line bg-surface p-1.5 shadow-[var(--pop-shadow)]" role="menu">
+                  <div className="mb-1.5 border-b border-line px-2.5 pb-2.5 pt-1">
                     <div className="truncate font-semibold">{profile?.pen_name || profile?.display_name || t("nav.writer")}</div>
                     <div className="truncate text-xs text-muted">{profile?.email}</div>
                   </div>
-                  <Link role="menuitem" href="/profile/" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-subtle">
+                  <Link role="menuitem" href="/profile/" className="mt-0.5 flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-subtle">
                     <User size={15} /> {t("nav.profile")}
                   </Link>
-                  <Link role="menuitem" href="/settings/" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-subtle">
+                  <Link role="menuitem" href="/settings/" className="mt-0.5 flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-subtle">
                     <Settings size={15} /> {t("nav.settings")}
                   </Link>
                   <button
                     role="menuitem"
-                    className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm hover:bg-subtle"
+                    className="mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-subtle"
                     onClick={async () => {
                       await getSupabase()?.auth.signOut();
                       router.replace("/login/");

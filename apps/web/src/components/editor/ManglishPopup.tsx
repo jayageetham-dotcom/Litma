@@ -107,7 +107,7 @@ export function ManglishPopup({ editor }: { editor: Editor }) {
         <span className="font-mono">{st.word}</span>
         <span className="[@media(hover:none)]:hidden">{t("manglish.escHint")}</span>
       </div>
-      <ul className="py-1">
+      <ul className="p-1.5 [&>li+li]:mt-0.5">
         {list.slice(0, 7).map((c, i) => (
           <li key={c + i}>
             <button
@@ -119,7 +119,7 @@ export function ManglishPopup({ editor }: { editor: Editor }) {
                 e.preventDefault();
                 editor.commands.commitManglish(i);
               }}
-              className={`flex w-full items-center gap-3 px-3 py-1 text-left text-[17px] [@media(hover:none)]:py-2 ${i === st.index ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}
+              className={`flex w-full items-center gap-3 rounded-md px-2.5 py-1 text-left text-[17px] [@media(hover:none)]:py-2 ${i === st.index ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}
               style={{ fontFamily: "'Noto Sans Malayalam'" }}
             >
               <span className="w-3 text-[11px] text-muted" style={{ fontFamily: "var(--font-ui)" }}>

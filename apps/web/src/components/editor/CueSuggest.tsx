@@ -67,7 +67,7 @@ export function CueSuggest({ editor, names }: { editor: Editor; names: string[] 
 
   if (!state) return null;
   return (
-    <div className="no-print fixed z-40 w-56 overflow-hidden rounded-lg border border-line bg-paper shadow-xl" style={{ left: Math.min(state.left, window.innerWidth - 240), top: state.top }} role="listbox" aria-label="Characters">
+    <div className="no-print fixed z-40 w-56 overflow-hidden rounded-xl border border-line bg-paper pb-1.5 shadow-xl" style={{ left: Math.min(state.left, window.innerWidth - 240), top: state.top }} role="listbox" aria-label="Characters">
       <div className="border-b border-line bg-subtle/60 px-3 py-1 text-[11px] text-muted">Characters · Alt+number to pick</div>
       {state.list.map((n, i) => (
         <button
@@ -78,7 +78,7 @@ export function CueSuggest({ editor, names }: { editor: Editor; names: string[] 
             e.preventDefault();
             pick(n);
           }}
-          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[15px] hover:bg-accent-soft"
+          className="mx-1.5 mt-0.5 flex w-[calc(100%-0.75rem)] items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[15px] first-of-type:mt-1.5 hover:bg-accent-soft"
           style={{ fontFamily: "'Noto Sans Malayalam'" }}
         >
           <span className="w-3 text-[11px] text-muted">{i + 1}</span>

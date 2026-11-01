@@ -7,4 +7,7 @@ next-env.d.ts
 .DS_Store
 out
 .dict-cache
-public/dict
+apps/web/public/dict
+apps/desktop/dist
+apps/desktop/release
+apps/desktop/app

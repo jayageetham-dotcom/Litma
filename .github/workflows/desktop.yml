@@ -1,0 +1,160 @@
+name: 🖥️ Desktop app
+
+# Builds Litma for macOS (.dmg, universal) and Windows (.exe) and publishes them:
+#   - attached to a GitHub release
+#   - uploaded to public_html/litma/downloads/ (add/replace only) with latest.json,
+#     which the home page reads to show the download buttons.
+# Run it by pushing a tag like desktop-v0.1.0, or by hand from the Actions tab.
+
+on:
+  push:
+    tags: ["desktop-v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 0.1.0). Defaults to apps/desktop/package.json"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+jobs:
+  web:
+    name: 🌐 Web app for the desktop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Build (empty base path)
+        run: npm run build:desktop -w @litma/web
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://jdexadomaxjtxlvgtldu.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XH6LhcIvUP_ENNbZFrmj7g_Z-YjUzP4' }}
+          NEXT_PUBLIC_SITE_URL: https://www.jayageetham.com/litma
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-out
+          path: apps/web/out
+          retention-days: 3
+
+  package:
+    name: 📦 ${{ matrix.name }}
+    needs: web
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macOS, os: macos-latest, flag: --mac }
+          - { name: Windows, os: windows-latest, flag: --win }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-out
+          path: apps/web/out
+      - name: Set version
+        shell: bash
+        run: |
+          V="${{ github.event.inputs.version }}"
+          if [ -z "$V" ] && [[ "$GITHUB_REF_NAME" == desktop-v* ]]; then V="${GITHUB_REF_NAME#desktop-v}"; fi
+          if [ -n "$V" ]; then npm pkg set version="$V" -w @litma/desktop; fi
+          node -p "'Litma desktop ' + require('./apps/desktop/package.json').version"
+      - name: Build installer
+        shell: bash
+        working-directory: apps/desktop
+        run: |
+          npm run build
+          node scripts/copy-web.mjs
+          npx electron-builder --config electron-builder.yml ${{ matrix.flag }}
+        env:
+          # optional signing (see apps/desktop/README.md); unsigned builds when these are empty
+          CSC_LINK: ${{ matrix.os == 'macos-latest' && secrets.CSC_LINK || secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.CSC_KEY_PASSWORD || secrets.WIN_CSC_KEY_PASSWORD }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_LINK != '' }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.name }}
+          path: |
+            apps/desktop/release/Litma-mac.dmg
+            apps/desktop/release/Litma-win.exe
+          if-no-files-found: error
+
+  publish:
+    name: 🚀 Publish
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          path: downloads
+          merge-multiple: true
+      - name: Version and latest.json
+        id: v
+        run: |
+          V="${{ github.event.inputs.version }}"
+          if [ -z "$V" ] && [[ "$GITHUB_REF_NAME" == desktop-v* ]]; then V="${GITHUB_REF_NAME#desktop-v}"; fi
+          if [ -z "$V" ]; then V=$(node -p "require('./apps/desktop/package.json').version"); fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          printf '{"version":"%s","date":"%s","mac":"Litma-mac.dmg","win":"Litma-win.exe"}\n' "$V" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > downloads/latest.json
+          ls -la downloads
+      - name: GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: desktop-v${{ steps.v.outputs.version }}
+          name: Litma desktop ${{ steps.v.outputs.version }}
+          files: |
+            downloads/Litma-mac.dmg
+            downloads/Litma-win.exe
+      # Same guard as deploy.yml: public_html also holds the main site and /onnayi.
+      - name: 🔒 Refuse to delete files on the server
+        run: |
+          if grep -nE '^[[:space:]]*mirror .*(--delete|[[:space:]]-e[[:space:]])' .github/workflows/desktop.yml; then
+            echo "::error::The FTP upload must never delete server files."
+            exit 1
+          fi
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: 📂 Upload to public_html/litma/downloads (FTPS)
+        env:
+          FTP_USER: ${{ vars.FTP_USERNAME || 'litma@jayageetham.com' }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
+        run: |
+          if [ -z "$FTP_PASSWORD" ]; then echo "::warning::No FTP_PASSWORD secret; skipping the website upload."; exit 0; fi
+          for attempt in 1 2 3; do
+            if lftp -u "$FTP_USER","$FTP_PASSWORD" ftp.jayageetham.com <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate no
+          set ftp:passive-mode true
+          set net:timeout 60
+          set net:max-retries 8
+          set cmd:fail-exit true
+          mkdir -pf ${FTP_DIR%/}/downloads
+          mirror --reverse --ignore-time --no-perms --verbose=1 ./downloads/ ${FTP_DIR%/}/downloads/
+          bye
+          LFTP
+            then echo "Uploaded"; exit 0; fi
+            sleep 20
+          done
+          echo "::error::FTP upload failed after 3 attempts."
+          exit 1

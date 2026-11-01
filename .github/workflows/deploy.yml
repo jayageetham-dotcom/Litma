@@ -1,7 +1,7 @@
 name: 🚀 Deploy Litma
 
 # Push to main →
-#   1. build the static site (Next.js export, base path /litma)
+#   1. build the static site (apps/web: Next.js export, base path /litma)
 #   2. sync out/ to public_html/litma on cPanel over FTPS
 #   3. (optional) deploy Supabase Edge Functions + database migrations
 #
@@ -10,6 +10,11 @@ name: 🚀 Deploy Litma
 on:
   push:
     branches: [main]
+    # the desktop app has its own release workflow (desktop.yml)
+    paths-ignore:
+      - "apps/desktop/**"
+      - "apps/mobile/**"
+      - ".github/workflows/desktop.yml"
   workflow_dispatch:
 
 concurrency:
@@ -47,6 +52,11 @@ jobs:
           node scripts/sync-shared.mjs
           git diff --exit-code -- supabase/functions/_shared || (echo "::error::Run 'npm run sync:shared' and commit." && exit 1)
 
+      - name: 🎨 Check design tokens are exported
+        run: |
+          node scripts/export-tokens.mjs
+          git diff --exit-code -- packages/tokens/tokens.json || (echo "::error::Run 'npm run tokens' and commit." && exit 1)
+
       - name: 📚 Cache Olam dictionary downloads
         uses: actions/cache@v4
         with:
@@ -54,13 +64,13 @@ jobs:
           key: olam-datasets-v1
 
       - name: 📚 Build dictionary shards (Olam open datasets)
-        run: node scripts/build-dictionary.mjs --cache .dict-cache --out public/dict
+        run: node scripts/build-dictionary.mjs --cache .dict-cache --out apps/web/public/dict
 
       - name: 🔨 Build
         run: |
           npm ci
-          npm run typecheck
-          npm run build
+          npm run typecheck -w @litma/web
+          npm run build -w @litma/web
         env:
           CI: false
           # Public values; defaults come from .env.production. Override with repo variables if needed.
@@ -98,7 +108,7 @@ jobs:
           set net:reconnect-interval-multiplier 2
           set mirror:parallel-transfer-count 4
           set cmd:fail-exit true
-          mirror --reverse --ignore-time --no-perms --verbose=1 --exclude-glob .DS_Store ./out/ $FTP_DIR
+          mirror --reverse --ignore-time --no-perms --verbose=1 --exclude-glob .DS_Store ./apps/web/out/ $FTP_DIR
           bye
           LFTP
             then echo "Upload complete"; exit 0; fi

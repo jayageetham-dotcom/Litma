@@ -1,0 +1,52 @@
+{
+  "name": "@litma/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Litma web app (Next.js static export)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "node ../../scripts/sync-shared.mjs && next build",
+    "build:desktop": "node ../../scripts/sync-shared.mjs && NEXT_PUBLIC_BASE_PATH= NEXT_PUBLIC_DESKTOP=1 next build",
+    "lint": "next lint",
+    "preview": "node scripts/preview.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@litma/i18n": "*",
+    "@litma/keyboards": "*",
+    "@litma/shared": "*",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.118.0",
+    "@tiptap/core": "2.27.3",
+    "@tiptap/extension-character-count": "2.27.3",
+    "@tiptap/extension-color": "2.27.3",
+    "@tiptap/extension-focus": "^2.27.3",
+    "@tiptap/extension-font-family": "2.27.3",
+    "@tiptap/extension-highlight": "2.27.3",
+    "@tiptap/extension-link": "2.27.3",
+    "@tiptap/extension-placeholder": "2.27.3",
+    "@tiptap/extension-subscript": "2.27.3",
+    "@tiptap/extension-superscript": "2.27.3",
+    "@tiptap/extension-text-align": "2.27.3",
+    "@tiptap/extension-text-style": "2.27.3",
+    "@tiptap/extension-typography": "2.27.3",
+    "@tiptap/extension-underline": "2.27.3",
+    "@tiptap/pm": "2.27.3",
+    "@tiptap/react": "2.27.3",
+    "@tiptap/starter-kit": "2.27.3",
+    "docx": "9.15.0",
+    "lucide-react": "0.468.0",
+    "next": "15.5.28",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.10.2",
+    "@types/react": "19.1.12",
+    "@types/react-dom": "19.1.9",
+    "sass": "1.83.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.7.2"
+  }
+}

@@ -1,31 +1,39 @@
 # Litma — notes for Claude
 
-Malayalam literary writing app. Next.js 15 **static export** (basePath `/litma`) + React 19 + Tailwind v4 + SCSS + Tiptap 2. Backend: Supabase project `jdexadomaxjtxlvgtldu`. Hosted on cPanel at https://www.jayageetham.com/litma, deployed by `.github/workflows/deploy.yml` (FTPS, same pattern as the jayageetham website repo). The owner plans a native mobile app and a `litma.com` domain later.
+Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js 15 **static export**, basePath `/litma`, React 19 + Tailwind v4 + SCSS + Tiptap 2), `apps/desktop` (Electron, macOS + Windows), `apps/mobile` (Flutter, planned), shared `packages/*`. Backend: Supabase project `jdexadomaxjtxlvgtldu`. Hosted on cPanel at https://www.jayageetham.com/litma, deployed by `.github/workflows/deploy.yml` (FTPS, same pattern as the jayageetham website repo). The owner plans a native mobile app and a `litma.com` domain later.
 
 ## Working on this repo
 - The repo lives on the owner's Mac at `~/Documents/Litma` (GitHub `jayageetham-dotcom/Litma`, branch `main`). Commit there; **the owner runs `git push`** (pushing to `main` deploys the site; the Supabase job deploys functions and runs `db push` when `SUPABASE_ACCESS_TOKEN` is set).
 - Commit messages: imperative summary + short bullet body.
-- Before committing: `npx tsc --noEmit -p .` and `npm run build`.
-- Local test build without Supabase ("local mode", no sign-in, data in localStorage): `NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_ANON_KEY= npm run build`, then `node scripts/preview.mjs` → http://localhost:4173/litma/. Playwright works against that (desk → pick a writing type → editor). Cloud-only flows (MCP, AI keys, AI hand-over, sharing) can't be exercised in local mode.
+- After pulling the monorepo change, run `npm install` once at the root (the old root `node_modules` and `.next` can be deleted).
+- Before committing: `npm run typecheck` and `npm run build` (root scripts forward to the workspaces).
+- Local test build without Supabase ("local mode", no sign-in, data in localStorage): `NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_ANON_KEY= npm run build`, then `npm run preview` → http://localhost:4173/litma/. Playwright works against that (desk → pick a writing type → editor). Cloud-only flows (MCP, AI keys, AI hand-over, sharing) can't be exercised in local mode.
 - Network from cloud sandboxes usually can't reach supabase.co, olam.in or jayageetham.com; use Supabase MCP tools for logs/SQL.
 - FTP deploy must **never delete** server files (`public_html` also holds the main site and `/onnayi`); the workflow has a guard step against `--delete`.
 
 ## Rules
 - No Next.js server features: no API routes, middleware, server actions or dynamic route segments. Use query params (`/write/?id=`, `/read/?s=`, `/book/?id=`, `/print/?doc=|book=`, `/desk/?view=books|trash`). Server work goes in `supabase/functions/*`.
-- `src/shared/*` must stay dependency-free and import siblings with `.ts` extensions; `npm run sync:shared` copies it to `supabase/functions/_shared` (CI fails if they drift).
+- `packages/shared/src/*` (imported as `@litma/shared/<file>`) must stay dependency-free and import siblings with `.ts` extensions; `npm run sync:shared` copies it to `supabase/functions/_shared` (CI fails if they drift). The web build runs it.
+- Workspace packages ship TypeScript source; `apps/web/next.config.ts` lists them in `transpilePackages`.
+- Design tokens: edit `apps/web/src/styles/theme.css`, then `npm run tokens` to refresh `packages/tokens/tokens.json` (CI checks it) for the native apps.
+- Paths below under `src/` mean `apps/web/src/`.
 - Links: `next/link` handles the base path; raw `<a href>`/`window.location` need `BASE` / `appUrl()` from `src/lib/config.ts`.
 - New tables: enable RLS with `(select auth.uid())` ownership policies, `to authenticated`, and run Supabase advisors.
 - Never store raw MCP tokens — only SHA-256 hashes (`mcp_tokens.token_hash`). AI keys are per writer, AES-GCM encrypted in `ai_keys` (no RLS policies; only the `litma-ai` function touches them). No server-wide AI keys.
 - New documents carry `settings.pristine = true` until the writer types; pristine docs are deleted on close and by the desk's cleanup. Story World cards closed without content are deleted too (`isBlankItem` in `src/lib/story.ts`).
 - Don't change other users' data with SQL without asking the owner.
 
+## Desktop (apps/desktop)
+- Electron serves the web build (made with `npm run build:desktop -w @litma/web`, empty base path, `NEXT_PUBLIC_DESKTOP=1`) from `app://litma/`; `/dict/*` is fetched from the website. OAuth returns to the website's `/auth/callback/`, which the main process redirects into `app://litma/auth/callback/`. External links open in the browser. Preload exposes `window.litmaDesktop` (the home page hides its download section there).
+- Releases: push tag `desktop-vX.Y.Z` → `.github/workflows/desktop.yml` builds `Litma-mac.dmg` (universal) and `Litma-win.exe`, attaches them to a GitHub release and uploads them plus `latest.json` to `public_html/litma/downloads/` (add-only). `DesktopDownload` on the home page reads `latest.json`. Signing is optional via secrets (see `apps/desktop/README.md`).
+
 ## Map
-- `src/extensions/` manglish · pagination (A4) · screenplay · blocks (styled blocks, page breaks, `insertPageAt`) · tools (metre, search, typewriter) · bold (`SmartBold`)
+- `src/extensions/` manglish · pagination (A4) · screenplay · blocks (styled blocks; legacy page breaks are stripped) · tools (metre, search, typewriter) · bold (`SmartBold`) · keep-selection
 - `src/lib/store.ts` data layer (Supabase or localStorage) · `auth.tsx` guards/helpers · `functions.ts` Edge Function calls · `useLayout.ts` screen classes + keyboard inset
 - `src/components/editor/Workspace.tsx` the editor shell; `Toolbar.tsx` (+ `MobileFormatStrip`); `Panels.tsx` (Outline, AI, Inbox, History, Keys, Page); `src/lib/autosave.ts` journal + cloud saver
 - `src/components/story/StoryWorld.tsx` Story World (characters, places, objects, beat board, timeline, notes, reports); `src/lib/story.ts` field definitions per writing type (സാഹിത്യരൂപം)
 - `src/lib/paginate.ts` print paginator; `src/lib/book-sections.ts` book/document → pages; `src/app/print` PDF view; `src/app/book` book editor
-- `src/lib/dictionary.ts` + `scripts/build-dictionary.mjs` Olam dictionary/thesaurus (data built in CI into `public/dict`)
+- `src/lib/dictionary.ts` + `scripts/build-dictionary.mjs` Olam dictionary/thesaurus (data built in CI into `apps/web/public/dict`); `components/SavedWords.tsx` bookmarks
 - `src/components/landing/` home page: `TypesShowcase` (nine types list + big preview) and `HowItWorks` (six looping micro-demos)
 - `src/components/ui/` `Select` (custom dropdown), `Sheet` (bottom sheet / drawer / dock), `Confirm` (`useConfirm`); `src/components/icons/Typewriter.tsx`
 - `supabase/functions/litma-mcp` MCP server (stateless Streamable HTTP, 30 tools incl. `suggest_edit`); `public/mcp.php` relays `/litma/mcp` to it. The cPanel firewall blocks data-centre callers, so cloud connectors (Claude.ai, ChatGPT) use `MCP_DIRECT_URL` (the function URL + `?key=`) — Settings shows it.

@@ -1,0 +1,43 @@
+# Litma desktop installers: a universal .dmg for macOS (Apple silicon + Intel) and an .exe installer for Windows.
+# Signing is optional: set CSC_LINK / CSC_KEY_PASSWORD (and APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID
+# for notarization) as repository secrets; without them the builds are unsigned (see apps/desktop/README.md).
+appId: com.jayageetham.litma
+productName: Litma
+copyright: Copyright © 2026 Jayageetham
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**
+  - app/**
+  - package.json
+asar: true
+# the app has no runtime dependencies; never let electron-builder reinstall/prune the workspace node_modules
+npmRebuild: false
+mac:
+  category: public.app-category.productivity
+  icon: build/icon.png
+  target:
+    - target: dmg
+      arch: [universal]
+  artifactName: Litma-mac.${ext}
+  darkModeSupport: true
+dmg:
+  title: Litma
+win:
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+  artifactName: Litma-win.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: Litma
+publish: null
+linux:
+  # not published; handy for testing on Linux (npx electron-builder --linux dir)
+  executableName: litma
+  target: [dir]

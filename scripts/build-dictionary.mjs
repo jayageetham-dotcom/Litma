@@ -6,7 +6,7 @@
 // Output: public/dict/{index.json, en/<shard>.json, ml/<shard>.json}
 // served statically with the site, loaded on demand by the editor.
 //
-// Usage: node scripts/build-dictionary.mjs [--cache .dict-cache] [--out public/dict]
+// Usage: node scripts/build-dictionary.mjs [--cache .dict-cache] [--out apps/web/public/dict]
 import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -17,7 +17,7 @@ const opt = (k, d) => {
   return i >= 0 ? args[i + 1] : d;
 };
 const CACHE = opt("--cache", ".dict-cache");
-const OUT = opt("--out", "public/dict");
+const OUT = opt("--out", "apps/web/public/dict");
 const SOURCES = {
   datuk: "https://olam.in/files/datuk.tar.gz",
   enml: "https://olam.in/files/enml.tar.gz",

@@ -1,0 +1,11 @@
+{
+  "name": "@litma/i18n",
+  "version": "0.1.0",
+  "private": true,
+  "description": "UI strings for every Litma app. locales/*.json are plain data (also read by the Flutter app); src/index.ts is the TypeScript helper.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./locales/*": "./locales/*"
+  }
+}

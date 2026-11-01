@@ -1,0 +1,24 @@
+{
+  "name": "@litma/desktop",
+  "productName": "Litma",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Litma for Mac and Windows: the Litma web app in its own window, with offline-first loading.",
+  "author": "Jayageetham",
+  "homepage": "https://www.jayageetham.com/litma",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "typecheck": "tsc -p . --noEmit",
+    "start": "npm run build && node scripts/copy-web.mjs && electron .",
+    "dist": "npm run build && node scripts/copy-web.mjs && electron-builder --config electron-builder.yml",
+    "dist:mac": "npm run build && node scripts/copy-web.mjs && electron-builder --config electron-builder.yml --mac",
+    "dist:win": "npm run build && node scripts/copy-web.mjs && electron-builder --config electron-builder.yml --win"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8",
+    "typescript": "5.7.2"
+  }
+}

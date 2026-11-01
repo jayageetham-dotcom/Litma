@@ -4,6 +4,20 @@ A Malayalam writing desk for novels, short stories, poems, screenplays, features
 
 **Live:** https://www.jayageetham.com/litma · **MCP:** https://www.jayageetham.com/litma/mcp
 
+## Repository layout (npm workspaces)
+
+```
+apps/web           Next.js static site (the app at /litma)
+apps/desktop       Electron app for macOS and Windows (bundles apps/web)
+apps/mobile        Flutter app for iOS and Android (planned; see its README)
+packages/shared    dependency-free TypeScript shared with the Edge Functions (writing types, Manglish, dictionary, serializers)
+packages/i18n      UI strings: locales/en.json, locales/ml.json (+ more languages), plain JSON for every app
+packages/keyboards Malayalam keyboard layouts (Enhanced InScript) as JSON
+packages/tokens    design tokens exported from the web theme for the native apps
+supabase           migrations, Edge Functions (functions/_shared is synced from packages/shared)
+scripts            dictionary builder, shared-code sync, token export, auth email templates
+```
+
 ## How it's put together
 
 | Piece | Where it runs |
@@ -12,21 +26,22 @@ A Malayalam writing desk for novels, short stories, poems, screenplays, features
 | Accounts, documents, versions, AI inbox, writing stats, profile pictures | Supabase project `jdexadomaxjtxlvgtldu` (Postgres + RLS, Auth, Storage `avatars`, Realtime) |
 | Manglish predictions (Google Input Tools) | Edge Function `litma-transliterate` |
 | AI companion (Claude / GPT, streamed) | Edge Function `litma-ai` (signed-in users only) |
-| MCP server | Edge Function `litma-mcp`, exposed at `/litma/mcp` by `public/mcp.php` (a relay with no secrets) |
+| MCP server | Edge Function `litma-mcp`, exposed at `/litma/mcp` by `apps/web/public/mcp.php` (a relay with no secrets) |
 
 The site is static, so there are no server secrets on cPanel. Service keys stay inside Supabase.
 
 ## Dictionary data
 
-`npm run dict` downloads Olam's open datasets (Datuk — ODbL, EnMl — ODbL, E.K. Kurup — CC BY-SA 4.0) and writes sharded JSON to `public/dict/` (git-ignored). CI does this on every deploy (cached), so the dictionary is served from `/litma/dict/`.
+`npm run dict` downloads Olam's open datasets (Datuk — ODbL, EnMl — ODbL, E.K. Kurup — CC BY-SA 4.0) and writes sharded JSON to `apps/web/public/dict/` (git-ignored). CI does this on every deploy (cached), so the dictionary is served from `/litma/dict/`.
 
 ## Local development
 
 ```bash
-npm install
+npm install            # once, at the repo root
 npm run dev            # http://localhost:3000/litma/
-npm run build          # static site → out/
-npm run preview        # serve out/ at http://localhost:4173/litma/
+npm run build          # static site → apps/web/out/
+npm run preview        # serve it at http://localhost:4173/litma/
+npm run desktop        # the desktop app (see apps/desktop/README.md)
 ```
 
 `.env.development` and `.env.production` point at the live Supabase project; the publishable key is safe in the browser (Row Level Security protects the data). Override in `.env.local`. Leave the Supabase values empty to run in **local mode** (documents in the browser only).
@@ -35,8 +50,8 @@ npm run preview        # serve out/ at http://localhost:4173/litma/
 
 Every push to `main` runs `.github/workflows/deploy.yml`, modelled on the main website:
 
-1. installs, type-checks and builds the static export (`out/`)
-2. uploads `out/` to **public_html/litma** over FTPS with `lftp mirror` — parallel, retries and reconnects on cPanel's connection resets, skips files that haven't changed, and never deletes anything on the server (a guard step fails the build if a delete flag is added)
+1. installs, type-checks and builds the static export (`apps/web/out/`)
+2. uploads `apps/web/out/` to **public_html/litma** over FTPS with `lftp mirror` — parallel, retries and reconnects on cPanel's connection resets, skips files that haven't changed, and never deletes anything on the server (a guard step fails the build if a delete flag is added)
 3. if `SUPABASE_ACCESS_TOKEN` is set: deploys the three Edge Functions, and with `SUPABASE_DB_PASSWORD` also runs `supabase db push`
 
 ### One-time setup
@@ -111,12 +126,12 @@ The project URL is public anyway (it ships in the app bundle with the publishabl
 ## Project layout
 
 ```
-src/app/            pages (desk, write, book, print, dictionary, read, login, signup, profile, settings…)
-src/components/     UI; editor/ holds the Tiptap workspace, toolbar, panels
-src/extensions/     Tiptap extensions (manglish, pagination, screenplay, blocks, tools)
-src/shared/         dependency-free code shared with Edge Functions
-supabase/functions/ litma-transliterate · litma-ai · litma-mcp (+ _shared, synced from src/shared)
+apps/web/src/app/         pages (desk, write, book, print, dictionary, read, login, signup, profile, settings…)
+apps/web/src/components/  UI; editor/ holds the Tiptap workspace, toolbar, panels
+apps/web/src/extensions/  Tiptap extensions (manglish, pagination, screenplay, blocks, tools, keep-selection)
+packages/shared/src/      dependency-free code shared with Edge Functions (import as @litma/shared/<file>)
+supabase/functions/ litma-transliterate · litma-ai · litma-mcp (+ _shared, synced from packages/shared/src)
 supabase/migrations schema, RLS, storage policies
-scripts/build-dictionary.mjs   Olam datasets → public/dict shards (run by CI; `npm run dict` locally)
-public/mcp.php      /litma/mcp relay   ·   public/.htaccess  routing & caching
+scripts/build-dictionary.mjs   Olam datasets → apps/web/public/dict shards (run by CI; `npm run dict` locally)
+apps/web/public/mcp.php   /litma/mcp relay   ·   apps/web/public/.htaccess  routing & caching
 ```

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { Baseline, Highlighter, Ban, Pipette, Check } from "lucide-react";
+import { useT } from "@/i18n/react";
 
 /** Text colours: ink first, then readable mid-tones that hold up on white paper (all ≥ 4.5:1). */
 export const TEXT_COLORS = [
@@ -130,6 +131,7 @@ function Swatches({ colors, current, onPick, round }: { colors: { c: string; n: 
 }
 
 function CustomPicker({ value, onPick, kind }: { value: string; onPick: (c: string) => void; kind: string }) {
+  const t = useT();
   const [v, setV] = useState(value || "#1a2220");
   const [recent, setRecent] = useState<string[]>([]);
   useEffect(() => setRecent(readRecent(kind)), [kind]);
@@ -137,7 +139,7 @@ function CustomPicker({ value, onPick, kind }: { value: string; onPick: (c: stri
     <div className="mt-3 border-t border-line pt-3">
       {recent.length > 0 && (
         <div className="mb-2.5 flex items-center gap-1.5">
-          <span className="mr-1 text-xs text-muted">Recent</span>
+          <span className="mr-1 text-xs text-muted">{t("color.recent")}</span>
           {recent.map((c) => (
             <button key={c} type="button" aria-label={`Recent colour ${c}`} title={c} className="h-6 w-6 rounded-full border border-black/10" style={{ background: c }} onClick={() => onPick(c)} />
           ))}
@@ -149,7 +151,7 @@ function CustomPicker({ value, onPick, kind }: { value: string; onPick: (c: stri
           <input
             type="color"
             value={v}
-            aria-label="Custom colour"
+            aria-label={t("color.custom")}
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             onChange={(e) => setV(e.target.value)}
           />
@@ -157,7 +159,7 @@ function CustomPicker({ value, onPick, kind }: { value: string; onPick: (c: stri
         <input
           className="field !h-8 !min-h-0 w-24 !px-2 font-mono !text-xs uppercase"
           value={v}
-          aria-label="Colour code"
+          aria-label={t("color.code")}
           onChange={(e) => setV(e.target.value)}
           maxLength={7}
         />
@@ -170,7 +172,7 @@ function CustomPicker({ value, onPick, kind }: { value: string; onPick: (c: stri
             onPick(v);
           }}
         >
-          Apply
+          {t("color.apply")}
         </button>
       </label>
     </div>
@@ -197,6 +199,7 @@ function ToolButton({ label, open, onToggle, btnRef, children, size }: { label: 
 
 /** Text colour: changes the colour of the letters. Swatches, a full colour picker and "Automatic". */
 export function TextColorTool({ editor, size = "bar" }: { editor: Editor; size?: "bar" | "sheet" }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
   const current = (editor.getAttributes("textStyle").color as string | undefined) ?? "";
@@ -206,17 +209,17 @@ export function TextColorTool({ editor, size = "bar" }: { editor: Editor; size?:
   };
   return (
     <>
-      <ToolButton label="Text colour" open={open} onToggle={() => setOpen((o) => !o)} btnRef={ref} size={size}>
+      <ToolButton label={t("color.text")} open={open} onToggle={() => setOpen((o) => !o)} btnRef={ref} size={size}>
         <span className="flex flex-col items-center leading-none">
           <Baseline size={16} aria-hidden />
           <span className="mt-[1px] h-[3px] w-4 rounded-full" style={{ background: current || "var(--ink)" }} />
         </span>
       </ToolButton>
-      <Popover anchor={ref} open={open} onClose={() => setOpen(false)} label="Text colour">
+      <Popover anchor={ref} open={open} onClose={() => setOpen(false)} label={t("color.text")}>
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-xs font-semibold text-muted">Text colour</span>
+          <span className="text-xs font-semibold text-muted">{t("color.text")}</span>
           <button type="button" className="text-xs font-medium text-accent hover:underline" onClick={() => (editor.chain().focus().unsetColor().run(), setOpen(false))}>
-            Automatic
+            {t("color.automatic")}
           </button>
         </div>
         <Swatches colors={TEXT_COLORS} current={current} onPick={pick} round />
@@ -228,6 +231,7 @@ export function TextColorTool({ editor, size = "bar" }: { editor: Editor; size?:
 
 /** Highlight: adds or removes a background colour behind the text. */
 export function HighlightTool({ editor, size = "bar" }: { editor: Editor; size?: "bar" | "sheet" }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
   const active = editor.isActive("highlight");
@@ -239,22 +243,22 @@ export function HighlightTool({ editor, size = "bar" }: { editor: Editor; size?:
   };
   return (
     <>
-      <ToolButton label="Highlight" open={open} onToggle={() => setOpen((o) => !o)} btnRef={ref} size={size}>
+      <ToolButton label={t("color.highlight")} open={open} onToggle={() => setOpen((o) => !o)} btnRef={ref} size={size}>
         <span className="flex flex-col items-center leading-none">
           <Highlighter size={15} aria-hidden />
           <span className="mt-[2px] h-[3px] w-4 rounded-full border border-black/10" style={{ background: current || "#fde68a" }} />
         </span>
       </ToolButton>
-      <Popover anchor={ref} open={open} onClose={() => setOpen(false)} label="Highlight">
+      <Popover anchor={ref} open={open} onClose={() => setOpen(false)} label={t("color.highlight")}>
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-xs font-semibold text-muted">Highlight</span>
+          <span className="text-xs font-semibold text-muted">{t("color.highlight")}</span>
           <button
             type="button"
             disabled={!active}
             className="flex items-center gap-1 text-xs font-medium text-accent hover:underline disabled:text-muted disabled:no-underline"
             onClick={() => (editor.chain().focus().unsetHighlight().run(), setOpen(false))}
           >
-            <Ban size={12} aria-hidden /> None
+            <Ban size={12} aria-hidden /> {t("color.none")}
           </button>
         </div>
         <Swatches colors={HIGHLIGHT_COLORS} current={current} onPick={pick} />

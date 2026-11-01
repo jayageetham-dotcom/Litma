@@ -40,7 +40,7 @@ export function SkeletonLines({ lines = 4, className = "" }: { lines?: number; c
 export function DeskSkeleton({ count = 6 }: { count?: number }) {
   return (
     <Busy label="loading.desk">
-      <ul className="mt-6 grid grid-cols-2 gap-x-3 gap-y-6 sm:mt-8 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-x-6 sm:gap-y-8">
+      <ul className="mt-8 grid grid-cols-2 gap-x-3 gap-y-7 sm:mt-10 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-x-6 sm:gap-y-10">
         {Array.from({ length: count }, (_, i) => (
           <li key={i} className="fade-in" style={{ animationDelay: `${i * 60}ms` }}>
             <div className="overflow-hidden rounded-2xl border border-line bg-surface p-3.5 sm:p-5" style={{ aspectRatio: "210 / 200" }}>
@@ -60,7 +60,7 @@ export function DeskSkeleton({ count = 6 }: { count?: number }) {
 export function BooksSkeleton({ count = 4 }: { count?: number }) {
   return (
     <Busy label="loading.book">
-      <ul className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-4 gap-y-7 sm:mt-8 sm:grid-cols-[repeat(auto-fill,minmax(170px,1fr))] sm:gap-x-6">
+      <ul className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-4 gap-y-7 sm:mt-10 sm:grid-cols-[repeat(auto-fill,minmax(170px,1fr))] sm:gap-x-6">
         {Array.from({ length: count }, (_, i) => (
           <li key={i} className="fade-in" style={{ animationDelay: `${i * 70}ms` }}>
             <Skeleton className="rounded-sm" style={{ width: 150, height: 150 * (297 / 210) }} />

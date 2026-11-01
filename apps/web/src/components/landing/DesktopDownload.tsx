@@ -158,11 +158,11 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
 
   if (variant === "card")
     return (
-      <section className="mt-12 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-line bg-surface p-5 sm:p-6" aria-label={t("download.deskTitle")}>
+      <section className="mt-16 flex flex-wrap items-center justify-between gap-6 rounded-2xl border border-line bg-surface p-6 sm:mt-20 sm:p-8" aria-label={t("download.deskTitle")}>
         <div className="min-w-0 max-w-md">
           <h2 className="text-lg font-semibold">{t("download.deskTitle")}</h2>
-          <p className="mt-1 text-sm leading-relaxed text-muted">{t("download.deskBody")}</p>
-          <Link href="/download/" className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
+          <p className="mt-2 text-sm leading-relaxed text-muted">{t("download.deskBody")}</p>
+          <Link href="/download/" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
             {t("download.deskMore")} <ArrowRight size={14} aria-hidden />
           </Link>
         </div>

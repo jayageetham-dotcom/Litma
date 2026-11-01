@@ -124,24 +124,24 @@ function Desk() {
     <div className="min-h-dvh">
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 pb-24 sm:px-5 md:pb-20">
-        <div className="flex flex-wrap items-end justify-between gap-4 pt-4">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-6 pt-8 sm:pt-12">
           <div>
-            <h1 className="text-2xl font-bold sm:text-3xl" style={{ fontFamily: "'Anek Malayalam'" }}>
+            <h1 className="text-[1.9rem] font-bold leading-tight sm:text-[2.5rem]" style={{ fontFamily: "'Anek Malayalam'" }}>
               {view === "works" ? t("desk.title") : view === "books" ? t("books.title") : t("trash.title")}
             </h1>
-            <p className="mt-1 max-w-2xl text-muted">{view === "books" ? t("books.description") : view === "trash" ? t("trash.description") : t("desk.description")}</p>
+            <p className="mt-3 max-w-2xl text-[1.05rem] leading-relaxed text-muted">{view === "books" ? t("books.description") : view === "trash" ? t("trash.description") : t("desk.description")}</p>
             {view === "works" && (
-              <p className="mt-2 flex min-h-6 flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted" aria-live="polite">
+              <p className="mt-5 flex min-h-7 flex-wrap items-center gap-x-2.5 gap-y-2 text-sm text-muted" aria-live="polite">
                 {docs ? (
                   <>
                     <span className="font-medium text-ink">{t("common.works", { count: docs.length })}</span>
                     <span aria-hidden>·</span>
                     <span>{t("common.words", { count: totalWords })}</span>
                     {today && today.words > 0 && (
-                      <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">{t("desk.today", { n: today.words })}</span>
+                      <span className="ml-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent">{t("desk.today", { n: today.words })}</span>
                     )}
                     {today && today.streak > 1 && (
-                      <span className="rounded-full bg-highlight-soft px-2 py-0.5 text-xs font-medium text-highlight">{t("desk.streak", { n: today.streak })}</span>
+                      <span className="rounded-full bg-highlight-soft px-2.5 py-1 text-xs font-medium text-highlight">{t("desk.streak", { n: today.streak })}</span>
                     )}
                   </>
                 ) : (
@@ -150,7 +150,7 @@ function Desk() {
               </p>
             )}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {view === "books" ? (
               <button className="btn btn-primary !px-4 !py-2.5 max-md:!hidden" onClick={newBook}>
                 <BookPlus size={18} /> {t("desk.newBook")}
@@ -205,11 +205,11 @@ function Desk() {
         </div>
 
         {!store.isCloud() && (
-          <p className="mt-5 rounded-lg border border-highlight/40 bg-highlight-soft px-4 py-3 text-sm">{t("desk.localMode")}</p>
+          <p className="mt-8 rounded-lg border border-highlight/40 bg-highlight-soft px-4 py-3 text-sm">{t("desk.localMode")}</p>
         )}
-        {error && <p className="mt-4 rounded-lg bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p>}
+        {error && <p className="mt-6 rounded-lg bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p>}
 
-        <div className="mt-6 flex flex-wrap items-center gap-3 border-b border-line pb-3 sm:mt-8">
+        <div className="mt-10 flex flex-wrap items-center gap-3 border-b border-line pb-4 sm:mt-14">
           <div className="flex gap-1 text-sm" role="tablist">
             {(
               [
@@ -245,9 +245,9 @@ function Desk() {
           )}
         </div>
         {view === "works" && kindsUsed.length > 1 && (
-          <div className="scrollbar-none -mx-4 mt-3 flex gap-1 overflow-x-auto px-4 text-sm sm:mx-0 sm:flex-wrap sm:px-0">
+          <div className="scrollbar-none -mx-4 mt-5 flex gap-1.5 overflow-x-auto px-4 text-sm sm:mx-0 sm:flex-wrap sm:px-0">
             {(["all", ...kindsUsed] as (DocKind | "all")[]).map((k) => (
-              <button key={k} onClick={() => setFilter(k)} className={`shrink-0 rounded-full px-3 py-1 ${filter === k ? "bg-accent text-accent-ink" : "text-muted hover:bg-subtle"}`}>
+              <button key={k} onClick={() => setFilter(k)} className={`shrink-0 rounded-full px-3.5 py-1.5 ${filter === k ? "bg-accent text-accent-ink" : "text-muted hover:bg-subtle"}`}>
                 {k === "all" ? t("desk.all") : templateFor(k).ml}
               </button>
             ))}
@@ -255,7 +255,7 @@ function Desk() {
         )}
 
         {docs && docs.length === 0 && view === "works" && !choosing && (
-          <section className="mt-10">
+          <section className="mt-12">
             <h2 className="text-xl font-semibold">{t("desk.firstWork")}</h2>
             <p className="mt-1 text-muted">{t("desk.firstWorkHint")}</p>
             <Chooser onPick={create} creating={creating} />
@@ -266,7 +266,7 @@ function Desk() {
         {view === "books" && !books && <BooksSkeleton />}
 
         {view === "books" && books && (
-          <ul className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-4 gap-y-7 sm:mt-8 sm:grid-cols-[repeat(auto-fill,minmax(170px,1fr))] sm:gap-x-6 sm:gap-y-8">
+          <ul className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-4 gap-y-7 sm:mt-10 sm:grid-cols-[repeat(auto-fill,minmax(170px,1fr))] sm:gap-x-6 sm:gap-y-8">
             {books.length === 0 && <li className="col-span-full text-muted">{t("books.empty")}</li>}
             {books.map((b) => (
               <li key={b.id} className="group">
@@ -297,7 +297,7 @@ function Desk() {
           </ul>
         )}
 
-        <ul className="mt-6 grid grid-cols-2 gap-x-3 gap-y-6 sm:mt-8 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-x-6 sm:gap-y-8">
+        <ul className="mt-8 grid grid-cols-2 gap-x-3 gap-y-7 sm:mt-10 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-x-6 sm:gap-y-10">
           {shown.map((d) => {
             const tpl = templateFor(d.kind);
             const card = (

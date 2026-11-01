@@ -109,12 +109,23 @@ jobs:
         run: |
           npm run build
           node scripts/copy-web.mjs
-          npx electron-builder --config electron-builder.yml ${{ matrix.flag }}
+          EXTRA=""
+          # An empty secret still arrives as an empty variable, which electron-builder reads as a
+          # certificate path. Remove empty ones so unsigned builds really are unsigned.
+          for v in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            [ -z "${!v}" ] && unset "$v"
+          done
+          if [ -z "${CSC_LINK:-}" ]; then
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+            # macOS: ad-hoc signature so the universal app (Apple silicon) launches; Windows: unsigned
+            [ "${{ matrix.flag }}" = "--mac" ] && EXTRA="-c.mac.identity=-"
+            echo "No signing certificate: building an unsigned installer"
+          fi
+          npx electron-builder --config electron-builder.yml ${{ matrix.flag }} $EXTRA
         env:
           # optional signing (see apps/desktop/README.md); unsigned builds when these are empty
           CSC_LINK: ${{ matrix.os == 'macos-latest' && secrets.CSC_LINK || secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.CSC_KEY_PASSWORD || secrets.WIN_CSC_KEY_PASSWORD }}
-          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_LINK != '' }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}

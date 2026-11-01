@@ -1,6 +1,6 @@
 {
   "name": "@litma/keyboards",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Malayalam keyboard layouts as JSON (shared with desktop and mobile) and the key-to-text helper.",
   "type": "module",

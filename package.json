@@ -1,6 +1,6 @@
 {
   "name": "litma",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Litma · ലിറ്റ്മ — a Malayalam literary writing studio (web, desktop, mobile)",
   "workspaces": [

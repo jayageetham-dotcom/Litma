@@ -2,6 +2,11 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.4.0 · 2026-11-01
+
+- Publish desktop installers on GitHub Releases, not the web host
+- CI: move GitHub actions to their Node 24 releases
+
 ## 0.3.0 · 2026-11-01
 
 - Let the chapter drop cap take the writer's text colour

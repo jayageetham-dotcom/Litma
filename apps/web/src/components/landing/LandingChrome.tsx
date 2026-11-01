@@ -14,8 +14,10 @@ const NAV = [
  */
 export function LandingNav({ right, links = true }: { right?: React.ReactNode; links?: boolean }) {
   return (
-    <header className="fixed inset-x-0 top-0 z-40 px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:px-4 sm:pt-[calc(env(safe-area-inset-top)+1rem)]">
-      <nav aria-label="Main" className="bg-header mx-auto flex max-w-6xl items-center justify-between gap-2 rounded-full border border-line py-1.5 pl-4 pr-1.5 shadow-[var(--pop-chip-shadow)] sm:py-2 sm:pl-5 sm:pr-2">
+    <header className="fixed inset-x-0 top-0 z-40 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:pt-[calc(env(safe-area-inset-top)+1rem)]">
+      {/* same width and side padding as the page content (max-w-7xl, px-5 / md:px-10), so the pill lines up with the text below */}
+      <div className="mx-auto max-w-7xl px-3 sm:px-5 md:px-10">
+      <nav aria-label="Main" className="bg-header flex items-center justify-between gap-2 rounded-full border border-line py-1.5 pl-4 pr-1.5 shadow-[var(--pop-chip-shadow)] sm:py-2 sm:pl-5 sm:pr-2">
         <Logo />
         {links && (
           <div className="hidden items-center gap-7 text-sm font-semibold text-muted lg:flex">
@@ -28,6 +30,7 @@ export function LandingNav({ right, links = true }: { right?: React.ReactNode; l
         )}
         <div className="flex items-center gap-1 sm:gap-1.5">{right ?? <HomeNav />}</div>
       </nav>
+      </div>
     </header>
   );
 }

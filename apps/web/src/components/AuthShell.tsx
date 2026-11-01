@@ -48,7 +48,7 @@ export function AuthShell({
           </>
         }
       />
-      <main className={`relative mx-auto grid items-center gap-14 px-5 pb-20 pt-28 md:pt-36 ${quote ? "max-w-6xl lg:grid-cols-[minmax(0,27rem)_1fr] lg:gap-20" : "max-w-md"}`}>
+      <main className={`relative mx-auto grid items-center gap-14 px-5 pb-20 pt-28 md:pt-36 ${quote ? "max-w-7xl md:px-10 lg:grid-cols-[minmax(0,27rem)_1fr] lg:gap-20" : "max-w-md"}`}>
         {/* the form sits on a little stack of coloured sheets, like the demo on the home page */}
         <div className="relative w-full">
           <div aria-hidden className="absolute inset-0 translate-x-3 translate-y-4 rotate-2 rounded-[2rem] bg-lime" />

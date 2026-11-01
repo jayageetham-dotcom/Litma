@@ -52,7 +52,7 @@ export default function DownloadPage() {
         {/* ── Hero: the right download for this device ── */}
         <section className="relative overflow-hidden pb-24 pt-32 text-center md:pt-44">
           <ColourField />
-          <div className="relative mx-auto max-w-6xl px-5">
+          <div className="relative mx-auto max-w-7xl px-5 md:px-10">
           <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 py-1.5 pl-1.5 pr-4 text-xs font-bold uppercase tracking-[0.16em] text-muted backdrop-blur">
             <span className="grid size-6 place-items-center rounded-full bg-lime text-on-pop">
               <Download size={13} aria-hidden />

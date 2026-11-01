@@ -60,9 +60,9 @@ export function AuthShell({
 
         {quote && (
           <aside aria-hidden className="relative hidden overflow-hidden rounded-[2.5rem] bg-night px-12 pb-14 pt-16 text-night-ink lg:block">
-            <div className="dot-grid absolute inset-0 text-night-ink/[0.07]" />
-            <div className={`absolute -right-24 -top-24 size-80 rounded-full blur-3xl ${line % 2 ? "bg-coral/40" : "bg-violet/50"}`} />
-            <div className="absolute -bottom-28 -left-16 size-80 rounded-full bg-lime/25 blur-3xl" />
+            <div className="dot-grid absolute inset-0 text-night-ink/[0.04]" />
+            <div className={`absolute -right-32 -top-32 size-72 rounded-full blur-3xl ${line % 2 ? "bg-coral/15" : "bg-violet/25"}`} />
+            <div className="absolute -bottom-36 -left-28 size-72 rounded-full bg-lime/10 blur-3xl" />
             <span className="relative block select-none text-[7rem] font-extrabold leading-[0.6] text-coral" style={display}>
               “
             </span>
@@ -76,9 +76,6 @@ export function AuthShell({
               </p>
             )}
             {l.en && <p className="relative mt-3 text-sm text-night-ink/70">{l.en}</p>}
-            <span style={{ ["--r" as string]: "6deg" }} className="float-b absolute bottom-6 right-8 rounded-full bg-sky px-4 py-2 text-sm font-extrabold text-on-pop shadow-lg">
-              Manglish → മലയാളം
-            </span>
           </aside>
         )}
       </main>

@@ -15,7 +15,7 @@ export function StoreBadges({ only, className = "" }: { only?: "ios" | "android"
       {items.map((it) => {
         const body = (
           <>
-            <it.icon size={it.id === "ios" ? 26 : 22} />
+            <it.icon size={it.id === "ios" ? 26 : 22} onDark={!!it.href} />
             <span className="text-left leading-tight">
               <span className="block text-[10.5px] opacity-80">{it.href ? it.small : t("download.comingSoon")}</span>
               <span className="block text-[17px] font-semibold tracking-tight">{it.big}</span>

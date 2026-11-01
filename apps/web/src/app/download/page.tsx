@@ -260,7 +260,7 @@ function PlatformCard({
   soon,
   fill,
 }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: React.ComponentType<{ size?: number; className?: string; onDark?: boolean }>;
   title: string;
   detail: string;
   current: boolean;
@@ -276,7 +276,7 @@ function PlatformCard({
       <div aria-hidden className="dot-grid absolute inset-0 opacity-10" />
       {current && <span className="absolute right-5 top-5 rounded-full bg-night px-2.5 py-1 text-[11px] font-bold text-night-ink">{youLabel}</span>}
       <span className="relative grid size-12 place-items-center rounded-2xl bg-surface text-ink shadow-sm">
-        <Icon size={24} aria-hidden />
+        <Icon size={24} />
       </span>
       <h3 className="relative mt-6 text-2xl font-extrabold">{title}</h3>
       <p className="relative mt-1.5 flex-1 text-sm leading-relaxed opacity-80">{detail}</p>

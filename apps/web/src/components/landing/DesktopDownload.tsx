@@ -32,7 +32,7 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
             href={it.href}
             className={`btn justify-start !rounded-xl !px-4 !py-3 ${i === 0 && (platform === "mac" || platform === "win") ? "btn-primary" : "btn-outline"}`}
           >
-            <it.icon size={20} aria-hidden />
+            <it.icon size={20} onDark={i === 0 && (platform === "mac" || platform === "win")} />
             <span className="text-left">
               <span className="block">{it.label}</span>
               <span className="block text-xs font-normal opacity-75">{it.hint}</span>
@@ -41,7 +41,7 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
           </a>
         ) : (
           <span key={it.id} className="btn btn-outline justify-start !rounded-xl !px-4 !py-3" aria-disabled="true">
-            <it.icon size={20} aria-hidden />
+            <it.icon size={20} />
             <span className="text-left">
               <span className="block">{it.label}</span>
               <span className="block text-xs font-normal text-muted">{release === undefined ? t("common.loading") : t("download.soon")}</span>
@@ -82,7 +82,7 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
                 const inner = (
                   <>
                     <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-mist text-ink">
-                      <it.icon size={22} aria-hidden />
+                      <it.icon size={22} />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block font-extrabold">{it.label}</span>
@@ -132,7 +132,7 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
                   href={it.href}
                   className={`btn justify-start !rounded-xl !px-5 !py-3.5 ${i === 0 ? "bg-primary-ink text-primary hover:opacity-90" : "border border-primary-ink/30 text-primary-ink hover:bg-primary-ink/10"}`}
                 >
-                  <it.icon size={20} aria-hidden />
+                  <it.icon size={20} onDark={i !== 0} />
                   <span className="text-left">
                     <span className="block">{it.label}</span>
                     <span className="block text-xs font-normal opacity-75">{it.hint}</span>
@@ -140,7 +140,7 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
                 </a>
               ) : (
                 <span key={it.id} className="btn justify-start border border-primary-ink/30 !rounded-xl !px-5 !py-3.5 opacity-70" aria-disabled="true">
-                  <it.icon size={20} aria-hidden />
+                  <it.icon size={20} />
                   <span className="text-left">
                     <span className="block">{it.label}</span>
                     <span className="block text-xs font-normal">{release === undefined ? t("common.loading") : t("download.soon")}</span>

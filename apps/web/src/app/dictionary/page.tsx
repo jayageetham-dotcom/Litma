@@ -30,14 +30,14 @@ export default function DictionaryPage() {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 pb-24 pt-4 sm:px-5 sm:pt-6">
-        <h1 className="text-2xl font-bold sm:text-3xl" style={{ fontFamily: "'Anek Malayalam'" }}>
+      <main className="mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-5 sm:pt-12">
+        <h1 className="text-[1.9rem] font-bold leading-tight sm:text-[2.5rem]" style={{ fontFamily: "'Anek Malayalam'" }}>
           നിഘണ്ടു
         </h1>
-        <p className="mt-1 text-muted">Malayalam–Malayalam, English–Malayalam and Malayalam–English, with synonyms and opposites. Save words to keep them at hand while you write.</p>
+        <p className="mt-3 max-w-2xl text-[1.05rem] leading-relaxed text-muted">Malayalam–Malayalam, English–Malayalam and Malayalam–English, with synonyms and opposites. Save words to keep them at hand while you write.</p>
 
         {/* phones and tablets: two tabs; wide screens show saved words beside the dictionary */}
-        <div className="mt-5 flex gap-1 text-sm lg:hidden" role="tablist">
+        <div className="mt-8 flex gap-1 text-sm lg:hidden" role="tablist">
           {(["lookup", "saved"] as const).map((v) => (
             <button
               key={v}
@@ -51,16 +51,16 @@ export default function DictionaryPage() {
           ))}
         </div>
 
-        <div className="mt-6 grid gap-10 lg:mt-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="mt-6 grid gap-12 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_20rem] xl:gap-16">
           <section className={tab === "lookup" ? "" : "max-lg:hidden"}>
             <DictionaryView query={query} />
           </section>
-          <aside className={`${tab === "saved" ? "" : "max-lg:hidden"} lg:sticky lg:top-20 lg:self-start`} aria-label={t("saved.title")}>
-            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold max-lg:hidden">
-              <Bookmark size={15} className="text-accent" aria-hidden /> {t("saved.title")}
+          <aside className={`${tab === "saved" ? "" : "max-lg:hidden"} lg:sticky lg:top-24 lg:self-start lg:rounded-2xl lg:border lg:border-line lg:bg-surface lg:p-5`} aria-label={t("saved.title")}>
+            <h2 className="mb-4 flex items-center gap-2 text-[15px] font-semibold max-lg:hidden">
+              <Bookmark size={16} className="text-tint-coral" aria-hidden /> {t("saved.title")}
               {items && items.length > 0 && <span className="rounded-full bg-subtle px-2 text-xs font-medium text-muted">{items.length}</span>}
             </h2>
-            <div className="scrollbar-thin lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto lg:pr-1">
+            <div className="scrollbar-thin lg:max-h-[calc(100dvh-12rem)] lg:overflow-y-auto lg:pr-1">
               <SavedWords onOpen={open} />
             </div>
           </aside>

@@ -2,6 +2,10 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.5.0 · 2026-11-01
+
+- Download page with OS detection, download links in header, hero and desk
+
 ## 0.4.0 · 2026-11-01
 
 - Publish desktop installers on GitHub Releases, not the web host

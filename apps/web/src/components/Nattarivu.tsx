@@ -20,23 +20,28 @@ export function NattarivuCategories({ onOpen }: { onOpen: (id: string) => void }
   return (
     <div className="fade-in">
       <p className="max-w-2xl leading-relaxed text-muted">{t("nattarivu.intro")}</p>
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-        {NATTARIVU.map((c) => (
+      <div className="mt-6 grid grid-flow-row-dense grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        {NATTARIVU.map((c) => {
+          // the longest word decides the size: a title stays on one line and never breaks mid-word
+          const longest = Math.max(...c.ml.split(" ").map((w) => [...w].length));
+          const long = longest > 12;
+          return (
           <button
             key={c.id}
             type="button"
             onClick={() => onOpen(c.id)}
-            className="group flex flex-col items-start rounded-2xl border border-line bg-surface p-4 text-left transition-[box-shadow,transform,border-color] hover:-translate-y-0.5 hover:border-transparent hover:shadow-[var(--pop-shadow)] focus-visible:-translate-y-0.5 sm:p-5"
+            className={`group flex min-w-0 flex-col items-start rounded-2xl border border-line bg-surface p-4 text-left transition-[box-shadow,transform,border-color] hover:-translate-y-0.5 hover:border-transparent hover:shadow-[var(--pop-shadow)] focus-visible:-translate-y-0.5 [container-type:inline-size] sm:p-5 ${long ? "max-sm:col-span-2" : ""}`}
           >
             <span className={`h-2 w-2 rounded-full ${DOT[c.tint]}`} aria-hidden />
-            <span className="mt-3 text-[1.15rem] font-bold leading-snug sm:text-[1.3rem]" style={display}>
+            <span className="mt-3 w-full font-bold leading-snug" style={{ ...display, fontSize: `min(1.25rem, ${(100 / (longest * 0.75)).toFixed(1)}cqi)` }}>
               {c.ml}
             </span>
             <span className="mt-0.5 text-sm text-muted">{c.en}</span>
-            <span className="mt-3 line-clamp-1 text-[13px] text-muted max-sm:hidden">{c.words.slice(0, 4).map((w) => w.ml).join(" · ")}</span>
+            <span className="mt-3 line-clamp-1 w-full text-[13px] text-muted max-sm:hidden">{c.words.slice(0, 4).map((w) => w.ml).join(" · ")}</span>
             <span className="mt-auto pt-3 text-xs font-medium text-muted">{t("nattarivu.words", { count: c.words.length })}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

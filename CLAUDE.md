@@ -67,7 +67,6 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - `extensions/keep-selection.ts` keeps the selection when the editor blurs (phones collapse it when the keyboard closes) and shows it as `.kept-selection`. Phones get a floating selection bar (Look up · Ask AI · B · I · Copy) and Look up / Ask AI buttons in the keyboard strip; sheets take `bottomOffset={kb}` so they sit above the on-screen keyboard.
 - Malayalam input mode has a built-in **Enhanced InScript** keyboard (`src/keyboards/ml-inscript.json`, physical `KeyboardEvent.code` → text; `]` after consonant+് makes the atomic chillu). It only translates ASCII key output, so a system Malayalam keyboard passes through. Layout "system" leaves typing to the device (default on touch screens). Keyboard map popover in `KeyboardTools.tsx`.
 - Manglish suggestions end with a "Keep English" row (the touch version of Esc); the popup measures against the visual viewport so it stays above the phone keyboard.
-- നാട്ടറിവ് (Dictionary tab): categories of Malayalam words + English meanings in `packages/shared/src/nattarivu.ts` (familiar-first order). Only add words that have a dictionary entry whose meaning matches (check the built `public/dict` data and Datuk definitions); never add words without an entry (owner's rule). `# മലയാളം | English` lines start a section (കല uses them). `/dictionary/?view=nattarivu&c=<id>`; a word opens as `?w=<word>&from=<id>` with a chip back to its category. Components in `components/Nattarivu.tsx`.
 - Saved words: `bookmarks` in `store.ts` (table `word_bookmarks`, falls back to localStorage until the migration has run). Bookmark button in `DictionaryView`; `SavedWords` list on /dictionary (beside the dictionary on wide screens, a tab on phones) and as the editor's "Saved words" panel (tap to insert).
 - Malayalam synonyms are ranked in `shared/dict.ts`: each word scores from every thesaurus set it appears in, weighted by how early that set's English headword comes in the entry's translations; single words before phrases.
 - Bold: `toggleSmartBold` (Ctrl/⌘+B) can un-bold naturally bold blocks (titles, chapters) via `textStyle.fontWeight = "400"`; `boldIsOn()` drives the button state.
@@ -75,6 +74,16 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Metre marks (akshara count, laghu/guru) are hidden by default; toolbar toggle വൃത്തം and Ctrl/⌘+Alt+V, saved as `settings.showMetre`.
 - Typewriter scrolling only follows the cursor right after typing keys (not on clicks or selection).
 - Phones: no autofocus on open; the editor shows a keyboard accessory strip while focused and the tab bar otherwise.
+
+## നാട്ടറിവ് (Dictionary tab, owner's rules)
+- Categories of Malayalam words with English meanings, shown in the Dictionary as Look up · നാട്ടറിവ് · Saved. Data: `packages/shared/src/nattarivu.ts` (plain data, synced to `supabase/functions/_shared`; the mobile app ports it). UI: `components/Nattarivu.tsx`. URLs: `/dictionary/?view=nattarivu&c=<id>`; a word opens as `?w=<word>&from=<id>` with a chip back to its category.
+- **Only words that have a dictionary entry whose meaning matches.** Never add a word without an entry, and drop a word whose entry means something else (ചമ്പ is dried fish, not the tala; ബുധൻ is not Wednesday, so the weekdays use ബുധനാഴ്ച). Check every word against the built `apps/web/public/dict` data (build it with `node scripts/build-dictionary.mjs --cache .dict-cache`) and read Datuk's definitions for the less common ones.
+- Words that belong to Malayalam and Kerala. Leave out vocabulary shared across South Indian languages as a technical list (no ragas or Carnatic talas; Kerala-specific ones like ചെമ്പട, പഞ്ചാരി, സോപാനം are fine).
+- No devotional or religious terms, and no occupation words that double as caste names.
+- Familiar-first order, not alphabetical. English is a plain meaning; named art forms and instruments get a short description ("Kathakali, classical dance-drama").
+- Sections: a line `# മലയാളം | English` starts one. Use sections when a category splits naturally (കല: art forms, instruments, folk games, festivals, music); no one-word sections; small related categories are merged into one with sections (കാലം holds seasons, months, birth stars, times of day, weekdays).
+- Short category names (ഉപകരണങ്ങൾ, not നാടൻ ഉപകരണങ്ങൾ; ഭൂപ്രദേശം for terrain). Keep a word in one category. When a category is merged or renamed, keep its old id working in `MOVED`.
+- Card titles stay on one line inside their card (long single words shrink to fit; on phones such a card spans the row).
 
 ## AI companion (Panels.tsx `AIPanel`)
 - With an API key for the chosen provider (Claude/GPT/Gemini), answers stream into the panel.

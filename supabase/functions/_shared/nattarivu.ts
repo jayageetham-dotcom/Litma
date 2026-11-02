@@ -1011,20 +1011,48 @@ export const NATTARIVU: NattarivuCategory[] = [
       വള്ളംകളി | snake-boat race
       ഉത്സവം | festival
       ആഘോഷം | celebration
-      # താളങ്ങളും രാഗങ്ങളും | Rhythms and ragas
-      താളം | rhythm, tala
-      രാഗം | raga
-      സ്വരം | musical note
+      # സംഗീതം | Music
+      സംഗീതം | music
+      പാട്ട് | song
+      ഗാനം | song
+      ഗീതം | song, verse to be sung
+      ഈണം | tune, melody
+      രാഗം | raga, melody
+      താളം | rhythm, beat
+      ലയം | tempo, rhythmic flow
       ശ്രുതി | pitch, drone
+      സ്വരം | musical note
+      നാദം | musical sound, tone
+      ഗമകം | gamakam, ornamenting a note
+      ആലാപനം | singing, unfolding a raga
+      വായ്പ്പാട്ട് | vocal music
+      മൂളിപ്പാട്ട് | humming a tune
+      പല്ലവി | refrain, opening line of a song
+      അനുപല്ലവി | the part after the refrain
+      ഈരടി | couplet
+      ശീൽ | a line of song, tune
+      താരാട്ട് | lullaby
+      നാടൻപാട്ട് | folk song
+      വഞ്ചിപ്പാട്ട് | boat song
+      ഞാറ്റുപാട്ട് | song sung while planting paddy
+      ഓണപ്പാട്ട് | Onam song
+      മാപ്പിളപ്പാട്ട് | Mappila song
+      കുമ്മി | kummi, women's clapping song and dance
+      പടപ്പാട്ട് | battle song
+      കച്ചേരി | concert
+      ഗാനമേള | concert of songs
+      ഗായകൻ | singer
+      ഗായിക | singer (woman)
+      പാട്ടുകാരൻ | singer
+      പാട്ടുകാരി | singer (woman)
+      സംഗീതജ്ഞൻ | musician
+      മേളക്കാരൻ | percussionist, instrumentalist
+      ഗാനരചയിതാവ് | lyricist
+      സംഗീതസംവിധായകൻ | music composer
       ചെമ്പട | chempada tala
       അടന്ത | adantha tala
-      പഞ്ചാരി | panchari melam rhythm
-      ആദിതാളം | adi tala
-      മോഹനം | Mohanam
-      ശങ്കരാഭരണം | Shankarabharanam
-      തോടി | Todi
-      ഭൈരവി | Bhairavi
-      നീലാംബരി | Neelambari, lullaby raga
+      പഞ്ചാരി | panchari, a melam rhythm
+      വായ്ത്താരി | vaythari, spoken rhythm syllables
       സോപാനം | sopanam, Kerala's sopana music style
     `),
   },

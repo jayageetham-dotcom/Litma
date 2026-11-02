@@ -8,6 +8,13 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - When the work is done, tell the owner plainly whether a Release is needed for the desktop app (and later the phone app) to get it, and offer to start it if this session can.
 - Mobile (`apps/mobile`): until the Flutter app exists, note in its README any change the native app must mirror (shared strings in `packages/i18n`, tokens via `npm run tokens`, logic in `packages/shared`). Once it exists, make the same change there.
 
+## Fairness (owner's standing rule)
+- Never discriminate by religion, caste, race, community, region, gender, age or ability, in anything: UI text, sample and template content, dictionary lists, quotes, examples, AI prompts, MCP text and emails.
+- Treat every community the same way. Their words, festivals, food, names and customs sit side by side as equals: never in an "other" or "also" section, never as an afterthought, never labelled by community (ഉമ്മ beside അമ്മ, not under "Muslim words").
+- Draw examples, sample texts, names and quotes from all of Kerala's communities, not one.
+- No caste names, slurs or words that rank people. When a source (Olam, Datuk) words a definition in a dated or one-sided way, don't repeat that wording in Litma's own text.
+- Before finishing content work, check it for this.
+
 ## Release notes (owner's standing rule)
 - **Never show commit messages or a list of changes in updates** (update card, download page). They confuse writers.
 - `scripts/release.mjs` takes notes only from the Release workflow's optional **notes** box, which the owner fills in himself. Left empty, writers see no notes at all. Don't add "What's new" lines to commits.

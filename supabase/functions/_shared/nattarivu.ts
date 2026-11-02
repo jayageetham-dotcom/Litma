@@ -440,8 +440,8 @@ export const NATTARIVU: NattarivuCategory[] = [
   },
   {
     id: "mountains",
-    ml: "മലകളും പർവതങ്ങളും",
-    en: "Hills and mountains",
+    ml: "ഭൂപ്രദേശം",
+    en: "Terrain",
     tint: "lime",
     words: list(`
       മല | hill, mountain

@@ -19,9 +19,17 @@ function LoginForm() {
   const [msg, setMsg] = useState<{ kind: "error" | "info"; text: string } | null>(params.get("reset") ? { kind: "info", text: "Password updated. Sign in with your new password." } : null);
   const sb = getSupabase();
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!sb) return;
+    // Read the fields from the form: browser autofill fills them without telling React until the page is touched.
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    setEmail(email);
+    setPassword(password);
+    if (!email) return setMsg({ kind: "error", text: "Enter your email address." });
+    if (!magic && !password) return setMsg({ kind: "error", text: "Enter your password." });
     setBusy(true);
     setMsg(null);
     try {
@@ -63,17 +71,17 @@ function LoginForm() {
           </Link>
         </p>
       </div>
-      <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Field label="Email" name="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       {!magic && (
         <div>
-          <Field label="Password" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Field label="Password" name="password" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           <Link href="/forgot-password/" className="mt-1.5 inline-block text-xs text-accent underline underline-offset-2">
             Forgot your password?
           </Link>
         </div>
       )}
       {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
-      <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy || !email || (!magic && !password)}>
+      <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy}>
         {busy ? "Signing in…" : magic ? "Email me a sign-in link" : "Sign in"}
       </button>
       <button type="button" className="w-full text-center text-sm text-muted underline underline-offset-2 hover:text-ink" onClick={() => setMagic((m) => !m)}>

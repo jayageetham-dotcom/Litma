@@ -33,9 +33,20 @@ function SignupForm() {
   const st = strength(password);
   const mismatch = confirm.length > 0 && confirm !== password;
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!sb) return;
+    // Read the fields from the form: browser autofill fills them without telling React until the page is touched.
+    const form = new FormData(e.currentTarget);
+    const name = String(form.get("name") ?? "");
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    const confirm = String(form.get("confirm") ?? "");
+    setName(name);
+    setEmail(email);
+    setPassword(password);
+    setConfirm(confirm);
+    if (!email) return setError("Enter your email address.");
     if (password.length < 8) return setError("Use a password of at least 8 characters.");
     if (password !== confirm) return setError("The two passwords don't match.");
     setBusy(true);
@@ -77,10 +88,10 @@ function SignupForm() {
           </Link>
         </p>
       </div>
-      <Field label="Name or pen name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="ഉദാ: ജഗത്ത്" />
-      <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Field label="Name or pen name" name="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="ഉദാ: ജഗത്ത്" />
+      <Field label="Email" name="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <div>
-        <Field label="Password" type="password" required minLength={8} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Field label="Password" name="password" type="password" required minLength={8} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         {password && (
           <div className="mt-1.5 flex items-center gap-2 text-xs text-muted">
             <span className="flex h-1.5 flex-1 gap-1">
@@ -92,9 +103,9 @@ function SignupForm() {
           </div>
         )}
       </div>
-      <Field label="Confirm password" type="password" required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} aria-invalid={mismatch} hint={mismatch ? "Doesn't match yet." : undefined} />
+      <Field label="Confirm password" name="confirm" type="password" required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} aria-invalid={mismatch} hint={mismatch ? "Doesn't match yet." : undefined} />
       {error && <Notice kind="error">{error}</Notice>}
-      <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy || !email || !password || !confirm}>
+      <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy}>
         {busy ? "Creating account…" : "Create account"}
       </button>
       <div className="flex items-center gap-3 text-xs text-muted">

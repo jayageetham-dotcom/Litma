@@ -14,10 +14,14 @@ export default function ForgotPasswordPage() {
     <AuthShell quote={false} switchTo={{ href: "/login/", label: "Sign in" }}>
       <form
         className="space-y-5"
+        noValidate
         onSubmit={async (e) => {
           e.preventDefault();
           const sb = getSupabase();
           if (!sb) return;
+          const email = String(new FormData(e.currentTarget).get("email") ?? "").trim();
+          setEmail(email);
+          if (!email) return setMsg({ kind: "error", text: "Enter your email address." });
           setBusy(true);
           setMsg(null);
           const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: appUrl("/auth/callback/?next=%2Freset-password%2F") });
@@ -27,9 +31,9 @@ export default function ForgotPasswordPage() {
       >
         <h1 className="text-2xl font-bold">Reset your password</h1>
         <p className="text-sm text-muted">Enter your email and we’ll send a link to choose a new password.</p>
-        <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Field label="Email" name="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
-        <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy || !email}>
+        <button className="btn btn-primary w-full justify-center !py-3.5 !text-base" disabled={busy}>
           {busy ? "Sending…" : "Send reset link"}
         </button>
         <Link href="/login/" className="block text-center text-sm text-muted underline underline-offset-2 hover:text-ink">

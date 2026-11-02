@@ -164,6 +164,42 @@ function push(map, k, v) {
   (map[k] ??= []).push(v);
 }
 
+/** English words for a Malayalam word, with a score for how well each one translates it. */
+function addEn(entry, word, score) {
+  entry.e ??= new Map();
+  entry.e.set(word, (entry.e.get(word) ?? 0) + score);
+}
+
+/**
+ * Datuk lists a word's meanings in its own order (കവി: a leaf, Brahma, sages… and "one who
+ * writes poetry" last). Put first the meanings that share words with the synonym sets of the
+ * word's best English translations (കവി → poet, poetry, bard), keeping Datuk's order otherwise.
+ */
+let kurupSets = null;
+function rankMeanings(word, d, english, refs) {
+  if (!refs.length) return d;
+  // the best translation counts most (കല → art before scar)
+  const vocab = new Map();
+  english.slice(0, 4).forEach((k, rank) => {
+    const factor = [1, 0.45, 0.3, 0.2][rank];
+    for (const [w, [rk, si, ji]] of refs) {
+      if (rk !== k) continue;
+      for (const item of kurupSets.get(k)?.[si]?.ml?.[ji] ?? []) {
+        const t = item.trim();
+        if (t && t !== word) vocab.set(t, Math.max(vocab.get(t) ?? 0, w * factor));
+      }
+    }
+  });
+  if (!vocab.size) return d;
+  const score = (def) => def.split(/[\s,;.:()"'=\-]+/).reduce((n, t) => n + (vocab.get(t) ?? 0), 0);
+  const groups = Object.entries(d).map(([p, defs], gi) => {
+    const ranked = defs.map((def, i) => ({ def, i, s: score(def) })).sort((a, b) => b.s - a.s || a.i - b.i);
+    return { p, gi, best: ranked[0]?.s ?? 0, defs: ranked.map((x) => x.def) };
+  });
+  groups.sort((a, b) => b.best - a.best || a.gi - b.gi);
+  return Object.fromEntries(groups.map((g) => [g.p, g.defs]));
+}
+
 async function main() {
   const t0 = Date.now();
   const [datukF, enmlF, kurupF] = await Promise.all([load("datuk"), load("enml"), load("ekkurup")]);
@@ -208,16 +244,14 @@ async function main() {
     const v = getEn(enKey(h), h);
     v.d ??= {};
     push(v.d, pos(types) || "-", def);
-    if ([...def].length <= 30) {
-      const r = getMl(def);
-      (r.e ??= new Set()).add(h.toLowerCase());
-    }
+    if ([...def].length <= 30) addEn(getMl(def), h.toLowerCase(), 1);
     n++;
   }
   console.log(`enml: ${n} definitions`);
 
   // E.K. Kurup: synsets
   const kurup = parseKurup(kurupText);
+  kurupSets = new Map(kurup.map((entry) => [enKey(entry.head), entry.senses]));
   n = 0;
   for (const entry of kurup) {
     const k = enKey(entry.head);
@@ -228,10 +262,13 @@ async function main() {
         set.forEach((w) => {
           const word = clean(w);
           if (!word) return;
+          // How central the word is to this synonym set: first in the set (as കവി in "poet") scores
+          // high, deep in a long list (as കവി at 108 of 173 in "scholar") scores low.
+          const at = set.indexOf(w);
+          const weight = (1 - at / set.length) * (si === 0 ? 1 : 0.7) * (ji === 0 ? 1 : 0.85) + (at === 0 ? 1.5 : at < 3 ? 0.6 : 0);
           const r = getMl(word);
-          r.r ??= [];
-          if (r.r.length < 12) r.r.push([k, si, ji]);
-          (r.e ??= new Set()).add(entry.head.toLowerCase());
+          (r.refs ??= []).push([weight, [k, si, ji]]);
+          addEn(r, entry.head.toLowerCase(), weight);
           n++;
         })
       )
@@ -239,13 +276,14 @@ async function main() {
   }
   console.log(`ekkurup: ${kurup.length} heads, ${n} Malayalam synonym links`);
 
-  // finalise Malayalam entries
+  // finalise Malayalam entries: most likely senses first
   const mlObj = {};
   for (const [k, v] of ml) {
     const o = {};
-    if (v.d) o.d = v.d;
-    if (v.e) o.e = [...v.e].slice(0, 15);
-    if (v.r) o.r = v.r;
+    const english = v.e ? [...v.e.entries()].sort((a, b) => b[1] - a[1]).map(([w]) => w) : [];
+    if (v.d) o.d = rankMeanings(k, v.d, english, v.refs ?? []);
+    if (english.length) o.e = english.slice(0, 15);
+    if (v.refs) o.r = v.refs.sort((a, b) => b[0] - a[0]).slice(0, 12).map(([, ref]) => ref);
     mlObj[k] = o;
   }
 

@@ -217,7 +217,8 @@ export function createDictionary(fetchJson: DictFetch) {
       })
       .map(([w]) => w)
       .slice(0, 40);
-    res.translations = (m.e ?? []).slice(0, 15);
+    // the sources number homographs ("mum-1", "hail-2"); writers see the plain word once
+    res.translations = [...new Set((m.e ?? []).map((w) => w.replace(/-\d+$/, "")))].slice(0, 15);
     return res;
   }
 

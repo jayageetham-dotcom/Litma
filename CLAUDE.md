@@ -19,6 +19,7 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - After pulling the monorepo change, run `npm install` once at the root (the old root `node_modules` and `.next` can be deleted).
 - Before committing: `npm run typecheck` and `npm run build` (root scripts forward to the workspaces).
 - Local test build without Supabase ("local mode", no sign-in, data in localStorage): `NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_ANON_KEY= npm run build`, then `npm run preview` → http://localhost:4173/litma/. Playwright works against that (desk → pick a writing type → editor). Cloud-only flows (MCP, AI keys, AI hand-over, sharing) can't be exercised in local mode.
+- Desktop test without packaging: build `npm run build:desktop -w @litma/web` in local mode, `node apps/desktop/scripts/copy-web.mjs`, `npm run build -w @litma/desktop`, then drive it with Playwright's `_electron.launch({ cwd: "apps/desktop", args: ["--no-sandbox", "."] })` (under `xvfb-run` on Linux). Check every route both by loading it and by clicking in-app links; a page missing from `apps/desktop/app/web` shows the black Next 404.
 - Network from cloud sandboxes usually can't reach supabase.co, olam.in or jayageetham.com; use Supabase MCP tools for logs/SQL.
 - FTP deploy must **never delete** server files (`public_html` also holds the main site and `/onnayi`); the workflow has a guard step against `--delete`.
 

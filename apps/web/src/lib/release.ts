@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { BASE } from "@/lib/config";
+import { BASE, SITE_URL } from "@/lib/config";
 import "@/lib/desktop";
 
 /** Public repository whose GitHub Releases hold the installers (see apps/desktop/README.md → Publishing). */
@@ -8,6 +8,9 @@ export const RELEASES_REPO = "jayageetham-dotcom/litma-releases";
 export const RELEASES_PAGE = `https://github.com/${RELEASES_REPO}/releases`;
 /** Placeholder store links until the mobile app ships (the download page shows them as "Coming soon"). */
 export const STORE_LINKS = { ios: null as string | null, android: null as string | null };
+
+/** latest.json lives on the website; the desktop app (app://litma) has no copy of its own, so it asks the website. */
+const DOWNLOADS = process.env.NEXT_PUBLIC_DESKTOP === "1" && SITE_URL ? `${SITE_URL}/downloads` : `${BASE}/downloads`;
 
 type FileInfo = { file: string; url?: string; sha256?: string; size?: number };
 export type Release = {
@@ -24,7 +27,7 @@ export type Release = {
 const toUrl = (f?: string | FileInfo) => {
   if (!f) return null;
   const v = typeof f === "string" ? f : f.url ?? f.file;
-  return /^https?:/.test(v) ? v : `${BASE}/downloads/${v}`;
+  return /^https?:/.test(v) ? v : `${DOWNLOADS}/${v}`;
 };
 
 /**
@@ -75,7 +78,7 @@ export function useRelease() {
     let off = false;
     (async () => {
       try {
-        const r = await fetch(`${BASE}/downloads/latest.json`, { cache: "no-store" });
+        const r = await fetch(`${DOWNLOADS}/latest.json`, { cache: "no-store" });
         if (r.ok) {
           const j = (await r.json()) as Release;
           if (downloadsFor(j).mac || downloadsFor(j).win) {

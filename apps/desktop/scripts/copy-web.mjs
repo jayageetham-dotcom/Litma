@@ -2,7 +2,7 @@
 // into apps/desktop/app/web, which electron-builder packs into the installer.
 // The dictionary data is not bundled: the app fetches /dict/* from the website on demand.
 import { cpSync, existsSync, readFileSync, rmSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -18,5 +18,7 @@ if (readFileSync(join(out, "index.html"), "utf8").includes('"/litma/_next/')) {
   process.exit(1);
 }
 rmSync(dest, { recursive: true, force: true });
-cpSync(out, dest, { recursive: true, filter: (src) => !src.includes(`${join(out, "dict")}`) });
+// skip only the dictionary data folder (out/dict), not pages that start with "dict" such as out/dictionary
+const dictData = join(out, "dict");
+cpSync(out, dest, { recursive: true, filter: (src) => src !== dictData && !src.startsWith(dictData + sep) });
 console.log("Copied the web app into apps/desktop/app/web");

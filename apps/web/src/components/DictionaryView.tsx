@@ -135,8 +135,9 @@ export function DictionaryView({
     });
   }, []);
 
+  // look up the word passed in, including on first render (a link such as /dictionary/?w=താമര)
   useEffect(() => {
-    if (external && external !== q) {
+    if (external) {
       setQ(external);
       run(external);
     }

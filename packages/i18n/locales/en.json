@@ -248,5 +248,17 @@
   "editor": {
     "insertPage": "Insert page",
     "insertPageAria": "Insert a blank page between pages {a} and {b}"
+  },
+  "nattarivu": {
+    "title": "നാട്ടറിവ്",
+    "pageIntro": "Malayalam–Malayalam, English–Malayalam and Malayalam–English, with synonyms and opposites. Browse നാട്ടറിവ് for words about nature and everyday life, or save words to keep them at hand while you write.",
+    "intro": "Malayalam words for flowers, trees, birds, seasons, farming and everyday life, with their English meanings. Tap a word to open it in the dictionary.",
+    "words_one": "{count} word",
+    "words_other": "{count} words",
+    "all": "All categories",
+    "filter": "Filter these words",
+    "noMatch": "No word here matches “{q}”.",
+    "open": "Open in the dictionary",
+    "next": "Next:"
   }
 }

@@ -30,3 +30,4 @@ Behaviour fixed on the web that the Flutter app must match:
 - **Update prompt:** show it only when `latest.json` (`mobile.version`) is newer than the installed app, never on a timer by itself, and never on public screens (welcome, sign in, sign up).
 - **Session storage:** keep the Supabase session in the app's own persistent storage (supabase_flutter's default), never in web cookies. The desktop app lost every sign-in when the session lived in cookies.
 - **Dictionary:** use the same data files (`/dict`), which list a word's English translations and meanings most-likely first (കവി → poet). Show translations without the source's homograph numbers ("wind-1" → "wind").
+- **നാട്ടറിവ് (Dictionary):** categories of Malayalam words with English meanings come from `packages/shared/src/nattarivu.ts` (plain data). Show the category grid, a category's word list with a filter, and open a word in the dictionary with a way back to its category.

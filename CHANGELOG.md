@@ -2,6 +2,10 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.7.5 · 2026-11-02
+
+- The Dictionary opens again in the desktop app.
+
 ## 0.7.4 · 2026-11-02
 
 - Keep the desktop app signed in

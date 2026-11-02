@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Download, RefreshCw, Sparkles, X } from "lucide-react";
 import { BASE } from "@/lib/config";
 import { BUILD_ID } from "@/lib/version";
@@ -14,10 +15,16 @@ const POLL_MS = 15 * 60 * 1000;
  *    Writing is journalled on the device, so reloading never loses text.
  *  - Desktop app: shows the update the app found (apps/desktop/src/updater.ts) with "Update and restart".
  */
+/** Public pages (home, sign in, download…) are for visitors; the reload offer only matters inside the app. */
+const PUBLIC = ["/", "/login/", "/signup/", "/forgot-password/", "/reset-password/", "/auth/callback/", "/download/"];
+
 export function UpdateNotice() {
   const [desk, setDesk] = useState(false);
+  const path = usePathname();
   useEffect(() => setDesk(!!desktop()?.onUpdate), []);
-  return desk ? <DesktopUpdate /> : <WebUpdate />;
+  if (desk) return <DesktopUpdate />;
+  const p = path.endsWith("/") ? path : `${path}/`;
+  return PUBLIC.includes(p) ? null : <WebUpdate />;
 }
 
 function Card({ children, onClose }: { children: React.ReactNode; onClose?: () => void }) {

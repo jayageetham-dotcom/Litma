@@ -104,6 +104,10 @@ jobs:
           FTP_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
         run: |
           if [ -z "$FTP_PASSWORD" ]; then echo "::error::Add the FTP_PASSWORD repository secret."; exit 1; fi
+          # The mirror compares sizes only, so a changed file of the same size (version.json, an HTML page)
+          # would be skipped. Files under _next/ carry a content hash in their name and dict/ is built data;
+          # every other file is small, so it is always uploaded again, after the mirror (new chunks land first).
+          ALWAYS=$(cd apps/web/out && find . -type f -not -path './_next/*' -not -path './dict/*' -not -name .DS_Store | sed 's|^\./||' | sort | tr '\n' ' ')
           for attempt in 1 2 3; do
             echo "Upload attempt $attempt"
             if lftp -u "$FTP_USER","$FTP_PASSWORD" ftp.jayageetham.com <<LFTP
@@ -118,6 +122,8 @@ jobs:
           set mirror:parallel-transfer-count 4
           set cmd:fail-exit true
           mirror --reverse --ignore-time --no-perms --verbose=1 --exclude-glob .DS_Store ./apps/web/out/ $FTP_DIR
+          lcd ./apps/web/out
+          mput -d -O $FTP_DIR $ALWAYS
           bye
           LFTP
             then echo "Upload complete"; exit 0; fi

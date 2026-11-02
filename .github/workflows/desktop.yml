@@ -239,7 +239,7 @@ jobs:
           set net:max-retries 8
           set cmd:fail-exit true
           mkdir -pf ${FTP_DIR%/}/downloads
-          mirror --reverse --ignore-time --no-perms --verbose=1 ./manifest/ ${FTP_DIR%/}/downloads/
+          put -O ${FTP_DIR%/}/downloads/ ./manifest/latest.json
           bye
           LFTP
             then echo "Uploaded"; exit 0; fi

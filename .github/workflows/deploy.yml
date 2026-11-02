@@ -157,12 +157,12 @@ jobs:
       - name: Deploy Edge Functions
         if: steps.check.outputs.skip != 'true'
         run: |
-          supabase functions deploy litma-transliterate --project-ref "$PROJECT_REF" --no-verify-jwt
-          supabase functions deploy litma-mcp --project-ref "$PROJECT_REF" --no-verify-jwt
-          supabase functions deploy litma-ai --project-ref "$PROJECT_REF"
+          supabase functions deploy litma-transliterate --project-ref "$PROJECT_REF" --no-verify-jwt --yes
+          supabase functions deploy litma-mcp --project-ref "$PROJECT_REF" --no-verify-jwt --yes
+          supabase functions deploy litma-ai --project-ref "$PROJECT_REF" --yes
 
       - name: Apply database migrations
         if: steps.check.outputs.skip != 'true' && env.SUPABASE_DB_PASSWORD != ''
         run: |
           supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
-          supabase db push --password "$SUPABASE_DB_PASSWORD"
+          supabase db push --password "$SUPABASE_DB_PASSWORD" --yes

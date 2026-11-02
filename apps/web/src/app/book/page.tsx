@@ -425,8 +425,8 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
     return () => window.removeEventListener("keydown", k);
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
-      <div className="scrollbar-thin max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-canvas p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 grid place-items-center scrim p-4" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
+      <div className="scrollbar-thin max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl dialog p-5" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold">{title}</h2>
           <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label="Close">

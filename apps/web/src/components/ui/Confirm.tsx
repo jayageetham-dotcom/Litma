@@ -36,12 +36,12 @@ function ConfirmDialog({ title, body, confirm, danger, onDone }: Opts & { onDone
     return () => window.removeEventListener("keydown", k);
   }, [onDone]);
   return (
-    <div className="fade-in fixed inset-0 z-[70] flex items-end justify-center bg-black/45 backdrop-blur-[2px] sm:items-center sm:p-6" onClick={() => onDone(false)}>
+    <div className="fade-in fixed inset-0 z-[70] flex items-end justify-center scrim sm:items-center sm:p-6" onClick={() => onDone(false)}>
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
-        className="pop-in w-full rounded-t-2xl border border-line bg-surface p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-2xl sm:pb-6"
+        className="pop-in w-full rounded-t-2xl dialog p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:max-w-md sm:rounded-2xl sm:pb-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex gap-3">

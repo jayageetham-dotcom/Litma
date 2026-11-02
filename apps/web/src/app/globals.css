@@ -549,3 +549,20 @@ html:has(.landing) {
   display: block !important;
   height: 2.5em !important;
 }
+
+/* Dialogs and bottom sheets: .scrim on the full-screen backdrop, .dialog on the panel.
+   In dark mode the scrim is deep and the panel lighter with a faint edge, so they never blend. */
+.scrim {
+  background: var(--scrim);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.dialog {
+  background: var(--dialog);
+  border: 1px solid var(--dialog-edge);
+  box-shadow: var(--dialog-shadow);
+}
+.tpl-preview {
+  outline: 1px solid var(--page-edge);
+  outline-offset: -1px;
+}

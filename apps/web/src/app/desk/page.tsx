@@ -415,8 +415,8 @@ function Desk() {
       {confirmDialog}
 
       {choosing && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/40 sm:items-start sm:p-4 sm:pt-12" role="dialog" aria-modal="true" aria-label="Choose a writing type" onClick={closeChooser}>
-          <div className="max-h-[92dvh] w-full max-w-5xl overflow-y-auto rounded-t-2xl bg-canvas p-4 pb-8 sm:max-h-none sm:rounded-xl sm:p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto scrim sm:items-start sm:p-4 sm:pt-12" role="dialog" aria-modal="true" aria-label="Choose a writing type" onClick={closeChooser}>
+          <div className="max-h-[92dvh] w-full max-w-5xl overflow-y-auto rounded-t-2xl dialog p-4 pb-8 sm:max-h-none sm:rounded-xl sm:p-6" onClick={(e) => e.stopPropagation()}>
             <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-line sm:hidden" aria-hidden />
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-lg font-bold sm:text-xl">{importing ? t("desk.importAs", { name: importing.name }) : t("desk.chooserTitle")}</h2>

@@ -50,8 +50,8 @@ export function ShortcutsDialog({ onClose, screenplay }: { onClose: () => void; 
   }, [onClose]);
   const groups = screenplay ? [...GROUPS, ["Screenplay", SCREENPLAY] as [string, [string, string][]]] : GROUPS;
   return (
-    <div className="no-print fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" onClick={onClose}>
-      <div className="scrollbar-thin max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-xl bg-paper p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <div className="no-print fixed inset-0 z-50 grid place-items-center scrim p-4" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" onClick={onClose}>
+      <div className="scrollbar-thin max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-xl dialog p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold">Keyboard shortcuts</h2>
           <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label="Close">

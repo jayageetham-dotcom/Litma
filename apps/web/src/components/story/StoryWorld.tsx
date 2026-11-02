@@ -496,8 +496,8 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
   const mlBlur = (v: string) => (/[A-Za-z]/.test(v) && !/[ഀ-ൿ]/.test(v) ? v : v); // keep what the writer typed
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end bg-black/30" onClick={close}>
-      <aside className="scrollbar-thin h-full w-full max-w-lg overflow-y-auto bg-paper p-6 shadow-2xl" onClick={(e) => e.stopPropagation()} aria-label="Edit card">
+    <div className="fixed inset-0 z-[60] flex justify-end scrim" onClick={close}>
+      <aside className="scrollbar-thin h-full w-full max-w-lg overflow-y-auto dialog p-6" onClick={(e) => e.stopPropagation()} aria-label="Edit card">
         <div className="mb-4 flex items-center justify-between">
           <span className="text-xs font-semibold text-highlight">
             {tab.ml} · {tab.label}

@@ -82,6 +82,7 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Cover all of Kerala's communities evenly (Hindu, Muslim, Christian and others): festivals, food, dress, ornaments, arts, music and the words families use. Customs and festivals are fine; prayers, rituals and deities are not. No occupation words that double as caste names. Many Mappila and Christian words (ദഫ്മുട്ട്, മാർഗംകളി, നെയ്ച്ചോറ്, വട്ടയപ്പം…) are missing from Olam, and ഒപ്പന is there only as "agreement", so they can't be added until the dictionary has them.
 - Familiar-first order, not alphabetical. English is a plain meaning; named art forms and instruments get a short description ("Kathakali, classical dance-drama").
 - Sections: a line `# മലയാളം | English` starts one. Use sections when a category splits naturally (കല: art forms, instruments, folk games, festivals, music); no one-word sections; small related categories are merged into one with sections (കാലം holds seasons, months, birth stars, times of day, weekdays).
+- Words from different communities for the same thing sit together as equals (ഉമ്മ and അമ്മച്ചി beside അമ്മ, ഇക്ക beside ചേട്ടൻ), never in a separate "other" section.
 - Short category names (ഉപകരണങ്ങൾ, not നാടൻ ഉപകരണങ്ങൾ; ഭൂപ്രദേശം for terrain). Keep a word in one category. When a category is merged or renamed, keep its old id working in `MOVED`.
 - Card titles stay on one line inside their card (long single words shrink to fit; on phones such a card spans the row).
 

@@ -921,31 +921,30 @@ export const NATTARIVU: NattarivuCategory[] = [
     words: list(`
       # വീട്ടിൽ | Parents, siblings and children
       അച്ഛൻ | father
+      ഉപ്പ | father
+      ബാപ്പ | father
+      അപ്പച്ചൻ | father
       അമ്മ | mother
+      ഉമ്മ | mother
+      അമ്മച്ചി | mother
       ചേട്ടൻ | elder brother
-      അനിയൻ | younger brother
+      ഇക്ക | elder brother
       ചേച്ചി | elder sister
+      ഇത്ത | elder sister
+      അനിയൻ | younger brother
       അനിയത്തി | younger sister
       മകൻ | son
       മകൾ | daughter
       പേരക്കുട്ടി | grandchild
       # മുതിർന്നവർ | Elders
       മുത്തച്ഛൻ | grandfather
+      ഉപ്പാപ്പ | grandfather
       മുത്തശ്ശി | grandmother
       അമ്മാവൻ | maternal uncle
+      മാമൻ | uncle
       അമ്മായി | aunt
       വലിയച്ഛൻ | father's elder brother
       ചെറിയച്ഛൻ | father's younger brother
-      # മറ്റു വിളികൾ | Other words families use
-      ഉമ്മ | mother
-      ഉപ്പ | father
-      ബാപ്പ | father
-      ഇക്ക | elder brother
-      ഇത്ത | elder sister
-      ഉപ്പാപ്പ | grandfather
-      അപ്പച്ചൻ | father
-      അമ്മച്ചി | mother
-      മാമൻ | uncle
       # വിവാഹബന്ധം | By marriage
       ഭർത്താവ് | husband
       ഭാര്യ | wife

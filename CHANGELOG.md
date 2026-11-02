@@ -2,6 +2,10 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.7.3 · 2026-11-02
+
+- Point Supabase CI commands at the remote project
+
 ## 0.7.2 · 2026-11-02
 
 - Confirm Supabase deploys in CI

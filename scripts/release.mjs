@@ -62,28 +62,10 @@ if (existsSync(join(root, "package-lock.json"))) {
   writeJson("package-lock.json", lock);
 }
 
-// release notes: shown to writers in the update card, the download page and GitHub Releases.
-// Commit titles are never used (they are technical and confuse people). Notes come only from
-//   - the Release workflow's "notes" box (--notes), and
-//   - "What's new: <plain sentence>" lines in commit messages, written for writers.
-// With neither, the release says "Small fixes and improvements."
-const sh = (c) => execSync(c, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-let since = "";
-try {
-  since = sh("git describe --tags --abbrev=0 --match 'v[0-9]*'");
-} catch {
-  /* first release */
-}
-let commits = [];
-try {
-  commits = sh(`git log ${since ? `${since}..HEAD` : "-50"} --no-merges --reverse --pretty=format:%B`)
-    .split("\n")
-    .map((l) => l.match(/^\s*What's new:\s*(.+)$/i)?.[1]?.trim())
-    .filter(Boolean);
-  commits = [...new Set(commits)];
-} catch {
-  /* not a git checkout */
-}
+// release notes: shown to writers in the update card and on the download page.
+// Only the owner's own text from the Release workflow's "notes" box (--notes) is used. Commit messages
+// are never used. Without notes, writers see no list at all (CHANGELOG.md says "Small fixes and improvements.").
+const commits = [];
 const extra = opt("--notes");
 const date = new Date().toISOString().slice(0, 10);
 const bullets = [...(extra ? [extra] : []), ...commits].map((s) => `- ${s}`).join("\n") || "- Small fixes and improvements.";

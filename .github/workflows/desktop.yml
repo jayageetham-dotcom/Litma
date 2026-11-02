@@ -171,14 +171,14 @@ jobs:
           mv downloads/Litma-mac.dmg "downloads/Litma-$V-mac.dmg"
           mv downloads/Litma-win.exe "downloads/Litma-$V-win.exe"
           mkdir -p manifest
-          # notes: this version's section of CHANGELOG.md (written by the Release workflow)
+          # notes: only what the owner typed in the Release form (this version's section of CHANGELOG.md, minus the generic fallback line)
           node -e '
             const fs = require("fs"); const crypto = require("crypto");
             const v = process.env.V;
             const base = "https://github.com/" + process.env.RELEASES_REPO + "/releases/download/v" + v + "/";
             const cl = fs.existsSync("CHANGELOG.md") ? fs.readFileSync("CHANGELOG.md", "utf8") : "";
             const m = cl.match(new RegExp("## " + v.replace(/\./g, "\\.") + "[^\\n]*\\n([\\s\\S]*?)(?=\\n## |$)"));
-            const notes = (m ? m[1] : "").split("\n").map(s => s.replace(/^- /, "").trim()).filter(Boolean).slice(0, 12);
+            const notes = (m ? m[1] : "").split("\n").map(s => s.replace(/^- /, "").trim()).filter((n) => n && n !== "Small fixes and improvements." && n !== "Maintenance release").slice(0, 12);
             fs.writeFileSync("notes.md", notes.map(n => "- " + n).join("\n") || "- Small fixes and improvements.");
             const file = (f) => ({ file: f, url: base + f, sha256: crypto.createHash("sha256").update(fs.readFileSync("downloads/" + f)).digest("hex"), size: fs.statSync("downloads/" + f).size });
             const mac = file("Litma-" + v + "-mac.dmg"), win = file("Litma-" + v + "-win.exe");

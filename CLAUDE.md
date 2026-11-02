@@ -9,9 +9,8 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Mobile (`apps/mobile`): until the Flutter app exists, note in its README any change the native app must mirror (shared strings in `packages/i18n`, tokens via `npm run tokens`, logic in `packages/shared`). Once it exists, make the same change there.
 
 ## Release notes (owner's standing rule)
-- Writers see release notes in the update card, on the download page and on GitHub Releases. **Never put commit titles there**: technical lines like "Confirm Supabase deploys in CI" confuse people.
-- `scripts/release.mjs` builds the notes only from the Release workflow's **notes** box and from `What's new: <sentence>` lines in commit bodies. With neither, the release says "Small fixes and improvements."
-- Add a `What's new:` line only for a change writers will notice, in plain high-level words ("Sign-in in the desktop app now stays signed in."). Leave it out for CI, refactors, docs and internal fixes.
+- **Never show commit messages or a list of changes in updates** (update card, download page). They confuse writers.
+- `scripts/release.mjs` takes notes only from the Release workflow's optional **notes** box, which the owner fills in himself. Left empty, writers see no notes at all. Don't add "What's new" lines to commits.
 
 ## Working on this repo
 - The repo lives on the owner's Mac at `~/Documents/Litma` (GitHub `jayageetham-dotcom/Litma`, branch `main`). Commit there; **the owner runs `git push`** (pushing to `main` deploys the site; the Supabase job deploys functions and runs `db push` when `SUPABASE_ACCESS_TOKEN` is set).

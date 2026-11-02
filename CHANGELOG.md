@@ -2,6 +2,11 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.7.4 · 2026-11-02
+
+- Keep the desktop app signed in
+- Stop the false update notice
+
 ## 0.7.3 · 2026-11-02
 
 - Point Supabase CI commands at the remote project

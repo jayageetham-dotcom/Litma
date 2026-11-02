@@ -2,6 +2,11 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.7.0 · 2026-11-01
+
+- Homepage changes
+- Menu rows: gentle 6px corners instead of near-pills
+
 ## 0.6.0 · 2026-11-01
 
 - Reader view: one continuous page with an outline, like Google Docs

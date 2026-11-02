@@ -23,3 +23,7 @@ Litma uses **one version number** for the website, the desktop app and the mobil
    - `minimumVersion` above the installed one → a blocking "Please update" screen (for backend changes old apps can't handle)
 4. **Instant fixes without a store review (optional)**: Shorebird code push can patch Dart code between store releases.
 5. **Content never waits for an app update**: documents, Story World, the dictionary and AI all come from Supabase and the website, so most improvements reach phones without a new build.
+
+## Changes to mirror in the native app
+Behaviour fixed on the web that the Flutter app must match:
+- **Sign in / Create account / Forgot password:** the main button stays active (it greys out only while working). Read the field values when it's pressed, so values filled in by the system's password autofill always count, and show a plain message for an empty field ("Enter your email address.", "Enter your password."). Don't disable the button just because a field looks empty.

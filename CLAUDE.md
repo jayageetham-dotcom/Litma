@@ -2,6 +2,12 @@
 
 Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js 15 **static export**, basePath `/litma`, React 19 + Tailwind v4 + SCSS + Tiptap 2), `apps/desktop` (Electron, macOS + Windows), `apps/mobile` (Flutter, planned), shared `packages/*`. Backend: Supabase project `jdexadomaxjtxlvgtldu`. Hosted on cPanel at https://www.jayageetham.com/litma, deployed by `.github/workflows/deploy.yml` (FTPS, same pattern as the jayageetham website repo). The owner plans a native mobile app and a `litma.com` domain later.
 
+## Every change covers every app (owner's standing rule)
+- Treat each request as applying to **all** Litma apps: web, desktop (Electron) and mobile (Flutter, once it exists). Don't fix only the website.
+- Web and desktop share the same code in `apps/web`, but the desktop app ships its own bundled copy. A push to `main` updates only the website. The desktop app gets the change only after Actions → **Release** builds new installers. So after any user-visible change, check whether it touches desktop-only code (`apps/desktop`, `window.litmaDesktop`, `NEXT_PUBLIC_DESKTOP` branches) and update that too.
+- When the work is done, tell the owner plainly whether a Release is needed for the desktop app (and later the phone app) to get it, and offer to start it if this session can.
+- Mobile (`apps/mobile`): until the Flutter app exists, note in its README any change the native app must mirror (shared strings in `packages/i18n`, tokens via `npm run tokens`, logic in `packages/shared`). Once it exists, make the same change there.
+
 ## Working on this repo
 - The repo lives on the owner's Mac at `~/Documents/Litma` (GitHub `jayageetham-dotcom/Litma`, branch `main`). Commit there; **the owner runs `git push`** (pushing to `main` deploys the site; the Supabase job deploys functions and runs `db push` when `SUPABASE_ACCESS_TOKEN` is set).
 - Commit messages: imperative summary + short bullet body.

@@ -1005,12 +1005,31 @@ export const NATTARIVU: NattarivuCategory[] = [
       പകിട | dice game
       ഊഞ്ഞാൽ | swing
       # ആഘോഷങ്ങൾ | Festivals and celebrations
-      ഓണം | Onam, harvest festival
-      വിഷു | Vishu, new year
+      ഓണം | Onam, Kerala's harvest festival
+      മാവേലി | Maveli, the king Onam welcomes home
+      ഓണക്കോടി | new clothes given for Onam
+      ഓണപ്പുടവ | Onam cloth
+      ഉത്രാടപ്പാച്ചിൽ | the rush on Onam eve to get everything ready
       പൂക്കളം | flower carpet
-      വള്ളംകളി | snake-boat race
-      ഉത്സവം | festival
-      ആഘോഷം | celebration
+      തുമ്പിതുള്ളൽ | thumbithullal, girls' Onam game
+      കുമ്മാട്ടി | kummatti, masked folk play
+      ഊഞ്ഞാലാട്ടം | swinging on a swing
+      പുത്തരി | rice from the first harvest
+      വിഷു | Vishu, Kerala new year
+      വിഷുക്കൈനീട്ടം | Vishu money gift from elders
+      വിഷുപ്പക്ഷി | Vishu bird, Indian cuckoo
+      പടക്കം | firecracker
+      പൂത്തിരി | sparkler
+      മത്താപ്പ് | coloured flare
+      വെടിക്കെട്ട് | fireworks display
+      വള്ളംകളി | boat race
+      ചുണ്ടൻവള്ളം | snake boat
+      ഓടിവള്ളം | fast racing boat
+      ആർപ്പുവിളി | joyful cheering
+      കുരവ | women's joyful ululation
+      ഘോഷയാത്ര | festive procession
+      തോരണം | festoon
+      ചമയം | festive decoration, costume
       # സംഗീതം | Music
       സംഗീതം | music
       പാട്ട് | song

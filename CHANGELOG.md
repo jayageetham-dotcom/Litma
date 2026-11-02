@@ -2,6 +2,11 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.7.1 · 2026-11-02
+
+- Note that every change covers web, desktop and mobile
+- buttons updated
+
 ## 0.7.0 · 2026-11-01
 
 - Homepage changes

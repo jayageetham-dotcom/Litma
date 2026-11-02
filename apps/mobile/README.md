@@ -28,3 +28,4 @@ Litma uses **one version number** for the website, the desktop app and the mobil
 Behaviour fixed on the web that the Flutter app must match:
 - **Sign in / Create account / Forgot password:** the main button stays active (it greys out only while working). Read the field values when it's pressed, so values filled in by the system's password autofill always count, and show a plain message for an empty field ("Enter your email address.", "Enter your password."). Don't disable the button just because a field looks empty.
 - **Update prompt:** show it only when `latest.json` (`mobile.version`) is newer than the installed app, never on a timer by itself, and never on public screens (welcome, sign in, sign up).
+- **Session storage:** keep the Supabase session in the app's own persistent storage (supabase_flutter's default), never in web cookies. The desktop app lost every sign-in when the session lived in cookies.

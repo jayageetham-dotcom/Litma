@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, ChevronRight, Search } from "lucide-react";
-import { NATTARIVU, type NattarivuCategory, type NattarivuTint } from "@litma/shared/nattarivu";
+import { NATTARIVU, type NattarivuCategory, type NattarivuTint, type NattarivuWord } from "@litma/shared/nattarivu";
 import { useT } from "@/i18n/react";
 
 const DOT: Record<NattarivuTint, string> = {
@@ -13,6 +13,19 @@ const DOT: Record<NattarivuTint, string> = {
 };
 
 const display = { fontFamily: "'Anek Malayalam'" };
+
+/** Words in their sections, in order (categories without sections give one unnamed section). */
+function sections(words: NattarivuWord[]) {
+  const out: { key: string; group?: NattarivuWord["group"]; words: NattarivuWord[] }[] = [];
+  for (const w of words) {
+    const key = w.group?.ml ?? "";
+    const last = out[out.length - 1];
+    if (last && last.key === key) last.words.push(w);
+    else out.push({ key, group: w.group, words: [w] });
+  }
+  return out;
+}
+
 
 /** നാട്ടറിവ് home: every category as a card. */
 export function NattarivuCategories({ onOpen }: { onOpen: (id: string) => void }) {
@@ -53,7 +66,7 @@ export function NattarivuCategoryView({ category, onBack, onWord, onOpen }: { ca
   const [filter, setFilter] = useState("");
   const words = useMemo(() => {
     const f = filter.trim().toLowerCase();
-    return f ? category.words.filter((w) => w.ml.includes(f) || w.en.toLowerCase().includes(f)) : category.words;
+    return f ? category.words.filter((w) => w.ml.includes(f) || w.en.toLowerCase().includes(f) || !!w.group?.ml.includes(f) || !!w.group?.en.toLowerCase().includes(f)) : category.words;
   }, [category, filter]);
   const i = NATTARIVU.findIndex((c) => c.id === category.id);
   const next = NATTARIVU[(i + 1) % NATTARIVU.length];
@@ -82,21 +95,35 @@ export function NattarivuCategoryView({ category, onBack, onWord, onOpen }: { ca
       {words.length === 0 ? (
         <p className="mt-8 text-muted">{t("nattarivu.noMatch", { q: filter.trim() })}</p>
       ) : (
-        <ul className="mt-6 grid gap-x-6 sm:grid-cols-2">
-          {words.map((w) => (
-            <li key={w.ml} className="border-b border-line">
-              <button type="button" onClick={() => onWord(w.ml)} title={t("nattarivu.open")} className="group flex w-full items-center gap-3 rounded-[10px] px-2 py-3 text-left hover:bg-subtle">
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[1.1rem] font-semibold leading-snug" style={display}>
-                    {w.ml}
+        <div className="mt-6 space-y-8">
+          {sections(words).map((sec) => (
+            <section key={sec.key}>
+              {sec.group && (
+                <h3 className="mb-2 flex items-baseline gap-2 border-b border-line pb-2">
+                  <span className="text-[1.15rem] font-bold" style={display}>
+                    {sec.group.ml}
                   </span>
-                  <span className="block text-sm text-muted">{w.en}</span>
-                </span>
-                <ChevronRight size={16} className="shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-100" aria-hidden />
-              </button>
-            </li>
+                  <span className="text-sm text-muted">{sec.group.en}</span>
+                </h3>
+              )}
+              <ul className="grid gap-x-6 sm:grid-cols-2">
+                {sec.words.map((w) => (
+                  <li key={w.ml} className="border-b border-line">
+                    <button type="button" onClick={() => onWord(w.ml)} title={t("nattarivu.open")} className="group flex w-full items-center gap-3 rounded-[10px] px-2 py-3 text-left hover:bg-subtle">
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[1.1rem] font-semibold leading-snug" style={display}>
+                          {w.ml}
+                        </span>
+                        <span className="block text-sm text-muted">{w.en}</span>
+                      </span>
+                      <ChevronRight size={16} className="shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-100" aria-hidden />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
+        </div>
       )}
 
       <button type="button" onClick={() => onOpen(next.id)} className="mt-8 inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm hover:bg-subtle">

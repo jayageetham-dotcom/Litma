@@ -4,19 +4,23 @@
 // not alphabetical; every word is a headword in the Olam data (checked when the list changes).
 
 export type NattarivuTint = "violet" | "coral" | "sky" | "lime" | "tangerine";
-export type NattarivuWord = { ml: string; en: string };
+/** `group` names the section a word sits in, for categories with sections (കല) */
+export type NattarivuWord = { ml: string; en: string; group?: { ml: string; en: string } };
 export type NattarivuCategory = { id: string; ml: string; en: string; tint: NattarivuTint; words: NattarivuWord[] };
 
-/** "മലയാളം | English" per line */
-const list = (s: string): NattarivuWord[] =>
-  s
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .map((l) => {
-      const [ml, en] = l.split("|").map((x) => x.trim());
-      return { ml, en };
-    });
+/** "മലയാളം | English" per line; "# മലയാളം | English" starts a section */
+const list = (s: string): NattarivuWord[] => {
+  let group: NattarivuWord["group"];
+  const out: NattarivuWord[] = [];
+  for (const raw of s.split("\n")) {
+    const l = raw.trim();
+    if (!l) continue;
+    const [ml, en] = l.replace(/^#\s*/, "").split("|").map((x) => x.trim());
+    if (l.startsWith("#")) group = { ml, en };
+    else out.push(group ? { ml, en, group } : { ml, en });
+  }
+  return out;
+};
 
 export const NATTARIVU: NattarivuCategory[] = [
   {
@@ -551,6 +555,296 @@ export const NATTARIVU: NattarivuCategory[] = [
       അളിയൻ | brother-in-law
       നാത്തൂൻ | sister-in-law
       പേരക്കുട്ടി | grandchild
+    `),
+  },
+  {
+    id: "house",
+    ml: "വീട്",
+    en: "Parts of a traditional house",
+    tint: "coral",
+    words: list(`
+      ഉമ്മറം | front verandah
+      കോലായ | verandah, sit-out
+      പൂമുഖം | front hall, entrance
+      തിണ്ണ | raised sit-out
+      മുറ്റം | courtyard, front yard
+      നടുമുറ്റം | central open courtyard
+      നാലുകെട്ട് | four-winged traditional house
+      എട്ടുകെട്ട് | eight-winged traditional house
+      പടിപ്പുര | gatehouse
+      അകത്തളം | inner hall
+      അറ | inner room, storeroom
+      അടുക്കള | kitchen
+      ചായ്പ്പ് | lean-to, side shed
+      പത്തായപ്പുര | granary house
+      തട്ടിൻപുറം | loft
+      മച്ച് | wooden ceiling, attic
+      മേൽക്കൂര | roof
+      ഓട് | roof tile
+      ഓല | palm-leaf thatch
+      ഉത്തരം | roof beam
+      കഴുക്കോൽ | rafter
+      തൂൺ | pillar
+      ചുമർ | wall
+      വാതിൽ | door
+      ജനൽ | window
+      പടി | step, threshold
+      കോണി | staircase, ladder
+      നിലം | floor
+    `),
+  },
+  {
+    id: "food",
+    ml: "ഭക്ഷണം",
+    en: "Food",
+    tint: "tangerine",
+    words: list(`
+      ചോറ് | cooked rice
+      കഞ്ഞി | rice gruel, kanji
+      സദ്യ | feast on a banana leaf
+      അവിയൽ | avial
+      തോരൻ | thoran, vegetables stir-fried with coconut
+      ഓലൻ | olan
+      കാളൻ | kalan
+      എരിശ്ശേരി | erissery
+      പുളിശ്ശേരി | buttermilk curry
+      രസം | rasam
+      പായസം | payasam
+      പപ്പടം | pappadam
+      അച്ചാർ | pickle
+      ചമ്മന്തി | chutney
+      പുട്ട് | puttu
+      അപ്പം | appam
+      ഇടിയപ്പം | string hoppers
+      ദോശ | dosa
+      ഇഡ്ഡലി | idli
+      ഉപ്പുമാവ് | upma
+      അട | ada, steamed rice parcel
+      കൊഴുക്കട്ട | rice dumpling
+      ഉണ്ണിയപ്പം | unniyappam
+      ഹൽവ | halwa
+      മോര് | buttermilk
+      തൈര് | curd
+      നെയ്യ് | ghee
+      വെണ്ണ | butter
+    `),
+  },
+  {
+    id: "colours",
+    ml: "നിറങ്ങൾ",
+    en: "Colours",
+    tint: "violet",
+    words: list(`
+      ചുവപ്പ് | red
+      പച്ച | green
+      നീല | blue
+      മഞ്ഞ | yellow
+      കറുപ്പ് | black
+      വെളുപ്പ് | white
+      ചാരനിറം | grey
+      തവിട്ടുനിറം | brown
+      കാവി | ochre, saffron
+      ഇളംചുവപ്പ് | pink
+      ഊത | violet, purple
+      വെള്ളിനിറം | silver
+      ചെമ്പൻ | copper red, reddish brown
+      കടുംനീല | dark blue
+      ശ്യാമം | dark, dusky
+      ധവളം | white (literary)
+      അരുണം | dawn red (literary)
+      ഹരിതം | green (literary)
+      പീതം | yellow (literary)
+      നീലിമ | blueness
+    `),
+  },
+  {
+    id: "body",
+    ml: "ശരീരഭാഗങ്ങൾ",
+    en: "Parts of the body",
+    tint: "coral",
+    words: list(`
+      തല | head
+      മുടി | hair
+      നെറ്റി | forehead
+      കണ്ണ് | eye
+      പുരികം | eyebrow
+      കൺപീലി | eyelash
+      മൂക്ക് | nose
+      ചെവി | ear
+      കവിൾ | cheek
+      ചുണ്ട് | lip
+      വായ | mouth
+      പല്ല് | tooth
+      നാക്ക് | tongue
+      താടി | chin, beard
+      കഴുത്ത് | neck
+      തോൾ | shoulder
+      കൈ | hand, arm
+      കൈമുട്ട് | elbow
+      വിരൽ | finger
+      നഖം | nail
+      നെഞ്ച് | chest
+      വയറ് | stomach, belly
+      പുറം | back
+      അര | waist
+      കാൽ | leg, foot
+      കാൽമുട്ട് | knee
+      ഉപ്പൂറ്റി | heel
+      ഹൃദയം | heart
+      ശ്വാസകോശം | lungs
+      കരൾ | liver
+      വൃക്ക | kidney
+      രക്തം | blood
+      എല്ല് | bone
+      തൊലി | skin
+      ഞരമ്പ് | vein, nerve
+    `),
+  },
+  {
+    id: "reptiles",
+    ml: "ഉരഗങ്ങൾ",
+    en: "Reptiles",
+    tint: "lime",
+    words: list(`
+      പാമ്പ് | snake
+      മൂർഖൻ | cobra
+      രാജവെമ്പാല | king cobra
+      അണലി | Russell's viper
+      വെള്ളിക്കെട്ടൻ | common krait
+      ചേര | rat snake
+      പെരുമ്പാമ്പ് | python
+      നീർക്കോലി | checkered keelback, water snake
+      പച്ചിലപ്പാമ്പ് | green vine snake
+      ഓന്ത് | garden lizard
+      പല്ലി | house lizard, gecko
+      അരണ | skink
+      ഉടുമ്പ് | monitor lizard
+      മുതല | crocodile
+      ചീങ്കണ്ണി | mugger crocodile
+      ആമ | tortoise, turtle
+      കടലാമ | sea turtle
+    `),
+  },
+  {
+    id: "aquatic",
+    ml: "ജലജീവികൾ",
+    en: "Water creatures",
+    tint: "sky",
+    words: list(`
+      തവള | frog
+      മാക്രി | frog, toad
+      നീർനായ | otter
+      നീരാളി | octopus
+      തിമിംഗലം | whale
+      ശംഖ് | conch
+      ചിപ്പി | oyster shell
+      മുത്തുച്ചിപ്പി | pearl oyster
+      നക്ഷത്രമത്സ്യം | starfish
+      കടൽക്കുതിര | seahorse
+      പവിഴം | coral
+      കടൽപ്പായൽ | seaweed
+    `),
+  },
+  {
+    id: "stars",
+    ml: "നാളുകൾ",
+    en: "Birth stars",
+    tint: "violet",
+    words: list(`
+      അശ്വതി | Aswathi, 1st star
+      ഭരണി | Bharani, 2nd star
+      കാർത്തിക | Karthika, 3rd star
+      രോഹിണി | Rohini, 4th star
+      മകയിരം | Makayiram, 5th star
+      തിരുവാതിര | Thiruvathira, 6th star
+      പുണർതം | Punartham, 7th star
+      പൂയം | Pooyam, 8th star
+      ആയില്യം | Ayilyam, 9th star
+      മകം | Makam, 10th star
+      പൂരം | Pooram, 11th star
+      ഉത്രം | Uthram, 12th star
+      അത്തം | Atham, 13th star
+      ചിത്തിര | Chithira, 14th star
+      ചോതി | Chothi, 15th star
+      വിശാഖം | Vishakham, 16th star
+      തൃക്കേട്ട | Thrikketta, 18th star
+      മൂലം | Moolam, 19th star
+      പൂരാടം | Pooradam, 20th star
+      ഉത്രാടം | Uthradam, 21st star
+      തിരുവോണം | Thiruvonam, 22nd star
+      അവിട്ടം | Avittam, 23rd star
+      ചതയം | Chathayam, 24th star
+      പൂരുരുട്ടാതി | Pooruruttathi, 25th star
+      രേവതി | Revathi, 27th star
+    `),
+  },
+  {
+    id: "arts",
+    ml: "കല",
+    en: "Arts, music and play",
+    tint: "coral",
+    words: list(`
+      # കലാരൂപങ്ങൾ | Art forms
+      കഥകളി | Kathakali, classical dance-drama
+      മോഹിനിയാട്ടം | Mohiniyattam, classical dance
+      ഓട്ടൻതുള്ളൽ | Ottanthullal, satirical solo recital
+      കൂടിയാട്ടം | Koodiyattam, Sanskrit theatre
+      ചാക്യാർകൂത്ത് | Chakyar Koothu, comic storytelling
+      തെയ്യം | Theyyam, ritual dance of North Malabar
+      തിരുവാതിരക്കളി | Thiruvathirakali, women's circle dance
+      ഒപ്പന | Oppana, wedding song and dance
+      കോൽക്കളി | Kolkali, stick dance
+      പടയണി | Padayani, masked night dance
+      പുലിക്കളി | Pulikali, tiger dance
+      കളരിപ്പയറ്റ് | Kalaripayattu, martial art
+      # വാദ്യങ്ങൾ | Musical instruments
+      ചെണ്ട | chenda, cylindrical drum
+      മദ്ദളം | maddalam, barrel drum
+      ഇടയ്ക്ക | idakka, hourglass drum
+      തിമില | thimila, drum of the panchavadyam
+      ഇലത്താളം | ilathalam, cymbals
+      കൊമ്പ് | kombu, curved horn
+      കുഴൽ | kuzhal, double-reed pipe
+      നാദസ്വരം | nadaswaram, long double-reed pipe
+      തകിൽ | thavil, barrel drum
+      മിഴാവ് | mizhavu, large copper drum
+      ഉടുക്ക് | udukku, small hand drum
+      വീണ | veena, stringed instrument
+      പഞ്ചവാദ്യം | panchavadyam, five-instrument ensemble
+      തായമ്പക | thayambaka, solo chenda performance
+      മേളം | melam, percussion ensemble
+      # നാടൻ കളികൾ | Folk games
+      കിളിത്തട്ട് | kilithattu, team chasing game
+      ഒളിച്ചുകളി | hide and seek
+      കൊത്തങ്കല്ലുകളി | five stones
+      ഗോലി | marbles
+      പമ്പരം | spinning top
+      വടംവലി | tug of war
+      ചതുരംഗം | chess
+      പകിട | dice game
+      ഊഞ്ഞാൽ | swing
+      # ആഘോഷങ്ങൾ | Festivals and celebrations
+      ഓണം | Onam, harvest festival
+      വിഷു | Vishu, new year
+      പൂക്കളം | flower carpet
+      വള്ളംകളി | snake-boat race
+      ഉത്സവം | festival
+      ആഘോഷം | celebration
+      # താളങ്ങളും രാഗങ്ങളും | Rhythms and ragas
+      താളം | rhythm, tala
+      രാഗം | raga
+      സ്വരം | musical note
+      ശ്രുതി | pitch, drone
+      ചെമ്പട | chempada tala
+      അടന്ത | adantha tala
+      പഞ്ചാരി | panchari melam rhythm
+      ആദിതാളം | adi tala
+      മോഹനം | Mohanam
+      ശങ്കരാഭരണം | Shankarabharanam
+      തോടി | Todi
+      ഭൈരവി | Bhairavi
+      നീലാംബരി | Neelambari, lullaby raga
+      സോപാനം | sopanam, Kerala's sopana music style
     `),
   },
 ];

@@ -228,6 +228,7 @@ export const NATTARIVU: NattarivuCategory[] = [
     words: list(`
       # ഊണ് | The meal
       ചോറ് | cooked rice
+      ബിരിയാണി | biryani
       കഞ്ഞി | rice gruel, kanji
       സദ്യ | feast on a banana leaf
       പപ്പടം | pappadam
@@ -248,10 +249,13 @@ export const NATTARIVU: NattarivuCategory[] = [
       ദോശ | dosa
       ഇഡ്ഡലി | idli
       ഉപ്പുമാവ് | upma
+      പത്തിരി | pathiri, thin rice flatbread
       # പലഹാരങ്ങൾ | Snacks and sweets
       അട | ada, steamed rice parcel
       കൊഴുക്കട്ട | rice dumpling
       ഉണ്ണിയപ്പം | unniyappam
+      അച്ചപ്പം | achappam, rose cookie
+      കേക്ക് | cake, Christmas plum cake
       പായസം | payasam
       ഹൽവ | halwa
       # പാലും നെയ്യും | Dairy
@@ -745,6 +749,9 @@ export const NATTARIVU: NattarivuCategory[] = [
       കുപ്പായം | shirt, blouse
       പാവാട | long skirt
       ദാവണി | davani, half-sari wrap
+      കാച്ചി | kachi, wrap with a coloured border
+      ചട്ട | chatta, women's white blouse worn with the mundu
+      കവണി | kavani, fine bordered upper cloth
       തോർത്ത് | thin cotton towel
       തലപ്പാവ് | turban
       # ആഭരണങ്ങൾ | Ornaments
@@ -754,6 +761,9 @@ export const NATTARIVU: NattarivuCategory[] = [
       വള | bangle
       മോതിരം | ring
       കമ്മൽ | earring
+      കുണുക്ക് | kunukku, ear drop
+      മേക്കാമോതിരം | upper-ear ornament
+      മിന്ന് | minnu, wedding pendant
       മൂക്കുത്തി | nose stud
       പാദസരം | anklet
       കൊലുസ് | anklet
@@ -926,6 +936,16 @@ export const NATTARIVU: NattarivuCategory[] = [
       അമ്മായി | aunt
       വലിയച്ഛൻ | father's elder brother
       ചെറിയച്ഛൻ | father's younger brother
+      # മറ്റു വിളികൾ | Other words families use
+      ഉമ്മ | mother
+      ഉപ്പ | father
+      ബാപ്പ | father
+      ഇക്ക | elder brother
+      ഇത്ത | elder sister
+      ഉപ്പാപ്പ | grandfather
+      അപ്പച്ചൻ | father
+      അമ്മച്ചി | mother
+      മാമൻ | uncle
       # വിവാഹബന്ധം | By marriage
       ഭർത്താവ് | husband
       ഭാര്യ | wife
@@ -973,8 +993,8 @@ export const NATTARIVU: NattarivuCategory[] = [
       ചാക്യാർകൂത്ത് | Chakyar Koothu, comic storytelling
       തെയ്യം | Theyyam, ritual dance of North Malabar
       തിരുവാതിരക്കളി | Thiruvathirakali, women's circle dance
-      ഒപ്പന | Oppana, wedding song and dance
       കോൽക്കളി | Kolkali, stick dance
+      ചവിട്ടുനാടകം | Chavittu Nadakam, stamping musical drama of the coast
       പടയണി | Padayani, masked night dance
       പുലിക്കളി | Pulikali, tiger dance
       കളരിപ്പയറ്റ് | Kalaripayattu, martial art
@@ -1021,6 +1041,13 @@ export const NATTARIVU: NattarivuCategory[] = [
       പടക്കം | firecracker
       പൂത്തിരി | sparkler
       മത്താപ്പ് | coloured flare
+      ക്രിസ്മസ് | Christmas
+      പുൽക്കൂട് | Christmas crib
+      ഈസ്റ്റർ | Easter
+      റംസാൻ | Ramzan, the month of fasting
+      നോമ്പ് | fast (Ramzan, Lent)
+      പെരുന്നാൾ | feast day (Eid, church feast)
+      മൈലാഞ്ചി | henna, for weddings and Eid
       വെടിക്കെട്ട് | fireworks display
       വള്ളംകളി | boat race
       ചുണ്ടൻവള്ളം | snake boat
@@ -1056,6 +1083,7 @@ export const NATTARIVU: NattarivuCategory[] = [
       ഞാറ്റുപാട്ട് | song sung while planting paddy
       ഓണപ്പാട്ട് | Onam song
       മാപ്പിളപ്പാട്ട് | Mappila song
+      ഗസൽ | ghazal
       കുമ്മി | kummi, women's clapping song and dance
       പടപ്പാട്ട് | battle song
       കച്ചേരി | concert

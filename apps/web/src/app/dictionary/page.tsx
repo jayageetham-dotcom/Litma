@@ -59,15 +59,15 @@ function Dictionary() {
         </h1>
         <p className="mt-3 max-w-2xl text-[1.05rem] leading-relaxed text-muted">{t("nattarivu.pageIntro")}</p>
 
-        <div className="mt-8 flex gap-1 overflow-x-auto text-sm" role="tablist">
+        <div className="mt-8 inline-flex max-w-full gap-1 overflow-x-auto rounded-full bg-subtle p-1 text-sm" role="tablist">
           {tabs.map(({ v, label, wideToo }) => (
             <button
               key={v}
               role="tab"
               aria-selected={view === v}
               onClick={() => go(v === "lookup" ? (word ? { w: word } : {}) : { view: v }, false)}
-              className={`shrink-0 rounded-full px-3.5 py-1.5 ${wideToo ? "" : "lg:hidden"} ${view === v ? "bg-primary font-semibold text-primary-ink" : "text-muted hover:bg-subtle hover:text-ink"}`}
-              style={v === "nattarivu" ? { fontFamily: "'Anek Malayalam'" } : undefined}
+              className={`shrink-0 rounded-full px-4 py-1.5 transition-colors ${wideToo ? "" : "lg:hidden"} ${view === v ? "bg-switch font-semibold text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12)]" : "text-muted hover:text-ink"}`}
+              style={v === "nattarivu" ? { fontFamily: "'Anek Malayalam'", fontSize: "15px" } : undefined}
             >
               {label}
             </button>

@@ -108,6 +108,7 @@ html:has(.landing) {
   --dialog-edge: transparent;
   --dialog-shadow: 0 24px 64px rgba(17, 17, 19, 0.22);
   --dialog-page: #ffffff;
+  --switch: #ffffff; /* the selected option in a switcher (segmented control) on a --subtle track */
   --page-edge: transparent; /* outline of page thumbnails, so a dark page still shows on a dark panel */
 
   /* Type */
@@ -184,6 +185,7 @@ html:has(.landing) {
   --dialog-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
   --dialog-page: #2b2b33; /* page thumbnails on a dialog: lighter again, so they lift instead of sinking */
   --page-edge: rgba(255, 255, 255, 0.14);
+  --switch: #34343c; /* lighter than the --subtle track */
 
   color-scheme: dark;
 }

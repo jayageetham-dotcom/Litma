@@ -495,8 +495,8 @@ export const NATTARIVU: NattarivuCategory[] = [
   },
   {
     id: "household",
-    ml: "നാടൻ ഉപകരണങ്ങൾ",
-    en: "Traditional tools and utensils",
+    ml: "ഉപകരണങ്ങൾ",
+    en: "Tools and utensils",
     tint: "coral",
     words: list(`
       ഉരൽ | mortar

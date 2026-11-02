@@ -107,6 +107,7 @@ html:has(.landing) {
   --dialog: #ffffff;
   --dialog-edge: transparent;
   --dialog-shadow: 0 24px 64px rgba(17, 17, 19, 0.22);
+  --dialog-page: #ffffff;
   --page-edge: transparent; /* outline of page thumbnails, so a dark page still shows on a dark panel */
 
   /* Type */
@@ -177,11 +178,12 @@ html:has(.landing) {
 
   --sheet-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);
   --pop-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
-  --scrim: rgba(0, 0, 0, 0.72);
-  --dialog: #1c1c21; /* lighter than canvas and surface, so the panel reads as raised */
-  --dialog-edge: rgba(255, 255, 255, 0.1);
-  --dialog-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
-  --page-edge: rgba(255, 255, 255, 0.12);
+  --scrim: rgba(0, 0, 0, 0.55);
+  --dialog: #202027; /* lighter than canvas and surface, so the panel reads as raised */
+  --dialog-edge: rgba(255, 255, 255, 0.12);
+  --dialog-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --dialog-page: #2b2b33; /* page thumbnails on a dialog: lighter again, so they lift instead of sinking */
+  --page-edge: rgba(255, 255, 255, 0.14);
 
   color-scheme: dark;
 }

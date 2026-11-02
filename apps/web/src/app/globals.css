@@ -554,8 +554,6 @@ html:has(.landing) {
    In dark mode the scrim is deep and the panel lighter with a faint edge, so they never blend. */
 .scrim {
   background: var(--scrim);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
 }
 .dialog {
   background: var(--dialog);
@@ -565,4 +563,13 @@ html:has(.landing) {
 .tpl-preview {
   outline: 1px solid var(--page-edge);
   outline-offset: -1px;
+}
+.dialog .tpl-preview {
+  background: var(--dialog-page);
+  transition: outline-color 0.15s;
+}
+.dialog button:hover .tpl-preview,
+.dialog button:focus-visible .tpl-preview {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
 }

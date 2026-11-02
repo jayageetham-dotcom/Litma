@@ -62,7 +62,11 @@ if (existsSync(join(root, "package-lock.json"))) {
   writeJson("package-lock.json", lock);
 }
 
-// release notes: commit summaries since the previous release tag
+// release notes: shown to writers in the update card, the download page and GitHub Releases.
+// Commit titles are never used (they are technical and confuse people). Notes come only from
+//   - the Release workflow's "notes" box (--notes), and
+//   - "What's new: <plain sentence>" lines in commit messages, written for writers.
+// With neither, the release says "Small fixes and improvements."
 const sh = (c) => execSync(c, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 let since = "";
 try {
@@ -72,16 +76,17 @@ try {
 }
 let commits = [];
 try {
-  commits = sh(`git log ${since ? `${since}..HEAD` : "-50"} --no-merges --pretty=format:%s`)
+  commits = sh(`git log ${since ? `${since}..HEAD` : "-50"} --no-merges --reverse --pretty=format:%B`)
     .split("\n")
-    .map((s) => s.trim())
-    .filter((s) => s && !/^Release v\d/.test(s));
+    .map((l) => l.match(/^\s*What's new:\s*(.+)$/i)?.[1]?.trim())
+    .filter(Boolean);
+  commits = [...new Set(commits)];
 } catch {
   /* not a git checkout */
 }
 const extra = opt("--notes");
 const date = new Date().toISOString().slice(0, 10);
-const bullets = [...(extra ? [extra] : []), ...commits].map((s) => `- ${s}`).join("\n") || "- Maintenance release";
+const bullets = [...(extra ? [extra] : []), ...commits].map((s) => `- ${s}`).join("\n") || "- Small fixes and improvements.";
 const section = `## ${next} · ${date}\n\n${bullets}\n`;
 
 const clPath = join(root, "CHANGELOG.md");
@@ -94,7 +99,7 @@ if (!dry) {
   writeFileSync(join(root, "release/notes.md"), bullets + "\n");
   writeFileSync(join(root, "release/version.txt"), next + "\n");
   const minDesktop = opt("--min-desktop");
-  writeFileSync(join(root, "release/meta.json"), JSON.stringify({ version: next, date, minDesktop: minDesktop ?? null, notes: commits.slice(0, 12) }, null, 2) + "\n");
+  writeFileSync(join(root, "release/meta.json"), JSON.stringify({ version: next, date, minDesktop: minDesktop ?? null, notes: [...(extra ? [extra] : []), ...commits].slice(0, 12) }, null, 2) + "\n");
 }
 console.log(`${current} → ${next}${dry ? " (dry run)" : ""}`);
 console.log(section);

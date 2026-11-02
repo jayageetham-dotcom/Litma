@@ -15,7 +15,7 @@ on:
         required: true
         default: patch
       notes:
-        description: "Optional headline for the release notes"
+        description: "What's new, in plain words for writers (shown in the update card). Leave empty for \"Small fixes and improvements.\""
         required: false
       min_desktop:
         description: "Force desktop apps older than this version to update (e.g. 0.3.0). Leave empty normally"

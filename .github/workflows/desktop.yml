@@ -179,7 +179,7 @@ jobs:
             const cl = fs.existsSync("CHANGELOG.md") ? fs.readFileSync("CHANGELOG.md", "utf8") : "";
             const m = cl.match(new RegExp("## " + v.replace(/\./g, "\\.") + "[^\\n]*\\n([\\s\\S]*?)(?=\\n## |$)"));
             const notes = (m ? m[1] : "").split("\n").map(s => s.replace(/^- /, "").trim()).filter(Boolean).slice(0, 12);
-            fs.writeFileSync("notes.md", notes.map(n => "- " + n).join("\n") || "- Maintenance release");
+            fs.writeFileSync("notes.md", notes.map(n => "- " + n).join("\n") || "- Small fixes and improvements.");
             const file = (f) => ({ file: f, url: base + f, sha256: crypto.createHash("sha256").update(fs.readFileSync("downloads/" + f)).digest("hex"), size: fs.statSync("downloads/" + f).size });
             const mac = file("Litma-" + v + "-mac.dmg"), win = file("Litma-" + v + "-win.exe");
             const latest = {

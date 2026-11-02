@@ -1,7 +1,8 @@
 // നാട്ടറിവ്: Malayalam words for the natural and everyday world, grouped by category, with
 // English meanings. Shown in the Dictionary (each word opens its full entry). Plain data, no
 // dependencies, so the mobile app can port it as is. Words are in a familiar-first order,
-// not alphabetical; every word is a headword in the Olam data (checked when the list changes).
+// not alphabetical. Only words with a dictionary entry whose meaning matches (checked when the list
+// changes). "# മലയാളം | English" lines start a section.
 
 export type NattarivuTint = "violet" | "coral" | "sky" | "lime" | "tangerine";
 /** `group` names the section a word sits in, for categories with sections (കല) */
@@ -108,6 +109,32 @@ export const NATTARIVU: NattarivuCategory[] = [
     `),
   },
   {
+    id: "herbs",
+    ml: "ഔഷധസസ്യങ്ങൾ",
+    en: "Herbs and medicinal plants",
+    tint: "lime",
+    words: list(`
+      തുളസി | holy basil
+      കറ്റാർവാഴ | aloe vera
+      ആടലോടകം | Malabar nut, adhatoda
+      കീഴാർനെല്ലി | stonebreaker, phyllanthus
+      മുക്കുറ്റി | little tree plant, biophytum
+      കുറുന്തോട്ടി | country mallow, sida
+      ബ്രഹ്മി | brahmi, water hyssop
+      കയ്യോന്നി | false daisy, bhringraj
+      ചിറ്റമൃത് | heart-leaved moonseed, giloy
+      ശതാവരി | shatavari, wild asparagus
+      അമുക്കുരം | ashwagandha, Indian ginseng
+      പനിക്കൂർക്ക | Indian borage
+      കുടങ്ങൽ | Indian pennywort, gotu kola
+      നറുനീണ്ടി | Indian sarsaparilla
+      ചെറൂള | mountain knotgrass
+      തിപ്പലി | long pepper
+      രാമച്ചം | vetiver
+      ഇരട്ടിമധുരം | liquorice
+    `),
+  },
+  {
     id: "fruits",
     ml: "പഴങ്ങൾ",
     en: "Fruits",
@@ -141,8 +168,7 @@ export const NATTARIVU: NattarivuCategory[] = [
     en: "Vegetables",
     tint: "lime",
     words: list(`
-      വെണ്ടയ്ക്ക | okra, lady's finger
-      വഴുതനങ്ങ | brinjal, eggplant
+      # വള്ളിയിൽ കായ്ക്കുന്നവ | Gourds and beans
       പാവയ്ക്ക | bitter gourd
       പടവലങ്ങ | snake gourd
       മത്തങ്ങ | pumpkin
@@ -152,15 +178,19 @@ export const NATTARIVU: NattarivuCategory[] = [
       പീച്ചിങ്ങ | ridge gourd
       കോവയ്ക്ക | ivy gourd
       പയർ | cowpea, long beans
+      # കായ്കളും ഇലകളും | Fruiting vegetables and greens
+      വെണ്ടയ്ക്ക | okra, lady's finger
+      വഴുതനങ്ങ | brinjal, eggplant
+      തക്കാളി | tomato
       മുരിങ്ങക്കായ് | drumstick
       മുരിങ്ങയില | drumstick leaves
+      # കിഴങ്ങുകൾ | Tubers and bulbs
       കാച്ചിൽ | greater yam
       കൂർക്ക | Chinese potato
       ഉരുളക്കിഴങ്ങ് | potato
       ഉള്ളി | onion
       ചുവന്നുള്ളി | shallot
       വെളുത്തുള്ളി | garlic
-      തക്കാളി | tomato
     `),
   },
   {
@@ -169,7 +199,7 @@ export const NATTARIVU: NattarivuCategory[] = [
     en: "Spices",
     tint: "tangerine",
     words: list(`
-      കുരുമുളക് | black pepper
+      കുരുമുളക് | black pepper vine
       ഏലം | cardamom
       ഗ്രാമ്പൂ | clove
       കറുവാപ്പട്ട | cinnamon
@@ -191,29 +221,44 @@ export const NATTARIVU: NattarivuCategory[] = [
     `),
   },
   {
-    id: "herbs",
-    ml: "ഔഷധസസ്യങ്ങൾ",
-    en: "Herbs and medicinal plants",
-    tint: "lime",
+    id: "food",
+    ml: "ഭക്ഷണം",
+    en: "Food",
+    tint: "tangerine",
     words: list(`
-      തുളസി | holy basil
-      കറ്റാർവാഴ | aloe vera
-      ആടലോടകം | Malabar nut, adhatoda
-      കീഴാർനെല്ലി | stonebreaker, phyllanthus
-      മുക്കുറ്റി | little tree plant, biophytum
-      കുറുന്തോട്ടി | country mallow, sida
-      ബ്രഹ്മി | brahmi, water hyssop
-      കയ്യോന്നി | false daisy, bhringraj
-      ചിറ്റമൃത് | heart-leaved moonseed, giloy
-      ശതാവരി | shatavari, wild asparagus
-      അമുക്കുരം | ashwagandha, Indian ginseng
-      പനിക്കൂർക്ക | Indian borage
-      കുടങ്ങൽ | Indian pennywort, gotu kola
-      നറുനീണ്ടി | Indian sarsaparilla
-      ചെറൂള | mountain knotgrass
-      തിപ്പലി | long pepper
-      രാമച്ചം | vetiver
-      ഇരട്ടിമധുരം | liquorice
+      # ഊണ് | The meal
+      ചോറ് | cooked rice
+      കഞ്ഞി | rice gruel, kanji
+      സദ്യ | feast on a banana leaf
+      പപ്പടം | pappadam
+      അച്ചാർ | pickle
+      ചമ്മന്തി | chutney
+      # കറികൾ | Curries
+      അവിയൽ | avial
+      തോരൻ | thoran, vegetables stir-fried with coconut
+      ഓലൻ | olan
+      കാളൻ | kalan
+      എരിശ്ശേരി | erissery
+      പുളിശ്ശേരി | buttermilk curry
+      രസം | rasam
+      # പ്രാതൽ | Breakfast
+      പുട്ട് | puttu
+      അപ്പം | appam
+      ഇടിയപ്പം | string hoppers
+      ദോശ | dosa
+      ഇഡ്ഡലി | idli
+      ഉപ്പുമാവ് | upma
+      # പലഹാരങ്ങൾ | Snacks and sweets
+      അട | ada, steamed rice parcel
+      കൊഴുക്കട്ട | rice dumpling
+      ഉണ്ണിയപ്പം | unniyappam
+      പായസം | payasam
+      ഹൽവ | halwa
+      # പാലും നെയ്യും | Dairy
+      മോര് | buttermilk
+      തൈര് | curd
+      നെയ്യ് | ghee
+      വെണ്ണ | butter
     `),
   },
   {
@@ -222,30 +267,34 @@ export const NATTARIVU: NattarivuCategory[] = [
     en: "Birds",
     tint: "sky",
     words: list(`
+      # പറമ്പിലെ പക്ഷികൾ | Garden and village birds
       കാക്ക | crow
       മയിൽ | peacock
       തത്ത | parrot
       കുയിൽ | koel, cuckoo
       മൈന | myna
       പ്രാവ് | pigeon, dove
-      കൊക്ക് | egret, heron
       മരംകൊത്തി | woodpecker
-      പൊന്മാൻ | kingfisher
-      മൂങ്ങ | owl
-      പരുന്ത് | kite
-      കഴുകൻ | vulture
       ചെമ്പോത്ത് | crow pheasant, coucal
       കുരുവി | sparrow
       ഓലേഞ്ഞാലി | rufous treepie
       ഇരട്ടത്തലച്ചി | red-whiskered bulbul
       വേഴാമ്പൽ | great hornbill
-      കുളക്കോഴി | waterhen
-      നീർക്കാക്ക | cormorant
       പനങ്കാക്ക | Indian roller
       കാട | quail
-      താറാവ് | duck
-      കോഴി | hen, chicken
+      # ജലപക്ഷികൾ | Water birds
+      കൊക്ക് | egret, heron
+      പൊന്മാൻ | kingfisher
+      കുളക്കോഴി | waterhen
+      നീർക്കാക്ക | cormorant
       അരയന്നം | swan
+      # ഇരപിടിയന്മാർ | Birds of prey
+      മൂങ്ങ | owl
+      പരുന്ത് | kite
+      കഴുകൻ | vulture
+      # വളർത്തുപക്ഷികൾ | Poultry
+      കോഴി | hen, chicken
+      താറാവ് | duck
     `),
   },
   {
@@ -254,6 +303,7 @@ export const NATTARIVU: NattarivuCategory[] = [
     en: "Animals",
     tint: "tangerine",
     words: list(`
+      # കാട്ടുമൃഗങ്ങൾ | Wild animals
       ആന | elephant
       കടുവ | tiger
       പുലി | leopard
@@ -266,12 +316,14 @@ export const NATTARIVU: NattarivuCategory[] = [
       കാട്ടുപന്നി | wild boar
       കുറുക്കൻ | jackal
       ചെന്നായ് | wolf
+      # ചെറുജീവികൾ | Small animals
       മുയൽ | rabbit, hare
       അണ്ണാൻ | squirrel
       കീരി | mongoose
       മുള്ളൻപന്നി | porcupine
       വവ്വാൽ | bat
       എലി | rat, mouse
+      # വളർത്തുമൃഗങ്ങൾ | Domestic animals
       പശു | cow
       കാള | bull, ox
       എരുമ | buffalo
@@ -281,10 +333,34 @@ export const NATTARIVU: NattarivuCategory[] = [
       കുതിര | horse
       കഴുത | donkey
       ഒട്ടകം | camel
+    `),
+  },
+  {
+    id: "reptiles",
+    ml: "ഉരഗങ്ങൾ",
+    en: "Reptiles",
+    tint: "lime",
+    words: list(`
+      # പാമ്പുകൾ | Snakes
       പാമ്പ് | snake
-      ആമ | tortoise, turtle
-      മുതല | crocodile
+      മൂർഖൻ | cobra
+      രാജവെമ്പാല | king cobra
+      അണലി | Russell's viper
+      വെള്ളിക്കെട്ടൻ | common krait
+      ചേര | rat snake
+      പെരുമ്പാമ്പ് | python
+      നീർക്കോലി | checkered keelback, water snake
+      പച്ചിലപ്പാമ്പ് | green vine snake
+      # പല്ലികളും മറ്റും | Lizards
+      ഓന്ത് | garden lizard
+      പല്ലി | house lizard, gecko
+      അരണ | skink
       ഉടുമ്പ് | monitor lizard
+      # ആമയും മുതലയും | Turtles and crocodiles
+      ആമ | tortoise, turtle
+      കടലാമ | sea turtle
+      മുതല | crocodile
+      ചീങ്കണ്ണി | mugger crocodile
     `),
   },
   {
@@ -293,7 +369,7 @@ export const NATTARIVU: NattarivuCategory[] = [
     en: "Insects and small creatures",
     tint: "violet",
     words: list(`
-      ഉറുമ്പ് | ant
+      # പറക്കുന്നവ | Winged insects
       തേനീച്ച | honeybee
       പൂമ്പാറ്റ | butterfly
       ചിത്രശലഭം | butterfly
@@ -304,27 +380,31 @@ export const NATTARIVU: NattarivuCategory[] = [
       പാറ്റ | cockroach
       ചീവീട് | cicada, cricket
       പുൽച്ചാടി | grasshopper
-      ചിതൽ | termite
       വണ്ട് | beetle
       കടന്നൽ | wasp
+      # മണ്ണിലും വീട്ടിലും | In the soil and the house
+      ഉറുമ്പ് | ant
+      ചിതൽ | termite
       മൂട്ട | bedbug
       പേൻ | louse
       ചെള്ള് | weevil, small pest
       പുഴു | worm, caterpillar
       മണ്ണിര | earthworm
+      ഒച്ച് | snail
+      # എട്ടുകാലികളും മറ്റും | Spiders and many-legged
       ചിലന്തി | spider
       തേൾ | scorpion
       പഴുതാര | centipede
       തേരട്ട | millipede
-      ഒച്ച് | snail
     `),
   },
   {
-    id: "fish",
-    ml: "മീനുകൾ",
-    en: "Fish and seafood",
+    id: "aquatic",
+    ml: "ജലജീവികൾ",
+    en: "Fish and water creatures",
     tint: "sky",
     words: list(`
+      # മീനുകൾ | Fish
       മത്തി | sardine
       നെയ്മീൻ | seer fish, kingfish
       കരിമീൻ | pearl spot
@@ -332,20 +412,56 @@ export const NATTARIVU: NattarivuCategory[] = [
       വരാൽ | snakehead, murrel
       സ്രാവ് | shark
       തിരണ്ടി | stingray
+      # ഞണ്ടും കക്കയും | Shellfish
       ചെമ്മീൻ | prawn, shrimp
       കൊഞ്ച് | prawn, lobster
       ഞണ്ട് | crab
       കക്ക | clam
       കല്ലുമ്മക്കായ | mussel
+      ചിപ്പി | oyster shell
+      മുത്തുച്ചിപ്പി | pearl oyster
+      ശംഖ് | conch
+      # കടൽജീവികൾ | Sea life
       കണവ | squid
+      നീരാളി | octopus
+      തിമിംഗലം | whale
+      നക്ഷത്രമത്സ്യം | starfish
+      കടൽക്കുതിര | seahorse
+      പവിഴം | coral
+      കടൽപ്പായൽ | seaweed
+      # കരയിലും വെള്ളത്തിലും | Frogs and otters
+      തവള | frog
+      മാക്രി | frog, toad
+      നീർനായ | otter
     `),
   },
   {
-    id: "seasons",
-    ml: "ഋതുക്കൾ",
-    en: "Seasons",
+    id: "time",
+    ml: "കാലം",
+    en: "Time and the calendar",
     tint: "violet",
     words: list(`
+      # നേരങ്ങൾ | Times of day
+      പുലരി | dawn
+      പ്രഭാതം | morning
+      രാവിലെ | in the morning
+      നട്ടുച്ച | high noon
+      ഉച്ച | noon
+      സന്ധ്യ | dusk
+      അന്തി | evening twilight
+      വൈകുന്നേരം | evening
+      രാത്രി | night
+      പാതിര | midnight
+      യാമം | a watch of the night (three hours)
+      # ആഴ്ച | Days of the week
+      ഞായറാഴ്ച | Sunday
+      തിങ്കളാഴ്ച | Monday
+      ചൊവ്വാഴ്ച | Tuesday
+      ബുധനാഴ്ച | Wednesday
+      വ്യാഴാഴ്ച | Thursday
+      വെള്ളിയാഴ്ച | Friday
+      ശനിയാഴ്ച | Saturday
+      # ഋതുക്കൾ | Seasons
       വസന്തം | spring
       ഗ്രീഷ്മം | summer
       വർഷം | rainy season
@@ -355,14 +471,7 @@ export const NATTARIVU: NattarivuCategory[] = [
       വേനൽ | hot dry season, summer
       മഴക്കാലം | rainy season, monsoon
       മഞ്ഞുകാലം | cold misty season, winter
-    `),
-  },
-  {
-    id: "months",
-    ml: "മലയാള മാസങ്ങൾ",
-    en: "Malayalam months",
-    tint: "violet",
-    words: list(`
+      # മലയാള മാസങ്ങൾ | Malayalam months
       ചിങ്ങം | Chingam (mid-August to mid-September)
       കന്നി | Kanni (mid-September to mid-October)
       തുലാം | Thulam (mid-October to mid-November)
@@ -375,382 +484,7 @@ export const NATTARIVU: NattarivuCategory[] = [
       ഇടവം | Edavam (mid-May to mid-June)
       മിഥുനം | Mithunam (mid-June to mid-July)
       കർക്കടകം | Karkidakam (mid-July to mid-August)
-    `),
-  },
-  {
-    id: "weather",
-    ml: "കാലാവസ്ഥ",
-    en: "Weather",
-    tint: "sky",
-    words: list(`
-      മഴ | rain
-      ചാറ്റൽമഴ | drizzle
-      പെരുമഴ | downpour
-      കാലവർഷം | southwest monsoon
-      തുലാവർഷം | northeast monsoon
-      ഇടവപ്പാതി | June monsoon rains
-      വെയിൽ | sunshine
-      ഇളവെയിൽ | mild sunshine
-      മേഘം | cloud
-      കാർമേഘം | dark rain cloud
-      ഇടി | thunder
-      മിന്നൽ | lightning
-      കാറ്റ് | wind
-      ഇളംകാറ്റ് | breeze
-      കൊടുങ്കാറ്റ് | storm
-      ചുഴലിക്കാറ്റ് | cyclone
-      മഞ്ഞ് | mist, dew, snow
-      മൂടൽമഞ്ഞ് | fog
-      മഴവില്ല് | rainbow
-      ആലിപ്പഴം | hailstone
-      ചൂട് | heat
-      തണുപ്പ് | cold
-      ഈർപ്പം | humidity, damp
-      വരൾച്ച | drought
-      വെള്ളപ്പൊക്കം | flood
-    `),
-  },
-  {
-    id: "water",
-    ml: "നദികളും ജലാശയങ്ങളും",
-    en: "Rivers and water bodies",
-    tint: "sky",
-    words: list(`
-      പുഴ | river
-      നദി | river
-      ആറ് | river, stream
-      അരുവി | brook, stream
-      തോട് | canal, stream
-      കായൽ | backwater, lagoon
-      കടൽ | sea
-      സമുദ്രം | ocean
-      തടാകം | lake
-      കുളം | pond
-      ചിറ | embankment, tank
-      കിണർ | well
-      ഉറവ | spring
-      വെള്ളച്ചാട്ടം | waterfall
-      അഴിമുഖം | estuary, river mouth
-      കടവ് | ferry landing, bathing ghat
-      തീരം | shore, bank
-      ചതുപ്പ് | marsh, swamp
-      ഓളം | ripple, wave
-      തിര | wave
-    `),
-  },
-  {
-    id: "mountains",
-    ml: "ഭൂപ്രദേശം",
-    en: "Terrain",
-    tint: "lime",
-    words: list(`
-      മല | hill, mountain
-      കുന്ന് | hillock
-      പർവതം | mountain
-      കൊടുമുടി | peak, summit
-      മലഞ്ചെരിവ് | hillside, slope
-      താഴ്വര | valley
-      ചുരം | mountain pass, ghat road
-      മേട് | upland, high meadow
-      പീഠഭൂമി | plateau
-      പാറ | rock
-      ഗുഹ | cave
-      കാട് | forest, jungle
-      വനം | forest
-      ചോല | shady grove, forest stream
-      അഗ്നിപർവതം | volcano
-      മലനാട് | highlands
-      ഇടനാട് | midlands
-      തീരപ്രദേശം | coastal region
-    `),
-  },
-  {
-    id: "farming",
-    ml: "കൃഷി",
-    en: "Farming",
-    tint: "tangerine",
-    words: list(`
-      കൃഷി | farming, cultivation
-      കർഷകൻ | farmer
-      വയൽ | paddy field
-      പാടം | field
-      നെല്ല് | paddy
-      അരി | rice
-      വിത്ത് | seed
-      ഞാറ്റുവേല | planting season
-      കൊയ്ത്ത് | harvest
-      മെതി | threshing
-      കറ്റ | sheaf
-      കലപ്പ | plough
-      തൂമ്പ | spade, hoe
-      അരിവാൾ | sickle
-      വളം | manure, fertiliser
-      ചാണകം | cow dung
-      വരമ്പ് | field bund
-      കള | weed
-      ജലസേചനം | irrigation
-      പത്തായം | granary
-      പറ | para, grain measure
-      പറമ്പ് | homestead land
-      തോട്ടം | garden, plantation
-      വിള | crop
-      വിളവ് | yield, harvest
-    `),
-  },
-  {
-    id: "household",
-    ml: "ഉപകരണങ്ങൾ",
-    en: "Tools and utensils",
-    tint: "coral",
-    words: list(`
-      ഉരൽ | mortar
-      ഉലക്ക | pestle
-      അമ്മിക്കല്ല് | grinding stone
-      ആട്ടുകല്ല് | wet grinding stone
-      മുറം | winnowing tray
-      ചിരവ | coconut scraper
-      ഉറി | hanging rope sling
-      കിണ്ടി | spouted water vessel
-      ഉരുളി | wide bell-metal vessel
-      ചട്ടി | clay pan
-      കലം | pot
-      തവി | ladle
-      ചൂല് | broom
-      പായ | mat
-      നിലവിളക്ക് | standing oil lamp
-      തൊട്ടി | bucket, trough
-      കയർ | coir rope
-      ഏണി | ladder
-      വെട്ടുകത്തി | billhook, machete
-      കോടാലി | axe
-      വല | net
-      തോണി | canoe
-      വള്ളം | country boat
-    `),
-  },
-  {
-    id: "kinship",
-    ml: "ബന്ധുക്കൾ",
-    en: "Family and kinship",
-    tint: "coral",
-    words: list(`
-      അച്ഛൻ | father
-      അമ്മ | mother
-      ചേട്ടൻ | elder brother
-      അനിയൻ | younger brother
-      ചേച്ചി | elder sister
-      അനിയത്തി | younger sister
-      മുത്തച്ഛൻ | grandfather
-      മുത്തശ്ശി | grandmother
-      അമ്മാവൻ | maternal uncle
-      അമ്മായി | aunt
-      വലിയച്ഛൻ | father's elder brother
-      ചെറിയച്ഛൻ | father's younger brother
-      മകൻ | son
-      മകൾ | daughter
-      മരുമകൻ | son-in-law, nephew
-      മരുമകൾ | daughter-in-law, niece
-      ഭർത്താവ് | husband
-      ഭാര്യ | wife
-      അളിയൻ | brother-in-law
-      നാത്തൂൻ | sister-in-law
-      പേരക്കുട്ടി | grandchild
-    `),
-  },
-  {
-    id: "house",
-    ml: "വീട്",
-    en: "Parts of a traditional house",
-    tint: "coral",
-    words: list(`
-      ഉമ്മറം | front verandah
-      കോലായ | verandah, sit-out
-      പൂമുഖം | front hall, entrance
-      തിണ്ണ | raised sit-out
-      മുറ്റം | courtyard, front yard
-      നടുമുറ്റം | central open courtyard
-      നാലുകെട്ട് | four-winged traditional house
-      എട്ടുകെട്ട് | eight-winged traditional house
-      പടിപ്പുര | gatehouse
-      അകത്തളം | inner hall
-      അറ | inner room, storeroom
-      അടുക്കള | kitchen
-      ചായ്പ്പ് | lean-to, side shed
-      പത്തായപ്പുര | granary house
-      തട്ടിൻപുറം | loft
-      മച്ച് | wooden ceiling, attic
-      മേൽക്കൂര | roof
-      ഓട് | roof tile
-      ഓല | palm-leaf thatch
-      ഉത്തരം | roof beam
-      കഴുക്കോൽ | rafter
-      തൂൺ | pillar
-      ചുമർ | wall
-      വാതിൽ | door
-      ജനൽ | window
-      പടി | step, threshold
-      കോണി | staircase, ladder
-      നിലം | floor
-    `),
-  },
-  {
-    id: "food",
-    ml: "ഭക്ഷണം",
-    en: "Food",
-    tint: "tangerine",
-    words: list(`
-      ചോറ് | cooked rice
-      കഞ്ഞി | rice gruel, kanji
-      സദ്യ | feast on a banana leaf
-      അവിയൽ | avial
-      തോരൻ | thoran, vegetables stir-fried with coconut
-      ഓലൻ | olan
-      കാളൻ | kalan
-      എരിശ്ശേരി | erissery
-      പുളിശ്ശേരി | buttermilk curry
-      രസം | rasam
-      പായസം | payasam
-      പപ്പടം | pappadam
-      അച്ചാർ | pickle
-      ചമ്മന്തി | chutney
-      പുട്ട് | puttu
-      അപ്പം | appam
-      ഇടിയപ്പം | string hoppers
-      ദോശ | dosa
-      ഇഡ്ഡലി | idli
-      ഉപ്പുമാവ് | upma
-      അട | ada, steamed rice parcel
-      കൊഴുക്കട്ട | rice dumpling
-      ഉണ്ണിയപ്പം | unniyappam
-      ഹൽവ | halwa
-      മോര് | buttermilk
-      തൈര് | curd
-      നെയ്യ് | ghee
-      വെണ്ണ | butter
-    `),
-  },
-  {
-    id: "colours",
-    ml: "നിറങ്ങൾ",
-    en: "Colours",
-    tint: "violet",
-    words: list(`
-      ചുവപ്പ് | red
-      പച്ച | green
-      നീല | blue
-      മഞ്ഞ | yellow
-      കറുപ്പ് | black
-      വെളുപ്പ് | white
-      ചാരനിറം | grey
-      തവിട്ടുനിറം | brown
-      കാവി | ochre, saffron
-      ഇളംചുവപ്പ് | pink
-      ഊത | violet, purple
-      വെള്ളിനിറം | silver
-      ചെമ്പൻ | copper red, reddish brown
-      കടുംനീല | dark blue
-      ശ്യാമം | dark, dusky
-      ധവളം | white (literary)
-      അരുണം | dawn red (literary)
-      ഹരിതം | green (literary)
-      പീതം | yellow (literary)
-      നീലിമ | blueness
-    `),
-  },
-  {
-    id: "body",
-    ml: "ശരീരഭാഗങ്ങൾ",
-    en: "Parts of the body",
-    tint: "coral",
-    words: list(`
-      തല | head
-      മുടി | hair
-      നെറ്റി | forehead
-      കണ്ണ് | eye
-      പുരികം | eyebrow
-      കൺപീലി | eyelash
-      മൂക്ക് | nose
-      ചെവി | ear
-      കവിൾ | cheek
-      ചുണ്ട് | lip
-      വായ | mouth
-      പല്ല് | tooth
-      നാക്ക് | tongue
-      താടി | chin, beard
-      കഴുത്ത് | neck
-      തോൾ | shoulder
-      കൈ | hand, arm
-      കൈമുട്ട് | elbow
-      വിരൽ | finger
-      നഖം | nail
-      നെഞ്ച് | chest
-      വയറ് | stomach, belly
-      പുറം | back
-      അര | waist
-      കാൽ | leg, foot
-      കാൽമുട്ട് | knee
-      ഉപ്പൂറ്റി | heel
-      ഹൃദയം | heart
-      ശ്വാസകോശം | lungs
-      കരൾ | liver
-      വൃക്ക | kidney
-      രക്തം | blood
-      എല്ല് | bone
-      തൊലി | skin
-      ഞരമ്പ് | vein, nerve
-    `),
-  },
-  {
-    id: "reptiles",
-    ml: "ഉരഗങ്ങൾ",
-    en: "Reptiles",
-    tint: "lime",
-    words: list(`
-      പാമ്പ് | snake
-      മൂർഖൻ | cobra
-      രാജവെമ്പാല | king cobra
-      അണലി | Russell's viper
-      വെള്ളിക്കെട്ടൻ | common krait
-      ചേര | rat snake
-      പെരുമ്പാമ്പ് | python
-      നീർക്കോലി | checkered keelback, water snake
-      പച്ചിലപ്പാമ്പ് | green vine snake
-      ഓന്ത് | garden lizard
-      പല്ലി | house lizard, gecko
-      അരണ | skink
-      ഉടുമ്പ് | monitor lizard
-      മുതല | crocodile
-      ചീങ്കണ്ണി | mugger crocodile
-      ആമ | tortoise, turtle
-      കടലാമ | sea turtle
-    `),
-  },
-  {
-    id: "aquatic",
-    ml: "ജലജീവികൾ",
-    en: "Water creatures",
-    tint: "sky",
-    words: list(`
-      തവള | frog
-      മാക്രി | frog, toad
-      നീർനായ | otter
-      നീരാളി | octopus
-      തിമിംഗലം | whale
-      ശംഖ് | conch
-      ചിപ്പി | oyster shell
-      മുത്തുച്ചിപ്പി | pearl oyster
-      നക്ഷത്രമത്സ്യം | starfish
-      കടൽക്കുതിര | seahorse
-      പവിഴം | coral
-      കടൽപ്പായൽ | seaweed
-    `),
-  },
-  {
-    id: "stars",
-    ml: "നാളുകൾ",
-    en: "Birth stars",
-    tint: "violet",
-    words: list(`
+      # നാളുകൾ | Birth stars
       അശ്വതി | Aswathi, 1st star
       ഭരണി | Bharani, 2nd star
       കാർത്തിക | Karthika, 3rd star
@@ -776,6 +510,453 @@ export const NATTARIVU: NattarivuCategory[] = [
       ചതയം | Chathayam, 24th star
       പൂരുരുട്ടാതി | Pooruruttathi, 25th star
       രേവതി | Revathi, 27th star
+    `),
+  },
+  {
+    id: "weather",
+    ml: "കാലാവസ്ഥ",
+    en: "Weather",
+    tint: "sky",
+    words: list(`
+      # മഴ | Rain
+      മഴ | rain
+      ചാറ്റൽമഴ | drizzle
+      പെരുമഴ | downpour
+      കാലവർഷം | southwest monsoon
+      തുലാവർഷം | northeast monsoon
+      ഇടവപ്പാതി | June monsoon rains
+      ഇടി | thunder
+      മിന്നൽ | lightning
+      ആലിപ്പഴം | hailstone
+      വെള്ളപ്പൊക്കം | flood
+      # കാറ്റ് | Wind
+      കാറ്റ് | wind
+      ഇളംകാറ്റ് | breeze
+      കൊടുങ്കാറ്റ് | storm
+      ചുഴലിക്കാറ്റ് | cyclone
+      # വെയിലും മഞ്ഞും | Sun, heat and mist
+      വെയിൽ | sunshine
+      ഇളവെയിൽ | mild sunshine
+      ചൂട് | heat
+      വരൾച്ച | drought
+      ഈർപ്പം | humidity, damp
+      തണുപ്പ് | cold
+      മഞ്ഞ് | mist, dew, snow
+      മൂടൽമഞ്ഞ് | fog
+      # ആകാശം | The sky
+      ആകാശം | sky
+      മേഘം | cloud
+      കാർമേഘം | dark rain cloud
+      മഴവില്ല് | rainbow
+      സൂര്യൻ | sun
+      ചന്ദ്രൻ | moon
+      തിങ്കൾ | moon (literary)
+      നക്ഷത്രം | star
+      നിലാവ് | moonlight
+      ഉദയം | sunrise
+      അസ്തമയം | sunset
+      ചക്രവാളം | horizon
+      വെളുത്തവാവ് | full moon
+      അമാവാസി | new moon
+    `),
+  },
+  {
+    id: "water",
+    ml: "നദികളും ജലാശയങ്ങളും",
+    en: "Rivers and water bodies",
+    tint: "sky",
+    words: list(`
+      # ഒഴുകുന്ന വെള്ളം | Running water
+      പുഴ | river
+      നദി | river
+      ആറ് | river, stream
+      അരുവി | brook, stream
+      തോട് | canal, stream
+      ഉറവ | spring
+      വെള്ളച്ചാട്ടം | waterfall
+      # കെട്ടിനിൽക്കുന്ന വെള്ളം | Still water
+      കായൽ | backwater, lagoon
+      തടാകം | lake
+      കുളം | pond
+      ചിറ | embankment, tank
+      കിണർ | well
+      ചതുപ്പ് | marsh, swamp
+      # കടലും തീരവും | Sea and shore
+      കടൽ | sea
+      സമുദ്രം | ocean
+      അഴിമുഖം | estuary, river mouth
+      കടവ് | ferry landing, bathing ghat
+      തീരം | shore, bank
+      ഓളം | ripple, wave
+      തിര | wave
+    `),
+  },
+  {
+    id: "mountains",
+    ml: "ഭൂപ്രദേശം",
+    en: "Terrain",
+    tint: "lime",
+    words: list(`
+      # മലകൾ | Hills and mountains
+      മല | hill, mountain
+      കുന്ന് | hillock
+      പർവതം | mountain
+      കൊടുമുടി | peak, summit
+      മലഞ്ചെരിവ് | hillside, slope
+      താഴ്വര | valley
+      ചുരം | mountain pass, ghat road
+      മേട് | upland, high meadow
+      പീഠഭൂമി | plateau
+      പാറ | rock
+      ഗുഹ | cave
+      അഗ്നിപർവതം | volcano
+      # കാട് | Forest
+      കാട് | forest, jungle
+      വനം | forest
+      ചോല | shady grove, forest stream
+      # നാട് | Regions of Kerala
+      മലനാട് | highlands
+      ഇടനാട് | midlands
+      തീരപ്രദേശം | coastal region
+    `),
+  },
+  {
+    id: "farming",
+    ml: "കൃഷി",
+    en: "Farming",
+    tint: "tangerine",
+    words: list(`
+      # നിലം | Land
+      വയൽ | paddy field
+      പാടം | field
+      വരമ്പ് | field bund
+      പറമ്പ് | homestead land
+      തോട്ടം | garden, plantation
+      # പണി | Work
+      കൃഷി | farming, cultivation
+      കർഷകൻ | farmer
+      വിത്ത് | seed
+      ഞാറ്റുവേല | planting season
+      ജലസേചനം | irrigation
+      വളം | manure, fertiliser
+      ചാണകം | cow dung
+      കള | weed
+      കൊയ്ത്ത് | harvest
+      മെതി | threshing
+      # ഉപകരണങ്ങൾ | Tools
+      കലപ്പ | plough
+      തൂമ്പ | spade, hoe
+      അരിവാൾ | sickle
+      # വിളവ് | The harvest
+      നെല്ല് | paddy
+      അരി | rice
+      കറ്റ | sheaf
+      വിള | crop
+      വിളവ് | yield, harvest
+      പത്തായം | granary
+    `),
+  },
+  {
+    id: "household",
+    ml: "ഉപകരണങ്ങൾ",
+    en: "Tools and utensils",
+    tint: "coral",
+    words: list(`
+      # അടുക്കള | Kitchen
+      ഉരൽ | mortar
+      ഉലക്ക | pestle
+      അമ്മിക്കല്ല് | grinding stone
+      ആട്ടുകല്ല് | wet grinding stone
+      മുറം | winnowing tray
+      ചിരവ | coconut scraper
+      ഉറി | hanging rope sling
+      ഉരുളി | wide bell-metal vessel
+      ചട്ടി | clay pan
+      കലം | pot
+      തവി | ladle
+      കിണ്ടി | spouted water vessel
+      # വീട്ടുസാധനങ്ങൾ | Around the house
+      ചൂല് | broom
+      പായ | mat
+      നിലവിളക്ക് | standing oil lamp
+      തൊട്ടി | bucket, trough
+      കയർ | coir rope
+      ഏണി | ladder
+      # പണിയായുധങ്ങൾ | Work tools
+      വെട്ടുകത്തി | billhook, machete
+      കോടാലി | axe
+      വല | net
+      # യാത്ര | Boats
+      തോണി | canoe
+      വള്ളം | country boat
+    `),
+  },
+  {
+    id: "house",
+    ml: "വീട്",
+    en: "Parts of a traditional house",
+    tint: "coral",
+    words: list(`
+      # വീടുകൾ | Kinds of house
+      നാലുകെട്ട് | four-winged traditional house
+      എട്ടുകെട്ട് | eight-winged traditional house
+      പത്തായപ്പുര | granary house
+      പടിപ്പുര | gatehouse
+      # ഇടങ്ങൾ | Rooms and spaces
+      ഉമ്മറം | front verandah
+      കോലായ | verandah, sit-out
+      പൂമുഖം | front hall, entrance
+      തിണ്ണ | raised sit-out
+      മുറ്റം | courtyard, front yard
+      നടുമുറ്റം | central open courtyard
+      അകത്തളം | inner hall
+      അറ | inner room, storeroom
+      അടുക്കള | kitchen
+      ചായ്പ്പ് | lean-to, side shed
+      തട്ടിൻപുറം | loft
+      # നിർമാണം | How it is built
+      മേൽക്കൂര | roof
+      ഓട് | roof tile
+      ഓല | palm-leaf thatch
+      ഉത്തരം | roof beam
+      കഴുക്കോൽ | rafter
+      മച്ച് | wooden ceiling, attic
+      തൂൺ | pillar
+      ചുമർ | wall
+      വാതിൽ | door
+      ജനൽ | window
+      പടി | step, threshold
+      കോണി | staircase, ladder
+      നിലം | floor
+    `),
+  },
+  {
+    id: "clothes",
+    ml: "വസ്ത്രങ്ങളും ആഭരണങ്ങളും",
+    en: "Clothes and ornaments",
+    tint: "coral",
+    words: list(`
+      # വസ്ത്രങ്ങൾ | Clothes
+      മുണ്ട് | mundu, dhoti
+      നേര്യത് | neriyathu, upper cloth
+      കസവ് | kasavu, gold border
+      സാരി | sari
+      ചേല | sari, cloth
+      കുപ്പായം | shirt, blouse
+      പാവാട | long skirt
+      ദാവണി | davani, half-sari wrap
+      തോർത്ത് | thin cotton towel
+      തലപ്പാവ് | turban
+      # ആഭരണങ്ങൾ | Ornaments
+      മാല | necklace
+      കാശുമാല | coin necklace
+      പതക്കം | pendant
+      വള | bangle
+      മോതിരം | ring
+      കമ്മൽ | earring
+      മൂക്കുത്തി | nose stud
+      പാദസരം | anklet
+      കൊലുസ് | anklet
+      അരഞ്ഞാണം | waist chain
+    `),
+  },
+  {
+    id: "colours",
+    ml: "നിറങ്ങൾ",
+    en: "Colours",
+    tint: "violet",
+    words: list(`
+      # നിത്യനിറങ്ങൾ | Everyday colours
+      ചുവപ്പ് | red
+      പച്ച | green
+      നീല | blue
+      മഞ്ഞ | yellow
+      കറുപ്പ് | black
+      വെളുപ്പ് | white
+      ചാരനിറം | grey
+      തവിട്ടുനിറം | brown
+      കാവി | ochre, saffron
+      ഇളംചുവപ്പ് | pink
+      ഊത | violet, purple
+      വെള്ളിനിറം | silver
+      ചെമ്പൻ | copper red, reddish brown
+      കടുംനീല | dark blue
+      # കാവ്യഭാഷയിൽ | In literary Malayalam
+      ശ്യാമം | dark, dusky
+      ധവളം | white (literary)
+      അരുണം | dawn red (literary)
+      ഹരിതം | green (literary)
+      പീതം | yellow (literary)
+      നീലിമ | blueness
+    `),
+  },
+  {
+    id: "body",
+    ml: "ശരീരഭാഗങ്ങൾ",
+    en: "Parts of the body",
+    tint: "coral",
+    words: list(`
+      # തലയും മുഖവും | Head and face
+      തല | head
+      മുടി | hair
+      നെറ്റി | forehead
+      കണ്ണ് | eye
+      പുരികം | eyebrow
+      കൺപീലി | eyelash
+      മൂക്ക് | nose
+      ചെവി | ear
+      കവിൾ | cheek
+      ചുണ്ട് | lip
+      വായ | mouth
+      പല്ല് | tooth
+      നാക്ക് | tongue
+      താടി | chin, beard
+      # ഉടലും കൈകാലുകളും | Body and limbs
+      കഴുത്ത് | neck
+      തോൾ | shoulder
+      കൈ | hand, arm
+      കൈമുട്ട് | elbow
+      വിരൽ | finger
+      നഖം | nail
+      നെഞ്ച് | chest
+      വയറ് | stomach, belly
+      പുറം | back
+      അര | waist
+      കാൽ | leg, foot
+      കാൽമുട്ട് | knee
+      ഉപ്പൂറ്റി | heel
+      തൊലി | skin
+      # ഉള്ളിൽ | Inside the body
+      ഹൃദയം | heart
+      ശ്വാസകോശം | lungs
+      കരൾ | liver
+      വൃക്ക | kidney
+      രക്തം | blood
+      എല്ല് | bone
+      ഞരമ്പ് | vein, nerve
+    `),
+  },
+  {
+    id: "feelings",
+    ml: "വികാരങ്ങൾ",
+    en: "Feelings",
+    tint: "violet",
+    words: list(`
+      # സന്തോഷം | Joy and love
+      സന്തോഷം | happiness
+      ആനന്ദം | bliss
+      ആഹ്ലാദം | delight
+      ഉത്സാഹം | enthusiasm
+      ആശ്വാസം | relief
+      പ്രതീക്ഷ | hope
+      അഭിമാനം | pride
+      സ്നേഹം | love
+      വാത്സല്യം | tender affection
+      പ്രണയം | romantic love
+      അത്ഭുതം | wonder
+      # ദുഃഖം | Sorrow
+      ദുഃഖം | sorrow
+      സങ്കടം | sadness
+      വിഷാദം | melancholy
+      നിരാശ | despair, disappointment
+      ഏകാന്തത | loneliness
+      വിരഹം | pain of separation
+      നൊമ്പരം | ache, heartache
+      കുറ്റബോധം | guilt
+      # ഭയവും ദേഷ്യവും | Fear and anger
+      ഭയം | fear
+      പേടി | fright
+      ആശങ്ക | anxiety, worry
+      പരിഭ്രമം | panic, flurry
+      കോപം | anger
+      ദേഷ്യം | anger, irritation
+      അസൂയ | jealousy
+      വെറുപ്പ് | hatred, disgust
+      നാണം | shyness
+      ലജ്ജ | shame, bashfulness
+      അമ്പരപ്പ് | bewilderment
+    `),
+  },
+  {
+    id: "sounds",
+    ml: "ശബ്ദങ്ങൾ",
+    en: "Sounds",
+    tint: "sky",
+    words: list(`
+      # ജീവികളുടെ ശബ്ദം | Creatures
+      കൂവൽ | crowing, call
+      ഗർജനം | roar
+      ചിന്നംവിളി | trumpeting of an elephant
+      അമറൽ | lowing, bellowing
+      കുര | bark
+      ഓരിയിടൽ | howl
+      ചീറ്റൽ | hiss
+      മൂളൽ | hum, buzz
+      കരച്ചിൽ | cry
+      # പ്രകൃതിയുടെ ശബ്ദം | Nature and things
+      ഇരമ്പം | roar, rumble
+      മർമരം | rustle
+      കളകളം | babble, murmur of water
+      ഇടിമുഴക്കം | rumble of thunder
+      മുഴക്കം | boom, resounding
+      കിലുക്കം | jingle, tinkle
+      പ്രതിധ്വനി | echo
+    `),
+  },
+  {
+    id: "kinship",
+    ml: "ബന്ധുക്കൾ",
+    en: "Family and kinship",
+    tint: "coral",
+    words: list(`
+      # വീട്ടിൽ | Parents, siblings and children
+      അച്ഛൻ | father
+      അമ്മ | mother
+      ചേട്ടൻ | elder brother
+      അനിയൻ | younger brother
+      ചേച്ചി | elder sister
+      അനിയത്തി | younger sister
+      മകൻ | son
+      മകൾ | daughter
+      പേരക്കുട്ടി | grandchild
+      # മുതിർന്നവർ | Elders
+      മുത്തച്ഛൻ | grandfather
+      മുത്തശ്ശി | grandmother
+      അമ്മാവൻ | maternal uncle
+      അമ്മായി | aunt
+      വലിയച്ഛൻ | father's elder brother
+      ചെറിയച്ഛൻ | father's younger brother
+      # വിവാഹബന്ധം | By marriage
+      ഭർത്താവ് | husband
+      ഭാര്യ | wife
+      മരുമകൻ | son-in-law, nephew
+      മരുമകൾ | daughter-in-law, niece
+      അളിയൻ | brother-in-law
+      നാത്തൂൻ | sister-in-law
+    `),
+  },
+  {
+    id: "measures",
+    ml: "അളവുകൾ",
+    en: "Traditional measures and money",
+    tint: "tangerine",
+    words: list(`
+      # ധാന്യം അളക്കാൻ | Grain measures
+      നാഴി | nazhi, a small grain measure
+      പറ | para, a large grain measure
+      # നീളം | Length
+      ചാൺ | span of the hand
+      മുഴം | cubit, elbow to fingertip
+      കാതം | league, about ten miles
+      # സമയം | Time
+      നാഴിക | nazhika, twenty-four minutes
+      വിനാഴിക | vinazhika, twenty-four seconds
+      # പണം | Old money
+      കാശ് | kash, small coin, money
+      പണം | panam, old coin, money
+      അണ | anna
+      പൈസ | paisa
+      രൂപ | rupee
     `),
   },
   {
@@ -849,4 +1030,9 @@ export const NATTARIVU: NattarivuCategory[] = [
   },
 ];
 
-export const nattarivuCategory = (id: string | null | undefined) => NATTARIVU.find((c) => c.id === id);
+/** categories that were merged keep their old links working */
+const MOVED: Record<string, string> = { seasons: "time", months: "time", stars: "time", fish: "aquatic" };
+export const nattarivuCategory = (id: string | null | undefined) => {
+  const key = id ? (MOVED[id] ?? id) : id;
+  return NATTARIVU.find((c) => c.id === key);
+};

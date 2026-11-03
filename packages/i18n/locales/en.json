@@ -715,5 +715,14 @@
     },
     "add": "Add",
     "summaryFallback": "Summary"
+  },
+  "offline": {
+    "offline": "Offline. Your writing is saved on this device.",
+    "syncing": "Back online. Sending your changes…",
+    "pending_one": "{count} change will sync when you're online",
+    "pending_other": "{count} changes will sync when you're online",
+    "synced": "All changes synced",
+    "notOnDeviceTitle": "Not on this device yet",
+    "notOnDevice": "Open this work once while you're online. After that it opens offline too."
   }
 }

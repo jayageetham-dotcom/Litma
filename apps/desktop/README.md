@@ -1,6 +1,6 @@
 # Litma desktop (Electron)
 
-The same Litma as the website, as an app for macOS and Windows. The web app is built with an empty base path and bundled into the installer; the window serves it from the private `app://litma/` origin, so it opens instantly and keeps working offline (writing is journalled locally and synced when the connection is back). Dictionary data is fetched from the website on demand instead of being bundled (it is over 100 MB).
+The same Litma as the website, as an app for macOS and Windows. The web app is built with an empty base path and bundled into the installer; the window serves it from the private `app://litma/` origin, so it opens instantly and keeps working offline: works, books and Story World are kept on the computer, and changes made offline wait in an outbox and sync when the connection is back (`apps/web/src/lib/offline.ts`). Dictionary data is fetched from the website on demand instead of being bundled (it is over 100 MB); each file is kept on disk once used (`userData/offline-cache`), and Google Fonts load through `app://litma/gfonts/` and are kept the same way, so both work offline.
 
 ## Run it locally
 

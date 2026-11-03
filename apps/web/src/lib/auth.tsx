@@ -5,17 +5,47 @@ import type { User } from "@supabase/supabase-js";
 import { getSupabase } from "./supabase/client";
 import { isSupabaseConfigured } from "./supabase/config";
 import { BASE, appUrl } from "./config";
+import { isNetworkError, rememberUser, rememberedUser } from "./offline";
 import { InkLoader } from "@/components/ui/Skeleton";
 
-/** Current Supabase user (null when signed out; undefined while loading). Local mode returns null. */
+/**
+ * Current Supabase user (null when signed out; undefined while loading). Local mode returns null.
+ * Offline, an expired session can't be refreshed; the writer stays signed in on this device
+ * (remembered in lib/offline.ts) and the session refreshes when the connection returns.
+ */
 export function useUser() {
   const [user, setUser] = useState<User | null | undefined>(isSupabaseConfigured ? undefined : null);
   useEffect(() => {
     const sb = getSupabase();
     if (!sb) return;
-    sb.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
-    const { data } = sb.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null));
-    return () => data.subscription.unsubscribe();
+    const offlineUser = (error: unknown) => (error && isNetworkError(error) ? rememberedUser() : null);
+    // an expired session is refreshed first, which can take up to 30 s when the server is
+    // unreachable: meanwhile the writer remembered on this device goes ahead
+    const slow = setTimeout(() => {
+      const known = rememberedUser();
+      if (known) setUser((u) => (u === undefined ? known : u));
+    }, 1500);
+    sb.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (data.session) rememberUser(data.session.user);
+        setUser(data.session?.user ?? offlineUser(error));
+      })
+      .catch((e) => setUser(offlineUser(e)))
+      .finally(() => clearTimeout(slow));
+    const { data } = sb.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        rememberUser(session.user);
+        setUser(session.user);
+      } else if (event === "SIGNED_OUT") {
+        rememberUser(null);
+        setUser(null);
+      }
+    });
+    return () => {
+      clearTimeout(slow);
+      data.subscription.unsubscribe();
+    };
   }, []);
   return user;
 }

@@ -3,13 +3,16 @@
  *
  * The window runs the same static web app as https://getlitma.in, bundled into the
  * installer and served from the private `app://litma/` origin, so it opens instantly and keeps
- * working when the network drops (writing is journalled locally and synced by the app itself).
+ * working when the network drops: works are kept on this computer and changes made offline are
+ * synced when the connection returns (apps/web/src/lib/offline.ts). Dictionary data and fonts are
+ * kept on disk the first time they load (`kept()` below), so they work offline too.
  * Accounts, documents and AI still talk to Supabase over the network, exactly like the website.
  */
 import { app, BrowserWindow, ipcMain, Menu, nativeTheme, net, protocol, shell, type MenuItemConstructorOptions } from "electron";
 import { checkForUpdates, currentState, downloadUpdate, installUpdate, startUpdateChecks } from "./updater";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { readFile, stat } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { extname, join, normalize, sep } from "node:path";
 
 const SCHEME = "app";
@@ -43,15 +46,69 @@ protocol.registerSchemesAsPrivileged([
   { scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } },
 ]);
 
+// ── files from the network, kept on disk so they still load offline ──
+const keptDir = () => join(app.getPath("userData"), "offline-cache");
+const keptFile = (key: string) => join(keptDir(), createHash("sha1").update(key).digest("hex"));
+/** keys already refreshed in this run (a kept copy is refreshed at most once per start) */
+const refreshed = new Set<string>();
+
+/**
+ * Serve `key` from the first source that answers, keeping a copy on disk; when none answers
+ * (offline), serve the kept copy. `cacheFirst`: answer from the kept copy straight away
+ * (refreshing it in the background unless `immutable`). `rewrite` edits text bodies before keeping.
+ */
+async function kept(key: string, sources: string[], opts: { cacheFirst?: boolean; immutable?: boolean; rewrite?: (text: string) => string } = {}): Promise<Response> {
+  const file = keptFile(key);
+  const fromDisk = async () => {
+    try {
+      const [body, type] = await Promise.all([readFile(file), readFile(`${file}.type`, "utf8")]);
+      return new Response(body, { headers: { "content-type": type } });
+    } catch {
+      return null;
+    }
+  };
+  const fromNetwork = async () => {
+    refreshed.add(key);
+    for (const src of sources) {
+      try {
+        const res = await net.fetch(src, { signal: AbortSignal.timeout(20_000) });
+        if (!res.ok) continue;
+        const type = res.headers.get("content-type") ?? "application/octet-stream";
+        let body = Buffer.from(await res.arrayBuffer());
+        if (opts.rewrite) body = Buffer.from(opts.rewrite(body.toString("utf8")));
+        await mkdir(keptDir(), { recursive: true });
+        await writeFile(file, body);
+        await writeFile(`${file}.type`, type);
+        return new Response(body, { headers: { "content-type": type } });
+      } catch {
+        /* offline or unreachable: try the next source */
+      }
+    }
+    return null;
+  };
+  if (opts.cacheFirst) {
+    const disk = await fromDisk();
+    if (disk) {
+      if (!opts.immutable && !refreshed.has(key)) void fromNetwork();
+      return disk;
+    }
+  }
+  return (await fromNetwork()) ?? (await fromDisk()) ?? new Response("Offline", { status: 504 });
+}
+
 async function serve(request: Request): Promise<Response> {
   const url = new URL(request.url);
   let rel = decodeURIComponent(url.pathname);
-  // dictionary shards are large: fetch them from the website (Chromium caches them)
-  if (rel.startsWith("/dict/")) {
-    const res = await net.fetch(`${SITE}${rel}${url.search}`).catch(() => null);
-    // until getlitma.in is live, the old address still has the data
-    return res?.ok ? res : net.fetch(`${LEGACY_SITE}${rel}${url.search}`);
-  }
+  // dictionary shards are large: fetched from the website and kept on disk once used
+  // (until getlitma.in is live, the old address still has the data)
+  if (rel.startsWith("/dict/")) return kept(rel + url.search, [`${SITE}${rel}${url.search}`, `${LEGACY_SITE}${rel}${url.search}`], { cacheFirst: true });
+  // Google Fonts go through here in the desktop build (app/layout.tsx), so the Malayalam fonts work offline
+  if (rel === "/gfonts/css2")
+    return kept(`gfonts${url.search}`, [`https://fonts.googleapis.com/css2${url.search}`], {
+      cacheFirst: true,
+      rewrite: (css) => css.replaceAll("https://fonts.gstatic.com/", `${ORIGIN}/gstatic/`),
+    });
+  if (rel.startsWith("/gstatic/")) return kept(rel, [`https://fonts.gstatic.com/${rel.slice("/gstatic/".length)}`], { cacheFirst: true, immutable: true });
   const target = normalize(join(WEB_ROOT, rel));
   if (!target.startsWith(WEB_ROOT + sep) && target !== WEB_ROOT) return new Response("Forbidden", { status: 403 });
   let file = target;

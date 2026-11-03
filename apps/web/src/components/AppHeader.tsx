@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookA, LogOut, Settings, User } from "lucide-react";
 import { Logo } from "./Logo";
+import { AvatarArt, profileAvatar } from "./art/Avatars";
 import { DownloadNavLink } from "./landing/DesktopDownload";
 import { ThemeToggle } from "./ThemeToggle";
 import { store } from "@/lib/store";
@@ -11,16 +12,13 @@ import { getSupabase } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 import { useT } from "@/i18n/react";
 
-export function Avatar({ profile, size = 32 }: { profile: Pick<Profile, "avatar_url" | "display_name" | "pen_name"> | null; size?: number }) {
-  const name = profile?.pen_name || profile?.display_name || "";
-  const initial = name.trim().slice(0, 1).toUpperCase() || "ല";
-  return profile?.avatar_url ? (
+export function Avatar({ profile, size = 32 }: { profile: (Pick<Profile, "avatar_url" | "display_name" | "pen_name"> & { preferences?: Profile["preferences"] }) | null; size?: number }) {
+  const a = profileAvatar(profile);
+  return a.photo ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={profile.avatar_url} alt="" width={size} height={size} className="rounded-full object-cover" style={{ width: size, height: size }} />
+    <img src={a.photo} alt="" width={size} height={size} className="rounded-full object-cover" style={{ width: size, height: size }} />
   ) : (
-    <span className="grid place-items-center rounded-full bg-accent font-semibold text-accent-ink" style={{ width: size, height: size, fontSize: size * 0.42 }} aria-hidden>
-      {initial}
-    </span>
+    <AvatarArt id={a.id} name={a.name} tint={a.tint} size={size} />
   );
 }
 

@@ -7,6 +7,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Camera, GripVertical, Loader
 import { store } from "@/lib/store";
 import { BEAT_COLORS, FIELDS, defaultGroups, isBlankItem, tabsFor, type StoryTab, type StoryItem, type StoryKind } from "@/lib/story";
 import { resizeImage } from "@/lib/image";
+import { PHOTO_UPLOADS } from "@/lib/config";
 import { manglish } from "@litma/shared/manglish";
 import type { LitmaDoc } from "@/lib/types";
 import { proseReport, scriptReport, verseReport } from "./reports";
@@ -510,12 +511,14 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
           </button>
         </div>
 
-        {withImage && (
+        {/* Picture upload is paused (PHOTO_UPLOADS in lib/config.ts); cards keep pictures added before. */}
+        {withImage && (PHOTO_UPLOADS || it.image_url) && (
           <div className="mb-4">
             {it.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={it.image_url} alt="" className="mb-2 h-48 w-full rounded-lg object-cover" />
             ) : null}
+            {PHOTO_UPLOADS && (
             <label className="btn btn-outline cursor-pointer !text-sm">
               {uploading ? <Loader2 size={15} className="animate-spin" /> : <Camera size={15} />} {it.image_url ? "Change picture" : "Add picture"}
               <input
@@ -536,6 +539,7 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
                 }}
               />
             </label>
+            )}
             {it.image_url && (
               <button className="ml-2 text-xs text-muted underline" onClick={() => set({ image_url: null })}>
                 Remove picture

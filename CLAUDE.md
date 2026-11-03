@@ -106,6 +106,11 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 ## i18n
 - UI strings live in `src/i18n/locales/<code>.json` (en is the source; others fall back to it). Use `useT()` from `@/i18n/react`: `t("desk.newWork")`, `t("common.words", { count })` (plural keys `_one`/`_other`). Add a language by adding a JSON file and a line in `LOCALES` (`src/i18n/index.ts`). The JSON is plain data so Electron and the Flutter app share it. Settings → Language switches it (per device, `litma:locale`). New UI text goes into the JSON files, not inline.
 
+## Pictures (no uploads for now)
+- Photo uploads are off to save storage cost: `PHOTO_UPLOADS = false` in `src/lib/config.ts` hides the profile photo, cover picture, author photo and Story World picture uploads (the upload code stays; flip the flag to bring them back). Pictures uploaded earlier still show and can be removed.
+- Avatars: `components/art/Avatars.tsx` (`AvatarArt`, `AVATAR_ART`, `profileAvatar`). First letter or a drawn generic character (no gender), coloured with a `tint-*`; saved as `preferences.avatar` / `preferences.avatarTint`. `Avatar` in `AppHeader.tsx` uses it.
+- Covers: `components/art/CoverArt.tsx` (`COVER_ART`, `CoverArtSvg`): drawn Kerala land, water and sky scenes and abstract patterns in the cover's own colours (`cover.art`, template `art` = full illustration, mirrored and faint on the back). Back-cover author picture is `cover.authorAvatar` (letter, drawn avatar or none). Keep new drawings free of any one community's symbols.
+
 ## Loading
 - `components/ui/Skeleton.tsx`: `Skeleton`, `SkeletonLines`, `DeskSkeleton`, `BooksSkeleton`, `EditorSkeleton`, `ListSkeleton`, `FormSkeleton`, `PagesSkeleton`, `InkLoader` (full screen: a nib writing a line under ലിറ്റ്മ), `InkDots`; CSS `.skeleton`, `.ink-spinner`, `.fade-in`, `.pop-in`, `.sheet-up` in globals.css. Shape skeletons like the content that is coming; don't use bare spinners.
 

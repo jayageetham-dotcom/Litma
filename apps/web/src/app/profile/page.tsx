@@ -1,12 +1,16 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Loader2, Trash2 } from "lucide-react";
+import { Camera, Check, Loader2, Shuffle, Trash2 } from "lucide-react";
 import { FormSkeleton } from "@/components/ui/Skeleton";
 import { MobileNav } from "@/components/MobileNav";
 import { Select } from "@/components/ui/Select";
 import { AppHeader, Avatar } from "@/components/AppHeader";
 import { Field, Notice } from "@/components/AuthShell";
+import { AVATAR_ART, AVATAR_TINTS, AvatarArt, profileAvatar, tintPaint, type AvatarTint } from "@/components/art/Avatars";
 import { RequireAuth, authMessage } from "@/lib/auth";
+import { PHOTO_UPLOADS } from "@/lib/config";
+import { useT } from "@/i18n/react";
+import type { MessageKey } from "@litma/i18n";
 import { store } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase/client";
 import { templateFor } from "@/lib/templates";
@@ -52,6 +56,7 @@ function Heatmap({ days }: { days: Days }) {
 }
 
 function ProfileView() {
+  const t = useT();
   const [p, setP] = useState<(Profile & { email?: string }) | null>(null);
   const [docs, setDocs] = useState<LitmaDoc[]>([]);
   const [days, setDays] = useState<Days>([]);
@@ -139,12 +144,32 @@ function ProfileView() {
     }
   }
 
+  /** Save the chosen letter/drawing and colour straight away (no upload, nothing stored but two words). */
+  async function choose(id: string, tint: AvatarTint) {
+    if (!p) return;
+    const preferences = { ...p.preferences, avatar: id, avatarTint: tint };
+    setP({ ...p, preferences });
+    try {
+      await store.updateProfile({ preferences });
+      window.dispatchEvent(new Event("litma:profile"));
+    } catch (err) {
+      setMsg({ kind: "error", text: err instanceof Error ? err.message : "Couldn't save your picture." });
+    }
+  }
+
+  const av = profileAvatar(p);
+  const chosen = av.id ?? (av.photo ? null : "letter");
+  const shuffle = () => {
+    const opts = AVATAR_ART.filter((a) => a.id !== av.id);
+    choose(opts[Math.floor(Math.random() * opts.length)].id, AVATAR_TINTS[Math.floor(Math.random() * AVATAR_TINTS.length)]);
+  };
+
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-4">
       <h1 className="text-3xl font-bold">Profile</h1>
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_20rem]">
         <form onSubmit={save} className="space-y-8">
-          <section className="flex flex-wrap items-center gap-6">
+          <section className="flex flex-wrap items-start gap-6">
             <div className="relative">
               <Avatar profile={p} size={112} />
               {uploading && (
@@ -153,16 +178,57 @@ function ProfileView() {
                 </span>
               )}
             </div>
-            <div className="space-y-2">
-              <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" onChange={(e) => onPick(e.target.files?.[0])} />
-              <div className="flex flex-wrap gap-2">
-                <button type="button" className="btn btn-outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                  <Camera size={16} /> {p.avatar_url ? "Change picture" : "Upload picture"}
+            <div className="min-w-0 flex-1 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold">{t("avatar.title")}</h2>
+                <button type="button" className="btn btn-ghost !px-2.5 !py-1.5 !text-sm" onClick={shuffle}>
+                  <Shuffle size={15} /> {t("avatar.shuffle")}
                 </button>
+              </div>
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("avatar.title")}>
+                {[{ id: "letter", label: t("avatar.letter") }, ...AVATAR_ART.map((a) => ({ id: a.id, label: t(`avatar.art.${a.id}` as MessageKey) }))].map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={chosen === o.id}
+                    title={o.label}
+                    onClick={() => choose(o.id, av.tint)}
+                    className={`relative rounded-full p-0.5 ring-offset-2 ring-offset-canvas transition ${chosen === o.id ? "ring-2 ring-accent" : "hover:ring-2 hover:ring-line-strong"}`}
+                  >
+                    <AvatarArt id={o.id} name={av.name} tint={av.tint} size={44} title={o.label} />
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted">{t("avatar.colour")}</span>
+                {AVATAR_TINTS.map((tn) => (
+                  <button
+                    key={tn}
+                    type="button"
+                    onClick={() => choose(av.id ?? "letter", tn)}
+                    aria-label={t(`avatar.tint.${tn}` as MessageKey)}
+                    aria-pressed={av.tint === tn}
+                    title={t(`avatar.tint.${tn}` as MessageKey)}
+                    className="grid h-7 w-7 place-items-center rounded-full ring-offset-2 ring-offset-canvas hover:ring-2 hover:ring-line-strong"
+                    style={{ background: tintPaint(tn).fg }}
+                  >
+                    {av.tint === tn && <Check size={14} className="text-white" strokeWidth={3} />}
+                  </button>
+                ))}
+              </div>
+              {/* Photo uploads are paused (PHOTO_UPLOADS in lib/config.ts). The upload controls stay here for later. */}
+              {PHOTO_UPLOADS && <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" onChange={(e) => onPick(e.target.files?.[0])} />}
+              <div className="flex flex-wrap gap-2">
+                {PHOTO_UPLOADS && (
+                  <button type="button" className="btn btn-outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                    <Camera size={16} /> {p.avatar_url ? "Change picture" : "Upload picture"}
+                  </button>
+                )}
                 {p.avatar_url && (
                   <button
                     type="button"
-                    className="btn btn-ghost hover:!text-danger"
+                    className="btn btn-ghost !text-sm hover:!text-danger"
                     disabled={uploading}
                     onClick={async () => {
                       await store.removeAvatar();
@@ -170,11 +236,11 @@ function ProfileView() {
                       window.dispatchEvent(new Event("litma:profile"));
                     }}
                   >
-                    <Trash2 size={15} /> Remove
+                    <Trash2 size={15} /> {t("avatar.removePhoto")}
                   </button>
                 )}
               </div>
-              <p className="text-xs text-muted">Square crop, saved at 512 px. JPG, PNG, WebP or GIF.</p>
+              <p className="text-xs text-muted">{PHOTO_UPLOADS ? "Square crop, saved at 512 px. JPG, PNG, WebP or GIF." : t("avatar.hint")}</p>
             </div>
           </section>
 

@@ -95,7 +95,9 @@ export interface BookSettings {
 }
 
 export interface BookCover {
-  template?: "kasavu" | "solid" | "photo" | "type" | "minimal";
+  template?: "kasavu" | "art" | "solid" | "photo" | "type" | "minimal";
+  /** Drawn illustration id from COVER_ART (components/art/CoverArt.tsx), or null for none. */
+  art?: string | null;
   bg?: string;
   fg?: string;
   accent?: string;
@@ -105,7 +107,10 @@ export interface BookCover {
   titleScale?: number;
   blurb?: string;
   authorBio?: string;
+  /** Uploaded author photo (only while photo uploads are on; older books may still have one). */
   authorPhoto?: string | null;
+  /** Author picture on the back cover: "letter", a drawn avatar id from AVATAR_ART, or "none". Default "letter". */
+  authorAvatar?: string | null;
   price?: string;
 }
 

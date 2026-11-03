@@ -8,12 +8,16 @@ import { useScreen } from "@/lib/useLayout";
 import { Select } from "@/components/ui/Select";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
-import { BASE } from "@/lib/config";
+import { BASE, PHOTO_UPLOADS } from "@/lib/config";
 import { templateFor } from "@/lib/templates";
 import { ITEM_LABELS } from "@/lib/book-sections";
 import { resizeImage } from "@/lib/image";
 import { COVER_FONTS, COVER_TEMPLATES, CoverBack, CoverFront } from "@/components/book/Cover";
 import { MiniEditor } from "@/components/book/MiniEditor";
+import { COVER_ART, CoverArtSvg } from "@/components/art/CoverArt";
+import { AVATAR_ART, AvatarArt } from "@/components/art/Avatars";
+import { useT } from "@/i18n/react";
+import type { MessageKey } from "@litma/i18n";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import type { Book, BookCover, BookItem, BookSettings, LitmaDoc } from "@/lib/types";
 
@@ -560,10 +564,13 @@ function ItemPanel({ item, book, doc, onChange }: { item: BookItem; book: Book; 
 }
 
 function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onCover: (c: Partial<BookCover>) => void }) {
+  const tr = useT();
   const c = book.cover ?? {};
   const [uploading, setUploading] = useState<string | null>(null);
   const t = c.template ?? "kasavu";
   const tdef = COVER_TEMPLATES.find((x) => x.id === t)!;
+  const paint = { bg: c.bg ?? tdef.defaults.bg!, fg: c.fg ?? tdef.defaults.fg!, accent: c.accent ?? tdef.defaults.accent! };
+  const tile = (on: boolean) => `overflow-hidden rounded-[6px] border-2 transition ${on ? "border-accent" : "border-transparent hover:border-line-strong"}`;
   const upload = async (key: "image" | "authorPhoto", f?: File) => {
     if (!f) return;
     setUploading(key);
@@ -585,8 +592,8 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
         <div>
           <span className="mb-1.5 block text-xs text-muted">Design</span>
           <div className="flex flex-wrap gap-1.5">
-            {COVER_TEMPLATES.map((x) => (
-              <button key={x.id} onClick={() => onCover({ template: x.id, ...x.defaults })} className={`rounded-full border px-3 py-1 text-xs ${t === x.id ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
+            {COVER_TEMPLATES.filter((x) => PHOTO_UPLOADS || x.id !== "photo" || t === "photo").map((x) => (
+              <button key={x.id} onClick={() => onCover({ template: x.id, ...x.defaults, ...(x.id === "art" && c.art ? { art: c.art } : {}) })} className={`rounded-full border px-3 py-1 text-xs ${t === x.id ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
                 {x.label}
               </button>
             ))}
@@ -623,23 +630,44 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
               <input type="range" min={0.6} max={1.6} step={0.05} className="w-full" value={c.titleScale ?? 1} onChange={(e) => onCover({ titleScale: Number(e.target.value) })} />
             </label>
             <div>
-              <span className="mb-1 block text-xs text-muted">Cover picture</span>
-              <label className="btn btn-outline cursor-pointer !text-sm">
-                {uploading === "image" ? <Loader2 size={15} className="animate-spin" /> : <Camera size={15} />} {c.image ? "Change picture" : "Upload picture"}
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => upload("image", e.target.files?.[0])} />
-              </label>
-              {c.image && (
-                <button className="ml-2 text-xs text-muted underline" onClick={() => onCover({ image: null })}>
-                  Remove
-                </button>
-              )}
-              {c.image && (
-                <label className="mt-2 block text-xs text-muted">
-                  Picture strength
-                  <input type="range" min={0.2} max={1} step={0.05} className="w-full" value={c.imageOpacity ?? 0.9} onChange={(e) => onCover({ imageOpacity: Number(e.target.value) })} />
-                </label>
-              )}
+              <span className="mb-1.5 block text-xs text-muted">{tr("cover.illustration")}</span>
+              <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
+                {t !== "art" && (
+                  <button type="button" onClick={() => onCover({ art: null })} className={`${tile(!c.art)} grid aspect-[210/297] place-items-center text-[11px] text-muted`} style={{ background: paint.bg }} title={tr("cover.none")} aria-pressed={!c.art}>
+                    <span className="rounded bg-surface/80 px-1">{tr("cover.none")}</span>
+                  </button>
+                )}
+                {COVER_ART.map((a) => (
+                  <button key={a.id} type="button" onClick={() => onCover({ art: a.id })} className={tile(c.art === a.id)} style={{ background: paint.bg }} title={tr(`cover.art.${a.id}` as MessageKey)} aria-label={tr(`cover.art.${a.id}` as MessageKey)} aria-pressed={c.art === a.id}>
+                    <CoverArtSvg id={a.id} paint={paint} className="block aspect-[210/297] w-full" />
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-xs text-muted">{tr("cover.artHint")}</p>
             </div>
+            {/* Cover photo upload is paused (PHOTO_UPLOADS in lib/config.ts); older covers keep their picture. */}
+            {(PHOTO_UPLOADS || c.image) && (
+              <div>
+                <span className="mb-1 block text-xs text-muted">Cover picture</span>
+                {PHOTO_UPLOADS && (
+                  <label className="btn btn-outline cursor-pointer !text-sm">
+                    {uploading === "image" ? <Loader2 size={15} className="animate-spin" /> : <Camera size={15} />} {c.image ? "Change picture" : "Upload picture"}
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => upload("image", e.target.files?.[0])} />
+                  </label>
+                )}
+                {c.image && (
+                  <button className="ml-2 text-xs text-muted underline" onClick={() => onCover({ image: null })}>
+                    {tr("cover.removePicture")}
+                  </button>
+                )}
+                {c.image && (
+                  <label className="mt-2 block text-xs text-muted">
+                    Picture strength
+                    <input type="range" min={0.2} max={1} step={0.05} className="w-full" value={c.imageOpacity ?? 0.9} onChange={(e) => onCover({ imageOpacity: Number(e.target.value) })} />
+                  </label>
+                )}
+              </div>
+            )}
             <p className="text-xs text-muted">Title, subtitle, author and publisher come from Book details.</p>
           </>
         )}
@@ -654,15 +682,38 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
               <textarea className="field min-h-24" value={c.authorBio ?? ""} onChange={(e) => onCover({ authorBio: e.target.value })} style={ml} />
             </label>
             <div>
-              <span className="mb-1 block text-xs text-muted">Author photo</span>
-              <label className="btn btn-outline cursor-pointer !text-sm">
-                {uploading === "authorPhoto" ? <Loader2 size={15} className="animate-spin" /> : <Camera size={15} />} {c.authorPhoto ? "Change photo" : "Upload photo"}
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => upload("authorPhoto", e.target.files?.[0])} />
-              </label>
-              {c.authorPhoto && (
-                <button className="ml-2 text-xs text-muted underline" onClick={() => onCover({ authorPhoto: null })}>
-                  Remove
-                </button>
+              <span className="mb-1.5 block text-xs text-muted">{tr("cover.authorPicture")}</span>
+              {c.authorPhoto ? (
+                <p className="mb-2 text-xs text-muted">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.authorPhoto} alt="" className="mr-2 inline-block h-10 w-10 rounded-full object-cover align-middle" />
+                  <button className="text-xs text-muted underline" onClick={() => onCover({ authorPhoto: null })}>
+                    {tr("cover.removePhoto")}
+                  </button>
+                </p>
+              ) : null}
+              <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("cover.authorPicture")}>
+                {[{ id: "none", label: tr("cover.none") }, { id: "letter", label: tr("cover.letter") }, ...AVATAR_ART.map((a) => ({ id: a.id, label: tr(`avatar.art.${a.id}` as MessageKey) }))].map((o) => {
+                  const on = !c.authorPhoto && (c.authorAvatar ?? "letter") === o.id;
+                  return (
+                    <button key={o.id} type="button" role="radio" aria-checked={on} title={o.label} onClick={() => onCover({ authorAvatar: o.id, authorPhoto: null })} className={`rounded-full p-0.5 ${on ? "ring-2 ring-accent" : "hover:ring-2 hover:ring-line-strong"}`}>
+                      {o.id === "none" ? (
+                        <span className="grid h-9 w-9 place-items-center rounded-full border border-dashed border-line-strong text-muted">
+                          <X size={14} />
+                        </span>
+                      ) : (
+                        <AvatarArt id={o.id} name={book.author} size={36} paint={{ fg: paint.accent, bg: `color-mix(in srgb, ${paint.accent} 18%, ${paint.bg})` }} title={o.label} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Author photo upload is paused (PHOTO_UPLOADS in lib/config.ts). */}
+              {PHOTO_UPLOADS && (
+                <label className="btn btn-outline mt-2 cursor-pointer !text-sm">
+                  {uploading === "authorPhoto" ? <Loader2 size={15} className="animate-spin" /> : <Camera size={15} />} {c.authorPhoto ? "Change photo" : "Upload photo"}
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => upload("authorPhoto", e.target.files?.[0])} />
+                </label>
               )}
             </div>
             <label className="block">

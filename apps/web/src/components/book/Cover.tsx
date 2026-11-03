@@ -1,8 +1,12 @@
 import type { Book, BookCover } from "@/lib/types";
+import { AvatarArt } from "@/components/art/Avatars";
+import { CoverArtSvg } from "@/components/art/CoverArt";
 
 export const COVER_TEMPLATES: { id: NonNullable<BookCover["template"]>; label: string; defaults: Partial<BookCover> }[] = [
   { id: "kasavu", label: "Kasavu frame", defaults: { bg: "#f7f3e8", fg: "#1a2220", accent: "#a17a28" } },
+  { id: "art", label: "Illustration", defaults: { bg: "#12403a", fg: "#ffffff", accent: "#e2b85c", art: "backwaters" } },
   { id: "solid", label: "Solid colour", defaults: { bg: "#1d5a52", fg: "#ffffff", accent: "#d2ad5c" } },
+  // Needs an uploaded picture; hidden from the picker while PHOTO_UPLOADS is off (older books still render).
   { id: "photo", label: "Photograph", defaults: { bg: "#111916", fg: "#ffffff", accent: "#d2ad5c", imageOpacity: 0.9 } },
   { id: "type", label: "Big type", defaults: { bg: "#e9e1cf", fg: "#3b1f1a", accent: "#a3372b" } },
   { id: "minimal", label: "Minimal", defaults: { bg: "#ffffff", fg: "#1a2220", accent: "#1d5a52" } },
@@ -26,6 +30,23 @@ export function CoverFront({ book, w, h, className = "" }: CoverProps) {
   const base = { width: `${w}mm`, height: `${h}mm`, background: c.bg, color: c.fg, fontFamily: font } as React.CSSProperties;
   const title = book.title || "പുസ്തകം";
   const publisher = book.settings?.publisher;
+  const paint = { bg: c.bg!, fg: c.fg!, accent: c.accent! };
+  /** The drawn illustration, when there is no uploaded picture in this slot. */
+  const art = (cls: string, st?: React.CSSProperties) => (!c.image && c.art ? <CoverArtSvg id={c.art} paint={paint} className={cls} style={st} /> : null);
+
+  if (c.template === "art")
+    return (
+      <div className={`relative overflow-hidden ${className}`} style={base}>
+        {art("absolute inset-0 h-full w-full")}
+        <div className="absolute inset-x-[12%] top-[10%]">
+          <h1 style={{ fontSize: `${46 * scale}pt`, lineHeight: 1.15, fontWeight: 800 }}>{title}</h1>
+          {book.subtitle && <p style={{ fontSize: "15pt", marginTop: "4mm", opacity: 0.9 }}>{book.subtitle}</p>}
+          <div style={{ height: "1.2mm", width: "22mm", background: c.accent, margin: "8mm 0 4mm" }} />
+          <p style={{ fontSize: "17pt", fontWeight: 600 }}>{book.author}</p>
+        </div>
+        {publisher && <p style={{ position: "absolute", left: "12%", bottom: "6%", fontSize: "10pt", opacity: 0.8 }}>{publisher}</p>}
+      </div>
+    );
 
   if (c.template === "photo")
     return (
@@ -34,6 +55,7 @@ export function CoverFront({ book, w, h, className = "" }: CoverProps) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={c.image} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ opacity: c.imageOpacity ?? 0.9 }} />
         )}
+        {art("absolute inset-0 h-full w-full")}
         <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${c.bg} 8%, transparent 60%)` }} />
         <div className="absolute inset-x-[12%] bottom-[10%]">
           <h1 style={{ fontSize: `${46 * scale}pt`, lineHeight: 1.15, fontWeight: 800 }}>{title}</h1>
@@ -56,6 +78,7 @@ export function CoverFront({ book, w, h, className = "" }: CoverProps) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={c.image} alt="" className="absolute bottom-[22%] right-[12%] w-[40%] rounded-sm object-cover" style={{ opacity: c.imageOpacity ?? 1 }} />
         )}
+        {art("absolute bottom-[22%] right-[12%] h-[34%] w-[40%] rounded-sm")}
         <div className="absolute inset-x-[12%] bottom-[9%] flex items-end justify-between">
           <p style={{ fontSize: "18pt", fontWeight: 600 }}>{book.author}</p>
           {publisher && <p style={{ fontSize: "10pt", opacity: 0.75 }}>{publisher}</p>}
@@ -66,9 +89,10 @@ export function CoverFront({ book, w, h, className = "" }: CoverProps) {
   if (c.template === "type")
     return (
       <div className={`relative flex flex-col justify-between overflow-hidden px-[10%] py-[10%] ${className}`} style={base}>
-        <p style={{ fontSize: "14pt", fontWeight: 600, color: c.accent }}>{book.author}</p>
-        <h1 style={{ fontSize: `${92 * scale}pt`, lineHeight: 1.02, fontWeight: 800, wordBreak: "break-word" }}>{title}</h1>
-        <div className="flex items-end justify-between" style={{ fontSize: "12pt" }}>
+        {art("absolute inset-0 h-full w-full", { opacity: 0.35 })}
+        <p className="relative" style={{ fontSize: "14pt", fontWeight: 600, color: c.accent }}>{book.author}</p>
+        <h1 className="relative" style={{ fontSize: `${92 * scale}pt`, lineHeight: 1.02, fontWeight: 800, wordBreak: "break-word" }}>{title}</h1>
+        <div className="relative flex items-end justify-between" style={{ fontSize: "12pt" }}>
           <span>{book.subtitle}</span>
           <span style={{ opacity: 0.7 }}>{publisher}</span>
         </div>
@@ -78,6 +102,7 @@ export function CoverFront({ book, w, h, className = "" }: CoverProps) {
   if (c.template === "minimal")
     return (
       <div className={`relative flex flex-col items-center justify-center overflow-hidden text-center ${className}`} style={base}>
+        {art("mb-[10mm] h-[26%] w-[46%] rounded-sm")}
         <h1 style={{ fontSize: `${30 * scale}pt`, fontWeight: 700, lineHeight: 1.25 }}>{title}</h1>
         <div style={{ height: "0.4mm", width: "16mm", background: c.accent, margin: "8mm 0" }} />
         <p style={{ fontSize: "13pt" }}>{book.author}</p>
@@ -99,6 +124,7 @@ export function CoverFront({ book, w, h, className = "" }: CoverProps) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={c.image} alt="" className="absolute left-1/2 top-[48%] w-[44%] -translate-x-1/2 rounded-sm object-cover" style={{ opacity: c.imageOpacity ?? 1, maxHeight: "28%" }} />
       )}
+      {art("absolute left-1/2 top-[48%] h-[26%] w-[44%] -translate-x-1/2 rounded-sm")}
       <div className="absolute inset-x-[16%] bottom-[14%] text-center">
         <p style={{ fontSize: "17pt", fontWeight: 600 }}>{book.author}</p>
         {publisher && <p style={{ fontSize: "10pt", marginTop: "3mm", color: c.accent }}>{publisher}</p>}
@@ -114,15 +140,18 @@ export function CoverBack({ book, w, h, className = "" }: CoverProps) {
   const font = `'${c.font ?? "Anek Malayalam"}'`;
   return (
     <div className={`relative overflow-hidden ${className}`} style={{ width: `${w}mm`, height: `${h}mm`, background: c.bg, color: c.fg }}>
+      {c.art && <CoverArtSvg id={c.art} paint={{ bg: c.bg!, fg: c.fg!, accent: c.accent! }} mirror className="absolute inset-0 h-full w-full" style={{ opacity: c.template === "art" || c.template === "photo" ? 0.3 : 0.14 }} />}
       {c.template === "kasavu" && <div className="absolute" style={{ inset: "9mm", border: `1.6mm solid ${c.accent}` }} />}
       <div className="absolute inset-x-[14%] top-[14%]" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
         {c.blurb && <p style={{ fontSize: "13pt", lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{c.blurb}</p>}
         {(c.authorBio || c.authorPhoto) && (
           <div className="flex items-start gap-[5mm]" style={{ marginTop: "14mm" }}>
-            {c.authorPhoto && (
+            {c.authorPhoto ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={c.authorPhoto} alt="" style={{ width: "26mm", height: "26mm", objectFit: "cover", borderRadius: "50%", flexShrink: 0 }} />
-            )}
+            ) : c.authorAvatar !== "none" ? (
+              <AvatarArt id={c.authorAvatar ?? "letter"} name={book.author} size="26mm" paint={{ fg: c.accent!, bg: `color-mix(in srgb, ${c.accent} 18%, ${c.bg})` }} />
+            ) : null}
             <div>
               <p style={{ fontFamily: font, fontWeight: 700, fontSize: "12pt", color: dark ? c.accent : c.accent }}>{book.author}</p>
               <p style={{ fontSize: "10.5pt", lineHeight: 1.7, marginTop: "2mm", whiteSpace: "pre-wrap", opacity: 0.9 }}>{c.authorBio}</p>

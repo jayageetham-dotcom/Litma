@@ -21,3 +21,11 @@ export function appUrl(path: string) {
 }
 
 export const anonHeaders = (): Record<string, string> => (SUPABASE_ANON_KEY ? { apikey: SUPABASE_ANON_KEY } : {});
+
+/**
+ * Photo uploads (profile picture, cover picture, author photo, Story World pictures) are switched off
+ * for now: stored images cost server space for every writer. Writers pick a letter or drawn avatar and
+ * drawn cover art instead. Set this to true to bring uploads back; the upload code is still in place.
+ * Pictures uploaded before the switch still show.
+ */
+export const PHOTO_UPLOADS = false;

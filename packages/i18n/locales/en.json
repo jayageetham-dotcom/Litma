@@ -260,5 +260,57 @@
     "noMatch": "No word here matches “{q}”.",
     "open": "Open in the dictionary",
     "next": "Next:"
+  },
+  "avatar": {
+    "title": "Your picture",
+    "letter": "First letter",
+    "shuffle": "Surprise me",
+    "colour": "Colour",
+    "hint": "Pick your first letter or a drawing. Photo uploads are paused for now.",
+    "removePhoto": "Remove old photo",
+    "current": "Current",
+    "tint": {
+      "violet": "Violet",
+      "coral": "Coral",
+      "sky": "Sky",
+      "lime": "Lime",
+      "tangerine": "Tangerine"
+    },
+    "art": {
+      "person": "Person",
+      "glasses": "Glasses",
+      "curls": "Curls",
+      "beanie": "Woolly hat",
+      "reader": "Reader",
+      "owl": "Owl",
+      "cat": "Cat",
+      "tortoise": "Tortoise",
+      "fish": "Fish",
+      "parrot": "Parrot",
+      "elephant": "Elephant",
+      "butterfly": "Butterfly",
+      "moon": "Moon"
+    }
+  },
+  "cover": {
+    "illustration": "Illustration",
+    "none": "None",
+    "authorPicture": "Author picture",
+    "letter": "First letter",
+    "artHint": "The drawing takes the cover's colours.",
+    "removePicture": "Remove picture",
+    "removePhoto": "Remove photo",
+    "art": {
+      "backwaters": "Backwaters",
+      "palms": "Coconut palms",
+      "monsoon": "Monsoon",
+      "hills": "Hills",
+      "night": "Moonlit night",
+      "leaves": "Leaves",
+      "birds": "Birds",
+      "quill": "Pen and ink",
+      "circles": "Circles",
+      "weave": "Weave"
+    }
   }
 }

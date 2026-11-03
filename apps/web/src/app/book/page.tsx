@@ -14,7 +14,7 @@ import { ITEM_LABELS } from "@/lib/book-sections";
 import { resizeImage } from "@/lib/image";
 import { COVER_FONTS, COVER_TEMPLATES, CoverBack, CoverFront } from "@/components/book/Cover";
 import { MiniEditor } from "@/components/book/MiniEditor";
-import { COVER_ART, CoverArtSvg } from "@/components/art/CoverArt";
+import { COVER_ART, CoverArtSvg, coverArtId } from "@/components/art/CoverArt";
 import { AVATAR_ART, AvatarArt } from "@/components/art/Avatars";
 import { useT } from "@/i18n/react";
 import type { MessageKey } from "@litma/i18n";
@@ -593,7 +593,10 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
           <span className="mb-1.5 block text-xs text-muted">Design</span>
           <div className="flex flex-wrap gap-1.5">
             {COVER_TEMPLATES.filter((x) => PHOTO_UPLOADS || x.id !== "photo" || t === "photo").map((x) => (
-              <button key={x.id} onClick={() => onCover({ template: x.id, ...x.defaults, ...(x.id === "art" && c.art ? { art: c.art } : {}) })} className={`rounded-full border px-3 py-1 text-xs ${t === x.id ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
+              <button key={x.id} onClick={() => {
+                  const keep = x.id === "art" ? COVER_ART.find((a) => a.id === coverArtId(c.art)) : undefined;
+                  onCover({ template: x.id, ...x.defaults, ...(keep ? { art: keep.id, bg: keep.bg, fg: keep.fg, accent: keep.accent } : {}) });
+                }} className={`rounded-full border px-3 py-1 text-xs ${t === x.id ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
                 {x.label}
               </button>
             ))}
@@ -631,19 +634,19 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
             </label>
             <div>
               <span className="mb-1.5 block text-xs text-muted">{tr("cover.illustration")}</span>
-              <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {t !== "art" && (
-                  <button type="button" onClick={() => onCover({ art: null })} className={`${tile(!c.art)} grid aspect-[210/297] place-items-center text-[11px] text-muted`} style={{ background: paint.bg }} title={tr("cover.none")} aria-pressed={!c.art}>
+                  <button type="button" onClick={() => onCover({ art: null })} className={`${tile(!c.art)} grid aspect-[2/3] place-items-center text-[11px] text-muted`} style={{ background: paint.bg }} title={tr("cover.none")} aria-pressed={!c.art}>
                     <span className="rounded bg-surface/80 px-1">{tr("cover.none")}</span>
                   </button>
                 )}
                 {COVER_ART.map((a) => (
-                  <button key={a.id} type="button" onClick={() => onCover({ art: a.id })} className={tile(c.art === a.id)} style={{ background: paint.bg }} title={tr(`cover.art.${a.id}` as MessageKey)} aria-label={tr(`cover.art.${a.id}` as MessageKey)} aria-pressed={c.art === a.id}>
-                    <CoverArtSvg id={a.id} paint={paint} className="block aspect-[210/297] w-full" />
+                  <button key={a.id} type="button" onClick={() => onCover(t === "art" || t === "photo" ? { art: a.id, bg: a.bg, fg: a.fg, accent: a.accent } : { art: a.id })} className={tile(coverArtId(c.art) === a.id)} title={tr(`cover.art.${a.id}` as MessageKey)} aria-label={tr(`cover.art.${a.id}` as MessageKey)} aria-pressed={coverArtId(c.art) === a.id}>
+                    <CoverArtSvg id={a.id} className="block aspect-[2/3] w-full" />
                   </button>
                 ))}
               </div>
-              <p className="mt-1.5 text-xs text-muted">{tr("cover.artHint")}</p>
+              {t === "art" && <p className="mt-1.5 text-xs text-muted">{tr("cover.artHint")}</p>}
             </div>
             {/* Cover photo upload is paused (PHOTO_UPLOADS in lib/config.ts); older covers keep their picture. */}
             {(PHOTO_UPLOADS || c.image) && (

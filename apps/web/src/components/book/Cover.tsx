@@ -4,7 +4,7 @@ import { CoverArtSvg } from "@/components/art/CoverArt";
 
 export const COVER_TEMPLATES: { id: NonNullable<BookCover["template"]>; label: string; defaults: Partial<BookCover> }[] = [
   { id: "kasavu", label: "Kasavu frame", defaults: { bg: "#f7f3e8", fg: "#1a2220", accent: "#a17a28" } },
-  { id: "art", label: "Illustration", defaults: { bg: "#12403a", fg: "#ffffff", accent: "#e2b85c", art: "backwaters" } },
+  { id: "art", label: "Artwork", defaults: { bg: "#0b2f3a", fg: "#fdf6e3", accent: "#e9c46a", art: "fantasy" } },
   { id: "solid", label: "Solid colour", defaults: { bg: "#1d5a52", fg: "#ffffff", accent: "#d2ad5c" } },
   // Needs an uploaded picture; hidden from the picker while PHOTO_UPLOADS is off (older books still render).
   { id: "photo", label: "Photograph", defaults: { bg: "#111916", fg: "#ffffff", accent: "#d2ad5c", imageOpacity: 0.9 } },
@@ -30,21 +30,23 @@ export function CoverFront({ book, w, h, className = "" }: CoverProps) {
   const base = { width: `${w}mm`, height: `${h}mm`, background: c.bg, color: c.fg, fontFamily: font } as React.CSSProperties;
   const title = book.title || "പുസ്തകം";
   const publisher = book.settings?.publisher;
-  const paint = { bg: c.bg!, fg: c.fg!, accent: c.accent! };
-  /** The drawn illustration, when there is no uploaded picture in this slot. */
-  const art = (cls: string, st?: React.CSSProperties) => (!c.image && c.art ? <CoverArtSvg id={c.art} paint={paint} className={cls} style={st} /> : null);
+  /** The cover background artwork, when there is no uploaded picture in this slot. */
+  const art = (cls: string, st?: React.CSSProperties) => (!c.image && c.art ? <CoverArtSvg id={c.art} className={cls} style={st} /> : null);
 
   if (c.template === "art")
+    // Title in the calm top 30% of the artwork, author in the clear bottom 15%.
     return (
       <div className={`relative overflow-hidden ${className}`} style={base}>
         {art("absolute inset-0 h-full w-full")}
-        <div className="absolute inset-x-[12%] top-[10%]">
-          <h1 style={{ fontSize: `${46 * scale}pt`, lineHeight: 1.15, fontWeight: 800 }}>{title}</h1>
-          {book.subtitle && <p style={{ fontSize: "15pt", marginTop: "4mm", opacity: 0.9 }}>{book.subtitle}</p>}
-          <div style={{ height: "1.2mm", width: "22mm", background: c.accent, margin: "8mm 0 4mm" }} />
-          <p style={{ fontSize: "17pt", fontWeight: 600 }}>{book.author}</p>
+        <div className="absolute inset-x-[11%] top-[9%] text-center" style={{ textShadow: "0 1px 12px rgba(0,0,0,0.18)" }}>
+          <h1 style={{ fontSize: `${48 * scale}pt`, lineHeight: 1.12, fontWeight: 800 }}>{title}</h1>
+          {book.subtitle && <p style={{ fontSize: "15pt", marginTop: "4mm", opacity: 0.92 }}>{book.subtitle}</p>}
+          <div style={{ height: "1mm", width: "20mm", background: c.accent, margin: "7mm auto 0" }} />
         </div>
-        {publisher && <p style={{ position: "absolute", left: "12%", bottom: "6%", fontSize: "10pt", opacity: 0.8 }}>{publisher}</p>}
+        <div className="absolute inset-x-[11%] bottom-[6%] text-center" style={{ textShadow: "0 1px 10px rgba(0,0,0,0.2)" }}>
+          <p style={{ fontSize: "18pt", fontWeight: 600, letterSpacing: "0.02em" }}>{book.author}</p>
+          {publisher && <p style={{ fontSize: "9.5pt", marginTop: "2mm", opacity: 0.8 }}>{publisher}</p>}
+        </div>
       </div>
     );
 
@@ -140,7 +142,12 @@ export function CoverBack({ book, w, h, className = "" }: CoverProps) {
   const font = `'${c.font ?? "Anek Malayalam"}'`;
   return (
     <div className={`relative overflow-hidden ${className}`} style={{ width: `${w}mm`, height: `${h}mm`, background: c.bg, color: c.fg }}>
-      {c.art && <CoverArtSvg id={c.art} paint={{ bg: c.bg!, fg: c.fg!, accent: c.accent! }} mirror className="absolute inset-0 h-full w-full" style={{ opacity: c.template === "art" || c.template === "photo" ? 0.3 : 0.14 }} />}
+      {c.art && !c.image && (
+        <>
+          <CoverArtSvg id={c.art} mirror className="absolute inset-0 h-full w-full" style={{ opacity: c.template === "art" || c.template === "photo" ? 1 : 0.18 }} />
+          {(c.template === "art" || c.template === "photo") && <div className="absolute inset-0" style={{ background: c.bg, opacity: 0.62 }} />}
+        </>
+      )}
       {c.template === "kasavu" && <div className="absolute" style={{ inset: "9mm", border: `1.6mm solid ${c.accent}` }} />}
       <div className="absolute inset-x-[14%] top-[14%]" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
         {c.blurb && <p style={{ fontSize: "13pt", lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{c.blurb}</p>}

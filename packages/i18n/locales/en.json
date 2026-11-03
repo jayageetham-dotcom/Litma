@@ -293,24 +293,22 @@
     }
   },
   "cover": {
-    "illustration": "Illustration",
+    "illustration": "Background",
     "none": "None",
     "authorPicture": "Author picture",
     "letter": "First letter",
-    "artHint": "The drawing takes the cover's colours.",
+    "artHint": "Picking one also sets colours that read well on it.",
     "removePicture": "Remove picture",
     "removePhoto": "Remove photo",
     "art": {
-      "backwaters": "Backwaters",
-      "palms": "Coconut palms",
-      "monsoon": "Monsoon",
-      "hills": "Hills",
-      "night": "Moonlit night",
-      "leaves": "Leaves",
-      "birds": "Birds",
-      "quill": "Pen and ink",
-      "circles": "Circles",
-      "weave": "Weave"
+      "fantasy": "Fantasy",
+      "thriller": "Thriller",
+      "romance": "Romance",
+      "scifi": "Science fiction",
+      "horror": "Horror",
+      "literary": "Literary",
+      "historical": "Historical",
+      "selfhelp": "Self-help"
     }
   }
 }

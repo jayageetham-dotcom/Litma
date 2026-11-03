@@ -58,6 +58,9 @@ function PrintView() {
       const r = await paginate(root.current, state.spec, state.sections, state.book?.title ?? "");
       if (cancelled) return;
       setPages(r.pages);
+      // wait for cover artwork before the print dialog opens
+      await Promise.all([...(root.current?.ownerDocument.images ?? [])].map((i) => (i.complete ? null : new Promise((r) => ((i.onload = r), (i.onerror = r))))));
+      if (cancelled) return;
       if (auto) setTimeout(() => window.print(), 400);
     })();
     return () => {

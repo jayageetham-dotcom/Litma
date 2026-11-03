@@ -56,8 +56,8 @@ function BookEditor() {
       latest.current = b;
       if (filled) store.updateBook(filled.id, { subtitle: filled.subtitle, author: filled.author, settings: filled.settings, cover: filled.cover }).catch(() => {});
       setSel(b?.structure[0]?.id ?? null);
-    });
-    store.listDocs().then(setDocs);
+    }).catch(() => setBook(null)); // offline and never opened on this device
+    store.listDocs().then(setDocs).catch(() => {});
   }, [id]);
 
   const flush = useCallback(async () => {

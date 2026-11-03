@@ -4,6 +4,8 @@ import "@/styles/editor.scss";
 import { I18nProvider } from "@/i18n/react";
 import { UpdateNotice } from "@/components/UpdateNotice";
 import { Analytics } from "@/components/Analytics";
+import { OfflineStatus } from "@/components/OfflineStatus";
+import { ServiceWorker } from "@/components/ServiceWorker";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, KEYWORDS, SHARE_IMAGE, SITE, SITE_NAME } from "@/lib/seo";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -62,6 +64,10 @@ export const viewport: Viewport = {
 const FONTS =
   "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400..800&family=Anek+Malayalam:wdth,wght@75..125,300..800&family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Manjari:wght@400;700&family=Gayathri:wght@400;700&family=Chilanka&family=Baloo+Chettan+2:wght@400;600;700&display=swap";
 
+/** The desktop app loads Google Fonts through app://litma/gfonts/, which keeps them on disk for offline use (apps/desktop/src/main.ts). */
+const DESKTOP = process.env.NEXT_PUBLIC_DESKTOP === "1";
+const FONTS_HREF = DESKTOP ? FONTS.replace("https://fonts.googleapis.com/", "/gfonts/") : FONTS;
+
 /** SMC Malayalam fonts bundled for cover titles (public/fonts/smc, SIL OFL). */
 const fontBase = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/fonts/smc`;
 const SMC_FONTS = (
@@ -83,9 +89,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ml" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="stylesheet" href={FONTS} />
+        {!DESKTOP && <link rel="preconnect" href="https://fonts.googleapis.com" />}
+        {!DESKTOP && <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />}
+        <link rel="stylesheet" href={FONTS_HREF} />
         <style dangerouslySetInnerHTML={{ __html: SMC_FONTS }} />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
@@ -93,6 +99,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <I18nProvider>
           {children}
           <UpdateNotice />
+          <OfflineStatus />
+          <ServiceWorker />
           <Analytics />
         </I18nProvider>
       </body>

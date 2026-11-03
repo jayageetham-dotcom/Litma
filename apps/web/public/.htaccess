@@ -56,6 +56,10 @@ Options -Indexes
   <FilesMatch "\.(html|webmanifest|xml|txt)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
+  # the offline service worker: always check for a newer build
+  <Files "sw.js">
+    Header set Cache-Control "no-cache"
+  </Files>
   # desktop downloads: latest.json changes with every release
   <If "%{REQUEST_URI} =~ m#^/downloads/latest\.json$#">
     Header set Cache-Control "no-cache"

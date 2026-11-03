@@ -51,6 +51,7 @@ import type { InputMode } from "@/extensions/manglish";
 import { exportDocx, exportHTML, exportMarkdown, exportText } from "@/lib/export";
 import { BASE, appUrl } from "@/lib/config";
 import { DocSaver, clearJournal, readJournal, type SaveStatus } from "@/lib/autosave";
+import { SYNC_EVENT, hasPending, type SyncState } from "@/lib/offline";
 import { ShortcutsDialog } from "./ShortcutsDialog";
 import { SavedWordsPanel } from "./SavedWordsPanel";
 import { DictionaryPanel } from "./DictionaryPanel";
@@ -175,8 +176,9 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   // ── persistence ──
   const persist = useCallback(async (patch: Partial<LitmaDoc>) => {
-    await store.updateDoc(docRef.current.id, patch);
+    const queued = await store.updateDoc(docRef.current.id, patch);
     docRef.current = { ...docRef.current, ...patch };
+    return queued;
   }, []);
 
   /** Cloud save of the whole document (called by the autosaver). Throws on failure so it retries. */
@@ -186,7 +188,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       const words = countWords(ed.getText({ blockSeparator: "\n" }));
       const patch: Partial<LitmaDoc> = { content, word_count: words, title: titleRef.current };
       if (docRef.current.settings?.pristine && !pristine.current) patch.settings = { ...docRef.current.settings, pristine: false };
-      await persist(patch);
+      const queued = await persist(patch);
       const delta = words - lastSavedWords.current;
       lastSavedWords.current = words;
       if (delta > 0) store.addWordsToday(delta).catch(() => {});
@@ -194,11 +196,27 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         lastSnapshot.current = Date.now();
         await store.saveVersion(docRef.current.id, content, words, snapshotLabel ?? null).catch(() => {});
       }
+      return queued;
     },
     [persist]
   );
 
   const saver = useRef<DocSaver | null>(null);
+  // reopened with changes still waiting to sync (made offline): say so until they reach the server
+  useEffect(() => {
+    let live = true;
+    hasPending("documents", initial.id)
+      .then((waiting) => live && waiting && setSave((s) => (s === "saved" ? "local" : s)))
+      .catch(() => {});
+    const onSync = (e: Event) => {
+      if ((e as CustomEvent<SyncState>).detail.pending === 0) setSave((s) => (s === "local" ? "saved" : s));
+    };
+    window.addEventListener(SYNC_EVENT, onSync);
+    return () => {
+      live = false;
+      window.removeEventListener(SYNC_EVENT, onSync);
+    };
+  }, [initial.id]);
   useEffect(() => {
     if (!editor) return;
     const sv = new DocSaver({
@@ -532,7 +550,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         ? phone
           ? "Saved on device · syncing"
           : "Saved on this device · syncing"
-        : save === "offline"
+        : save === "offline" || save === "local"
           ? phone
             ? "Offline, safe on this device"
             : "Offline. Safe on this device, will sync when back online"

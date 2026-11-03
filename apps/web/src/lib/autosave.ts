@@ -9,10 +9,14 @@
  *  3. Failed saves retry with back-off (2 s → 60 s) and immediately when the browser
  *     comes back online or the tab is hidden.
  *  4. When the document is reopened, a journal newer than the cloud copy is restored.
+ *  5. Offline, the store keeps the save on this device (lib/offline.ts outbox): status "local"
+ *     until the outbox has reached the server.
  */
 import type { JSONContent } from "@tiptap/core";
+import { SYNC_EVENT, type SyncState } from "./offline";
 
-export type SaveStatus = "saved" | "dirty" | "saving" | "offline";
+/** local: kept on this device, sent when the connection returns. offline: the save failed and is retried. */
+export type SaveStatus = "saved" | "dirty" | "saving" | "local" | "offline";
 
 export interface Journal {
   content: JSONContent;
@@ -41,8 +45,8 @@ interface Options {
   id: string;
   /** Snapshot of the current document to journal and save. */
   snapshot: () => { content: JSONContent; title?: string } | null;
-  /** Persist to the cloud; throw on failure. */
-  save: (snap: { content: JSONContent; title?: string }) => Promise<void>;
+  /** Persist to the cloud; throw on failure. Resolves true when the save waits on this device for the connection. */
+  save: (snap: { content: JSONContent; title?: string }) => Promise<boolean | void>;
   onStatus: (s: SaveStatus) => void;
 }
 
@@ -57,8 +61,11 @@ export class DocSaver {
   private inflight: Promise<void> | null = null;
   private again = false;
   private disposed = false;
+  /** the last save is kept on this device until the outbox reaches the server */
+  private local = false;
 
   constructor(private o: Options) {
+    window.addEventListener(SYNC_EVENT, this.onSync);
     window.addEventListener("online", this.onOnline);
     document.addEventListener("visibilitychange", this.onVisibility);
     window.addEventListener("pagehide", this.onHide);
@@ -112,13 +119,13 @@ export class DocSaver {
     this.o.onStatus("saving");
     this.inflight = (async () => {
       try {
-        await this.o.save(snap);
+        this.local = !!(await this.o.save(snap));
         this.savedVersion = Math.max(this.savedVersion, target);
         this.retryDelay = 0;
         if (this.retryTimer) clearTimeout(this.retryTimer);
         if (!this.unsaved) {
           clearJournal(this.o.id);
-          this.o.onStatus("saved");
+          this.o.onStatus(this.local ? "local" : "saved");
         }
       } catch {
         this.writeJournal();
@@ -139,6 +146,13 @@ export class DocSaver {
     }
   }
 
+  private onSync = (e: Event) => {
+    const { pending } = (e as CustomEvent<SyncState>).detail;
+    if (this.local && pending === 0 && !this.unsaved && !this.inflight) {
+      this.local = false;
+      this.o.onStatus("saved");
+    }
+  };
   private onOnline = () => {
     if (this.unsaved) this.flush();
   };
@@ -154,6 +168,7 @@ export class DocSaver {
 
   dispose() {
     this.disposed = true;
+    window.removeEventListener(SYNC_EVENT, this.onSync);
     window.removeEventListener("online", this.onOnline);
     document.removeEventListener("visibilitychange", this.onVisibility);
     window.removeEventListener("pagehide", this.onHide);

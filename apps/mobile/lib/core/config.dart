@@ -12,6 +12,10 @@ abstract final class AppConfig {
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_XH6LhcIvUP_ENNbZFrmj7g_Z-YjUzP4');
   static const site = 'https://getlitma.in';
   static String get functionsUrl => '$supabaseUrl/functions/v1';
+
+  /// Release feed (desktop and phone): `mobile` holds version, minimumVersion and store links.
+  static const latestJson = '$site/downloads/latest.json';
+  static const latestJsonFallback = 'https://github.com/jayageetham-dotcom/litma-releases/releases/latest/download/latest.json';
 }
 
 /// Malayalam candidates for a Manglish word: the offline engine first, Google Input Tools (through

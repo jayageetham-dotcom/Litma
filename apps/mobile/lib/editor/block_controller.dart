@@ -208,6 +208,16 @@ class BlockController extends TextEditingController {
     onChanged(this, textChanged: true);
   }
 
+  /// Replace [start, end) of the block's text with [text] (AI results, inbox suggestions, a looked-up
+  /// word), with the cursor after it. No Manglish conversion.
+  void replaceRange(int start, int end, String text) {
+    final s = start.clamp(0, block.text.length), e = end.clamp(s, block.text.length);
+    final m = block.marks.isEmpty ? MarkSet.empty : _inheritable(block.marks[(s > 0 ? s - 1 : 0).clamp(0, block.marks.length - 1)]);
+    _replace(s, e, text, m);
+    super.value = TextEditingValue(text: '$sentinel${block.text}', selection: TextSelection.collapsed(offset: s + text.length + 1));
+    onChanged(this, textChanged: true);
+  }
+
   /// The Latin word being typed at the cursor (for the suggestion strip), or null.
   String? get wordAtCursor {
     if (mode != InputMode.manglish) return null;

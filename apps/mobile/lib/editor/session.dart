@@ -385,6 +385,86 @@ class EditorSession extends ChangeNotifier {
     saver.touch();
   }
 
+  // ── tools (AI, inbox, dictionary, history) ──
+
+  /// The selected text in the current line.
+  String get selectedText {
+    final c = current;
+    if (c == null) return '';
+    final s = c.blockSelection;
+    return s.isCollapsed ? '' : c.block.text.substring(s.start, s.end).replaceAll(hardBreakChar, '\n');
+  }
+
+  /// The writing before the cursor (context for the AI), at most the last [max] characters.
+  String textBefore({int max = 6000}) {
+    final f = focused;
+    final all = lines;
+    final i = f == null ? all.length : all.indexWhere((x) => identical(x, f));
+    final parts = [for (final l in all.take(i < 0 ? all.length : i)) l.plainText];
+    if (f != null) parts.add(f.text.substring(0, controllerFor(f).blockSelection.start).replaceAll(hardBreakChar, '\n'));
+    final t = parts.join('\n');
+    return t.length > max ? t.substring(t.length - max) : t;
+  }
+
+  /// Put [text] at the cursor (replacing a selection). Several paragraphs become lines of their own.
+  void insertText(String text) {
+    var f = focused;
+    if (f == null) {
+      final all = lines;
+      if (all.isEmpty) return;
+      f = all.last;
+      focused = f;
+      controllerFor(f).placeCursor(f.text.length);
+    }
+    final c = controllerFor(f);
+    final sel = c.blockSelection;
+    final paras = text.trim().split(RegExp(r'\n\s*\n|\n'));
+    _beforeChange();
+    c.replaceRange(sel.start, sel.end, paras.first);
+    if (paras.length > 1 && groupOf(f) == null) {
+      final at = c.blockSelection.extentOffset;
+      final tail = f.splitAt(at, type: 'paragraph', attrs: {});
+      c.reload(cursor: at);
+      var i = topIndexOf(f);
+      TextBlock last = f;
+      for (final p in paras.skip(1)) {
+        last = TextBlock('paragraph', {}, text: p);
+        document.blocks.insert(++i, last);
+      }
+      if (tail.text.isNotEmpty) last.append(tail);
+      focusLine(last, at: last.text.length - tail.text.length);
+    }
+    _afterChange();
+  }
+
+  /// Replace the first place [target] appears in the work with [text]; false when it isn't there.
+  bool replaceInDocument(String target, String text) {
+    for (final l in lines) {
+      final i = l.text.indexOf(target);
+      if (i >= 0) {
+        focused = l;
+        controllerFor(l).replaceRange(i, i + target.length, text);
+        _afterChange();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Save work settings (plot board columns, typing mode…).
+  void updateSettings(Json patch) {
+    _doc = _doc.copyWith(settings: {..._doc.settings, ...patch});
+    unawaited(store.updateDoc(_doc.id, {'settings': _doc.settings}).catchError((_) => false));
+    notifyListeners();
+  }
+
+  /// Bring back an earlier version (the current text is kept as a version first).
+  Future<void> restoreVersion(Json content) async {
+    await store.saveVersion(_doc.id, document.toJson(), words, 'Before restoring').catchError((_) {});
+    _restore(jsonEncode(content));
+    _pushHistory();
+  }
+
   // ── undo ──
 
   final _history = <String>[];

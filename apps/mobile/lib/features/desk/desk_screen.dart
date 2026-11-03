@@ -16,11 +16,13 @@ import '../../editor/document.dart';
 import '../../editor/editor_screen.dart';
 import '../../features/reader/reader_screen.dart';
 import '../../widgets/brand.dart';
+import '../../widgets/avatar.dart';
 import '../../widgets/common.dart';
-import '../settings/settings_screen.dart';
+import '../books/book_screen.dart';
+import '../profile/profile_screen.dart';
 import 'type_picker.dart';
 
-enum DeskTab { works, trash }
+enum DeskTab { works, books, trash }
 
 /// The writer's works for one tab, kept in step with the store.
 class DeskNotifier extends AsyncNotifier<List<LitmaDoc>> {
@@ -34,6 +36,7 @@ class DeskNotifier extends AsyncNotifier<List<LitmaDoc>> {
 
   Future<List<LitmaDoc>> _load() async {
     final store = ref.read(servicesProvider).store;
+    if (tab == DeskTab.books) return const []; // books come from booksProvider
     if (tab == DeskTab.works) await store.discardPristine().catchError((_) => 0);
     return store.listDocs(trash: tab == DeskTab.trash);
   }
@@ -51,6 +54,12 @@ class DeskNotifier extends AsyncNotifier<List<LitmaDoc>> {
 }
 
 final deskProvider = AsyncNotifierProvider<DeskNotifier, List<LitmaDoc>>(DeskNotifier.new);
+
+/// The writer's books (Books tab).
+final booksProvider = FutureProvider.autoDispose<List<Book>>((ref) async {
+  ref.watch(writerProvider.select((w) => w.value?.id));
+  return ref.read(servicesProvider).store.listBooks();
+});
 
 /// Words written today and the streak of days in a row.
 final todayProvider = FutureProvider<({int today, int streak})>((ref) async {
@@ -224,6 +233,86 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     );
   }
 
+  Future<void> _newBook() async {
+    final store = ref.read(servicesProvider).store;
+    final book = await store.createBook(profile: ref.read(profileProvider).value);
+    ref.invalidate(booksProvider);
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => BookScreen(bookId: book.id, initial: book)));
+    ref.invalidate(booksProvider);
+  }
+
+  List<Widget> _booksSlivers(BuildContext context, bool wide) {
+    final books = ref.watch(booksProvider);
+    final list = books.value;
+    if (list == null) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+          sliver: SliverList.separated(itemCount: 3, separatorBuilder: (_, _) => const SizedBox(height: 12), itemBuilder: (_, _) => const SkeletonCard()),
+        ),
+      ];
+    }
+    if (list.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(32, 24, 32, 140),
+            child: FadeSlideIn(
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Container(width: 84, height: 84, decoration: BoxDecoration(color: context.c.accentSoft, borderRadius: BorderRadius.circular(24)), child: Icon(LucideIcons.bookCopy, size: 36, color: context.c.accent)),
+                const SizedBox(height: 20),
+                Text(context.t('books.empty'), textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: context.c.muted)),
+                const SizedBox(height: 22),
+                FilledButton.icon(onPressed: _newBook, icon: const Icon(LucideIcons.bookPlus, size: 18), label: Text(context.t('desk.newBook'))),
+              ]),
+            ),
+          ),
+        ),
+      ];
+    }
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+        sliver: SliverGrid.builder(
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: wide ? 360 : 640, mainAxisSpacing: 12, crossAxisSpacing: 12, mainAxisExtent: 168),
+          itemCount: list.length,
+          itemBuilder: (context, i) {
+            final b = list[i];
+            final c = context.c;
+            return FadeSlideIn(
+              index: i,
+              child: Pressable(
+                scale: 0.985,
+                onTap: () async {
+                  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => BookScreen(bookId: b.id, initial: b)));
+                  ref.invalidate(booksProvider);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(LitmaRadius.lg), border: Border.all(color: c.line)),
+                  child: Row(children: [
+                    Hero(tag: 'book-${b.id}', child: MiniCover(book: b, width: 92)),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Text(b.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 18, fontWeight: FontWeight.w700, color: c.ink, height: 1.25)),
+                        if (b.author?.isNotEmpty ?? false) Padding(padding: const EdgeInsets.only(top: 4), child: Text(b.author!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: c.muted))),
+                        const SizedBox(height: 10),
+                        Text('${context.t('common.chapters', {'count': b.chapters})} · ${relativeTime(context, b.updatedAt)}', style: Theme.of(context).textTheme.labelSmall),
+                      ]),
+                    ),
+                  ]),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.c;
@@ -257,7 +346,7 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                   builder: (context, collapsed, _) => AnimatedSwitcher(
                     duration: Motion.of(context, Motion.medium),
                     child: collapsed
-                        ? Text(tab == DeskTab.trash ? context.t('trash.title') : context.t('desk.title'),
+                        ? Text(tab == DeskTab.trash ? context.t('trash.title') : (tab == DeskTab.books ? context.t('books.title') : context.t('desk.title')),
                             key: const ValueKey('t'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontFamily: LitmaFonts.display, fontWeight: FontWeight.w700))
                         : const Wordmark(key: ValueKey('w'), size: 24),
                   ),
@@ -266,9 +355,9 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                   Padding(
                     padding: const EdgeInsets.only(right: 14),
                     child: Pressable(
-                      semanticLabel: context.t('app.settings.title'),
-                      onTap: () => Navigator.of(context).push(SettingsScreen.route()),
-                      child: Hero(tag: 'avatar', child: LetterAvatar(name: profile?.name ?? writer?.email ?? '?')),
+                      semanticLabel: context.t('nav.profile'),
+                      onTap: () => Navigator.of(context).push(ProfileScreen.route()),
+                      child: Hero(tag: 'avatar', child: ProfileAvatar(profile: profile, fallbackName: profile?.name ?? writer?.email ?? '?')),
                     ),
                   ),
                 ],
@@ -319,7 +408,9 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                     ),
                   ),
                 ),
-              if (list == null)
+              if (tab == DeskTab.books)
+                ..._booksSlivers(context, wide)
+              else if (list == null)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
                   sliver: SliverList.separated(itemCount: 4, separatorBuilder: (_, _) => const SizedBox(height: 12), itemBuilder: (_, _) => const SkeletonCard()),
@@ -357,18 +448,18 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
         ),
         const Positioned(left: 16, right: 16, bottom: 90, child: SafeArea(child: Center(child: OfflinePill()))),
       ]),
-      floatingActionButton: tab == DeskTab.works
+      floatingActionButton: tab != DeskTab.trash
           ? ValueListenableBuilder<bool>(
               valueListenable: _fabExtended,
               builder: (context, extended, _) => FloatingActionButton.extended(
                 onPressed: () {
                   Haptics.soft();
-                  _newWork();
+                  tab == DeskTab.books ? _newBook() : _newWork();
                 },
-                icon: const Icon(LucideIcons.plus, size: 20),
+                icon: Icon(tab == DeskTab.books ? LucideIcons.bookPlus : LucideIcons.plus, size: 20),
                 isExtended: extended,
                 extendedIconLabelSpacing: 8,
-                label: Text(context.t('desk.newWork')),
+                label: SwapFade(child: Text(tab == DeskTab.books ? context.t('desk.newBook') : context.t('desk.newWork'), key: ValueKey(tab))),
               ),
             )
           : null,
@@ -387,15 +478,16 @@ class _Header extends ConsumerWidget {
     final today = ref.watch(todayProvider).value;
     final words = docs?.fold<int>(0, (a, d) => a + d.wordCount) ?? 0;
     final trash = tab == DeskTab.trash;
+    final books = tab == DeskTab.books;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SwapFade(
-          child: Text(trash ? context.t('trash.title') : context.t('desk.title'), key: ValueKey(trash), style: Theme.of(context).textTheme.displaySmall),
+          child: Text(trash ? context.t('trash.title') : (books ? context.t('books.title') : context.t('desk.title')), key: ValueKey(tab), style: Theme.of(context).textTheme.displaySmall),
         ),
         const SizedBox(height: 6),
-        Text(trash ? context.t('trash.description') : context.t('desk.description'), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: c.muted)),
-        if (!trash && docs != null) ...[
+        Text(trash ? context.t('trash.description') : (books ? context.t('books.description') : context.t('desk.description')), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: c.muted)),
+        if (!trash && !books && docs != null) ...[
           const SizedBox(height: 14),
           Wrap(spacing: 8, runSpacing: 8, children: [
             _Stat(icon: LucideIcons.fileText, text: context.t('desk.stats', {'works': context.t('common.works', {'count': docs!.length}), 'words': context.t('common.words', {'count': words})})),
@@ -438,13 +530,13 @@ class _Tabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    final labels = [context.t('desk.tabs.works'), context.t('desk.tabs.trash')];
+    final labels = [context.t('desk.tabs.works'), context.t('desk.tabs.books'), context.t('desk.tabs.trash')];
     return Container(
       height: 42,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: c.subtle, borderRadius: BorderRadius.circular(12)),
       child: LayoutBuilder(builder: (context, box) {
-        final w = box.maxWidth / 2;
+        final w = box.maxWidth / DeskTab.values.length;
         return Stack(children: [
           AnimatedPositioned(
             duration: Motion.of(context, Motion.medium),

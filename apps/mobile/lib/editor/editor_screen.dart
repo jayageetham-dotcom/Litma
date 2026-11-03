@@ -20,6 +20,7 @@ import 'document.dart';
 import 'page_view.dart';
 import 'saver.dart';
 import 'session.dart';
+import 'tools.dart';
 
 /// Opens a work: loads it (from the server or this phone), restores a newer journal, then edits.
 class EditorScreen extends ConsumerStatefulWidget {
@@ -201,6 +202,7 @@ class _EditorState extends ConsumerState<_Editor> {
             ),
           ),
           actions: [
+            IconButton(tooltip: context.t('app.tools.title'), onPressed: () => showToolsSheet(context, ref, s), icon: Icon(LucideIcons.layoutGrid, size: 21, color: c.ink)),
             IconButton(tooltip: context.t('app.editor.read'), onPressed: _read, icon: const Icon(LucideIcons.bookOpen, size: 21)),
             _MoreMenu(session: s, onRename: _rename, onRead: _read),
           ],
@@ -214,7 +216,7 @@ class _EditorState extends ConsumerState<_Editor> {
               switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, a) => SizeTransition(sizeFactor: a, alignment: Alignment.topCenter, child: FadeTransition(opacity: a, child: child)),
               child: writing
-                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates)
+                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates, onLookUp: () => showLookUpSheet(context, s), onAi: () => showAiSheet(context, ref, s))
                   : _Footer(key: const ValueKey('footer'), session: s),
             ),
           ],
@@ -294,6 +296,13 @@ class _Page extends StatelessWidget {
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
         padding: EdgeInsets.fromLTRB(pad.left, 18, pad.right, 140),
         itemCount: blocks.length,
+        // keep each line's field (and its focus, so the keyboard stays up) when lines are added or
+        // removed above it: find a line by its key, not by its position
+        findChildIndexCallback: (key) {
+          if (key is! ObjectKey) return null;
+          final i = blocks.indexWhere((b) => identical(b, key.value));
+          return i < 0 ? null : i;
+        },
         itemBuilder: (context, i) {
           final b = blocks[i];
           return switch (b) {
@@ -351,7 +360,9 @@ class _ModeChip extends StatelessWidget {
 
 /// The keyboard accessory: suggestions for the Manglish word, then the writing tools.
 class _KeyboardBar extends StatelessWidget {
-  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates});
+  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates, required this.onLookUp, required this.onAi});
+  final VoidCallback onLookUp;
+  final VoidCallback onAi;
   final EditorSession session;
   final String? word;
   final List<String> candidates;
@@ -396,6 +407,8 @@ class _KeyboardBar extends StatelessWidget {
                       : null,
                 ),
                 if (drama) _Tool(icon: LucideIcons.messageSquareQuote, label: context.t('app.editor.dialogue'), tint: c.tintCoral, onTap: s.insertDialogue),
+                _Tool(icon: LucideIcons.bookA, label: context.t('mobile.lookUp'), tint: c.tintTangerine, onTap: onLookUp),
+                _Tool(icon: LucideIcons.sparkles, label: context.t('mobile.askAI'), tint: c.tintViolet, onTap: onAi),
                 _Tool(icon: LucideIcons.languages, label: context.t('app.editor.typing'), tint: c.tintTangerine, onTap: () => showModeSheet(context, s)),
                 const _Sep(),
                 _Tool(icon: LucideIcons.keyboardOff, label: context.t('mobile.hideKeyboard'), onTap: () => FocusScope.of(context).unfocus()),
@@ -682,6 +695,12 @@ class _MoreMenu extends ConsumerWidget {
         switch (v) {
           case 'rename':
             onRename();
+          case 'story':
+            openStoryWorld(context, session);
+          case 'share':
+            await showShareSheet(context, ref, session);
+          case 'history':
+            await showHistorySheet(context, ref, session);
           case 'read':
             onRead();
           case 'mode':
@@ -696,6 +715,9 @@ class _MoreMenu extends ConsumerWidget {
       },
       itemBuilder: (context) => [
         _item('read', LucideIcons.bookOpen, context.t('app.editor.read'), c.ink),
+        _item('story', LucideIcons.notebookPen, context.t('app.tools.story'), c.ink),
+        _item('history', LucideIcons.history, context.t('app.tools.history'), c.ink),
+        _item('share', LucideIcons.share2, context.t('app.tools.share'), c.ink),
         _item('rename', LucideIcons.pencilLine, context.t('app.editor.rename'), c.ink),
         _item('mode', LucideIcons.languages, context.t('app.editor.typing'), c.ink),
         const PopupMenuDivider(),

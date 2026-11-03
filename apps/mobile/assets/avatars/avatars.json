@@ -1,0 +1,5 @@
+{
+  "note": "Avatar pictures for profiles and the back-cover author picture. Shown in this order (alternating, as equals). Saved in profiles.preferences.avatar and books.cover.authorAvatar by id.",
+  "path": "/avatars/avatar-{id}.svg",
+  "ids": ["f-1", "m-1", "f-2", "m-2", "f-3", "m-3", "f-4", "m-4", "f-5", "m-5", "m-6", "m-7"]
+}

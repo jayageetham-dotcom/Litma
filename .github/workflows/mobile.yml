@@ -11,6 +11,7 @@ on:
       - "packages/tokens/**"
       - "packages/shared/src/manglish.ts"
       - "packages/shared/src/forms.ts"
+      - "packages/shared/src/nattarivu.ts"
       - "apps/web/public/brands/**"
       - "scripts/build-mobile-assets.mjs"
       - ".github/workflows/mobile.yml"

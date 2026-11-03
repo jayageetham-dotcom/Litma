@@ -99,24 +99,126 @@ String plainTextOf(Json node) {
   return kids.map(plainTextOf).join(sep);
 }
 
-/// The writer's profile (Supabase `profiles`), with the fields the app uses.
+/// The writer's profile (Supabase `profiles`, the web's Profile type).
 class Profile {
-  Profile({required this.id, this.displayName, this.penName, this.email, this.preferences = const {}, this.dailyGoal = 500});
+  Profile({
+    required this.id,
+    this.displayName,
+    this.penName,
+    this.username,
+    this.bio,
+    this.location,
+    this.website,
+    this.avatarUrl,
+    this.email,
+    this.preferences = const {},
+    this.dailyGoal = 500,
+  });
   final String id;
   final String? displayName;
   final String? penName;
+  final String? username;
+  final String? bio;
+  final String? location;
+  final String? website;
+
+  /// A photo uploaded earlier (uploads are paused; still shown until removed).
+  final String? avatarUrl;
   final String? email;
   final Json preferences;
   final int dailyGoal;
 
+  /// Pen name, else name, else the start of the email (what the app calls the writer).
   String get name => (penName?.trim().isNotEmpty ?? false) ? penName!.trim() : ((displayName?.trim().isNotEmpty ?? false) ? displayName!.trim() : (email?.split('@').first ?? ''));
+
+  /// The name avatars and covers use (the web's profileAvatar: pen name, else name).
+  String get avatarName => (penName?.trim().isNotEmpty ?? false) ? penName!.trim() : (displayName?.trim() ?? '');
 
   static Profile fromRow(Json r, {String? email}) => Profile(
         id: r['id'] as String,
         displayName: r['display_name'] as String?,
         penName: r['pen_name'] as String?,
+        username: r['username'] as String?,
+        bio: r['bio'] as String?,
+        location: r['location'] as String?,
+        website: r['website'] as String?,
+        avatarUrl: r['avatar_url'] as String?,
         email: email,
         preferences: (r['preferences'] as Map?)?.cast<String, dynamic>() ?? const {},
         dailyGoal: (r['daily_goal'] as num?)?.toInt() ?? 500,
       );
 }
+
+/// What a book is made of, in order (the web's BookItem). Unknown fields are kept.
+const bookItemLabels = <String, ({String en, String ml})>{
+  'cover': (en: 'Front cover', ml: 'മുഖചിത്രം'),
+  'half-title': (en: 'Half-title page', ml: 'അർദ്ധശീർഷകം'),
+  'title': (en: 'Title page', ml: 'ശീർഷക താൾ'),
+  'copyright': (en: 'Copyright page', ml: 'പകർപ്പവകാശം'),
+  'dedication': (en: 'Dedication', ml: 'സമർപ്പണം'),
+  'epigraph': (en: 'Epigraph', ml: 'മേൽക്കുറിപ്പ്'),
+  'toc': (en: 'Contents', ml: 'ഉള്ളടക്കം'),
+  'text': (en: 'Text page', ml: 'താൾ'),
+  'part': (en: 'Part divider', ml: 'ഭാഗം'),
+  'document': (en: 'Chapter', ml: 'അദ്ധ്യായം'),
+  'back-cover': (en: 'Back cover', ml: 'പിൻചട്ട'),
+};
+
+/// A book (Supabase `books`): details, its structure (covers, front pages, chapters from works)
+/// and cover design. Kept as the raw row so cover and settings fields this app doesn't edit yet
+/// travel through untouched.
+class Book {
+  Book(this.row);
+  final Json row;
+
+  String get id => row['id'] as String;
+  String get title => (row['title'] as String?) ?? '';
+  String? get subtitle => row['subtitle'] as String?;
+  String? get author => row['author'] as String?;
+  List<Json> get structure => ((row['structure'] as List?) ?? const []).cast<Map>().map((m) => m.cast<String, dynamic>()).toList();
+  Json get cover => (row['cover'] as Map?)?.cast<String, dynamic>() ?? const {};
+  Json get settings => (row['settings'] as Map?)?.cast<String, dynamic>() ?? const {};
+  DateTime get updatedAt => DateTime.tryParse('${row['updated_at']}') ?? DateTime.now();
+  int get chapters => structure.where((i) => i['type'] == 'document').length;
+
+  static Book fromRow(Json r) => Book(r);
+}
+
+/// A new book's standard skeleton: covers, title pages, copyright and contents (the web's DEFAULT_STRUCTURE).
+List<Json> defaultBookStructure() => [
+      {'id': bookItemId(), 'type': 'cover'},
+      {'id': bookItemId(), 'type': 'half-title'},
+      {'id': bookItemId(), 'type': 'title'},
+      {'id': bookItemId(), 'type': 'copyright'},
+      {'id': bookItemId(), 'type': 'toc', 'title': 'ഉള്ളടക്കം'},
+      {'id': bookItemId(), 'type': 'back-cover'},
+    ];
+
+String bookItemId() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  final r = DateTime.now().microsecondsSinceEpoch;
+  var n = r ^ (r >> 7) ^ identityHashCode(Object());
+  return List.generate(8, (i) {
+    n = (n * 1103515245 + 12345) & 0x7fffffff;
+    return chars[n % chars.length];
+  }).join();
+}
+
+/// The "classic" cover preset new books start from (COVER_PRESETS in the web's Cover.tsx).
+const classicCover = <String, dynamic>{
+  'preset': 'classic',
+  'frame': true,
+  'titleShadow': false,
+  'titleBox': false,
+  'titleScale': 1,
+  'offsets': <String, dynamic>{},
+  'sizes': <String, dynamic>{},
+  'image': null,
+  'template': 'kasavu',
+  'art': 'literary',
+  'bg': '#efe9dc',
+  'fg': '#3d4232',
+  'accent': '#a8875a',
+  'font': 'Rachana',
+  'ornament': 'flourish',
+};

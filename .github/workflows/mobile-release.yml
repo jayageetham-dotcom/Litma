@@ -1,0 +1,131 @@
+# Store builds of the Litma phone app (apps/mobile). Run by hand (Actions → "Mobile store builds")
+# or from the Release workflow. Each platform builds when its secrets exist and is skipped with a
+# warning otherwise, so this never fails just because a store isn't set up yet.
+#
+# Android (Play Console, internal testing track):
+#   ANDROID_KEYSTORE_BASE64   upload keystore (.jks), base64
+#   ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#   PLAY_SERVICE_ACCOUNT_JSON  service account with release rights (optional: without it the .aab is
+#                              attached to the run for a manual upload)
+# iOS (TestFlight):
+#   APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64 (App Store Connect API key)
+name: Mobile store builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Tag or branch to build (default: the selected branch)"
+        required: false
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - id: secrets
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "signing=$([ -n "$KS" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+          echo "play=$([ -n "$PLAY" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.secrets.outputs.signing != 'yes'
+        run: echo "::warning::ANDROID_KEYSTORE_BASE64 is not set; skipping the Android store build."
+      - if: steps.secrets.outputs.signing == 'yes'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - if: steps.secrets.outputs.signing == 'yes'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - if: steps.secrets.outputs.signing == 'yes'
+        name: Signing key
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          SP: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KA: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KP: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KS" | base64 -d > android/upload.jks
+          printf "storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n" "$PWD/android/upload.jks" "$SP" "$KA" "$KP" > android/key.properties
+      - if: steps.secrets.outputs.signing == 'yes'
+        run: |
+          flutter pub get
+          flutter build appbundle --release --build-number=${{ github.run_number }}
+      - if: steps.secrets.outputs.signing == 'yes'
+        uses: actions/upload-artifact@v5
+        with:
+          name: litma-android
+          path: apps/mobile/build/app/outputs/bundle/release/app-release.aab
+      - if: steps.secrets.outputs.signing == 'yes' && steps.secrets.outputs.play == 'yes'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: in.getlitma.litma
+          releaseFiles: apps/mobile/build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: draft
+
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - id: secrets
+        env:
+          P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: echo "ok=$([ -n "$P8" ] && [ -n "$TEAM" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.secrets.outputs.ok != 'yes'
+        run: echo "::warning::App Store Connect secrets are not set; skipping the iOS build."
+      - if: steps.secrets.outputs.ok == 'yes'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - if: steps.secrets.outputs.ok == 'yes'
+        name: Build and upload to TestFlight
+        env:
+          P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ISSUER: ${{ secrets.ASC_ISSUER_ID }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$P8" | base64 -d > ~/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8
+          flutter pub get
+          cat > ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>destination</key><string>upload</string>
+          </dict></plist>
+          PLIST
+          flutter build ipa --release --build-number=${{ github.run_number }} --export-options-plist=ExportOptions.plist \
+            || xcodebuild -exportArchive -archivePath build/ios/archive/Runner.xcarchive -exportOptionsPlist ExportOptions.plist \
+                 -exportPath build/ios/ipa -allowProvisioningUpdates \
+                 -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8 -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER"

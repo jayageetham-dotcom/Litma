@@ -1,6 +1,7 @@
 // Shared pieces for the Flutter app (apps/mobile), generated from the web's single sources of truth:
 //   packages/tokens/tokens.json   → apps/mobile/lib/core/tokens.g.dart  (colours light/dark, radii)
 //   packages/i18n/locales/*.json  → apps/mobile/assets/i18n/*.json       (UI strings, same keys as the web)
+//   apps/web/public/avatars/*.svg → apps/mobile/assets/avatars/*.png      (the picture inside each SVG)
 //   packages/shared/src/manglish.ts → apps/mobile/test/manglish_vectors.json (the web engine's answers;
 //                                     the Dart port in lib/core/manglish.dart must give the same)
 // Run: npm run mobile:assets   (after npm run tokens or any string change; CI checks they match)
@@ -87,6 +88,27 @@ for (const f of locales) copyFileSync(join(root, "packages/i18n/locales", f), jo
 const brandsOut = join(mobile, "assets/brands");
 mkdirSync(brandsOut, { recursive: true });
 for (const f of readdirSync(join(root, "apps/web/public/brands"))) copyFileSync(join(root, "apps/web/public/brands", f), join(brandsOut, f));
+
+// avatar pictures: each SVG in apps/web/public/avatars wraps one PNG; the app shows that PNG
+// (same pictures, same ids and order from avatars.json)
+const avatarsIn = join(root, "apps/web/public/avatars");
+const avatarsOut = join(mobile, "assets/avatars");
+mkdirSync(avatarsOut, { recursive: true });
+copyFileSync(join(avatarsIn, "avatars.json"), join(avatarsOut, "avatars.json"));
+for (const f of readdirSync(avatarsIn).filter((f) => f.endsWith(".svg"))) {
+  const b64 = readFileSync(join(avatarsIn, f), "utf8").match(/data:image\/png;base64,([A-Za-z0-9+/=]+)/)?.[1];
+  if (b64) writeFileSync(join(avatarsOut, f.replace(/\.svg$/, ".png")), Buffer.from(b64, "base64"));
+  else copyFileSync(join(avatarsIn, f), join(avatarsOut, f)); // drawn in vectors: the app draws the SVG
+}
+
+// നാട്ടറിവ്: the categories and words from packages/shared/src/nattarivu.ts, as plain JSON for the app
+try {
+  const n = await import(join(root, "packages/shared/src/nattarivu.ts"));
+  mkdirSync(join(mobile, "assets/data"), { recursive: true });
+  writeFileSync(join(mobile, "assets/data/nattarivu.json"), JSON.stringify(n.NATTARIVU) + "\n");
+} catch (e) {
+  console.warn(`mobile: നാട്ടറിവ് not refreshed (this Node can't load TypeScript: ${e.message})`);
+}
 
 // Manglish: what the web's engine gives for a set of words (test/editor_test.dart checks the Dart port)
 const words = ["ente","kadha","nammude","naadu","avan","maram","kavitha","malayaalam","chErththu","kaarththika","thiruvananthapuram","kozhikkOD","pazham","njaan","ninakku","sneham","amma","umma","ammachchi","ikka","chETTan","pakshe","ksheeram","x","rr","mazha","vellam","kaaRRu","naaTTil","aaNu","ezhuthth","thiraKKadha","sundaram","prEmam","kRshNan","R^shi","rhshi","ka~","ka_ha","eeNam","ouShadham","aiSwaryam","oaNam","OrmmayilE","Mh","manushyan","kaLLam","paLLi","Dhaanyam","bhaaratham","dharmmam","jnaanam","Th","thh","nchu","mpi","nkal","ngal","mutt","athraym","aval.","hello123"];

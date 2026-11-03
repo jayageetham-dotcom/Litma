@@ -33,6 +33,10 @@ abstract class AuthGateway {
   Future<void> signInWithGoogle();
   Future<void> signInWithApple();
   bool get appleAvailable;
+  Future<void> updatePassword(String password);
+
+  /// The current session's access token (for Edge Function calls), or null.
+  Future<String?> accessToken();
   Future<void> signOut();
 }
 
@@ -128,6 +132,12 @@ class SupabaseAuth implements AuthGateway {
         final name = [cred.givenName, cred.familyName].whereType<String>().join(' ').trim();
         if (name.isNotEmpty) await client.auth.updateUser(UserAttributes(data: {'full_name': name}));
       });
+
+  @override
+  Future<String?> accessToken() async => client.auth.currentSession?.accessToken;
+
+  @override
+  Future<void> updatePassword(String password) => _guard(() => client.auth.updateUser(UserAttributes(password: password)));
 
   @override
   Future<void> signOut() async {

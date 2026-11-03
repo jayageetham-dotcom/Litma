@@ -1,0 +1,122 @@
+import 'dart:convert';
+
+import '../data/forms.dart';
+import 'document.dart';
+
+/// HTML for a work (PDF through the system print sheet, and a Word-compatible .doc). Same look as
+/// the web's renderDocHtml in spirit: the writing type's fonts, titles centred, chapters with the
+/// accent rule, body ragged-right, dialogue in two columns.
+String docToHtml(EditorDocument doc, {required String title, required DocKind kind, required Json settings}) {
+  final font = (settings['font'] as String?) ?? 'Noto Serif Malayalam';
+  final size = (settings['fontSize'] as num?)?.toDouble() ?? 12;
+  final lh = (settings['lineHeight'] as num?)?.toDouble() ?? 1.75;
+  final esc = const HtmlEscape(HtmlEscapeMode.element);
+  final body = StringBuffer();
+  var scene = 0, act = 0, dscene = 0, stanza = 0;
+
+  String inline(TextBlock b) {
+    final out = StringBuffer();
+    for (final n in b.inlineJson()) {
+      if (n['type'] == 'hardBreak') {
+        out.write('<br>');
+        continue;
+      }
+      if (n['type'] != 'text') {
+        if (n['type'] == 'footnote') out.write('<sup>*</sup>');
+        continue;
+      }
+      var t = esc.convert('${n['text']}');
+      for (final m in ((n['marks'] as List?) ?? const []).cast<Map>()) {
+        switch (m['type']) {
+          case 'bold':
+            t = '<b>$t</b>';
+          case 'italic':
+            t = '<i>$t</i>';
+          case 'underline':
+            t = '<u>$t</u>';
+          case 'strike':
+            t = '<s>$t</s>';
+          case 'textStyle':
+            final c = (m['attrs'] as Map?)?['color'];
+            final fs = (m['attrs'] as Map?)?['fontSize'];
+            if (c != null || fs != null) t = '<span style="${c != null ? 'color:$c;' : ''}${fs != null ? 'font-size:$fs;' : ''}">$t</span>';
+          case 'highlight':
+            t = '<mark>$t</mark>';
+        }
+      }
+      out.write(t);
+    }
+    return out.toString();
+  }
+
+  void block(Block b) {
+    if (b is OpaqueBlock) {
+      if (b.type == 'pageBreak') body.write('<div style="page-break-after:always"></div>');
+      if (b.type == 'horizontalRule') body.write('<hr>');
+      return;
+    }
+    if (b is GroupBlock) {
+      if (b.type == 'dialogue' || b.type == 'castEntry') {
+        final kids = b.textChildren.toList();
+        final cue = kids.isNotEmpty ? inline(kids[0]) : '';
+        final rest = kids.skip(1).map(inline).join('<br>');
+        body.write('<table class="dlg"><tr><td class="cue">$cue${b.type == 'dialogue' && cue.isNotEmpty ? ':' : ''}</td><td>$rest</td></tr></table>');
+      } else {
+        for (final c in b.children) {
+          block(c);
+        }
+      }
+      return;
+    }
+    final t = b as TextBlock;
+    if (t.isEmpty && t.type == 'paragraph') return;
+    final align = t.align == null ? '' : ' style="text-align:${t.align}"';
+    final h = inline(t);
+    switch (t.type) {
+      case 'styledBlock':
+        final v = t.variant ?? 'subhead';
+        String? label;
+        if (v == 'act') label = 'അങ്കം ${++act}';
+        if (v == 'scene') label = 'രംഗം ${++dscene}';
+        if (v == 'stanza') label = '${++stanza}';
+        if (v == 'act') dscene = 0;
+        if (t.isEmpty && label == null) return;
+        body.write('<p class="sb sb-$v"$align>${label != null ? '<span class="num">$label</span><br>' : ''}$h</p>');
+      case 'sceneHeading':
+        body.write('<p class="sp-scene"><span class="num">രംഗം ${++scene}</span><br>$h</p>');
+      case 'heading':
+        final level = (t.attrs['level'] as num?)?.toInt() ?? 2;
+        body.write('<h$level$align>$h</h$level>');
+      default:
+        body.write('<p class="${t.type}"$align>$h</p>');
+    }
+  }
+
+  for (final b in doc.blocks) {
+    block(b);
+  }
+  final prose = kind == DocKind.novel || kind == DocKind.story;
+  return '''<!doctype html><html lang="ml"><head><meta charset="utf-8"><title>${esc.convert(title)}</title>
+<style>
+@page { size: A4; margin: 25mm; }
+body { font-family: '$font', 'Noto Serif Malayalam', serif; font-size: ${size}pt; line-height: $lh; color: #111; text-align: start; }
+p { margin: 0 0 .5em; }
+${prose ? 'p.paragraph + p.paragraph { text-indent: 1.6em; } p.paragraph { margin: 0 0 .15em; }' : ''}
+.sb-title { font-size: 2.05em; font-weight: 700; text-align: center; margin: .4em 0 .25em; }
+.sb-subtitle { font-size: 1.2em; text-align: center; color: #555; }
+.sb-author { text-align: center; margin-bottom: 1.6em; }
+.sb-epigraph { font-style: italic; text-align: right; margin: 1em 0 1.6em 35%; color: #555; font-size: .9em; }
+.sb-chapter { text-align: center; font-size: 1.35em; font-weight: 700; margin: 2.4em 0 1.4em; }
+.sb-chapter::after { content: ""; display: block; width: 3em; height: 2px; margin: .55em auto 0; background: #a84d08; }
+.sb-subhead { font-size: 1.15em; font-weight: 700; margin: 1.2em 0 .35em; }
+.sb-stage { font-style: italic; margin-left: 2.5em; }
+.sb-act, .sb-scene, .sb-stanza { text-align: center; font-weight: 700; }
+.num { color: #a84d08; font-size: .85em; }
+.sp-scene { font-weight: 700; margin-top: 1.8em; }
+.sceneCast { text-align: right; font-size: .88em; }
+.transition { text-align: right; font-weight: 600; }
+table.dlg { width: 100%; border-collapse: collapse; margin: 0 0 .7em; }
+table.dlg td { vertical-align: top; padding: 0 .5em 0 0; }
+td.cue { width: 30%; text-align: ${kind == DocKind.drama ? 'left' : 'right'}; font-weight: 600; }
+</style></head><body>$body</body></html>''';
+}

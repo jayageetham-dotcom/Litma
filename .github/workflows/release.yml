@@ -24,6 +24,10 @@ on:
         description: "Build and publish the desktop apps"
         type: boolean
         default: true
+      mobile:
+        description: "Build the phone app for the stores (needs the store secrets; skipped otherwise)"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -86,4 +90,13 @@ jobs:
       version: ${{ needs.version.outputs.version }}
       ref: v${{ needs.version.outputs.version }}
       min_version: ${{ inputs.min_desktop }}
+    secrets: inherit
+
+  mobile:
+    name: 📱 Phone app
+    needs: version
+    if: inputs.mobile
+    uses: ./.github/workflows/mobile-release.yml
+    with:
+      ref: v${{ needs.version.outputs.version }}
     secrets: inherit

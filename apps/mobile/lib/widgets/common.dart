@@ -180,3 +180,90 @@ String relativeTime(BuildContext context, DateTime at) {
   final l = at.toLocal();
   return l.year == DateTime.now().year ? '${l.day} ${months[l.month - 1]}' : '${l.day} ${months[l.month - 1]} ${l.year}';
 }
+
+/// Tabs as a segmented track with a pill that slides between them (desk, dictionary, Story World).
+class SegmentTabs extends StatelessWidget {
+  const SegmentTabs({super.key, required this.labels, required this.index, required this.onChanged, this.scrollable = false});
+  final List<String> labels;
+  final int index;
+  final ValueChanged<int> onChanged;
+
+  /// Many tabs: scroll sideways with a moving underline-pill instead of equal widths.
+  final bool scrollable;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    if (scrollable) {
+      return SizedBox(
+        height: 40,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: labels.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 6),
+          itemBuilder: (context, i) => Pressable(
+            onTap: () => i == index ? null : onChanged(i),
+            child: AnimatedContainer(
+              duration: Motion.of(context, Motion.medium),
+              curve: Motion.emphasized,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: i == index ? c.primary : c.surface, borderRadius: BorderRadius.circular(99), border: Border.all(color: i == index ? c.primary : c.line)),
+              child: Text(labels[i], style: TextStyle(fontFamily: LitmaFonts.ui, fontFamilyFallback: LitmaFonts.uiFallback, fontSize: 13.5, fontWeight: FontWeight.w600, color: i == index ? c.primaryInk : c.ink)),
+            ),
+          ),
+        ),
+      );
+    }
+    return Container(
+      height: 42,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: c.subtle, borderRadius: BorderRadius.circular(12)),
+      child: LayoutBuilder(builder: (context, box) {
+        final w = box.maxWidth / labels.length;
+        return Stack(children: [
+          AnimatedPositioned(
+            duration: Motion.of(context, Motion.medium),
+            curve: Motion.emphasized,
+            left: index * w,
+            width: w,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: context.isDark ? Color.lerp(c.subtle, c.ink, 0.12) : c.surface,
+                borderRadius: BorderRadius.circular(9),
+                boxShadow: const [BoxShadow(color: Color(0x14111113), blurRadius: 6, offset: Offset(0, 1))],
+              ),
+            ),
+          ),
+          Row(children: [
+            for (var i = 0; i < labels.length; i++)
+              Expanded(
+                child: Semantics(
+                  selected: i == index,
+                  button: true,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      if (i == index) return;
+                      Haptics.tap();
+                      onChanged(i);
+                    },
+                    child: Center(
+                      child: AnimatedDefaultTextStyle(
+                        duration: Motion.of(context, Motion.fast),
+                        style: TextStyle(fontFamily: LitmaFonts.ui, fontFamilyFallback: LitmaFonts.uiFallback, fontSize: 14, fontWeight: FontWeight.w600, color: i == index ? c.ink : c.muted),
+                        child: Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ]),
+        ]);
+      }),
+    );
+  }
+}

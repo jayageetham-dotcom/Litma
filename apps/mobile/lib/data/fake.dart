@@ -134,5 +134,9 @@ class FakeAuth implements AuthGateway {
   @override
   Future<void> signInWithApple() async => _set(const Writer(id: 'writer-1', email: 'writer@example.com'));
   @override
+  Future<void> updatePassword(String password) async {}
+  @override
+  Future<String?> accessToken() async => null;
+  @override
   Future<void> signOut() async => _set(null);
 }

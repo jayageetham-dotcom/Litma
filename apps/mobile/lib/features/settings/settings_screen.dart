@@ -8,6 +8,8 @@ import '../../core/i18n.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../widgets/brand.dart';
+import '../../widgets/avatar.dart';
+import 'ai_settings.dart';
 import '../../widgets/common.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -36,7 +38,7 @@ class SettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(children: [
-                Hero(tag: 'avatar', child: LetterAvatar(name: name, size: 52)),
+                ProfileAvatar(profile: profile, fallbackName: name, size: 52),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -125,6 +127,10 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
             ])),
+          ],
+          if (writer != null) ...[
+            item(_Section(context.t('app.settings2.ai'))),
+            item(const AiSettings()),
           ],
           item(_Section(context.t('app.settings.about'))),
           item(_Card(children: [

@@ -1,5 +1,7 @@
 # Litma for iOS and Android (Flutter)
 
+**Store setup (owner):** Play Console app `in.getlitma.litma` and an upload keystore; App Store Connect app with the same bundle id and an API key; then add the secrets listed in `.github/workflows/mobile-release.yml` and fill the `mobile` block (store links) in `latest.json`.
+
 A native app, not the website in a frame: the same account, works and writing types as the web and
 desktop apps, with Litma's look, native gestures and transitions, and full offline use.
 
@@ -51,19 +53,14 @@ SCREENSHOTS=1 flutter test test/screenshots --update-goldens
 Navigation keeps each platform's own behaviour (iOS edge swipe back, Android predictive back); a desk
 card grows into the editor (container transform), the reader rises in, the sign-in gate fades through.
 
-## What works now (phase 1) and what comes next
+## What the app does (all five phases)
 
-- **Now:** sign in (email, Google, Apple), desk (works, trash, search, swipe to trash with undo, duplicate,
-  stats and streak), writing-type picker with live template previews, editor (every writing type's
-  template lines and prompts, Manglish / മലയാളം / English typing with suggestions and Keep English,
-  line styles, bold, italic, underline, strikethrough, alignment, dialogue for screenplays and plays,
-  undo and redo, autosave, offline), reader, settings (theme, app language, default typing mode, sync).
-- **Phase 2:** dictionary, നാട്ടറിവ്, saved words, Story World.
-- **Phase 3:** books, cover designer, PDF and Word export, sharing.
-- **Phase 4:** AI companion, assistant inbox, MCP connection.
-- **Phase 5:** store release (CI builds to TestFlight and the Play Console, update prompt from `latest.json`).
-- Editor items still to come: text colour and highlight, font size, footnotes (kept, shown as a marker,
-  not yet editable), screenplay scene tools, page view and the Pages switch, selection across lines.
+- **Phase 1, writing:** sign in (email, Google, Apple), desk (works, books, trash, search, swipe to trash with undo, duplicate, stats and streak), writing-type picker with live template previews, editor (every writing type's template lines and prompts, Manglish / മലയാളം / English typing with suggestions and Keep English, line styles, bold, italic, underline, strikethrough, alignment, dialogue for screenplays and plays, undo and redo, autosave, offline), reader, settings, profile (details, statistics, 20-week heatmap, edit with the avatar pictures, password).
+- **Phase 2, words and worlds:** dictionary (Look up with Manglish, meanings, translations, ranked synonyms; the website's /dict data, kept on the phone once used), നാട്ടറിവ് (all categories from packages/shared, with sections and a filter), saved words; Story World per work (each writing type's sections, card editor with the web's fields, plot board with columns, timeline, report).
+- **Phase 3, books and sharing:** Books tab, new books with the standard pages and the classic cover, book details, contents (add works as chapters, drag to reorder, swipe to remove), read the whole book; share a public reading link; export PDF (system print sheet, Malayalam shaped by the phone's web engine), Word (.doc) and text.
+- **Phase 4, AI:** AI companion (the web's actions, ask in your own words, streamed answers with the writer's own key, insert or replace), the hand-over to the Claude app when there is no key or credit, the Assistant inbox (apply or dismiss suggestions sent through MCP), AI keys and AI-assistant connections in Settings, version history with restore.
+- **Phase 5, release:** `.github/workflows/mobile-release.yml` builds the Android App Bundle (Play Console internal track) and the iOS build (TestFlight) when the store secrets exist (listed at the top of the file), and the Release workflow runs it; Android release signing from `android/key.properties`; the in-app update card and the required-update screen read the `mobile` block of `latest.json`.
+- **Still to come (smaller):** text colour and highlight, font size, editing footnotes, screenplay scene tools, page view in the editor, the full cover designer with artwork (the web's), selection across lines.
 
 ## Versions and updates (plan for the Flutter app)
 

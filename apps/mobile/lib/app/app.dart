@@ -6,9 +6,10 @@ import '../core/i18n.dart';
 import '../core/motion.dart';
 import '../core/theme.dart';
 import '../features/auth/welcome_screen.dart';
-import '../features/desk/desk_screen.dart';
 import '../widgets/brand.dart';
+import 'home_shell.dart';
 import 'providers.dart';
+import 'update_check.dart';
 
 class LitmaApp extends ConsumerWidget {
   const LitmaApp({super.key, this.home});
@@ -42,7 +43,7 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final writer = ref.watch(writerProvider);
     final Widget page = switch (writer) {
-      AsyncData(:final value) => value == null ? const WelcomeScreen(key: ValueKey('welcome')) : const DeskScreen(key: ValueKey('desk')),
+      AsyncData(:final value) => value == null ? const WelcomeScreen(key: ValueKey('welcome')) : const UpdateGate(key: ValueKey('home'), child: HomeShell()),
       _ => Scaffold(key: const ValueKey('loading'), body: InkLoader(label: context.t('loading.desk'))),
     };
     return PageTransitionSwitcher(

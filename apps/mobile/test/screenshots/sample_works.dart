@@ -13,7 +13,7 @@ Json _sb(String v, String text) => {
 Json _n(String type, String text) => {'type': type, 'content': [_t(text)]};
 Json _dlg(String who, String line) => {'type': 'dialogue', 'content': [_n('dialogueCue', who), _n('dialogueSpeech', line)]};
 
-final sampleProfile = {'id': 'writer-1', 'display_name': 'ആമിന', 'pen_name': 'ആമിന', 'preferences': <String, dynamic>{}};
+final sampleProfile = {'id': 'writer-1', 'display_name': 'Aamina Rahman', 'pen_name': 'ആമിന', 'username': 'aamina', 'bio': 'കഥകളും കവിതകളും എഴുതുന്നു. പുഴയും മഴയും ഇഷ്ടം.', 'location': 'തൃശ്ശൂർ', 'website': 'https://getlitma.in', 'daily_goal': 500, 'preferences': <String, dynamic>{'avatar': 'f-2'}};
 
 final novel = {
   'type': 'doc',
@@ -128,6 +128,34 @@ Map<String, List<Json>> sampleTables() {
       _doc('w-diary', DocKind.diary, 'ഓണക്കാലം', diary, 410, ago(const Duration(days: 40))),
     ],
     'profiles': [sampleProfile],
+    'story_items': [
+      {'id': 's1', 'document_id': 'w-novel', 'kind': 'character', 'name': 'ഉമ്മ', 'summary': 'ഉമ്മറത്തിരുന്ന് പാട്ടു മൂളുന്ന അമ്മ', 'data': {'role': 'Supporting', 'age': '62'}, 'image_url': null, 'position': 1},
+      {'id': 's2', 'document_id': 'w-novel', 'kind': 'character', 'name': 'അമ്മച്ചി', 'summary': 'അപ്പുറത്തെ വീട്ടിലെ അയൽക്കാരി', 'data': {'role': 'Supporting'}, 'image_url': null, 'position': 2},
+      {'id': 's3', 'document_id': 'w-novel', 'kind': 'character', 'name': 'ചേട്ടൻ', 'summary': 'വള്ളം കെട്ടാൻ ഓടുന്ന മകൻ', 'data': {'role': 'Protagonist'}, 'image_url': null, 'position': 3},
+      {'id': 's4', 'document_id': 'w-novel', 'kind': 'beat', 'name': 'മഴ തുടങ്ങുന്നു', 'summary': 'പുഴ കയറുമോ എന്ന ഭയം', 'data': {'group': 'ആരംഭം', 'status': 'Written', 'color': 'kayal'}, 'image_url': null, 'position': 4},
+      {'id': 's5', 'document_id': 'w-novel', 'kind': 'beat', 'name': 'പള്ളിക്കൂടത്തിൽ', 'summary': 'എല്ലാവരും ഒത്തുകൂടുന്നു', 'data': {'group': 'മധ്യം', 'status': 'Drafting', 'color': 'kasavu'}, 'image_url': null, 'position': 5},
+    ],
+    'books': [
+      {
+        'id': 'b-1',
+        'title': 'പുഴയുടെ കഥകൾ',
+        'subtitle': 'ചെറുകഥകൾ',
+        'author': 'ആമിന',
+        'structure': [
+          {'id': 'i1', 'type': 'cover'},
+          {'id': 'i2', 'type': 'half-title'},
+          {'id': 'i3', 'type': 'title'},
+          {'id': 'i4', 'type': 'toc', 'title': 'ഉള്ളടക്കം'},
+          {'id': 'i5', 'type': 'document', 'documentId': 'w-story', 'showTitle': true},
+          {'id': 'i6', 'type': 'document', 'documentId': 'w-novel', 'showTitle': true},
+          {'id': 'i7', 'type': 'back-cover'},
+        ],
+        'settings': {'pageSize': 'A5'},
+        'cover': {'bg': '#1f3a4d', 'fg': '#f3ead8', 'accent': '#e0b86a', 'frame': true},
+        'created_at': '2026-10-01T08:00:00.000Z',
+        'updated_at': ago(const Duration(hours: 5)),
+      },
+    ],
     'writing_days': [
       for (var i = 0; i < 5; i++) {'day': now.subtract(Duration(days: i)).toIso8601String().substring(0, 10), 'words': 300 + i * 40},
     ],

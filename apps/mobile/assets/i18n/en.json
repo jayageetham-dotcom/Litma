@@ -822,6 +822,117 @@
       "sync": "Sync",
       "syncAll": "Everything is synced",
       "syncNow": "Sync now"
+    },
+    "profile": {
+      "edit": "Edit profile",
+      "name": "Name",
+      "penName": "Pen name",
+      "penNameHint": "Shown on your works instead of your name.",
+      "username": "Username",
+      "usernameRule": "Usernames use 3 to 30 lowercase letters, numbers or underscores.",
+      "usernameTaken": "That username is taken. Try another.",
+      "location": "Location",
+      "about": "About you",
+      "website": "Website",
+      "dailyGoal": "Daily word goal",
+      "writing": "Your writing",
+      "words": "Words",
+      "today": "Today",
+      "streak": "Streak",
+      "best": "Best day",
+      "days": "{n} days",
+      "lastWeeks": "Last 20 weeks",
+      "byType": "സാഹിത്യരൂപം · By writing type",
+      "signedInAs": "Signed in as {email}",
+      "newPassword": "New password",
+      "changePassword": "Change password",
+      "passwordChanged": "Password changed."
+    },
+    "books": {
+      "read": "Read the book",
+      "title": "Title",
+      "subtitle": "Subtitle",
+      "author": "Author",
+      "contents": "Contents",
+      "addChapters": "Add chapters",
+      "add": "Add",
+      "inBook": "in this book",
+      "missing": "(missing work)",
+      "removed": "Removed from the book"
+    },
+    "dict": {
+      "hint": "Type a word in Malayalam, English or Manglish.",
+      "notFound": "No entry for “{q}”. Try another spelling, or the word without its ending.",
+      "meanings": "Meanings",
+      "synonyms": "Synonyms",
+      "copied": "Copied"
+    },
+    "tools": {
+      "title": "Tools",
+      "story": "Story World",
+      "ai": "AI companion",
+      "inbox": "Assistant inbox",
+      "history": "Version history",
+      "share": "Share & export",
+      "lookUp": "Look up"
+    },
+    "ai": {
+      "whole": "For the whole work",
+      "selected": "For selected text",
+      "selectFirst": "Select text for these",
+      "ask": "Ask in your own words",
+      "askHint": "What would you like help with?",
+      "insert": "Insert",
+      "replace": "Replace selection",
+      "copy": "Copy",
+      "failed": "The assistant didn't respond. Try again.",
+      "noKey": "Add your own AI key in Settings to get answers here, or ask Claude in the Claude app with your own Claude plan.",
+      "noCredit": "Your AI key has no credit left. Add credit with the provider, or ask Claude in the Claude app with your own plan.",
+      "badKey": "The provider rejected your AI key. Check it in Settings, or ask Claude in the Claude app.",
+      "connectFirst": "Connect Litma to Claude first, so Claude can read this work and send its answer back.",
+      "connect": "Connect an AI assistant",
+      "openClaude": "Open Claude",
+      "afterClaude": "When Claude has sent its answer, it waits in the Assistant inbox."
+    },
+    "inbox": {
+      "hint": "Suggestions any AI assistant sent to this work through the Litma connector.",
+      "empty": "No suggestions waiting.",
+      "apply": "Apply",
+      "dismiss": "Dismiss"
+    },
+    "history": {
+      "empty": "No versions yet. Litma keeps one every ten minutes while you write.",
+      "restoreTitle": "Bring back this version?",
+      "restoreBody": "Your current text is kept as a version first, so nothing is lost."
+    },
+    "share": {
+      "public": "Anyone with the link can read",
+      "publicHint": "A read-only page on getlitma.in. Switch it off any time.",
+      "export": "Export",
+      "text": "Text"
+    },
+    "story": {
+      "add": "Add to {what}",
+      "addCard": "Add a card",
+      "empty": "Nothing in {what} yet. Add the first one.",
+      "untitled": "Untitled",
+      "name": "Name",
+      "summary": "Summary",
+      "newColumn": "New column"
+    },
+    "settings2": {
+      "ai": "AI keys",
+      "aiHint": "Use your own key from Anthropic, OpenAI or Google. It is stored encrypted and only used for your requests.",
+      "addKey": "Add key",
+      "removeKey": "Remove",
+      "keyLabel": "API key",
+      "mcp": "Connect an AI assistant",
+      "mcpHint": "Let Claude, ChatGPT or any AI assistant read your works and send suggestions to your inbox. Make a connection, then paste its address into the assistant.",
+      "newToken": "New connection",
+      "tokenCopied": "Address copied. Paste it into your AI assistant as a connector.",
+      "tokenOnce": "Copy it now: it is shown only once.",
+      "tokenUsed": "Last used {when}",
+      "tokenNever": "Not used yet"
     }
   }
 }

@@ -5,7 +5,7 @@
   "private": true,
   "description": "Litma for Mac and Windows: the Litma web app in its own window, offline-first, with automatic updates.",
   "author": "Jayageetham",
-  "homepage": "https://www.jayageetham.com/litma",
+  "homepage": "https://getlitma.in",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p .",

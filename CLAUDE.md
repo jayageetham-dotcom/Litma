@@ -1,6 +1,6 @@
 # Litma — notes for Claude
 
-Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js 15 **static export**, basePath `/litma`, React 19 + Tailwind v4 + SCSS + Tiptap 2), `apps/desktop` (Electron, macOS + Windows), `apps/mobile` (Flutter, planned), shared `packages/*`. Backend: Supabase project `jdexadomaxjtxlvgtldu`. Hosted on cPanel at https://www.jayageetham.com/litma, deployed by `.github/workflows/deploy.yml` (FTPS, same pattern as the jayageetham website repo). The owner plans a native mobile app and a `litma.com` domain later.
+Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js 15 **static export**, served at the domain root (empty basePath), React 19 + Tailwind v4 + SCSS + Tiptap 2), `apps/desktop` (Electron, macOS + Windows), `apps/mobile` (Flutter, planned), shared `packages/*`. Backend: Supabase project `jdexadomaxjtxlvgtldu`. Hosted on cPanel at **https://getlitma.in** (moved from https://www.jayageetham.com/litma, Nov 2026), deployed by `.github/workflows/deploy.yml` (FTPS to the getlitma.in FTP account: variable `LITMA_FTP_USERNAME`, secret `LITMA_FTP_PASSWORD`; the upload is skipped with a warning until both exist). The old address gets `deploy/legacy-litma/.htaccess` (301 to the same path on getlitma.in, 308 for `/mcp`) via Actions → **Redirect the old Litma address**, run once after getlitma.in is live. The desktop app, the MCP function and Supabase auth still accept the old address so apps from before the move keep working. The owner plans a native mobile app.
 
 ## Every change covers every app (owner's standing rule)
 - Treat each request as applying to **all** Litma apps: web, desktop (Electron) and mobile (Flutter, once it exists). Don't fix only the website.
@@ -24,10 +24,10 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Commit messages: imperative summary + short bullet body.
 - After pulling the monorepo change, run `npm install` once at the root (the old root `node_modules` and `.next` can be deleted).
 - Before committing: `npm run typecheck` and `npm run build` (root scripts forward to the workspaces).
-- Local test build without Supabase ("local mode", no sign-in, data in localStorage): `NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_ANON_KEY= npm run build`, then `npm run preview` → http://localhost:4173/litma/. Playwright works against that (desk → pick a writing type → editor). Cloud-only flows (MCP, AI keys, AI hand-over, sharing) can't be exercised in local mode.
+- Local test build without Supabase ("local mode", no sign-in, data in localStorage): `NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_ANON_KEY= npm run build`, then `npm run preview` → http://localhost:4173/. Playwright works against that (desk → pick a writing type → editor). Cloud-only flows (MCP, AI keys, AI hand-over, sharing) can't be exercised in local mode.
 - Desktop test without packaging: build `npm run build:desktop -w @litma/web` in local mode, `node apps/desktop/scripts/copy-web.mjs`, `npm run build -w @litma/desktop`, then drive it with Playwright's `_electron.launch({ cwd: "apps/desktop", args: ["--no-sandbox", "."] })` (under `xvfb-run` on Linux). Check every route both by loading it and by clicking in-app links; a page missing from `apps/desktop/app/web` shows the black Next 404.
-- Network from cloud sandboxes usually can't reach supabase.co, olam.in or jayageetham.com; use Supabase MCP tools for logs/SQL.
-- FTP deploy must **never delete** server files (`public_html` also holds the main site and `/onnayi`); the workflow has a guard step against `--delete`.
+- Network from cloud sandboxes usually can't reach supabase.co, olam.in, getlitma.in or jayageetham.com; use Supabase MCP tools for logs/SQL.
+- FTP deploy must **never delete** server files (the host also holds jayageetham.com and `/onnayi`); the workflow has a guard step against `--delete`.
 
 ## Rules
 - No Next.js server features: no API routes, middleware, server actions or dynamic route segments. Use query params (`/write/?id=`, `/read/?s=`, `/book/?id=`, `/print/?doc=|book=`, `/desk/?view=books|trash`). Server work goes in `supabase/functions/*`.
@@ -44,7 +44,7 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 ## Desktop (apps/desktop)
 - Electron serves the web build (made with `npm run build:desktop -w @litma/web`, empty base path, `NEXT_PUBLIC_DESKTOP=1`) from `app://litma/`; `/dict/*` is fetched from the website. OAuth returns to the website's `/auth/callback/`, which the main process redirects into `app://litma/auth/callback/`. External links open in the browser. Preload exposes `window.litmaDesktop` (the home page hides its download section there).
 - Downloads: `/download/` page (`app/download/page.tsx`) detects the OS (`lib/release.ts`: `detectPlatform`, `useRelease` reads latest.json, falling back to the releases repo) and leads with that platform; all platforms below, App Store / Google Play buttons as "Coming soon" until `STORE_LINKS` are filled (`components/StoreBadges.tsx`), install steps appear after a click. Download links: header (`DownloadNavLink` in `HomeNav` and `AppHeader`), hero (`HeroDownload`), home section and a card at the bottom of the desk (`DesktopDownload variant="card"`). All hidden inside the desktop app.
-- Releases: `.github/workflows/desktop.yml` builds `Litma-<v>-mac.dmg` (universal) and `Litma-<v>-win.exe` and publishes them on GitHub Releases of the **public** repo `jayageetham-dotcom/litma-releases` (secret `RELEASES_TOKEN`; the cPanel quota can't hold installers, never upload them there). Only `latest.json` (with full download URLs + sha256) goes to `public_html/litma/downloads/`; the updater falls back to the releases repo's `latest/download/latest.json`. `DesktopDownload` on the home page reads `latest.json`. Signing is optional via secrets (see `apps/desktop/README.md`).
+- Releases: `.github/workflows/desktop.yml` builds `Litma-<v>-mac.dmg` (universal) and `Litma-<v>-win.exe` and publishes them on GitHub Releases of the **public** repo `jayageetham-dotcom/litma-releases` (secret `RELEASES_TOKEN`; the cPanel quota can't hold installers, never upload them there). Only `latest.json` (with full download URLs + sha256) goes to `getlitma.in/downloads/`; the updater falls back to the releases repo's `latest/download/latest.json`. `DesktopDownload` on the home page reads `latest.json`. Signing is optional via secrets (see `apps/desktop/README.md`).
 
 ## Versions and releases
 - One semver version for web, desktop and mobile: root `package.json` (+ every workspace), `CHANGELOG.md`. Don't bump by hand: Actions → **Release** (`release.yml`) runs `scripts/release.mjs`, commits `Release vX.Y.Z`, tags `vX.Y.Z`, then calls `deploy.yml` and `desktop.yml` (both `workflow_call`-able with a `ref`).
@@ -61,7 +61,7 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - `src/lib/dictionary.ts` + `scripts/build-dictionary.mjs` Olam dictionary/thesaurus (data built in CI into `apps/web/public/dict`); `components/SavedWords.tsx` bookmarks
 - `src/components/landing/` home page (from the owner's Figma Make design, Nov 2026): `TypesShowcase` (night band, nine coloured type cards as tabs + real `TemplatePreview` page), `HowItWorks` (colourful bento of six demos), `Marquee` (tilted lime ribbon), `DesktopDownload variant="pop"` (violet card). Hero demo is `components/TryManglish.tsx` (self-typing with suggestions; visitors can click in and type real Manglish). `HeroActions`/`HomeNav`/`FooterCta` in `HomeActions.tsx` stay session-aware.
 - `src/components/ui/` `Select` (custom dropdown), `Sheet` (bottom sheet / drawer / dock), `Confirm` (`useConfirm`); `src/components/icons/Typewriter.tsx`; `src/components/icons/Brands.tsx` shows the platform logos (Apple, Windows, Android, Google Play) for download links from `apps/web/public/brands/*.svg`: original files from the open `logos` collection (CC0, see its README). Never draw or edit brand logos; replace a file with the library's newer original. Only Apple's mark may switch to its white version (`onDark`). Use these, not generic icons, wherever a platform or store is named
-- `supabase/functions/litma-mcp` MCP server (stateless Streamable HTTP, 30 tools incl. `suggest_edit`); `public/mcp.php` relays `/litma/mcp` to it. The cPanel firewall blocks data-centre callers, so cloud connectors (Claude.ai, ChatGPT) use `MCP_DIRECT_URL` (the function URL + `?key=`) — Settings shows it.
+- `supabase/functions/litma-mcp` MCP server (stateless Streamable HTTP, 30 tools incl. `suggest_edit`); `public/mcp.php` relays `/mcp` to it. The cPanel firewall blocks data-centre callers, so cloud connectors (Claude.ai, ChatGPT) use `MCP_DIRECT_URL` (the function URL + `?key=`) — Settings shows it.
 - `supabase/functions/litma-ai` streams Claude/GPT/Gemini with the writer's own key; `litma-transliterate` proxies Google Input Tools.
 
 ## Editor behaviour (keep these working)
@@ -117,6 +117,12 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Cover presets (`COVER_PRESETS`, `presetPatch` in `Cover.tsx`): ten finished looks (layout + background + colours + title font + divider + title effects) shown as live mini previews of the writer's own cover; picking one, or another layout, clears dragged positions and sizes. New books start from "classic". Clicking a cover part picks it for the Font size tool at the top of the designer (the title by default; the title changes `titleScale`, other parts scale via `cover.sizes`). The preview is sticky beside the tools on md+ screens so every change stays in view. Re-check every preset by eye after changing a template or a background.
 - Sample values (`lib/book-samples.ts`, `withSamples`): book details and cover fields that were never set (undefined/null) get real sample text when the book opens, so writers edit instead of filling blanks; a cleared field stays empty. The sample ISBN is all zeros with a valid check digit and must be replaced before printing.
 
+## Search and sharing (SEO)
+- `src/lib/seo.ts`: `SITE` (from `NEXT_PUBLIC_SITE_URL`, default https://getlitma.in), default title/description, keywords, share image, `pageMetadata({ title, description, path, noindex })`, `PUBLIC_PAGES` for the sitemap. The root layout sets `metadataBase`, the title template (`%s · Litma`), Open Graph/Twitter cards, icons and the manifest.
+- Pages are client components, so each route has a small `layout.tsx` exporting its metadata. A new route needs one: public pages get a description and canonical path (and a line in `PUBLIC_PAGES`); pages behind sign-in get `noindex: true` and a line in `app/robots.ts`.
+- `app/manifest.ts` (/manifest.webmanifest), `app/robots.ts`, `app/sitemap.ts` are `force-static`. The home page carries schema.org JSON-LD.
+- Icons in `public/icons/`, `public/favicon.ico`, `public/apple-touch-icon.png` and the share picture `public/og-image.jpg` (1200 × 630, the home hero) are made from the desktop icon `apps/desktop/build/icon.png`; remake them if that icon changes.
+
 ## Loading
 - `components/ui/Skeleton.tsx`: `Skeleton`, `SkeletonLines`, `DeskSkeleton`, `BooksSkeleton`, `EditorSkeleton`, `ListSkeleton`, `FormSkeleton`, `PagesSkeleton`, `InkLoader` (full screen: a nib writing a line under ലിറ്റ്മ), `InkDots`; CSS `.skeleton`, `.ink-spinner`, `.fade-in`, `.pop-in`, `.sheet-up` in globals.css. Shape skeletons like the content that is coming; don't use bare spinners.
 
@@ -145,7 +151,7 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - `AuthShell.tsx` frames the auth screens: the form card on a stack of violet/lime sheets, and a night quote card (M. T. Vasudevan Nair on sign-in, Vaikom Muhammad Basheer on sign-up); `quote={false}` gives one centred card, `switchTo` puts the other way in (Sign in / Create account) in the nav. Password fields have a show/hide eye button.
 
 ## Auth emails
-- Branded templates are generated by `node scripts/build-email-templates.mjs` into `supabase/templates/*.html` (+ `subjects.json`; site URL at the top of the script, switch to litma.com later). The owner pastes them into Supabase → Authentication → Emails → Templates. Sender "Litma <no-reply@…>" needs custom SMTP in Supabase (cPanel mailbox or a service like Resend). Don't run `supabase config push` until the rest of `[auth]` is described in `config.toml`.
+- Branded templates are generated by `node scripts/build-email-templates.mjs` into `supabase/templates/*.html` (+ `subjects.json`; site URL at the top of the script). The owner pastes them into Supabase → Authentication → Emails → Templates. Sender "Litma <no-reply@…>" needs custom SMTP in Supabase (cPanel mailbox or a service like Resend). Don't run `supabase config push` until the rest of `[auth]` is described in `config.toml`.
 
 ## MCP servers (.mcp.json)
 - `supabase` — hosted Supabase MCP for this project (OAuth on first use)
@@ -161,5 +167,5 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 
 ## Open items
 - Branded auth emails: paste templates and set up custom SMTP (owner, in the Supabase dashboard).
-- Optional branded MCP URL (host firewall allow-list for `/litma/mcp`, or a subdomain via Supabase custom domain / Cloudflare Worker).
+- Optional branded MCP URL (host firewall allow-list for `/mcp`, or a subdomain via Supabase custom domain / Cloudflare Worker).
 - Remaining native `confirm()` calls (Story World card delete, version restore) could move to `useConfirm()`.

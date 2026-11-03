@@ -2,12 +2,14 @@
 
 A Malayalam writing desk for novels, short stories, poems, screenplays, features, essays, plays, lyrics and diaries — on real A4 pages, typed in **Manglish** or **Malayalam**.
 
-**Live:** https://www.jayageetham.com/litma · **MCP:** https://www.jayageetham.com/litma/mcp
+**Live:** https://getlitma.in · **MCP:** https://getlitma.in/mcp
+
+(Litma used to live at https://www.jayageetham.com/litma; that address redirects to getlitma.in once the move is finished, see [Moving to getlitma.in](#moving-to-getlitmain).)
 
 ## Repository layout (npm workspaces)
 
 ```
-apps/web           Next.js static site (the app at /litma)
+apps/web           Next.js static site (served at the root of getlitma.in)
 apps/desktop       Electron app for macOS and Windows (bundles apps/web)
 apps/mobile        Flutter app for iOS and Android (planned; see its README)
 packages/shared    dependency-free TypeScript shared with the Edge Functions (writing types, Manglish, dictionary, serializers)
@@ -22,11 +24,11 @@ scripts            dictionary builder, shared-code sync, token export, auth emai
 
 | Piece | Where it runs |
 |---|---|
-| Web app — Next.js 15 static export, React 19, Tiptap 2, Tailwind v4 + SCSS | cPanel, `public_html/litma` (FTPS from GitHub Actions) |
+| Web app — Next.js 15 static export, React 19, Tiptap 2, Tailwind v4 + SCSS | cPanel, getlitma.in's web root (FTPS from GitHub Actions) |
 | Accounts, documents, versions, AI inbox, writing stats, profile pictures | Supabase project `jdexadomaxjtxlvgtldu` (Postgres + RLS, Auth, Storage `avatars`, Realtime) |
 | Manglish predictions (Google Input Tools) | Edge Function `litma-transliterate` |
 | AI companion (Claude / GPT, streamed) | Edge Function `litma-ai` (signed-in users only) |
-| MCP server | Edge Function `litma-mcp`, exposed at `/litma/mcp` by `apps/web/public/mcp.php` (a relay with no secrets) |
+| MCP server | Edge Function `litma-mcp`, exposed at `getlitma.in/mcp` by `apps/web/public/mcp.php` (a relay with no secrets) |
 
 The site is static, so there are no server secrets on cPanel. Service keys stay inside Supabase.
 
@@ -54,15 +56,15 @@ Pushing a tag yourself (`git tag v1.2.3 && git push --tags`) also builds and pub
 
 ## Dictionary data
 
-`npm run dict` downloads Olam's open datasets (Datuk — ODbL, EnMl — ODbL, E.K. Kurup — CC BY-SA 4.0) and writes sharded JSON to `apps/web/public/dict/` (git-ignored). CI does this on every deploy (cached), so the dictionary is served from `/litma/dict/`.
+`npm run dict` downloads Olam's open datasets (Datuk — ODbL, EnMl — ODbL, E.K. Kurup — CC BY-SA 4.0) and writes sharded JSON to `apps/web/public/dict/` (git-ignored). CI does this on every deploy (cached), so the dictionary is served from `/dict/`.
 
 ## Local development
 
 ```bash
 npm install            # once, at the repo root
-npm run dev            # http://localhost:3000/litma/
+npm run dev            # http://localhost:3000/
 npm run build          # static site → apps/web/out/
-npm run preview        # serve it at http://localhost:4173/litma/
+npm run preview        # serve it at http://localhost:4173/
 npm run desktop        # the desktop app (see apps/desktop/README.md)
 ```
 
@@ -73,32 +75,45 @@ npm run desktop        # the desktop app (see apps/desktop/README.md)
 Every push to `main` runs `.github/workflows/deploy.yml`, modelled on the main website:
 
 1. installs, type-checks and builds the static export (`apps/web/out/`)
-2. uploads `apps/web/out/` to **public_html/litma** over FTPS with `lftp mirror` — parallel, retries and reconnects on cPanel's connection resets, skips files that haven't changed, and never deletes anything on the server (a guard step fails the build if a delete flag is added)
+2. uploads `apps/web/out/` to **getlitma.in's web root** over FTPS with `lftp mirror` — parallel, retries and reconnects on cPanel's connection resets, skips files that haven't changed, and never deletes anything on the server (a guard step fails the build if a delete flag is added)
 3. if `SUPABASE_ACCESS_TOKEN` is set: deploys the three Edge Functions, and with `SUPABASE_DB_PASSWORD` also runs `supabase db push`
 
 ### One-time setup
 
-**cPanel → Files → FTP Accounts → Add FTP Account**
-
-| Field | Value |
-|---|---|
-| Log In | `litma` (→ `litma@jayageetham.com`) |
-| Password | generate one |
-| Directory | `public_html/litma` |
+**Web host → FTP Accounts → Add FTP Account** for getlitma.in, with its Directory set to getlitma.in's web root (the folder the domain serves). Its home folder is then `/`.
 
 **GitHub → Settings → Secrets and variables → Actions**
 
 | Kind | Name | Value |
 |---|---|---|
-| Secret | `FTP_PASSWORD` | the FTP account's password |
+| Variable | `LITMA_FTP_USERNAME` | the getlitma.in FTP account (e.g. `deploy@getlitma.in`) |
+| Secret | `LITMA_FTP_PASSWORD` | its password |
+| Variable (optional) | `LITMA_FTP_SERVER` | FTP host, if not `ftp.getlitma.in` |
+| Variable (optional) | `LITMA_FTP_DIR` | folder inside the account, if not `/` (e.g. `/public_html` when the account opens one level above the web root) |
 | Secret (optional) | `SUPABASE_ACCESS_TOKEN` | Supabase → Account → Access Tokens (a scoped token for this project) |
 | Secret (optional) | `SUPABASE_DB_PASSWORD` | Supabase → Project Settings → Database |
-| Variable (optional) | `FTP_USERNAME` / `FTP_SERVER_DIR` | only if you use a different FTP account (e.g. `admin@…` with `/litma/`) |
+| Secret (keep) | `FTP_PASSWORD` | the old `litma@jayageetham.com` account, used once by the redirect workflow |
+
+Until `LITMA_FTP_USERNAME` and `LITMA_FTP_PASSWORD` exist, pushes still build and check the site but skip the upload (a warning in the run), so nothing half-moves.
 
 **Supabase → Authentication → URL Configuration**
 
-- Site URL: `https://www.jayageetham.com/litma`
-- Redirect URLs: `https://www.jayageetham.com/litma/**` and `http://localhost:3000/litma/**`
+- Site URL: `https://getlitma.in`
+- Redirect URLs: `https://getlitma.in/**`, `http://localhost:3000/**`, and keep `https://www.jayageetham.com/litma/**` (desktop apps from before the move still send writers there; it redirects)
+
+### Moving to getlitma.in
+
+1. Point getlitma.in at the web host (DNS) and turn on HTTPS for it (cPanel → SSL/TLS Status → AutoSSL, for `getlitma.in` and `www.getlitma.in`).
+2. Make the FTP account and add the variable and secret above, then run **Actions → Deploy Litma → Run workflow** (or push). Check https://getlitma.in, sign in, open the dictionary.
+3. Supabase → Authentication → URL Configuration as above. Supabase → Edge Functions → Secrets: if `LITMA_SITE_URL` is set, change it to `https://getlitma.in` (or delete it; that is now the default).
+4. Run **Actions → Redirect the old Litma address** (type `getlitma.in is live`). It swaps `public_html/litma/.htaccess` on jayageetham.com for `deploy/legacy-litma/.htaccess`, so every old link, bookmark, MCP address and the old desktop updater's `latest.json` lands on the same path at getlitma.in.
+5. Run **Actions → Release** so the desktop app uses the new address too.
+6. Google Search Console: add `https://getlitma.in` as a property, submit `https://getlitma.in/sitemap.xml`, and use **Change of address** from the old jayageetham.com property if it was registered.
+7. Email templates: paste the regenerated `supabase/templates/*.html` (they link to getlitma.in) into Supabase → Authentication → Emails → Templates.
+
+### Search and sharing
+
+Every page has a title, description and canonical URL (`src/lib/seo.ts`, `pageMetadata`), with Open Graph and Twitter cards using `public/og-image.jpg` (1200 × 630). Public pages (home, dictionary, download, sign-up, sign-in) are in `/sitemap.xml`; writers' own pages (desk, editor, books, reader, settings…) are `noindex` and disallowed in `/robots.txt`. The home page carries schema.org data (Organization, WebSite, SoftwareApplication). `/manifest.webmanifest` makes the site installable on phones and in Chrome, with icons in `public/icons/` made from the desktop app icon (`apps/desktop/build/icon.png`).
 
 Optional: Authentication → Providers → Google (for "Continue with Google"). No AI keys are needed on the server — writers add their own.
 
@@ -122,10 +137,10 @@ Optional: Authentication → Providers → Google (for "Continue with Google"). 
 **Over MCP:** each writer connects the assistant they already use (any AI assistant that supports MCP (Claude, ChatGPT, Cursor, VS Code…)) with their own Litma token from **Settings → MCP**:
 
 ```bash
-claude mcp add --transport http litma https://www.jayageetham.com/litma/mcp --header "Authorization: Bearer litma_…"
+claude mcp add --transport http litma https://getlitma.in/mcp --header "Authorization: Bearer litma_…"
 ```
 
-Cloud connectors (Claude.ai **Settings → Connectors → Add custom connector**, ChatGPT) call from data centres, which the shared host's firewall blocks at `/litma/mcp`. They use the Edge Function directly, with the token in the URL:
+Cloud connectors (Claude.ai **Settings → Connectors → Add custom connector**, ChatGPT) call from data centres, which the shared host's firewall blocks at `/mcp`. They use the Edge Function directly, with the token in the URL:
 
 ```
 https://jdexadomaxjtxlvgtldu.supabase.co/functions/v1/litma-mcp?key=litma_…
@@ -155,5 +170,5 @@ packages/shared/src/      dependency-free code shared with Edge Functions (impor
 supabase/functions/ litma-transliterate · litma-ai · litma-mcp (+ _shared, synced from packages/shared/src)
 supabase/migrations schema, RLS, storage policies
 scripts/build-dictionary.mjs   Olam datasets → apps/web/public/dict shards (run by CI; `npm run dict` locally)
-apps/web/public/mcp.php   /litma/mcp relay   ·   apps/web/public/.htaccess  routing & caching
+apps/web/public/mcp.php   /mcp relay   ·   apps/web/public/.htaccess  routing & caching
 ```

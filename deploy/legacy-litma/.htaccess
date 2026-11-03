@@ -1,0 +1,19 @@
+# Litma moved from https://www.jayageetham.com/litma to https://getlitma.in
+#
+# This file replaces public_html/litma/.htaccess on jayageetham.com once getlitma.in is live
+# (Actions → "Redirect the old Litma address", or upload it by hand in cPanel → File Manager).
+# Every old link, bookmark, sign-in link, MCP address and the desktop updater's latest.json
+# keeps working: each path is sent to the same path on the new domain, query string included.
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /litma/
+
+  # MCP clients POST here: 308 keeps the method and body
+  RewriteRule ^mcp/?$ https://getlitma.in/mcp [R=308,L,QSA]
+
+  # everything else: permanent move, same path
+  RewriteRule ^(.*)$ https://getlitma.in/$1 [R=301,L,QSA]
+</IfModule>

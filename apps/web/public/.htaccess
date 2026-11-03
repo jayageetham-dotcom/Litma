@@ -1,22 +1,27 @@
-# Litma — static Next.js export served from public_html/litma
+# Litma: static Next.js export served from the root of https://getlitma.in
 # (deployed by .github/workflows/deploy.yml)
 
 DirectoryIndex index.html
-ErrorDocument 404 /litma/404.html
+ErrorDocument 404 /404.html
 Options -Indexes
 
 <IfModule mod_mime.c>
-  AddType image/svg+xml            svg
+  AddType image/svg+xml             svg
+  AddType image/x-icon              ico
   AddType application/manifest+json webmanifest
-  AddType text/plain               txt
-  AddType application/octet-stream dmg exe
+  AddType application/xml           xml
+  AddType text/plain                txt
+  AddType font/woff2                woff2
+  AddType application/octet-stream  dmg exe
 </IfModule>
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /litma/
+  RewriteBase /
 
-  # HTTPS only
+  # One address: https://getlitma.in (no www, HTTPS only)
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
@@ -25,10 +30,10 @@ Options -Indexes
   RewriteCond %{HTTP:Authorization} .
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-  # MCP endpoint: /litma/mcp  →  mcp.php (no directory, so no trailing-slash redirect on POST)
+  # MCP endpoint: /mcp  →  mcp.php (no directory, so no trailing-slash redirect on POST)
   RewriteRule ^mcp/?$ mcp.php [L,QSA]
 
-  # Pretty URLs without trailing slash → the exported folder (e.g. /litma/desk → /litma/desk/)
+  # Pretty URLs without trailing slash → the exported folder (e.g. /desk → /desk/)
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_FILENAME}/index.html -f
@@ -36,19 +41,23 @@ Options -Indexes
 </IfModule>
 
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json image/svg+xml
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/xml application/javascript application/json application/manifest+json image/svg+xml image/x-icon
 </IfModule>
 
 <IfModule mod_headers.c>
-  # Next.js puts content-hashed files under _next/static — cache them forever
-  <If "%{REQUEST_URI} =~ m#/litma/_next/static/#">
+  # Next.js puts content-hashed files under _next/static: cache them forever
+  <If "%{REQUEST_URI} =~ m#^/_next/static/#">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </If>
-  <FilesMatch "\.html$">
+  # fonts, icons and the share picture rarely change
+  <If "%{REQUEST_URI} =~ m#^/(fonts|icons|avatars|covers|brands)/|^/(favicon\.ico|apple-touch-icon\.png|og-image\.jpg)$#">
+    Header set Cache-Control "public, max-age=604800"
+  </If>
+  <FilesMatch "\.(html|webmanifest|xml|txt)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
   # desktop downloads: latest.json changes with every release
-  <If "%{REQUEST_URI} =~ m#/litma/downloads/latest\.json$#">
+  <If "%{REQUEST_URI} =~ m#^/downloads/latest\.json$#">
     Header set Cache-Control "no-cache"
   </If>
   Header always set X-Content-Type-Options "nosniff"

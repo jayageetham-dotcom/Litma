@@ -30,7 +30,7 @@ export function withSamples(b: Book): Book | null {
     category: unset(c.category) ? "Fiction" : c.category,
     coverCredit: unset(c.coverCredit) ? "Cover design: Litma" : c.coverCredit,
     publisherTagline: unset(c.publisherTagline) ? "Malayalam books" : c.publisherTagline,
-    website: unset(c.website) ? "www.jayageetham.com/litma" : c.website,
+    website: unset(c.website) ? "getlitma.in" : c.website,
   };
   const next: Book = { ...b, subtitle: unset(b.subtitle) ? "നോവൽ" : b.subtitle, author: unset(b.author) ? "എഴുത്തുകാരുടെ പേര്" : b.author, settings, cover };
   return JSON.stringify(next) === JSON.stringify(b) ? null : next;

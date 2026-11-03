@@ -5,6 +5,48 @@ import { Marquee } from "@/components/landing/Marquee";
 import { HeroActions } from "@/components/HomeActions";
 import { ColourField, LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
 import { DesktopDownload } from "@/components/landing/DesktopDownload";
+import { DEFAULT_DESCRIPTION, SITE, SITE_NAME, SITE_NAME_ML, pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({ path: "/" });
+
+/** Structured data so search engines know Litma is a writing app, who makes it and in which languages. */
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE}/#organization`,
+      name: SITE_NAME,
+      alternateName: SITE_NAME_ML,
+      url: `${SITE}/`,
+      logo: `${SITE}/icons/icon-512.png`,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE}/#website`,
+      name: SITE_NAME,
+      alternateName: SITE_NAME_ML,
+      url: `${SITE}/`,
+      inLanguage: ["ml", "en"],
+      publisher: { "@id": `${SITE}/#organization` },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${SITE}/#app`,
+      name: SITE_NAME,
+      alternateName: SITE_NAME_ML,
+      description: DEFAULT_DESCRIPTION,
+      url: `${SITE}/`,
+      image: `${SITE}/og-image.jpg`,
+      applicationCategory: "LifestyleApplication",
+      applicationSubCategory: "Writing",
+      operatingSystem: "Web, macOS, Windows",
+      inLanguage: ["ml", "en"],
+      downloadUrl: `${SITE}/download/`,
+      publisher: { "@id": `${SITE}/#organization` },
+    },
+  ],
+};
 
 const display = { fontFamily: "var(--font-display)" };
 
@@ -37,6 +79,7 @@ const FEATURES: { ml: string; title: string; body: React.ReactNode; dot: string;
 export default function Home() {
   return (
     <div className="landing min-h-dvh overflow-x-clip bg-mist">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA).replace(/</g, "\\u003c") }} />
       <LandingNav />
 
       <main>

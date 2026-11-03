@@ -9,7 +9,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 const BRAND = {
   name: "Litma",
   wordmark: "ലിറ്റ്മ",
-  site: "https://www.jayageetham.com/litma", // change to https://litma.com once the domain is live
+  site: "https://getlitma.in",
   ink: "#111113",
   muted: "#6b6b76",
   line: "#e2e2e6",

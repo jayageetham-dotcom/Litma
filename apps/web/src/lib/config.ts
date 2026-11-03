@@ -1,6 +1,6 @@
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabase/config";
 
-/** URL prefix the app is served under (e.g. "/litma"). */
+/** URL prefix the app is served under (empty on getlitma.in and in the desktop app). */
 export const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 /** Public URL of the app, without trailing slash. */
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");

@@ -2,7 +2,7 @@ name: 🖥️ Desktop app
 
 # Builds Litma for macOS (.dmg, universal) and Windows (.exe) and publishes them:
 #   - attached to the GitHub release for the version
-#   - uploaded to public_html/litma/downloads/ (add/replace only) with latest.json, which
+#   - latest.json uploaded to getlitma.in/downloads/ (add/replace only), which
 #     the home page reads for its download buttons and installed desktop apps read to update themselves.
 # Normally run by the Release workflow. Can also run from a pushed tag (v1.2.3 or desktop-v1.2.3)
 # or by hand from the Actions tab.
@@ -70,7 +70,7 @@ jobs:
           LITMA_VERSION: ${{ steps.v.outputs.version }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://jdexadomaxjtxlvgtldu.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XH6LhcIvUP_ENNbZFrmj7g_Z-YjUzP4' }}
-          NEXT_PUBLIC_SITE_URL: https://www.jayageetham.com/litma
+          NEXT_PUBLIC_SITE_URL: https://getlitma.in
       - uses: actions/upload-artifact@v6
         with:
           name: web-out
@@ -213,7 +213,7 @@ jobs:
           tag_name: v${{ env.V }}
           name: Litma ${{ env.V }}
           body_path: notes.md
-      # Same guard as deploy.yml: public_html also holds the main site and /onnayi.
+      # Same guard as deploy.yml: the web host also holds other sites.
       - name: 🔒 Refuse to delete files on the server
         run: |
           if grep -nE '^[[:space:]]*mirror .*(--delete|[[:space:]]-e[[:space:]])' .github/workflows/desktop.yml; then
@@ -224,13 +224,15 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
       - name: 📂 Put latest.json on the website (a few KB; the installers stay on GitHub)
         env:
-          FTP_USER: ${{ vars.FTP_USERNAME || 'litma@jayageetham.com' }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
+          # same FTP account as deploy.yml (getlitma.in)
+          FTP_HOST: ${{ vars.LITMA_FTP_SERVER || 'ftp.getlitma.in' }}
+          FTP_USER: ${{ vars.LITMA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.LITMA_FTP_PASSWORD }}
+          FTP_DIR: ${{ vars.LITMA_FTP_DIR || '/' }}
         run: |
-          if [ -z "$FTP_PASSWORD" ]; then echo "::warning::No FTP_PASSWORD secret; apps will read latest.json from the GitHub release only."; exit 0; fi
+          if [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then echo "::warning::getlitma.in FTP account not set up yet; apps will read latest.json from the GitHub release only."; exit 0; fi
           for attempt in 1 2 3; do
-            if lftp -u "$FTP_USER","$FTP_PASSWORD" ftp.jayageetham.com <<LFTP
+            if lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate no

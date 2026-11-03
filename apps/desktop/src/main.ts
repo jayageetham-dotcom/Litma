@@ -1,7 +1,7 @@
 /**
  * Litma desktop (Electron).
  *
- * The window runs the same static web app as https://www.jayageetham.com/litma, bundled into the
+ * The window runs the same static web app as https://getlitma.in, bundled into the
  * installer and served from the private `app://litma/` origin, so it opens instantly and keeps
  * working when the network drops (writing is journalled locally and synced by the app itself).
  * Accounts, documents and AI still talk to Supabase over the network, exactly like the website.
@@ -16,7 +16,11 @@ const SCHEME = "app";
 const HOST = "litma";
 const ORIGIN = `${SCHEME}://${HOST}`;
 /** the website: dictionary data and auth callbacks live here */
-const SITE = "https://www.jayageetham.com/litma";
+const SITE = "https://getlitma.in";
+/** the website's old address (redirects to SITE once it is live); links and callbacks from it still work */
+const LEGACY_SITE = "https://www.jayageetham.com/litma";
+/** the website address a URL starts with, if any */
+const siteOf = (url: string) => [SITE, "https://www.getlitma.in", LEGACY_SITE].find((s) => url === s || url.startsWith(`${s}/`) || url.startsWith(`${s}?`));
 const WEB_ROOT = join(__dirname, "..", "app", "web");
 
 const MIME: Record<string, string> = {
@@ -43,7 +47,11 @@ async function serve(request: Request): Promise<Response> {
   const url = new URL(request.url);
   let rel = decodeURIComponent(url.pathname);
   // dictionary shards are large: fetch them from the website (Chromium caches them)
-  if (rel.startsWith("/dict/")) return net.fetch(`${SITE}${rel}${url.search}`);
+  if (rel.startsWith("/dict/")) {
+    const res = await net.fetch(`${SITE}${rel}${url.search}`).catch(() => null);
+    // until getlitma.in is live, the old address still has the data
+    return res?.ok ? res : net.fetch(`${LEGACY_SITE}${rel}${url.search}`);
+  }
   const target = normalize(join(WEB_ROOT, rel));
   if (!target.startsWith(WEB_ROOT + sep) && target !== WEB_ROOT) return new Response("Forbidden", { status: 403 });
   let file = target;
@@ -91,9 +99,10 @@ function routeNavigation(win: BrowserWindow) {
   const handle = (event: Electron.Event, raw: string) => {
     if (raw.startsWith(ORIGIN)) return;
     // auth callbacks land on the website: bring them into the app so the session is stored here
-    if (raw.startsWith(`${SITE}/auth/callback`)) {
+    const site = siteOf(raw);
+    if (site && raw.startsWith(`${site}/auth/callback`)) {
       event.preventDefault();
-      win.loadURL(raw.replace(SITE, ORIGIN));
+      win.loadURL(ORIGIN + raw.slice(site.length));
       return;
     }
     const host = (() => {
@@ -112,8 +121,9 @@ function routeNavigation(win: BrowserWindow) {
   wc.setWindowOpenHandler(({ url }) => {
     // reader view, print/PDF view and book previews open as app windows
     if (url.startsWith(ORIGIN)) return { action: "allow", overrideBrowserWindowOptions: { width: 1100, height: 860, autoHideMenuBar: true } };
-    if (url.startsWith(`${SITE}/`) && !url.includes("/auth/")) {
-      createWindow(url.replace(SITE, ORIGIN));
+    const site = siteOf(url);
+    if (site && url.startsWith(`${site}/`) && !url.includes("/auth/")) {
+      createWindow(ORIGIN + url.slice(site.length));
       return { action: "deny" };
     }
     if (/^https?:|^mailto:/.test(url)) shell.openExternal(url);

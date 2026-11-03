@@ -15,7 +15,7 @@ npm run desktop                          # builds the web app for the desktop, t
 npm run desktop:dist                     # current OS: release/Litma-mac.dmg or release/Litma-win.exe
 ```
 
-CI does this for both platforms: push a tag like `desktop-v0.1.0` (or run the **Desktop app** workflow by hand). `.github/workflows/desktop.yml` builds the web app once, packages it on macOS and Windows runners, attaches the installers to a GitHub release and uploads them to `public_html/litma/downloads/` (add/replace only). The home page reads `downloads/latest.json` and shows the download buttons.
+CI does this for both platforms: push a tag like `desktop-v0.1.0` (or run the **Desktop app** workflow by hand). `.github/workflows/desktop.yml` builds the web app once, packages it on macOS and Windows runners, attaches the installers to a GitHub release and uploads `latest.json` to getlitma.in/downloads/ (add/replace only). The home page reads `downloads/latest.json` and shows the download buttons.
 
 ## Publishing
 
@@ -36,4 +36,4 @@ Without certificates the installers are unsigned:
 
 ## How sign-in works
 
-Email and password sign-in happens in the app. Google sign-in opens in the app window too; Supabase sends the browser back to the website's `/auth/callback/`, which the app intercepts and finishes on `app://litma/auth/callback/`, so the session is stored in the app. Links in emails (confirm, reset password) open in your browser.
+Email and password sign-in happens in the app. Google sign-in opens in the app window too; Supabase sends the browser back to the website's `/auth/callback/` (getlitma.in, or the old jayageetham.com/litma address for apps from before the move), which the app intercepts and finishes on `app://litma/auth/callback/`, so the session is stored in the app. Links in emails (confirm, reset password) open in your browser.

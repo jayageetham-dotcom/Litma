@@ -1,7 +1,7 @@
 /**
  * Litma MCP server — Streamable HTTP transport, stateless JSON responses.
  *
- * Public URL:  https://www.jayageetham.com/litma/mcp   (PHP relay → this function)
+ * Public URL:  https://getlitma.in/mcp   (PHP relay → this function)
  * Direct URL:  https://<ref>.supabase.co/functions/v1/litma-mcp
  *
  * Each writer connects their own AI assistant (any AI assistant that supports MCP (Claude, ChatGPT, Cursor, VS Code…))
@@ -17,14 +17,20 @@ import { createDictionary } from "../_shared/dict.ts";
 import { transliteratePhrase } from "../_shared/google.ts";
 
 const PROTOCOL = "2025-06-18";
-const SITE = (Deno.env.get("LITMA_SITE_URL") ?? "https://www.jayageetham.com/litma").replace(/\/$/, "");
+const SITE = (Deno.env.get("LITMA_SITE_URL") ?? "https://getlitma.in").replace(/\/$/, "");
+/** the old address keeps serving the dictionary until getlitma.in is live (and redirects there afterwards) */
+const LEGACY_SITE = "https://www.jayageetham.com/litma";
 const db: SupabaseClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 const dict = createDictionary((path) =>
   fetch(`${SITE}/dict/${path}.json`)
-    .then((r) => (r.ok ? r.json() : null))
-    .catch(() => null)
+    .then((r) => (r.ok ? r.json() : Promise.reject()))
+    .catch(() =>
+      fetch(`${LEGACY_SITE}/dict/${path}.json`)
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null)
+    )
 );
 
 type Json = Record<string, unknown>;

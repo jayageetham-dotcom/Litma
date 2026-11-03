@@ -3,10 +3,44 @@ import "./globals.css";
 import "@/styles/editor.scss";
 import { I18nProvider } from "@/i18n/react";
 import { UpdateNotice } from "@/components/UpdateNotice";
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, KEYWORDS, SHARE_IMAGE, SITE, SITE_NAME } from "@/lib/seo";
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export const metadata: Metadata = {
-  title: "Litma · മലയാളം എഴുത്തുമേശ",
-  description: "A Malayalam writing studio for novels, stories, poems, screenplays and features. Type in Manglish or Malayalam on A4 pages.",
+  metadataBase: new URL(`${SITE}/`),
+  title: { default: DEFAULT_TITLE, template: `%s · ${SITE_NAME}` },
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: KEYWORDS,
+  authors: [{ name: SITE_NAME, url: SITE }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: "writing",
+  generator: null,
+  referrer: "strict-origin-when-cross-origin",
+  formatDetection: { telephone: false, email: false, address: false },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ml_IN",
+    alternateLocale: ["en_IN"],
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [SHARE_IMAGE],
+  },
+  twitter: { card: "summary_large_image", title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION, images: [SHARE_IMAGE.url] },
+  icons: {
+    icon: [
+      { url: `${BASE}/favicon.ico`, sizes: "48x48" },
+      { url: `${BASE}/icons/icon-32.png`, type: "image/png", sizes: "32x32" },
+      { url: `${BASE}/icons/icon-192.png`, type: "image/png", sizes: "192x192" },
+    ],
+    apple: [{ url: `${BASE}/apple-touch-icon.png`, sizes: "180x180", type: "image/png" }],
+  },
+  manifest: `${BASE}/manifest.webmanifest`,
+  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
@@ -52,7 +86,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="stylesheet" href={FONTS} />
         <style dangerouslySetInnerHTML={{ __html: SMC_FONTS }} />
-        <link rel="icon" href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/icon.svg`} type="image/svg+xml" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-dvh">

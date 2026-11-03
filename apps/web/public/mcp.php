@@ -1,9 +1,9 @@
 <?php
 /**
- * Litma MCP endpoint — https://www.jayageetham.com/litma/mcp
+ * Litma MCP endpoint — https://getlitma.in/mcp
  *
  * A thin relay to the litma-mcp Supabase Edge Function, so MCP clients (Claude, ChatGPT,
- * IBM Bob, Cursor…) can use a URL on jayageetham.com. It holds no secrets: callers
+ * Cursor or any other AI assistant) can use a URL on getlitma.in. It holds no secrets: callers
  * authenticate with their own Litma token, which the Edge Function verifies.
  */
 declare(strict_types=1);

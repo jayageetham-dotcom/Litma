@@ -18,7 +18,7 @@ Litma uses **one version number** for the website, the desktop app and the mobil
 
 1. **Version**: `pubspec.yaml` `version: X.Y.Z+N` takes X.Y.Z from the release and N from the CI run number (stores need a growing build number). The Release workflow will gain a `mobile` job that sets it and builds.
 2. **Store updates**: releases go to TestFlight / App Store and the Play Console through CI (Fastlane or `flutter build ipa` + App Store Connect API key, `flutter build appbundle` + Play service account). Phones update from the stores as usual.
-3. **In-app prompt**: on launch the app reads `https://www.jayageetham.com/litma/downloads/latest.json`. The `mobile` block (`version`, `minimumVersion`, `ios`, `android` store links) is already in the file (filled in once the app ships):
+3. **In-app prompt**: on launch the app reads `https://getlitma.in/downloads/latest.json`. The `mobile` block (`version`, `minimumVersion`, `ios`, `android` store links) is already in the file (filled in once the app ships):
    - newer `version` → a gentle "Update available" card linking to the store (Android can use Play's in-app updates)
    - `minimumVersion` above the installed one → a blocking "Please update" screen (for backend changes old apps can't handle)
 4. **Instant fixes without a store review (optional)**: Shorebird code push can patch Dart code between store releases.

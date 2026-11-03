@@ -1,0 +1,50 @@
+name: ↪️ Redirect the old Litma address
+
+# Run by hand ONCE, after https://getlitma.in is live and working.
+# Replaces public_html/litma/.htaccess on jayageetham.com with deploy/legacy-litma/.htaccess,
+# which sends every old link (pages, sign-in links, /mcp, /dict, downloads/latest.json)
+# to the same path on getlitma.in. Uploads one file; never deletes anything.
+# Uses the old FTP account (FTP_PASSWORD secret, litma@jayageetham.com).
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "getlitma.in is live" to confirm'
+        required: true
+
+jobs:
+  redirect:
+    name: Point jayageetham.com/litma to getlitma.in
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check confirmation
+        if: ${{ inputs.confirm != 'getlitma.in is live' }}
+        run: |
+          echo "::error::Type exactly: getlitma.in is live"
+          exit 1
+      - uses: actions/checkout@v6
+      - name: Check getlitma.in answers
+        run: |
+          curl -fsS -o /dev/null https://getlitma.in/ || { echo "::error::https://getlitma.in/ is not answering yet."; exit 1; }
+          curl -fsS -o /dev/null https://getlitma.in/version.json || { echo "::error::Litma is not deployed on getlitma.in yet."; exit 1; }
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: Upload the redirect
+        env:
+          FTP_USER: ${{ vars.FTP_USERNAME || 'litma@jayageetham.com' }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
+        run: |
+          if [ -z "$FTP_PASSWORD" ]; then echo "::error::The old FTP_PASSWORD secret is missing. Upload deploy/legacy-litma/.htaccess to public_html/litma by hand in cPanel."; exit 1; fi
+          lftp -u "$FTP_USER","$FTP_PASSWORD" ftp.jayageetham.com <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate no
+          set ftp:passive-mode true
+          set cmd:fail-exit true
+          put -O ${FTP_DIR%/}/ ./deploy/legacy-litma/.htaccess
+          bye
+          LFTP
+          sleep 5
+          curl -sSI https://www.jayageetham.com/litma/desk/ | grep -i '^location:' || true

@@ -6,7 +6,7 @@
     },
     "litma": {
       "type": "http",
-      "url": "https://www.jayageetham.com/litma/mcp",
+      "url": "https://getlitma.in/mcp",
       "headers": { "Authorization": "Bearer ${LITMA_MCP_TOKEN}" }
     }
   }

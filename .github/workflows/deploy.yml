@@ -1,8 +1,9 @@
 name: 🚀 Deploy Litma
 
 # Push to main →
-#   1. build the static site (apps/web: Next.js export, base path /litma)
-#   2. sync out/ to public_html/litma on cPanel over FTPS
+#   1. build the static site (apps/web: Next.js export, served at the root of https://getlitma.in)
+#   2. sync out/ to getlitma.in's folder on the web host over FTPS
+#      (needs the LITMA_FTP_USERNAME variable and LITMA_FTP_PASSWORD secret; see README → Deploy)
 #   3. (optional) deploy Supabase Edge Functions + database migrations
 #
 # Follows the same pattern as jayageetham-dotcom/website.
@@ -38,17 +39,17 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      # public_html also holds the main site and /onnayi (whose uploads/ and
-      # api/config.php exist nowhere else). Litma's FTP account is locked to
-      # public_html/litma, and the upload below never deletes anything on the
-      # server. This guard makes adding a delete flag a build failure.
+      # The web host also holds other sites (jayageetham.com and /onnayi, whose
+      # uploads/ and api/config.php exist nowhere else). Litma's FTP account is
+      # locked to getlitma.in's folder, and the upload below never deletes
+      # anything on the server. This guard makes adding a delete flag a build failure.
       - name: 🔒 Refuse to delete files on the server
         run: |
           if grep -nE '^[[:space:]]*mirror .*(--delete|[[:space:]]-e[[:space:]])' .github/workflows/deploy.yml; then
             echo "::error::The FTP upload must never delete server files. Remove --delete / -e from the mirror command."
             exit 1
           fi
-          echo "Upload is add/replace only — the rest of public_html is safe."
+          echo "Upload is add/replace only. Nothing on the server is ever deleted."
 
       - name: 🟢 Use Node.js 22
         uses: actions/setup-node@v6
@@ -85,8 +86,8 @@ jobs:
           # Public values; defaults come from .env.production. Override with repo variables if needed.
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://jdexadomaxjtxlvgtldu.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XH6LhcIvUP_ENNbZFrmj7g_Z-YjUzP4' }}
-          NEXT_PUBLIC_SITE_URL: https://www.jayageetham.com/litma
-          NEXT_PUBLIC_BASE_PATH: /litma
+          NEXT_PUBLIC_SITE_URL: https://getlitma.in
+          NEXT_PUBLIC_BASE_PATH: ""
 
       # lftp instead of FTP-Deploy-Action: cPanel's FTPS server resets connections
       # when one session creates thousands of files. lftp reconnects and retries each
@@ -95,22 +96,31 @@ jobs:
       - name: 🧰 Install lftp
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 
-      - name: 📂 Upload to public_html/litma (FTPS, resumable)
+      - name: 📂 Upload to getlitma.in (FTPS, resumable)
         env:
-          FTP_USER: ${{ vars.FTP_USERNAME || 'litma@jayageetham.com' }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          # The litma@ account's Directory is public_html/litma, so "/" is that folder.
-          # With the admin@ account instead, set the repo variable FTP_SERVER_DIR=/litma
-          FTP_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
+          # Repository settings → Secrets and variables → Actions:
+          #   variable LITMA_FTP_USERNAME  the FTP account made for getlitma.in (e.g. deploy@getlitma.in)
+          #   secret   LITMA_FTP_PASSWORD  its password
+          #   variable LITMA_FTP_SERVER    optional, defaults to ftp.getlitma.in
+          #   variable LITMA_FTP_DIR       optional, defaults to "/" (the account's own folder, i.e. getlitma.in's web root)
+          # Until the username and password exist the site is built and checked but not uploaded,
+          # so the old address (jayageetham.com/litma) keeps running untouched.
+          FTP_HOST: ${{ vars.LITMA_FTP_SERVER || 'ftp.getlitma.in' }}
+          FTP_USER: ${{ vars.LITMA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.LITMA_FTP_PASSWORD }}
+          FTP_DIR: ${{ vars.LITMA_FTP_DIR || '/' }}
         run: |
-          if [ -z "$FTP_PASSWORD" ]; then echo "::error::Add the FTP_PASSWORD repository secret."; exit 1; fi
+          if [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
+            echo "::warning::getlitma.in FTP account not set up yet (LITMA_FTP_USERNAME variable and LITMA_FTP_PASSWORD secret). The site was built but not uploaded."
+            exit 0
+          fi
           # The mirror compares sizes only, so a changed file of the same size (version.json, an HTML page)
           # would be skipped. Files under _next/ carry a content hash in their name and dict/ is built data;
           # every other file is small, so it is always uploaded again, after the mirror (new chunks land first).
           ALWAYS=$(cd apps/web/out && find . -type f -not -path './_next/*' -not -path './dict/*' -not -name .DS_Store | sed 's|^\./||' | sort | tr '\n' ' ')
           for attempt in 1 2 3; do
             echo "Upload attempt $attempt"
-            if lftp -u "$FTP_USER","$FTP_PASSWORD" ftp.jayageetham.com <<LFTP
+            if lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate no

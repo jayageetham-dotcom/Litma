@@ -15,5 +15,5 @@ try {
   /* not a git checkout */
 }
 const build = process.env.LITMA_BUILD_ID || `${version}+${commit}`;
-writeFileSync(join(root, "apps/web/out/version.json"), JSON.stringify({ version, build, date: new Date().toISOString() }, null, 2) + "\n");
+writeFileSync(join(root, "apps/web/out/version.json"), JSON.stringify({ version, build, date: new Date().toISOString(), ...(process.env.NEXT_PUBLIC_DESKTOP === "1" ? { desktop: true } : {}) }, null, 2) + "\n");
 console.log(`version.json → ${build}`);

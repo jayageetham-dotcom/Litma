@@ -20,7 +20,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // LITMA_UPDATE_FEED / LITMA_UPDATE_PLATFORM exist for testing the updater against a local server
-const FEED = process.env.LITMA_UPDATE_FEED || "https://www.jayageetham.com/litma/downloads";
+const FEED = process.env.LITMA_UPDATE_FEED || "https://getlitma.in/downloads";
 const PLATFORM = process.env.LITMA_UPDATE_PLATFORM || process.platform;
 /** installers are published on this public repository's GitHub Releases (the web host is too small for them) */
 const RELEASES_FEED = "https://github.com/jayageetham-dotcom/litma-releases/releases/latest/download";

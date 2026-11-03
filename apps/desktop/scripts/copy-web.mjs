@@ -13,8 +13,10 @@ if (!existsSync(join(out, "index.html"))) {
   console.error("No web build found. Run:  npm run build:desktop -w @litma/web");
   process.exit(1);
 }
-if (readFileSync(join(out, "index.html"), "utf8").includes('"/litma/_next/')) {
-  console.error("apps/web/out was built for the website (/litma). Rebuild it for the desktop:  npm run build:desktop -w @litma/web");
+// the website and the desktop builds look alike now (both at the root); version.json tells them apart
+const built = existsSync(join(out, "version.json")) ? JSON.parse(readFileSync(join(out, "version.json"), "utf8")) : {};
+if (!built.desktop) {
+  console.error("apps/web/out was built for the website. Rebuild it for the desktop:  npm run build:desktop -w @litma/web");
   process.exit(1);
 }
 rmSync(dest, { recursive: true, force: true });

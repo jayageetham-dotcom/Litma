@@ -1,5 +1,5 @@
 "use client";
-/** Browser wrapper around the shared dictionary core: data is served from /litma/dict/. */
+/** Browser wrapper around the shared dictionary core: data is served from /dict/. */
 import { BASE } from "./config";
 import { createDictionary, isMalayalam, type DictIndex, type LookupResult } from "@litma/shared/dict";
 import { manglishWord } from "@litma/shared/manglish";

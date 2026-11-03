@@ -1,9 +1,9 @@
-// Serve the static export (out/) at http://localhost:4173/litma/ — like the live site.
+// Serve the static export (out/) at http://localhost:4173/ — like the live site.
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 
-const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "/litma";
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".txt": "text/plain", ".woff2": "font/woff2", ".png": "image/png" };
 
 createServer(async (req, res) => {

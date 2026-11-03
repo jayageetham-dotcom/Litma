@@ -4,11 +4,11 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Litma is exported as a static site and served from https://www.jayageetham.com/litma
- * (cPanel). Server work runs in Supabase Edge Functions (see supabase/functions).
+ * Litma is exported as a static site and served from https://getlitma.in
+ * (cPanel, at the domain root). Server work runs in Supabase Edge Functions (see supabase/functions).
  * The desktop app builds the same site with an empty base path (npm run build:desktop).
  */
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "/litma";
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 /** one version for every app: the root package.json (the Release workflow bumps it) */
 const version = process.env.LITMA_VERSION || (JSON.parse(readFileSync(join(__dirname, "../../package.json"), "utf8")).version as string);
 /** identifies this build (version + commit), so open tabs can tell when a newer one is live; scripts/write-version.mjs uses the same rule */

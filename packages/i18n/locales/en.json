@@ -305,8 +305,8 @@
       "mark": "Move the publisher mark",
       "back-head": "Move the title and author picture"
     },
-    "moveHint": "Drag the title or the author on the cover to move them. Arrow keys nudge (Shift for bigger steps).",
-    "moveHintBack": "Drag the blurb or the publisher block to move them. Arrow keys nudge (Shift for bigger steps).",
+    "moveHint": "Click a text on the cover to resize it. Drag to move; arrow keys nudge (Shift for bigger steps).",
+    "moveHintBack": "Click a text on the cover to resize it. Drag to move; arrow keys nudge (Shift for bigger steps).",
     "resetPositions": "Reset positions",
     "titleEffects": "Title effects",
     "shadow": "Drop shadow",
@@ -337,6 +337,31 @@
     "publisherTagline": "Publisher tagline",
     "website": "Website",
     "imprintHint": "The strip shows the publisher (Litma Publishing House unless you name your own in Book details), the ISBN as a barcode and the price.",
-    "imprintStrip": "Imprint strip"
+    "imprintStrip": "Imprint strip",
+    "sizeOf": "Size: {part}",
+    "resetSize": "Reset size",
+    "part": {
+      "title": "title",
+      "author": "author",
+      "badge": "badge",
+      "mark": "publisher mark",
+      "back-head": "title and picture",
+      "back-text": "blurb",
+      "back-imprint": "imprint strip"
+    },
+    "presetsTitle": "Presets",
+    "layout": "Layout",
+    "presets": {
+      "classic": "Classic",
+      "epic": "Epic",
+      "romance": "Romance",
+      "noir": "Noir",
+      "space": "Space",
+      "gothic": "Gothic",
+      "harbour": "Harbour",
+      "modern": "Modern",
+      "paper": "Paper",
+      "bold": "Bold type"
+    }
   }
 }

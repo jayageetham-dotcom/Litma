@@ -34,6 +34,29 @@ export const COVER_FONTS: { name: string; kind: "sans" | "calligraphy" | "displa
   { name: "Rachana", kind: "serif" },
 ];
 
+/**
+ * Finished looks: a layout, a background, colours, a title font, a divider and title effects that were
+ * checked together. Picking one also clears dragged positions and custom sizes, so it always looks as designed.
+ */
+export const COVER_PRESETS: { id: string; cover: Partial<BookCover> }[] = [
+  { id: "classic", cover: { template: "kasavu", art: "literary", bg: "#efe9dc", fg: "#3d4232", accent: "#a8875a", font: "Rachana", ornament: "flourish" } },
+  { id: "epic", cover: { template: "art", art: "fantasy", bg: "#0b2f3a", fg: "#fdf6e3", accent: "#e9c46a", font: "Uroob", ornament: "line", titleShadow: true } },
+  { id: "romance", cover: { template: "art", art: "romance", bg: "#f6c9cf", fg: "#5a2238", accent: "#b5546f", font: "Karumbi", ornament: "flourish", titleScale: 1.55 } },
+  { id: "noir", cover: { template: "type", art: "thriller", bg: "#0a0e13", fg: "#e8eef5", accent: "#c8102e", font: "Anek Malayalam", ornament: "none", titleShadow: true, titleScale: 0.75 } },
+  { id: "space", cover: { template: "solid", art: "scifi", bg: "#050a1f", fg: "#e9fbff", accent: "#4fe3ff", font: "Baloo Chettan 2", ornament: "line", titleShadow: true, titleScale: 0.9 } },
+  { id: "gothic", cover: { template: "art", art: "horror", bg: "#151b18", fg: "#e9e6d6", accent: "#d9c45a", font: "Dyuthi", ornament: "flourish", titleShadow: true } },
+  { id: "harbour", cover: { template: "art", art: "historical", bg: "#1d2a44", fg: "#fbecd0", accent: "#e7a85a", font: "Noto Serif Malayalam", ornament: "flourish", titleBox: true, titleBoxColor: "#1d2a44", titleBoxOpacity: 0.55, titleScale: 0.9 } },
+  { id: "modern", cover: { template: "solid", art: "selfhelp", bg: "#0b2350", fg: "#ffffff", accent: "#ffb15a", font: "Meera", ornament: "line", titleScale: 0.9 } },
+  { id: "paper", cover: { template: "minimal", art: null, bg: "#faf7f0", fg: "#1f2421", accent: "#8a5a2b", font: "Manjari", ornament: "flourish", titleScale: 1.3 } },
+  { id: "bold", cover: { template: "type", art: null, bg: "#e9e1cf", fg: "#3b1f1a", accent: "#a3372b", font: "Anek Malayalam", ornament: "line", titleScale: 0.8 } },
+];
+
+/** The full patch for a preset: its look, everything else back to the design's defaults. */
+export function presetPatch(id: string): Partial<BookCover> {
+  const p = COVER_PRESETS.find((x) => x.id === id)!;
+  return { preset: id, titleShadow: false, titleBox: false, titleBoxColor: undefined, titleBoxOpacity: undefined, titleScale: 1, offsets: {}, sizes: {}, image: null, ...p.cover };
+}
+
 /** Publisher shown on the back-cover imprint strip (and the front mark) until the writer names their own. */
 export const DEFAULT_PUBLISHER = "Litma Publishing House";
 
@@ -46,8 +69,17 @@ function resolve(book: Pick<Book, "cover">) {
   return { ...t.defaults, ...c, template: t.id } as BookCover & { template: NonNullable<BookCover["template"]> };
 }
 
-type MoveCtx = { offsets: Record<string, CoverOffset>; wmm: number; hmm: number; onMove?: (id: string, o: CoverOffset) => void; label?: (id: string) => string };
-const Move = createContext<MoveCtx>({ offsets: {}, wmm: 210, hmm: 297 });
+type MoveCtx = {
+  offsets: Record<string, CoverOffset>;
+  sizes: Record<string, number>;
+  wmm: number;
+  hmm: number;
+  onMove?: (id: string, o: CoverOffset) => void;
+  label?: (id: string) => string;
+  selected?: string | null;
+  onSelect?: (id: string) => void;
+};
+const Move = createContext<MoveCtx>({ offsets: {}, sizes: {}, wmm: 210, hmm: 297 });
 
 /** A block of the cover that keeps its design position plus the writer's offset; draggable in the designer. */
 function Movable({ id, className = "", style, children }: { id: string; className?: string; style?: React.CSSProperties; children: React.ReactNode }) {
@@ -56,7 +88,9 @@ function Movable({ id, className = "", style, children }: { id: string; classNam
   const [live, setLive] = useState<CoverOffset | null>(null);
   const drag = useRef<{ sx: number; sy: number; ppm: number; start: CoverOffset } | null>(null);
   const o = live ?? base;
-  const st: React.CSSProperties = { ...style, translate: o.x || o.y ? `${o.x}mm ${o.y}mm` : undefined };
+  const size = ctx.sizes[id];
+  const st: React.CSSProperties = { ...style, translate: o.x || o.y ? `${o.x}mm ${o.y}mm` : undefined, scale: size && size !== 1 ? String(size) : undefined };
+  const on = ctx.selected === id;
   if (!ctx.onMove)
     return (
       <div className={className} style={st}>
@@ -69,11 +103,12 @@ function Movable({ id, className = "", style, children }: { id: string; classNam
   });
   return (
     <div
-      className={`${className} cursor-move touch-none select-none outline-offset-[1.5mm] hover:outline-2 hover:outline-dashed focus-visible:outline-2 focus-visible:outline-dashed`}
+      className={`${className} cursor-move touch-none select-none outline-offset-[1.5mm] ${on ? "outline-2 outline-solid" : "hover:outline-2 hover:outline-dashed focus-visible:outline-2 focus-visible:outline-dashed"}`}
       style={{ ...st, outlineColor: "currentColor" }}
       role="button"
       tabIndex={0}
       aria-label={ctx.label?.(id)}
+      aria-pressed={on}
       title={ctx.label?.(id)}
       onPointerDown={(e) => {
         e.preventDefault();
@@ -83,6 +118,7 @@ function Movable({ id, className = "", style, children }: { id: string; classNam
         drag.current = { sx: e.clientX, sy: e.clientY, ppm, start: base };
         e.currentTarget.setPointerCapture(e.pointerId);
         e.currentTarget.focus();
+        ctx.onSelect?.(id);
       }}
       onPointerMove={(e) => {
         const d = drag.current;
@@ -119,10 +155,13 @@ type CoverProps = {
   /** Designer only: makes the title and author blocks draggable. */
   onMove?: (id: string, o: CoverOffset) => void;
   moveLabel?: (id: string) => string;
+  /** Designer only: the selected part (outlined) and a callback when one is clicked. */
+  selected?: string | null;
+  onSelect?: (id: string) => void;
 };
 
 /** Front cover, drawn at w×h millimetres (full bleed). */
-export function CoverFront({ book, w, h, className = "", onMove, moveLabel }: CoverProps) {
+export function CoverFront({ book, w, h, className = "", onMove, moveLabel, selected, onSelect }: CoverProps) {
   const c = resolve(book);
   const scale = c.titleScale ?? 1;
   const font = `'${c.font ?? "Anek Malayalam"}', Inter, sans-serif`;
@@ -140,7 +179,7 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel }: Co
     <h1 style={{ fontSize: `${size * scale}pt`, lineHeight: lh, fontWeight: weight, textShadow: shadow, ...extra }}>{title}</h1>
   );
   const sub = (size: number, extra?: React.CSSProperties) => (book.subtitle ? <p style={{ fontSize: `${size}pt`, opacity: 0.9, textShadow: shadow, ...extra }}>{book.subtitle}</p> : null);
-  const ctx: MoveCtx = { offsets: c.offsets ?? {}, wmm: w, hmm: h, onMove, label: moveLabel };
+  const ctx: MoveCtx = { offsets: c.offsets ?? {}, sizes: { ...(c.sizes ?? {}), title: 1 }, wmm: w, hmm: h, onMove, label: moveLabel, selected, onSelect };
   /** Divider under the title in the chosen style; `line` is the design's own bar. */
   const orn = (line: React.CSSProperties, center = true) =>
     c.ornament === "none" ? null : c.ornament === "flourish" ? <Flourish color={c.accent!} center={center} margin={line.margin ?? line.marginTop ?? "6mm 0 0"} /> : <div style={line} />;
@@ -324,10 +363,10 @@ function Flourish({ color, center = true, margin }: { color: string; center?: bo
 }
 
 /** Back cover: title and author beside the author picture, blurb, author note, and an imprint strip with the ISBN barcode. */
-export function CoverBack({ book, w, h, className = "", onMove, moveLabel }: CoverProps) {
+export function CoverBack({ book, w, h, className = "", onMove, moveLabel, selected, onSelect }: CoverProps) {
   const c = resolve(book);
   const font = `'${c.font ?? "Anek Malayalam"}', Inter, sans-serif`;
-  const ctx: MoveCtx = { offsets: c.offsets ?? {}, wmm: w, hmm: h, onMove, label: moveLabel };
+  const ctx: MoveCtx = { offsets: c.offsets ?? {}, sizes: { ...(c.sizes ?? {}), title: 1 }, wmm: w, hmm: h, onMove, label: moveLabel, selected, onSelect };
   const set = book.settings ?? {};
   const head = c.backTitle !== false;
   const picture = c.authorPhoto ? (

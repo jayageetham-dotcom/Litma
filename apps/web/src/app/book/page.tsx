@@ -11,8 +11,9 @@ import { store } from "@/lib/store";
 import { BASE, PHOTO_UPLOADS } from "@/lib/config";
 import { templateFor } from "@/lib/templates";
 import { ITEM_LABELS } from "@/lib/book-sections";
+import { withSamples } from "@/lib/book-samples";
 import { resizeImage } from "@/lib/image";
-import { COVER_FONTS, COVER_PARTS, COVER_TEMPLATES, CoverBack, CoverFront, DEFAULT_PUBLISHER } from "@/components/book/Cover";
+import { COVER_FONTS, COVER_PARTS, COVER_PRESETS, COVER_TEMPLATES, CoverBack, CoverFront, DEFAULT_PUBLISHER, presetPatch } from "@/components/book/Cover";
 import { MiniEditor } from "@/components/book/MiniEditor";
 import { COVER_ART, CoverArtSvg, coverArtId } from "@/components/art/CoverArt";
 import { AVATAR_CHOICES, AVATAR_IMAGES, AvatarArt } from "@/components/art/Avatars";
@@ -45,9 +46,13 @@ function BookEditor() {
   const latest = useRef<Book | null>(null);
 
   useEffect(() => {
-    store.getBook(id).then((b) => {
+    store.getBook(id).then((loaded) => {
+      // fields never filled in start with sample text the writer can edit
+      const filled = loaded ? withSamples(loaded) : null;
+      const b = filled ?? loaded;
       setBook(b);
       latest.current = b;
+      if (filled) store.updateBook(filled.id, { subtitle: filled.subtitle, author: filled.author, settings: filled.settings, cover: filled.cover }).catch(() => {});
       setSel(b?.structure[0]?.id ?? null);
     });
     store.listDocs().then(setDocs);
@@ -592,12 +597,50 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
   const move = (id: string, o: CoverOffset) => onCover({ offsets: { ...(c.offsets ?? {}), [id]: o } });
   const moveLabel = (id: string) => tr(`cover.move.${id}` as MessageKey);
   const moved = parts.some((k) => c.offsets?.[k] && (c.offsets[k].x || c.offsets[k].y));
+  // the cover part the writer clicked, for the size slider
+  const [part, setPart] = useState<string | null>(null);
+  useEffect(() => setPart(null), [back]);
+  const partSize = part === "title" ? c.titleScale ?? 1 : (part && c.sizes?.[part]) || 1;
+  const setPartSize = (v: number) => (part === "title" ? onCover({ titleScale: v }) : part && onCover({ sizes: { ...(c.sizes ?? {}), [part]: v } }));
   return (
     <div className="flex flex-wrap items-start gap-8">
-      <div className="origin-top-left" style={{ width: `${W * 0.5}mm`, height: `${H * 0.5}mm` }}>
+      <div className="origin-top-left" style={{ width: `${W * 0.5}mm` }} onPointerDown={() => setPart(null)}>
+        <div style={{ height: `${H * 0.5}mm` }}>
         <div style={{ transform: "scale(0.5)", transformOrigin: "top left", boxShadow: "var(--sheet-shadow)" }}>
-          {back ? <CoverBack book={book} w={W} h={H} onMove={move} moveLabel={moveLabel} /> : <CoverFront book={book} w={W} h={H} onMove={move} moveLabel={moveLabel} />}
+          {back ? (
+            <CoverBack book={book} w={W} h={H} onMove={move} moveLabel={moveLabel} selected={part} onSelect={setPart} />
+          ) : (
+            <CoverFront book={book} w={W} h={H} onMove={move} moveLabel={moveLabel} selected={part} onSelect={setPart} />
+          )}
         </div>
+        </div>
+        {part && parts.includes(part) && (
+          // size of the selected text: the title uses its real font size, other parts scale as a whole
+          <div className="mt-3 rounded-[10px] border border-line p-3" style={{ width: `${W * 0.5}mm` }} onPointerDown={(e) => e.stopPropagation()}>
+            <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+              <span className="font-medium">{tr("cover.sizeOf", { part: tr(`cover.part.${part}` as MessageKey) })}</span>
+              <span className="tabular-nums text-muted">{Math.round(partSize * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min={part === "title" ? 0.5 : 0.5}
+              max={part === "title" ? 2 : 2.5}
+              step={0.05}
+              className="w-full"
+              value={partSize}
+              aria-label={tr("cover.sizeOf", { part: tr(`cover.part.${part}` as MessageKey) })}
+              onChange={(e) => setPartSize(Number(e.target.value))}
+            />
+            <div className="mt-1 flex justify-between">
+              <button type="button" className="text-xs text-muted underline" onClick={() => setPartSize(1)}>
+                {tr("cover.resetSize")}
+              </button>
+              <button type="button" className="text-xs text-muted underline" onClick={() => setPart(null)}>
+                {tr("common.close")}
+              </button>
+            </div>
+          </div>
+        )}
         <div className="mt-3 flex items-start justify-between gap-3" style={{ width: `${W * 0.5}mm` }}>
           <p className="text-xs text-muted">{tr(back ? "cover.moveHintBack" : "cover.moveHint")}</p>
           {moved && (
@@ -610,12 +653,31 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
       <div className="min-w-64 max-w-sm flex-1 space-y-4 text-sm">
         <h2 className="font-semibold">{back ? "Back cover" : "Front cover"}</h2>
         <div>
-          <span className="mb-1.5 block text-xs text-muted">Design</span>
+          <span className="mb-1.5 block text-xs text-muted">{tr("cover.presetsTitle")}</span>
+          <div className="grid grid-cols-[repeat(auto-fill,104px)] gap-2.5">
+            {COVER_PRESETS.map((p) => {
+              const on = c.preset === p.id;
+              return (
+                <button key={p.id} type="button" aria-pressed={on} onClick={() => onCover(presetPatch(p.id))} className="group text-left">
+                  <span className={`block overflow-hidden rounded-[6px] border-2 transition ${on ? "border-accent" : "border-transparent group-hover:border-line-strong"}`} style={{ width: 104, height: 147 }}>
+                    <span className="pointer-events-none block origin-top-left" style={{ transform: `scale(${104 / ((W / 25.4) * 96)})` }}>
+                      <CoverFront book={{ ...book, cover: { ...c, ...presetPatch(p.id), badge: false, publisherMark: false } }} w={W} h={H} />
+                    </span>
+                  </span>
+                  <span className={`mt-1 block text-xs ${on ? "font-medium text-accent" : "text-muted"}`}>{tr(`cover.presets.${p.id}` as MessageKey)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div>
+          <span className="mb-1.5 block text-xs text-muted">{tr("cover.layout")}</span>
           <div className="flex flex-wrap gap-1.5">
             {COVER_TEMPLATES.filter((x) => PHOTO_UPLOADS || x.id !== "photo" || t === "photo").map((x) => (
               <button key={x.id} onClick={() => {
                   const keep = COVER_ART.find((a) => a.id === coverArtId(c.art)); // a chosen background keeps its colours in every design
-                  onCover({ template: x.id, ...x.defaults, ...(keep ? { art: keep.id, bg: keep.bg, fg: keep.fg, accent: keep.accent } : {}) });
+                  // a new layout starts clean: designed positions and sizes
+                  onCover({ template: x.id, ...x.defaults, ...(keep ? { art: keep.id, bg: keep.bg, fg: keep.fg, accent: keep.accent } : {}), offsets: {}, sizes: {}, titleScale: 1, preset: undefined });
                 }} className={`rounded-full border px-3 py-1 text-xs ${t === x.id ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
                 {x.label}
               </button>
@@ -650,7 +712,7 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
             </div>
             <label className="block">
               <span className="mb-1 block text-xs text-muted">Title size</span>
-              <input type="range" min={0.6} max={1.6} step={0.05} className="w-full" value={c.titleScale ?? 1} onChange={(e) => onCover({ titleScale: Number(e.target.value) })} />
+              <input type="range" min={0.5} max={2} step={0.05} className="w-full" value={c.titleScale ?? 1} onChange={(e) => onCover({ titleScale: Number(e.target.value) })} />
             </label>
             <div>
               <span className="mb-1.5 block text-xs text-muted">{tr("cover.titleEffects")}</span>

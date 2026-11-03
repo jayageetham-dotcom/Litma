@@ -3,7 +3,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BookPlus, Copy, FileUp, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
-import { CoverFront } from "@/components/book/Cover";
+import { CoverFront, presetPatch } from "@/components/book/Cover";
 import { DEFAULT_STRUCTURE } from "@/lib/book-structure";
 import { AppHeader } from "@/components/AppHeader";
 import { MobileNav } from "@/components/MobileNav";
@@ -114,7 +114,7 @@ function Desk() {
   const kindsUsed = Array.from(new Set((docs ?? []).map((d) => d.kind)));
   async function newBook() {
     const prof = await store.getProfile().catch(() => null);
-    const b = await store.createBook({ title: "പുതിയ പുസ്തകം", author: prof?.pen_name || prof?.display_name || null, structure: DEFAULT_STRUCTURE(), settings: { pageSize: "A4", chaptersOnRight: true, runningHead: true }, cover: { template: "kasavu" } });
+    const b = await store.createBook({ title: "പുതിയ പുസ്തകം", author: prof?.pen_name || prof?.display_name || null, structure: DEFAULT_STRUCTURE(), settings: { pageSize: "A4", chaptersOnRight: true, runningHead: true }, cover: presetPatch("classic") });
     router.push(`/book/?id=${b.id}`);
   }
   const closeChooser = () => {

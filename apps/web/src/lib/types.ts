@@ -102,6 +102,8 @@ export interface CoverOffset {
 
 export interface BookCover {
   template?: "kasavu" | "art" | "solid" | "photo" | "type" | "minimal";
+  /** Last preset picked (COVER_PRESETS), for highlighting it in the designer. */
+  preset?: string;
   /** Drawn illustration id from COVER_ART (components/art/CoverArt.tsx), or null for none. */
   art?: string | null;
   bg?: string;
@@ -134,6 +136,8 @@ export interface BookCover {
   coverCredit?: string;
   website?: string;
   publisherTagline?: string;
+  /** Size of each cover part relative to its design (1 = as designed); the title uses `titleScale`. */
+  sizes?: Record<string, number>;
   /** Dragged positions of cover parts (COVER_PARTS in components/book/Cover.tsx). */
   offsets?: Record<string, CoverOffset>;
   blurb?: string;

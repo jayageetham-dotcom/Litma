@@ -180,6 +180,8 @@ $mm: 3.7795275591px;
     top: 0;
     height: auto;
     text-align: inherit;
+    // start where the caret is: an indented paragraph (novel, story) indents its prompt too
+    text-indent: inherit;
     white-space: nowrap;
   }
 
@@ -480,6 +482,7 @@ $mm: 3.7795275591px;
     text-indent: 1.6em;
     margin: 0 0 0.15em;
   }
+  .ProseMirror > p:first-child,
   .ProseMirror > .sb + p,
   .ProseMirror > hr + p,
   .ProseMirror > .page-spacer + p {

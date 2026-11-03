@@ -1,16 +1,94 @@
 "use client";
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, ChevronRight, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  AudioLines,
+  Bird,
+  Bug,
+  CalendarDays,
+  Carrot,
+  Cherry,
+  ChevronRight,
+  CloudRain,
+  CookingPot,
+  Drama,
+  Fish,
+  Flame,
+  Flower2,
+  Hand,
+  House,
+  Leaf,
+  Mountain,
+  Palette,
+  PawPrint,
+  Ruler,
+  Search,
+  Shirt,
+  Smile,
+  Soup,
+  Sprout,
+  TreeDeciduous,
+  Turtle,
+  Users,
+  Waves,
+  Wheat,
+  type LucideIcon,
+} from "lucide-react";
 import { NATTARIVU, type NattarivuCategory, type NattarivuTint, type NattarivuWord } from "@litma/shared/nattarivu";
 import { useT } from "@/i18n/react";
 
-const DOT: Record<NattarivuTint, string> = {
-  violet: "bg-tint-violet",
-  coral: "bg-tint-coral",
-  sky: "bg-tint-sky",
-  lime: "bg-tint-lime",
-  tangerine: "bg-tint-tangerine",
+
+/** Soft tile behind each category icon, in the category's own tint. */
+const TILE: Record<NattarivuTint, string> = {
+  violet: "bg-tint-violet/15 text-tint-violet",
+  coral: "bg-tint-coral/15 text-tint-coral",
+  sky: "bg-tint-sky/15 text-tint-sky",
+  lime: "bg-tint-lime/15 text-tint-lime",
+  tangerine: "bg-tint-tangerine/15 text-tint-tangerine",
 };
+
+/** An icon per category (ids from packages/shared/src/nattarivu.ts; old ids in MOVED resolve before this). */
+const ICONS: Record<string, LucideIcon> = {
+  flowers: Flower2,
+  trees: TreeDeciduous,
+  plants: Sprout,
+  herbs: Leaf,
+  fruits: Cherry,
+  vegetables: Carrot,
+  spices: Flame,
+  food: Soup,
+  birds: Bird,
+  animals: PawPrint,
+  reptiles: Turtle,
+  insects: Bug,
+  aquatic: Fish,
+  time: CalendarDays,
+  weather: CloudRain,
+  water: Waves,
+  mountains: Mountain,
+  farming: Wheat,
+  household: CookingPot,
+  house: House,
+  clothes: Shirt,
+  colours: Palette,
+  body: Hand,
+  feelings: Smile,
+  sounds: AudioLines,
+  kinship: Users,
+  measures: Ruler,
+  arts: Drama,
+};
+
+function CategoryIcon({ category, size = "md" }: { category: NattarivuCategory; size?: "md" | "lg" }) {
+  const Icon = ICONS[category.id] ?? Leaf;
+  const box = size === "lg" ? "h-11 w-11 rounded-[14px]" : "h-9 w-9 rounded-xl";
+  return (
+    <span className={`grid shrink-0 place-items-center ${box} ${TILE[category.tint]}`} aria-hidden>
+      <Icon size={size === "lg" ? 22 : 18} strokeWidth={2} />
+    </span>
+  );
+}
 
 const display = { fontFamily: "'Anek Malayalam'" };
 
@@ -45,7 +123,7 @@ export function NattarivuCategories({ onOpen }: { onOpen: (id: string) => void }
             onClick={() => onOpen(c.id)}
             className={`group flex min-w-0 flex-col items-start rounded-2xl border border-line bg-surface p-4 text-left transition-[box-shadow,transform,border-color] hover:-translate-y-0.5 hover:border-transparent hover:shadow-[var(--pop-shadow)] focus-visible:-translate-y-0.5 [container-type:inline-size] sm:p-5 ${long ? "max-sm:col-span-2" : ""}`}
           >
-            <span className={`h-2 w-2 rounded-full ${DOT[c.tint]}`} aria-hidden />
+            <CategoryIcon category={c} />
             <span className="mt-3 w-full font-bold leading-snug" style={{ ...display, fontSize: `min(1.25rem, ${(100 / (longest * 0.75)).toFixed(1)}cqi)` }}>
               {c.ml}
             </span>
@@ -78,7 +156,7 @@ export function NattarivuCategoryView({ category, onBack, onWord, onOpen }: { ca
       <div className="mt-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
           <h2 className="flex items-center gap-2.5 text-[1.6rem] font-bold leading-tight sm:text-[2rem]" style={display}>
-            <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[category.tint]}`} aria-hidden />
+            <CategoryIcon category={category} size="lg" />
             {category.ml}
           </h2>
           <p className="mt-1 text-muted">

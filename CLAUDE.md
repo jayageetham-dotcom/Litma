@@ -91,6 +91,7 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Sections: a line `# മലയാളം | English` starts one. Use sections when a category splits naturally (കല: art forms, instruments, folk games, festivals, music); no one-word sections; small related categories are merged into one with sections (കാലം holds seasons, months, birth stars, times of day, weekdays).
 - Words from different communities for the same thing sit together as equals (ഉമ്മ and അമ്മച്ചി beside അമ്മ, ഇക്ക beside ചേട്ടൻ), never in a separate "other" section.
 - Short category names (ഉപകരണങ്ങൾ, not നാടൻ ഉപകരണങ്ങൾ; ഭൂപ്രദേശം for terrain). Keep a word in one category. When a category is merged or renamed, keep its old id working in `MOVED`.
+- Each category card shows a lucide icon in a soft tile of its tint (`ICONS` in `components/Nattarivu.tsx`, keyed by category id); a new category needs an icon there too.
 - Card titles stay on one line inside their card (long single words shrink to fit; on phones such a card spans the row).
 
 ## AI companion (Panels.tsx `AIPanel`)

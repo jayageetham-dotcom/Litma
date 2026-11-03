@@ -90,7 +90,7 @@ export const BLOCK_VARIANTS = {
   part: { label: "Song part", ml: "ഭാഗം" },
   stage: { label: "Stage direction", ml: "രംഗനിർദ്ദേശം" },
   dateline: { label: "Date", ml: "തീയതി" },
-  epigraph: { label: "Epigraph", ml: "ആമുഖവാക്യം" },
+  epigraph: { label: "Epigraph", ml: "മേൽക്കുറിപ്പ്" },
   caption: { label: "Caption", ml: "അടിക്കുറിപ്പ്" },
   stanza: { label: "Stanza", ml: "ഖണ്ഡം" },
   act: { label: "Act", ml: "അങ്കം" },

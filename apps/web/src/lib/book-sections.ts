@@ -53,7 +53,7 @@ export const ITEM_LABELS: Record<BookItem["type"], { en: string; ml: string }> =
   title: { en: "Title page", ml: "ശീർഷക താൾ" },
   copyright: { en: "Copyright page", ml: "പകർപ്പവകാശം" },
   dedication: { en: "Dedication", ml: "സമർപ്പണം" },
-  epigraph: { en: "Epigraph", ml: "ആമുഖവാക്യം" },
+  epigraph: { en: "Epigraph", ml: "മേൽക്കുറിപ്പ്" },
   toc: { en: "Contents", ml: "ഉള്ളടക്കം" },
   text: { en: "Text page", ml: "താൾ" },
   part: { en: "Part divider", ml: "ഭാഗം" },

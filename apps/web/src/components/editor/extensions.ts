@@ -35,7 +35,7 @@ const VARIANT_PLACEHOLDER: Record<string, string> = {
   part: "പല്ലവി / അനുപല്ലവി / ചരണം",
   stage: "രംഗനിർദ്ദേശം",
   dateline: "തീയതി",
-  epigraph: "ആമുഖവാക്യം",
+  epigraph: "മേൽക്കുറിപ്പ്",
   caption: "അടിക്കുറിപ്പ്",
   stanza: "ഖണ്ഡത്തിന് പേര് (വേണമെങ്കിൽ)",
   act: "അങ്കത്തിന് പേര് (വേണമെങ്കിൽ)",

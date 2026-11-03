@@ -176,6 +176,7 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 ## Vocabulary
 - Novel, story, poem, screenplay… are **writing types — സാഹിത്യരൂപം** (plural സാഹിത്യരൂപങ്ങൾ). Never call them "forms" in UI, docs or MCP text. (Code keeps the `kind` / `DocKind` / `shared/forms.ts` names.)
 - Character/location notes are **Story World — കഥാലോകം**. Avoid religious terms.
+- An epigraph (the quotation at the start of a book or chapter) is **മേൽക്കുറിപ്പ്**, in the editor, the book builder and anywhere else it is named.
 - Say "any AI assistant", not specific vendors like IBM Bob.
 
 ## Open items

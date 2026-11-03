@@ -300,6 +300,13 @@
       "tile": "Pages",
       "on": "Showing pages as printed",
       "off": "Showing the text at full size"
+    },
+    "fontSize": {
+      "label": "Font size",
+      "smaller": "Smaller text",
+      "bigger": "Bigger text",
+      "auto": "Automatic",
+      "autoHint": "The size the line's style gives"
     }
   },
   "nattarivu": {

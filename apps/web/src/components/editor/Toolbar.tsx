@@ -30,6 +30,8 @@ import {
   X,
   CalendarPlus,
   Users,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { useT } from "@/i18n/react";
 import type { Template } from "@/lib/templates";
@@ -41,6 +43,7 @@ import { todayLine } from "@litma/shared/forms";
 import type { InputMode } from "@/extensions/manglish";
 import { Select } from "@/components/ui/Select";
 import { boldIsOn } from "@/extensions/bold";
+import { FONT_SIZES, currentFontSize, stepFontSize } from "@/extensions/font-size";
 import { HighlightTool, TextColorTool } from "./ColorTools";
 import { MalayalamLayoutPicker } from "./KeyboardTools";
 
@@ -297,6 +300,34 @@ export function Toolbar({
         onChange={(v) => (v ? chain().setFontFamily(`'${v}'`).run() : chain().unsetFontFamily().run())}
         options={[{ value: "", label: "Document font" }, ...FONTS.map((f) => ({ value: f.name, label: f.name, style: { fontFamily: `'${f.name}'` } }))]}
       />
+      {(() => {
+        // font size of the selection, in points, like a word processor: − [12] +
+        const size = currentFontSize(e);
+        const own = !!e.getAttributes("textStyle").fontSize;
+        const shown = size ?? 12;
+        const list = [...new Set([...FONT_SIZES, shown])].sort((a, b) => a - b);
+        return (
+          <div className="flex shrink-0 items-center" role="group" aria-label={t("editor.fontSize.label")}>
+            <Btn title={t("editor.fontSize.smaller")} onClick={() => chain().setFontSize(stepFontSize(shown, -1)).run()} disabled={shown <= FONT_SIZES[0]}>
+              <Minus size={14} />
+            </Btn>
+            <Select
+              size={variant === "sheet" ? "md" : "sm"}
+              className={variant === "sheet" ? "w-24" : "w-[4.5rem]"}
+              preventFocusSteal
+              aria-label={t("editor.fontSize.label")}
+              title={t("editor.fontSize.label")}
+              value={own ? String(shown) : ""}
+              placeholder={String(shown)}
+              onChange={(v) => (v === "auto" ? chain().unsetFontSize().run() : v && chain().setFontSize(Number(v)).run())}
+              options={[{ value: "auto", label: t("editor.fontSize.auto"), hint: t("editor.fontSize.autoHint") }, ...list.map((n) => ({ value: String(n), label: String(n) }))]}
+            />
+            <Btn title={t("editor.fontSize.bigger")} onClick={() => chain().setFontSize(stepFontSize(shown, 1)).run()} disabled={shown >= FONT_SIZES[FONT_SIZES.length - 1]}>
+              <Plus size={14} />
+            </Btn>
+          </div>
+        );
+      })()}
       <Sep />
 
       <Btn title="Bold (Ctrl+B)" active={boldIsOn(e)} onClick={() => chain().toggleSmartBold().run()}>

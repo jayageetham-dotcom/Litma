@@ -7,7 +7,7 @@ import type { JSONContent } from "@tiptap/core";
 import { getSupabase } from "./supabase/client";
 import { track } from "./analytics";
 import { templateFor } from "./templates";
-import { newSettings } from "@litma/shared/forms";
+import { newSettings, withAuthor } from "@litma/shared/forms";
 import type { Book, DocKind, DocVersion, LitmaDoc, Profile, Suggestion, WordBookmark } from "./types";
 import type { StoryItem, StoryKind } from "./story";
 import { textToNodes } from "@litma/shared/serialize";
@@ -97,6 +97,8 @@ export const store = {
       const prof = await this.getProfile().catch(() => null);
       const mode = prof?.preferences?.inputMode;
       if (mode === "manglish" || mode === "malayalam" || mode === "english") base.settings.inputMode = mode;
+      // the author line starts with the writer's own name
+      base.content = withAuthor(base.content, prof?.pen_name || prof?.display_name);
     }
     if (!sb) {
       const now = new Date().toISOString();

@@ -13,7 +13,7 @@ import { cors, json, preflight } from "../_shared/cors.ts";
 import { recordUsage } from "../_shared/usage.ts";
 import { textToNodes, toMarkdown, toPlainText, type JSONContent } from "../_shared/serialize.ts";
 import { WRITING_GUIDES } from "../_shared/guides.ts";
-import { FORM_NAMES, KINDS, newSettings, starterContent, type DocKind } from "../_shared/forms.ts";
+import { FORM_NAMES, KINDS, newSettings, starterContent, withAuthor, type DocKind } from "../_shared/forms.ts";
 import { createDictionary } from "../_shared/dict.ts";
 import { transliteratePhrase } from "../_shared/google.ts";
 
@@ -144,9 +144,11 @@ const TOOLS: Tool[] = [
     async run(a, u) {
       const kind = (KINDS.includes(a.kind) ? a.kind : "blank") as DocKind;
       const title = String(a.title || `പുതിയ ${formName(kind).ml}`);
+      // an empty work starts with the writer's name on the author line, as in the apps
+      const prof = a.text ? null : (await db.from("profiles").select("pen_name, display_name").eq("id", u).maybeSingle()).data as Json | null;
       const content: JSONContent = a.text
         ? { type: "doc", content: [{ type: "styledBlock", attrs: { variant: "title" }, content: [{ type: "text", text: title }] }, ...textToNodes(String(a.text), kind)] }
-        : starterContent(kind);
+        : withAuthor(starterContent(kind) as JSONContent, String(prof?.pen_name || prof?.display_name || ""));
       const plain = toPlainText(content);
       const { data, error } = await db
         .from("documents")

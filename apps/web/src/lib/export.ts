@@ -40,6 +40,8 @@ function runs(n: JSONContent, base: { bold?: boolean; italics?: boolean; size?: 
     }
     if (c.type !== "text") return (c.content ?? []).forEach(walk);
     const marks = new Set((c.marks ?? []).map((m) => m.type));
+    // the writer's own font size (toolbar), in points
+    const own = parseFloat(String((c.marks ?? []).find((m) => m.type === "textStyle")?.attrs?.fontSize ?? ""));
     res.push(
       new TextRun({
         text: c.text ?? "",
@@ -47,7 +49,7 @@ function runs(n: JSONContent, base: { bold?: boolean; italics?: boolean; size?: 
         italics: base.italics || marks.has("italic"),
         underline: marks.has("underline") ? {} : undefined,
         strike: marks.has("strike"),
-        size: base.size,
+        size: own ? Math.round(own * 2) : base.size,
         color: base.color,
       })
     );
@@ -141,7 +143,7 @@ export async function exportDocx(d: LitmaDoc) {
           break;
         }
         const center = ["title", "subtitle", "author", "chapter", "pullquote", "caption"].includes(v);
-        const big = v === "title" ? 20 : v === "chapter" ? 16 : v === "pullquote" ? 15 : v === "subhead" || v === "references" ? 13.5 : v === "credits" ? s.fontSize - 2 : s.fontSize;
+        const big = v === "title" ? 20 : v === "chapter" ? 16 : v === "pullquote" ? 15 : v === "subhead" || v === "references" ? 13.5 : v === "credits" ? s.fontSize - 2 : v === "epigraph" ? s.fontSize - 1 : s.fontSize;
         body.push(
           new Paragraph({
             alignment: center ? AlignmentType.CENTER : v === "epigraph" ? AlignmentType.RIGHT : align,

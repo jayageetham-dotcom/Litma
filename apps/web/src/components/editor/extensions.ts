@@ -19,13 +19,14 @@ import { DramaNodes } from "@/extensions/drama";
 import { Endnotes, Footnote } from "@/extensions/footnote";
 import { Metre, Search, Typewriter } from "@/extensions/tools";
 import { SmartBold } from "@/extensions/bold";
+import { FontSize } from "@/extensions/font-size";
 import { KeepSelection } from "@/extensions/keep-selection";
 import type { DocKind, DocSettings } from "@/lib/types";
 
 const VARIANT_PLACEHOLDER: Record<string, string> = {
   title: "ശീർഷകം",
   subtitle: "ഉപശീർഷകം",
-  author: "എഴുതിയ ആളുടെ പേര്",
+  author: "എഴുതുന്ന ആളുടെ പേര്",
   chapter: "അദ്ധ്യായത്തിന്റെ പേര്",
   kicker: "വിഭാഗം (ഉദാ: യാത്ര)",
   standfirst: "ലേഖനത്തിന്റെ ചുരുക്കം രണ്ടു വരിയിൽ…",
@@ -89,6 +90,7 @@ export function buildExtensions(kind: DocKind, settings: DocSettings, inputMode:
     Underline,
     TextStyle,
     SmartBold,
+    FontSize,
     Color,
     FontFamily,
     Highlight.configure({ multicolor: true }),

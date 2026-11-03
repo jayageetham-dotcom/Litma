@@ -127,6 +127,22 @@ export function starterContent(kind: DocKind): JSONContent {
   }
 }
 
+/**
+ * A new work's author line filled with the writer's name (pen name, else profile name), so they
+ * don't type it into every work. Only an empty author or byline line is filled.
+ */
+export function withAuthor(content: JSONContent, name: string | null | undefined): JSONContent {
+  const n = name?.trim();
+  if (!n) return content;
+  let done = false;
+  const blocks = (content.content ?? []).map((b) => {
+    if (done || b.type !== "styledBlock" || !["author", "byline"].includes(b.attrs?.variant) || b.content?.length) return b;
+    done = true;
+    return { ...b, content: [{ type: "text", text: n }] };
+  });
+  return { ...content, content: blocks };
+}
+
 /** Today's date as a diary heading, e.g. "2026 നവംബർ 3, ചൊവ്വാഴ്ച". */
 export function todayLine(d = new Date()): string {
   return d.toLocaleDateString("ml-IN", { day: "numeric", month: "long", year: "numeric", weekday: "long" });

@@ -1,0 +1,113 @@
+name: 🧹 Clear getlitma.in and redeploy
+
+# Run by hand (Actions → Clear getlitma.in and redeploy) to empty getlitma.in's web root,
+# for example to remove cPanel's default files, then upload a fresh Litma build to the root.
+#
+# This is the only workflow that deletes files on the server, and it does so only:
+#   - inside the getlitma.in FTP account (LITMA_FTP_USERNAME / LITMA_FTP_PASSWORD, folder LITMA_FTP_DIR or "/"),
+#   - when you type getlitma.in in the confirm box,
+#   - when the folder looks like a web root and not a cPanel home or another site
+#     (no public_html, mail, etc, onnayi, litma, wp-config.php…).
+# .well-known (SSL certificate checks) and cgi-bin are kept.
+# Leave "Delete" unticked for a dry run that only lists what would be removed.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type getlitma.in to confirm"
+        required: true
+        default: ""
+      delete:
+        description: "Delete the files (untick for a dry run that only lists them)"
+        type: boolean
+        default: false
+      deploy:
+        description: "Upload Litma to the root afterwards"
+        type: boolean
+        default: true
+
+concurrency:
+  group: clear-getlitma
+  cancel-in-progress: false
+
+jobs:
+  clear:
+    name: 🧹 Empty getlitma.in's web root
+    runs-on: ubuntu-latest
+    env:
+      FTP_HOST: ${{ vars.LITMA_FTP_SERVER || 'ftp.getlitma.in' }}
+      FTP_USER: ${{ vars.LITMA_FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.LITMA_FTP_PASSWORD }}
+      FTP_DIR: ${{ vars.LITMA_FTP_DIR || '/' }}
+      DELETE: ${{ inputs.delete }}
+    steps:
+      - name: ✅ Check confirmation and FTP account
+        run: |
+          if [ "${{ inputs.confirm }}" != "getlitma.in" ]; then
+            echo "::error::Type getlitma.in in the confirm box to run this."
+            exit 1
+          fi
+          if [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
+            echo "::error::Add the LITMA_FTP_USERNAME variable and the LITMA_FTP_PASSWORD secret first (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+      - name: 🧰 Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: 📋 List the folder
+        run: |
+          cat > ftp.conf <<CONF
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate no
+          set ftp:passive-mode true
+          set net:timeout 30
+          set net:max-retries 5
+          set cmd:fail-exit true
+          CONF
+          lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" -e "source ftp.conf; cd $FTP_DIR; pwd; cls -1aF; bye" > listing.txt
+          echo "Folder: $(head -1 listing.txt)"
+          tail -n +2 listing.txt | grep -vE '^\.{1,2}/?$' > entries.txt || true
+          echo "Contents:"; cat entries.txt
+          echo "### getlitma.in folder before clearing" >> "$GITHUB_STEP_SUMMARY"
+          sed 's/^/- /' entries.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 🔒 Make sure this is getlitma.in's web root
+        run: |
+          # Signs of a cPanel home folder or of the other sites on the host.
+          if grep -qiE '^(public_html|www|mail|etc|ssl|logs|tmp|public_ftp|\.cpanel|\.trash|onnayi|litma|access-logs)/?$|^wp-config\.php$|^wp-content/?$' entries.txt; then
+            echo "::error::This folder doesn't look like getlitma.in's own web root (it holds a home folder, another site or a WordPress install). Nothing was deleted."
+            echo "If the FTP account opens in a cPanel home folder, set the repository variable LITMA_FTP_DIR to the web root (e.g. /public_html) so both this and the deploy use it."
+            exit 1
+          fi
+          echo "Looks like a web root."
+
+      - name: 🧹 Delete files
+        run: |
+          KEEP='^(\.well-known|cgi-bin)/?$'
+          : > rm.lftp
+          while IFS= read -r e; do
+            [ -z "$e" ] && continue
+            if echo "$e" | grep -qE "$KEEP"; then echo "keep   $e"; continue; fi
+            case "$e" in
+              */) echo "remove $e"; printf 'rm -r -f "%s"\n' "${e%/}" >> rm.lftp ;;
+              *@) echo "remove $e"; printf 'rm -f "%s"\n' "${e%@}" >> rm.lftp ;;
+              *)  name="${e%[*=|]}"; echo "remove $name"; printf 'rm -f "%s"\n' "$name" >> rm.lftp ;;
+            esac
+          done < entries.txt
+          if [ ! -s rm.lftp ]; then echo "Nothing to delete."; exit 0; fi
+          if [ "$DELETE" != "true" ]; then
+            echo "::notice::Dry run: nothing was deleted. Run again with Delete ticked."
+            exit 0
+          fi
+          lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" -e "source ftp.conf; cd $FTP_DIR; set cmd:fail-exit false; source rm.lftp; cls -1aF; bye"
+          echo "Cleared."
+
+  deploy:
+    name: 🚀 Upload Litma to the root
+    needs: clear
+    if: ${{ inputs.delete && inputs.deploy }}
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

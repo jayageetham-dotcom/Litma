@@ -104,7 +104,7 @@ Until `LITMA_FTP_USERNAME` and `LITMA_FTP_PASSWORD` exist, pushes still build an
 ### Moving to getlitma.in
 
 1. Point getlitma.in at the web host (DNS) and turn on HTTPS for it (cPanel → SSL/TLS Status → AutoSSL, for `getlitma.in` and `www.getlitma.in`).
-2. Make the FTP account and add the variable and secret above, then run **Actions → Deploy Litma → Run workflow** (or push). Check https://getlitma.in, sign in, open the dictionary.
+2. Make the FTP account and add the variable and secret above, then run **Actions → Clear getlitma.in and redeploy** (type `getlitma.in`; first without Delete ticked to see what it would remove, then with it). It empties the new account's web root of cPanel's default files (keeps `.well-known` and `cgi-bin`) and uploads Litma to the root. Later updates just need a push (or **Actions → Deploy Litma → Run workflow**). Check https://getlitma.in, sign in, open the dictionary.
 3. Supabase → Authentication → URL Configuration as above. Supabase → Edge Functions → Secrets: if `LITMA_SITE_URL` is set, change it to `https://getlitma.in` (or delete it; that is now the default).
 4. Run **Actions → Redirect the old Litma address** (type `getlitma.in is live`). It swaps `public_html/litma/.htaccess` on jayageetham.com for `deploy/legacy-litma/.htaccess`, so every old link, bookmark, MCP address and the old desktop updater's `latest.json` lands on the same path at getlitma.in.
 5. Run **Actions → Release** so the desktop app uses the new address too.

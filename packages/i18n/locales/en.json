@@ -363,6 +363,26 @@
       "bold": "Bold type"
     },
     "fontSizeOf": "Font size: {part}",
-    "fontSizeHint": "Click any text on the cover to size it."
+    "fontSizeHint": "Click any text on the cover to size it.",
+    "frame": "Frame",
+    "layouts": {
+      "art": "Top",
+      "kasavu": "Upper",
+      "solid": "Left",
+      "type": "Big type",
+      "minimal": "Centre",
+      "photo": "Bottom"
+    }
+  },
+  "field": {
+    "typing": "Typing",
+    "manglish": "മലയാളം",
+    "plain": "As typed",
+    "convert": "Convert to Malayalam"
+  },
+  "bookDetails": {
+    "title": "Title",
+    "subtitle": "Subtitle",
+    "author": "Author"
   }
 }

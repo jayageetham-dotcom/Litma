@@ -102,6 +102,8 @@ export interface CoverOffset {
 
 export interface BookCover {
   template?: "kasavu" | "art" | "solid" | "photo" | "type" | "minimal";
+  /** Double-rule frame around the cover, on any layout (older "kasavu" covers default to on). */
+  frame?: boolean;
   /** Last preset picked (COVER_PRESETS), for highlighting it in the designer. */
   preset?: string;
   /** Drawn illustration id from COVER_ART (components/art/CoverArt.tsx), or null for none. */

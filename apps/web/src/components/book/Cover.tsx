@@ -6,13 +6,13 @@ import { CoverArtSvg } from "@/components/art/CoverArt";
 import { Barcode, isbn13 } from "./Barcode";
 
 export const COVER_TEMPLATES: { id: NonNullable<BookCover["template"]>; label: string; defaults: Partial<BookCover> }[] = [
-  { id: "kasavu", label: "Frame", defaults: { bg: "#f7f3e8", fg: "#1a2220", accent: "#a17a28" } },
-  { id: "art", label: "Artwork", defaults: { bg: "#0b2f3a", fg: "#fdf6e3", accent: "#e9c46a", art: "fantasy" } },
-  { id: "solid", label: "Solid colour", defaults: { bg: "#1d5a52", fg: "#ffffff", accent: "#d2ad5c" } },
-  // Needs an uploaded picture; hidden from the picker while PHOTO_UPLOADS is off (older books still render).
-  { id: "photo", label: "Photograph", defaults: { bg: "#111916", fg: "#ffffff", accent: "#d2ad5c", imageOpacity: 0.9 } },
+  { id: "art", label: "Top", defaults: { bg: "#0b2f3a", fg: "#fdf6e3", accent: "#e9c46a", art: "fantasy" } },
+  { id: "kasavu", label: "Upper", defaults: { bg: "#f7f3e8", fg: "#1a2220", accent: "#a17a28" } },
+  { id: "solid", label: "Left", defaults: { bg: "#1d5a52", fg: "#ffffff", accent: "#d2ad5c" } },
+  // "Bottom": title low over a fade of the cover colour (also shows an uploaded picture on older books)
+  { id: "photo", label: "Bottom", defaults: { bg: "#111916", fg: "#ffffff", accent: "#d2ad5c", imageOpacity: 0.9 } },
   { id: "type", label: "Big type", defaults: { bg: "#e9e1cf", fg: "#3b1f1a", accent: "#a3372b" } },
-  { id: "minimal", label: "Minimal", defaults: { bg: "#ffffff", fg: "#1a2220", accent: "#1d5a52" } },
+  { id: "minimal", label: "Centre", defaults: { bg: "#ffffff", fg: "#1a2220", accent: "#1d5a52" } },
 ];
 
 /**
@@ -39,7 +39,7 @@ export const COVER_FONTS: { name: string; kind: "sans" | "calligraphy" | "displa
  * checked together. Picking one also clears dragged positions and custom sizes, so it always looks as designed.
  */
 export const COVER_PRESETS: { id: string; cover: Partial<BookCover> }[] = [
-  { id: "classic", cover: { template: "kasavu", art: "literary", bg: "#efe9dc", fg: "#3d4232", accent: "#a8875a", font: "Rachana", ornament: "flourish" } },
+  { id: "classic", cover: { template: "kasavu", frame: true, art: "literary", bg: "#efe9dc", fg: "#3d4232", accent: "#a8875a", font: "Rachana", ornament: "flourish" } },
   { id: "epic", cover: { template: "art", art: "fantasy", bg: "#0b2f3a", fg: "#fdf6e3", accent: "#e9c46a", font: "Uroob", ornament: "line", titleShadow: true } },
   { id: "romance", cover: { template: "art", art: "romance", bg: "#f6c9cf", fg: "#5a2238", accent: "#b5546f", font: "Karumbi", ornament: "flourish", titleScale: 1.55 } },
   { id: "noir", cover: { template: "type", art: "thriller", bg: "#0a0e13", fg: "#e8eef5", accent: "#c8102e", font: "Anek Malayalam", ornament: "none", titleShadow: true, titleScale: 0.75 } },
@@ -54,7 +54,7 @@ export const COVER_PRESETS: { id: string; cover: Partial<BookCover> }[] = [
 /** The full patch for a preset: its look, everything else back to the design's defaults. */
 export function presetPatch(id: string): Partial<BookCover> {
   const p = COVER_PRESETS.find((x) => x.id === id)!;
-  return { preset: id, titleShadow: false, titleBox: false, titleBoxColor: undefined, titleBoxOpacity: undefined, titleScale: 1, offsets: {}, sizes: {}, image: null, ...p.cover };
+  return { preset: id, frame: false, titleShadow: false, titleBox: false, titleBoxColor: undefined, titleBoxOpacity: undefined, titleScale: 1, offsets: {}, sizes: {}, image: null, ...p.cover };
 }
 
 /** Publisher shown on the back-cover imprint strip (and the front mark) until the writer names their own. */
@@ -65,7 +65,8 @@ export const COVER_PARTS = { front: ["title", "author", "badge", "mark"], back: 
 
 function resolve(book: Pick<Book, "cover">) {
   const c = book.cover ?? {};
-  const t = COVER_TEMPLATES.find((x) => x.id === c.template) ?? COVER_TEMPLATES[0];
+  // covers saved before a layout was chosen used "kasavu"
+  const t = COVER_TEMPLATES.find((x) => x.id === (c.template ?? "kasavu"))!;
   return { ...t.defaults, ...c, template: t.id } as BookCover & { template: NonNullable<BookCover["template"]> };
 }
 
@@ -180,6 +181,7 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
   );
   const sub = (size: number, extra?: React.CSSProperties) => (book.subtitle ? <p style={{ fontSize: `${size}pt`, opacity: 0.9, textShadow: shadow, ...extra }}>{book.subtitle}</p> : null);
   const ctx: MoveCtx = { offsets: c.offsets ?? {}, sizes: { ...(c.sizes ?? {}), title: 1 }, wmm: w, hmm: h, onMove, label: moveLabel, selected, onSelect };
+  const frameOn = c.frame ?? c.template === "kasavu";
   /** Divider under the title in the chosen style; `line` is the design's own bar. */
   const orn = (line: React.CSSProperties, center = true) =>
     c.ornament === "none" ? null : c.ornament === "flourish" ? <Flourish color={c.accent!} center={center} margin={line.margin ?? line.marginTop ?? "6mm 0 0"} /> : <div style={line} />;
@@ -203,6 +205,9 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
   const wrap = (children: React.ReactNode, extraClass = "") => (
     <Move.Provider value={ctx}>
       <div data-cover="" className={`relative overflow-hidden ${extraClass} ${className}`} style={base}>
+        {art}
+        {c.template === "photo" && <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${c.bg} 8%, transparent 60%)` }} />}
+        {frameOn && <Frame color={c.accent!} />}
         {children}
         {extras}
       </div>
@@ -213,7 +218,6 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
     // Title in the calm top 30% of the artwork, author in the clear bottom 15%.
     return wrap(
       <>
-        {art}
         <Movable id="title" className="absolute inset-x-[11%] top-[9%] text-center" style={{ textShadow: shadow ? undefined : "0 1px 12px rgba(0,0,0,0.18)", ...box }}>
           {h1(48, 1.12, 800)}
           {sub(15, { marginTop: "4mm" })}
@@ -233,8 +237,6 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
           // eslint-disable-next-line @next/next/no-img-element
           <img src={c.image} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ opacity: c.imageOpacity ?? 0.9 }} />
         )}
-        {art}
-        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${c.bg} 8%, transparent 60%)` }} />
         <Movable id="title" className="absolute inset-x-[12%] bottom-[22%]" style={box}>
           {h1(46, 1.15, 800)}
           {sub(15, { marginTop: "4mm" })}
@@ -249,7 +251,6 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
   if (c.template === "solid")
     return wrap(
       <>
-        {art}
         <Movable id="title" className="absolute inset-x-[12%] top-[14%]" style={box}>
           {c.ornament === "flourish" ? null : orn({ height: "1.4mm", width: "30mm", background: c.accent, marginBottom: "10mm" })}
           {h1(50, 1.12, 800)}
@@ -270,7 +271,6 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
   if (c.template === "type")
     return wrap(
       <>
-        {art}
         <Movable id="author" className="absolute inset-x-[10%] top-[10%]">
           <p style={{ fontSize: "14pt", fontWeight: 600, color: c.accent }}>{book.author}</p>
         </Movable>
@@ -288,7 +288,6 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
   if (c.template === "minimal")
     return wrap(
       <>
-        {art}
         <Movable id="title" className="absolute inset-x-[14%] top-[36%] flex flex-col items-center text-center" style={box}>
           {h1(30, 1.25, 700)}
           {orn({ height: "0.4mm", width: "16mm", background: c.accent, margin: "8mm 0 0" })}
@@ -304,9 +303,6 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
   // kasavu
   return wrap(
     <>
-      {art}
-      <div className="absolute" style={{ inset: "9mm", border: `1.6mm solid ${c.accent}` }} />
-      <div className="absolute" style={{ inset: "13mm", border: `0.4mm solid ${c.accent}` }} />
       <Movable id="title" className="absolute inset-x-[16%] top-[24%] text-center" style={box}>
         {h1(44, 1.2, 800)}
         {sub(14, { marginTop: "6mm", opacity: 0.8 })}
@@ -348,6 +344,16 @@ function PublisherBox({ name, tagline, small = false }: { name: string; tagline?
   );
 }
 
+/** Double rule around the cover (the Frame option); works with every layout. */
+function Frame({ color }: { color: string }) {
+  return (
+    <>
+      <div className="pointer-events-none absolute" style={{ inset: "9mm", border: `1.6mm solid ${color}` }} />
+      <div className="pointer-events-none absolute" style={{ inset: "13mm", border: `0.4mm solid ${color}` }} />
+    </>
+  );
+}
+
 /** Decorative divider: a fine line with curls and a centre diamond. */
 function Flourish({ color, center = true, margin }: { color: string; center?: boolean; margin?: string | number }) {
   return (
@@ -386,7 +392,7 @@ export function CoverBack({ book, w, h, className = "", onMove, moveLabel, selec
             <div className="absolute inset-0" style={{ background: c.bg, opacity: 0.62 }} />
           </>
         )}
-        {c.template === "kasavu" && <div className="absolute" style={{ inset: "9mm", border: `1.6mm solid ${c.accent}` }} />}
+        {(c.frame ?? c.template === "kasavu") && <Frame color={c.accent!} />}
         {head && (
           <Movable id="back-head" className="absolute inset-x-[12%] top-[8%] flex items-start gap-[7mm]">
             {picture && (

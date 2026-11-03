@@ -15,6 +15,7 @@ import { withSamples } from "@/lib/book-samples";
 import { resizeImage } from "@/lib/image";
 import { COVER_FONTS, COVER_PARTS, COVER_PRESETS, COVER_TEMPLATES, CoverBack, CoverFront, DEFAULT_PUBLISHER, presetPatch } from "@/components/book/Cover";
 import { MiniEditor } from "@/components/book/MiniEditor";
+import { ScriptField } from "@/components/ScriptField";
 import { COVER_ART, CoverArtSvg, coverArtId } from "@/components/art/CoverArt";
 import { AVATAR_CHOICES, AVATAR_IMAGES, AvatarArt } from "@/components/art/Avatars";
 import { useT } from "@/i18n/react";
@@ -29,6 +30,7 @@ const TEXT_PAGES = ["ആമുഖം · Introduction", "മുഖവുര · Pr
 
 
 function BookEditor() {
+  const tr = useT();
   const id = useSearchParams().get("id") ?? "";
   const [book, setBook] = useState<Book | null | undefined>(undefined);
   const [docs, setDocs] = useState<LitmaDoc[]>([]);
@@ -256,8 +258,10 @@ function BookEditor() {
             )}
           </div>
           <div className="space-y-3 text-sm">
-            <In label="Subtitle" value={book.subtitle ?? ""} onChange={(v) => update({ subtitle: v || null })} />
-            <In label="Author" value={book.author ?? ""} onChange={(v) => update({ author: v || null })} />
+            {/* title, subtitle and author take Manglish, Malayalam or English (a cleared field stays empty) */}
+            <ScriptField label={tr("bookDetails.title")} storageKey="book.title" value={book.title ?? ""} onChange={(v) => update({ title: v })} />
+            <ScriptField label={tr("bookDetails.subtitle")} storageKey="book.subtitle" value={book.subtitle ?? ""} onChange={(v) => update({ subtitle: v })} />
+            <ScriptField label={tr("bookDetails.author")} storageKey="book.author" defaultMode="plain" value={book.author ?? ""} onChange={(v) => update({ author: v })} />
             <In label="Publisher" value={st.publisher ?? ""} onChange={(v) => setSt({ publisher: v })} placeholder={DEFAULT_PUBLISHER} />
             <div className="grid grid-cols-2 gap-2">
               <In label="Year" value={st.year ?? ""} onChange={(v) => setSt({ year: v })} />
@@ -568,6 +572,25 @@ function ItemPanel({ item, book, doc, onChange }: { item: BookItem; book: Book; 
   );
 }
 
+/** A tiny wireframe of where each layout puts the title (thick bars) and the author (thin bar). */
+function LayoutIcon({ id }: { id: string }) {
+  const bar = (x: number, y: number, w: number, h: number, o = 1) => <rect x={x} y={y} width={w} height={h} rx={h / 2} fill="currentColor" opacity={o} />;
+  const parts: Record<string, React.ReactNode> = {
+    art: [bar(9, 8, 26, 5), bar(14, 15, 16, 2.5, 0.6), bar(14, 54, 16, 3, 0.8)],
+    kasavu: [bar(9, 17, 26, 5), bar(14, 24, 16, 2.5, 0.6), bar(14, 48, 16, 3, 0.8)],
+    solid: [bar(6, 7, 10, 2, 0.6), bar(6, 11, 28, 5), bar(6, 18, 18, 2.5, 0.6), bar(6, 54, 16, 3, 0.8)],
+    type: [bar(6, 6, 12, 2.5, 0.8), bar(6, 15, 30, 9), bar(6, 26, 22, 9)],
+    minimal: [bar(9, 25, 26, 5), bar(17, 32, 10, 1.5, 0.6), bar(14, 38, 16, 3, 0.8)],
+    photo: [bar(6, 38, 28, 5), bar(6, 45, 18, 2.5, 0.6), bar(6, 52, 16, 3, 0.8)],
+  };
+  return (
+    <svg viewBox="0 0 44 62" className="block w-full" aria-hidden>
+      <rect x="0.5" y="0.5" width="43" height="61" rx="2" fill="currentColor" opacity="0.08" />
+      {parts[id]}
+    </svg>
+  );
+}
+
 function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onCover: (c: Partial<BookCover>) => void }) {
   const tr = useT();
   const c = book.cover ?? {};
@@ -627,22 +650,6 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
       </div>
       <div className="min-w-64 max-w-sm flex-1 space-y-4 text-sm">
         <h2 className="font-semibold">{back ? "Back cover" : "Front cover"}</h2>
-        {/* font size of the text last clicked on the cover (the title until another part is picked) */}
-        <div className="rounded-[10px] border border-line p-3">
-          <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-            <span className="font-medium">{tr("cover.fontSizeOf", { part: tr(`cover.part.${sizePart}` as MessageKey) })}</span>
-            <span className="tabular-nums text-muted">{Math.round(partSize * 100)}%</span>
-          </div>
-          <input type="range" min={0.5} max={sizePart === "title" ? 2 : 2.5} step={0.05} className="w-full" value={partSize} aria-label={tr("cover.fontSizeOf", { part: tr(`cover.part.${sizePart}` as MessageKey) })} onChange={(e) => setPartSize(Number(e.target.value))} />
-          <div className="mt-1 flex items-center justify-between gap-2">
-            <span className="text-xs text-muted">{tr("cover.fontSizeHint")}</span>
-            {partSize !== 1 && (
-              <button type="button" className="shrink-0 text-xs text-muted underline" onClick={() => setPartSize(1)}>
-                {tr("cover.resetSize")}
-              </button>
-            )}
-          </div>
-        </div>
         <div>
           <span className="mb-1.5 block text-xs text-muted">{tr("cover.presetsTitle")}</span>
           <div className="grid grid-cols-[repeat(auto-fill,104px)] gap-2.5">
@@ -661,18 +668,49 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
             })}
           </div>
         </div>
-        <div>
-          <span className="mb-1.5 block text-xs text-muted">{tr("cover.layout")}</span>
-          <div className="flex flex-wrap gap-1.5">
-            {COVER_TEMPLATES.filter((x) => PHOTO_UPLOADS || x.id !== "photo" || t === "photo").map((x) => (
-              <button key={x.id} onClick={() => {
-                  const keep = COVER_ART.find((a) => a.id === coverArtId(c.art)); // a chosen background keeps its colours in every design
-                  // a new layout starts clean: designed positions and sizes
-                  onCover({ template: x.id, ...x.defaults, ...(keep ? { art: keep.id, bg: keep.bg, fg: keep.fg, accent: keep.accent } : {}), offsets: {}, sizes: {}, titleScale: 1, preset: undefined });
-                }} className={`rounded-full border px-3 py-1 text-xs ${t === x.id ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
-                {x.label}
+        {/* font size of the text last clicked on the cover (the title until another part is picked) */}
+        <div className="rounded-[10px] border border-line p-3">
+          <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+            <span className="font-medium">{tr("cover.fontSizeOf", { part: tr(`cover.part.${sizePart}` as MessageKey) })}</span>
+            <span className="tabular-nums text-muted">{Math.round(partSize * 100)}%</span>
+          </div>
+          <input type="range" min={0.5} max={sizePart === "title" ? 2 : 2.5} step={0.05} className="w-full" value={partSize} aria-label={tr("cover.fontSizeOf", { part: tr(`cover.part.${sizePart}` as MessageKey) })} onChange={(e) => setPartSize(Number(e.target.value))} />
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span className="text-xs text-muted">{tr("cover.fontSizeHint")}</span>
+            {partSize !== 1 && (
+              <button type="button" className="shrink-0 text-xs text-muted underline" onClick={() => setPartSize(1)}>
+                {tr("cover.resetSize")}
               </button>
-            ))}
+            )}
+          </div>
+        </div>
+        <div>
+          <div className="mb-1.5 flex items-center justify-between gap-3">
+            <span className="text-xs text-muted">{tr("cover.layout")}</span>
+            <label className="flex cursor-pointer items-center gap-1.5 text-xs">
+              <input type="checkbox" className="accent-[var(--accent)]" checked={c.frame ?? t === "kasavu"} onChange={(e) => onCover({ frame: e.target.checked })} />
+              {tr("cover.frame")}
+            </label>
+          </div>
+          <div className="grid grid-cols-[repeat(auto-fill,64px)] gap-2">
+            {COVER_TEMPLATES.map((x) => {
+              const on = t === x.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  aria-pressed={on}
+                  // a new layout keeps colours, background and font, and starts from the designed positions and sizes
+                  onClick={() => onCover({ template: x.id, frame: c.frame ?? t === "kasavu", offsets: {}, sizes: {}, titleScale: 1, preset: undefined })}
+                  className="group text-center"
+                >
+                  <span className={`mx-auto block rounded-[6px] border-2 p-0.5 transition ${on ? "border-accent text-accent" : "border-line text-muted group-hover:border-line-strong"}`} style={{ width: 52 }}>
+                    <LayoutIcon id={x.id} />
+                  </span>
+                  <span className={`mt-1 block text-[11px] leading-tight ${on ? "font-medium text-accent" : "text-muted"}`}>{tr(`cover.layouts.${x.id}` as MessageKey)}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">

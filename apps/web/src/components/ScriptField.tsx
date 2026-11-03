@@ -12,7 +12,11 @@ const MEANINGFUL_CAPS = new Set([..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].filter((c) => 
  * Manglish → Malayalam for fields where people type names: a Name-cased word ("Jagath") reads all small,
  * and capitals with no meaning in the scheme are lowered, so English-style capitals don't leak through.
  */
+/** Malayalam vowel letters back to Manglish, to rejoin a Latin consonant left in front of one ("Jഅഗത്" → "Jaഗത്"). */
+const VOWEL_LATIN: Record<string, string> = { "അ": "a", "ആ": "aa", "ഇ": "i", "ഈ": "ee", "ഉ": "u", "ഊ": "oo", "എ": "e", "ഏ": "E", "ഐ": "ai", "ഒ": "o", "ഓ": "O", "ഔ": "au" };
+
 export function toMalayalam(text: string): string {
+  text = text.replace(/([A-Za-z])([അആഇഈഉഊഎഏഐഒഓഔ])/g, (_, c: string, v: string) => c + VOWEL_LATIN[v]);
   return text.replace(/[A-Za-z~_^]+/g, (w) => {
     const word = /^[A-Z][a-z~_^]+$/.test(w) ? w.toLowerCase() : w.replace(/[A-Z]/g, (c) => (MEANINGFUL_CAPS.has(c) ? c : c.toLowerCase()));
     return manglish(word);

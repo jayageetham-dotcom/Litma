@@ -65,11 +65,21 @@ export async function checkForUpdates(manual = false) {
   if (state.status === "downloading" || state.status === "ready") return state;
   broadcast({ status: "checking", current: app.getVersion() });
   try {
-    // the website's copy first; GitHub's copy if the site can't be reached
-    let res = await net.fetch(`${FEED}/latest.json?t=${Date.now()}`, { cache: "no-store" }).catch(() => null);
-    if (!res?.ok && !process.env.LITMA_UPDATE_FEED) res = await net.fetch(`${RELEASES_FEED}/latest.json`, { cache: "no-store" });
-    if (!res?.ok) throw new Error(`The update server answered ${res?.status ?? "nothing"}`);
-    latest = (await res.json()) as Latest;
+    // read the website's copy and GitHub's copy together and trust the newer one, so an old file
+    // left on a web host (for example after a move to a new domain) can never hide an update
+    const read = (url: string) =>
+      net
+        .fetch(url, { cache: "no-store" })
+        .then((r) => (r.ok ? (r.json() as Promise<Latest>) : null))
+        .catch(() => null);
+    const [site, github] = await Promise.all([
+      read(`${FEED}/latest.json?t=${Date.now()}`),
+      process.env.LITMA_UPDATE_FEED ? Promise.resolve(null) : read(`${RELEASES_FEED}/latest.json`),
+    ]);
+    const ver = (l: Latest | null) => l?.desktop?.version ?? l?.version ?? "0.0.0";
+    const best = site && github ? (newer(ver(github), ver(site)) ? github : site) : site ?? github;
+    if (!best) throw new Error("The update server could not be reached");
+    latest = best;
     const v = latest.desktop?.version ?? latest.version;
     const current = app.getVersion();
     if (v && newer(v, current) && platformFile()) {

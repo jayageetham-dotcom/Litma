@@ -600,11 +600,13 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
   // the cover part the writer clicked, for the size slider
   const [part, setPart] = useState<string | null>(null);
   useEffect(() => setPart(null), [back]);
-  const partSize = part === "title" ? c.titleScale ?? 1 : (part && c.sizes?.[part]) || 1;
-  const setPartSize = (v: number) => (part === "title" ? onCover({ titleScale: v }) : part && onCover({ sizes: { ...(c.sizes ?? {}), [part]: v } }));
+  const sizePart = part && parts.includes(part) ? part : back ? "back-text" : "title";
+  const partSize = sizePart === "title" ? c.titleScale ?? 1 : c.sizes?.[sizePart] || 1;
+  const setPartSize = (v: number) => (sizePart === "title" ? onCover({ titleScale: v }) : onCover({ sizes: { ...(c.sizes ?? {}), [sizePart]: v } }));
   return (
     <div className="flex flex-wrap items-start gap-8">
-      <div className="origin-top-left" style={{ width: `${W * 0.5}mm` }} onPointerDown={() => setPart(null)}>
+      {/* the preview stays in view while the tools beside it scroll */}
+      <div className="origin-top-left self-start md:sticky md:top-4" style={{ width: `${W * 0.5}mm` }} onPointerDown={() => setPart(null)}>
         <div style={{ height: `${H * 0.5}mm` }}>
         <div style={{ transform: "scale(0.5)", transformOrigin: "top left", boxShadow: "var(--sheet-shadow)" }}>
           {back ? (
@@ -614,33 +616,6 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
           )}
         </div>
         </div>
-        {part && parts.includes(part) && (
-          // size of the selected text: the title uses its real font size, other parts scale as a whole
-          <div className="mt-3 rounded-[10px] border border-line p-3" style={{ width: `${W * 0.5}mm` }} onPointerDown={(e) => e.stopPropagation()}>
-            <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-              <span className="font-medium">{tr("cover.sizeOf", { part: tr(`cover.part.${part}` as MessageKey) })}</span>
-              <span className="tabular-nums text-muted">{Math.round(partSize * 100)}%</span>
-            </div>
-            <input
-              type="range"
-              min={part === "title" ? 0.5 : 0.5}
-              max={part === "title" ? 2 : 2.5}
-              step={0.05}
-              className="w-full"
-              value={partSize}
-              aria-label={tr("cover.sizeOf", { part: tr(`cover.part.${part}` as MessageKey) })}
-              onChange={(e) => setPartSize(Number(e.target.value))}
-            />
-            <div className="mt-1 flex justify-between">
-              <button type="button" className="text-xs text-muted underline" onClick={() => setPartSize(1)}>
-                {tr("cover.resetSize")}
-              </button>
-              <button type="button" className="text-xs text-muted underline" onClick={() => setPart(null)}>
-                {tr("common.close")}
-              </button>
-            </div>
-          </div>
-        )}
         <div className="mt-3 flex items-start justify-between gap-3" style={{ width: `${W * 0.5}mm` }}>
           <p className="text-xs text-muted">{tr(back ? "cover.moveHintBack" : "cover.moveHint")}</p>
           {moved && (
@@ -652,6 +627,22 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
       </div>
       <div className="min-w-64 max-w-sm flex-1 space-y-4 text-sm">
         <h2 className="font-semibold">{back ? "Back cover" : "Front cover"}</h2>
+        {/* font size of the text last clicked on the cover (the title until another part is picked) */}
+        <div className="rounded-[10px] border border-line p-3">
+          <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+            <span className="font-medium">{tr("cover.fontSizeOf", { part: tr(`cover.part.${sizePart}` as MessageKey) })}</span>
+            <span className="tabular-nums text-muted">{Math.round(partSize * 100)}%</span>
+          </div>
+          <input type="range" min={0.5} max={sizePart === "title" ? 2 : 2.5} step={0.05} className="w-full" value={partSize} aria-label={tr("cover.fontSizeOf", { part: tr(`cover.part.${sizePart}` as MessageKey) })} onChange={(e) => setPartSize(Number(e.target.value))} />
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span className="text-xs text-muted">{tr("cover.fontSizeHint")}</span>
+            {partSize !== 1 && (
+              <button type="button" className="shrink-0 text-xs text-muted underline" onClick={() => setPartSize(1)}>
+                {tr("cover.resetSize")}
+              </button>
+            )}
+          </div>
+        </div>
         <div>
           <span className="mb-1.5 block text-xs text-muted">{tr("cover.presetsTitle")}</span>
           <div className="grid grid-cols-[repeat(auto-fill,104px)] gap-2.5">
@@ -710,10 +701,6 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
                 options={COVER_FONTS.map((f) => ({ value: f.name, label: `${f.name} · പുസ്തകം`, text: f.name, hint: tr(`cover.fontKind.${f.kind}` as MessageKey), style: { fontFamily: `'${f.name}'` } }))}
               />
             </div>
-            <label className="block">
-              <span className="mb-1 block text-xs text-muted">Title size</span>
-              <input type="range" min={0.5} max={2} step={0.05} className="w-full" value={c.titleScale ?? 1} onChange={(e) => onCover({ titleScale: Number(e.target.value) })} />
-            </label>
             <div>
               <span className="mb-1.5 block text-xs text-muted">{tr("cover.titleEffects")}</span>
               <div className="flex flex-wrap gap-1.5">

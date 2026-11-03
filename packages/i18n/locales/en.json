@@ -305,8 +305,8 @@
       "mark": "Move the publisher mark",
       "back-head": "Move the title and author picture"
     },
-    "moveHint": "Click a text on the cover to resize it. Drag to move; arrow keys nudge (Shift for bigger steps).",
-    "moveHintBack": "Click a text on the cover to resize it. Drag to move; arrow keys nudge (Shift for bigger steps).",
+    "moveHint": "Click a text on the cover to pick it for Font size. Drag to move; arrow keys nudge (Shift for bigger steps).",
+    "moveHintBack": "Click a text on the cover to pick it for Font size. Drag to move; arrow keys nudge (Shift for bigger steps).",
     "resetPositions": "Reset positions",
     "titleEffects": "Title effects",
     "shadow": "Drop shadow",
@@ -338,7 +338,6 @@
     "website": "Website",
     "imprintHint": "The strip shows the publisher (Litma Publishing House unless you name your own in Book details), the ISBN as a barcode and the price.",
     "imprintStrip": "Imprint strip",
-    "sizeOf": "Size: {part}",
     "resetSize": "Reset size",
     "part": {
       "title": "title",
@@ -362,6 +361,8 @@
       "modern": "Modern",
       "paper": "Paper",
       "bold": "Bold type"
-    }
+    },
+    "fontSizeOf": "Font size: {part}",
+    "fontSizeHint": "Click any text on the cover to size it."
   }
 }

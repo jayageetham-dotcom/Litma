@@ -52,6 +52,13 @@ for (const p of manifests) {
   d.version = next;
   writeJson(p, d);
 }
+// the Flutter app: pubspec version X.Y.Z+N (stores need a growing build number: CI run number, else +1)
+const pubspec = "apps/mobile/pubspec.yaml";
+if (existsSync(join(root, pubspec))) {
+  const text = readFileSync(join(root, pubspec), "utf8");
+  const build = Number(process.env.GITHUB_RUN_NUMBER) || Number(text.match(/^version: [^+\n]+\+(\d+)/m)?.[1] ?? 0) + 1;
+  if (!dry) writeFileSync(join(root, pubspec), text.replace(/^version: .*$/m, `version: ${next}+${build}`));
+}
 // keep the lockfile's workspace versions in step without a full npm install
 if (existsSync(join(root, "package-lock.json"))) {
   const lock = readJson("package-lock.json");

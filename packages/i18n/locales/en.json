@@ -266,7 +266,7 @@
     "letter": "First letter",
     "shuffle": "Surprise me",
     "colour": "Colour",
-    "hint": "Pick your first letter or a drawing. Photo uploads are paused for now.",
+    "hint": "Pick a picture or your first letter. Photo uploads are paused for now.",
     "removePhoto": "Remove old photo",
     "current": "Current",
     "tint": {
@@ -276,21 +276,7 @@
       "lime": "Lime",
       "tangerine": "Tangerine"
     },
-    "art": {
-      "person": "Person",
-      "glasses": "Glasses",
-      "curls": "Curls",
-      "beanie": "Woolly hat",
-      "reader": "Reader",
-      "owl": "Owl",
-      "cat": "Cat",
-      "tortoise": "Tortoise",
-      "fish": "Fish",
-      "parrot": "Parrot",
-      "elephant": "Elephant",
-      "butterfly": "Butterfly",
-      "moon": "Moon"
-    }
+    "picture": "Picture {n}"
   },
   "cover": {
     "illustration": "Background",
@@ -343,7 +329,6 @@
     "badge": "Edition badge",
     "badgeText": "Badge text",
     "publisherMark": "Publisher mark",
-    "needsPublisher": "Add the publisher in Book details to show the mark.",
     "backTitle": "Title and author at the top",
     "imprint": "Imprint strip",
     "genreLine": "Genre line",
@@ -351,6 +336,7 @@
     "coverCredit": "Cover design credit",
     "publisherTagline": "Publisher tagline",
     "website": "Website",
-    "imprintHint": "The strip also shows the publisher, the ISBN (as a barcode) and the price. Publisher and ISBN come from Book details."
+    "imprintHint": "The strip shows the publisher (Litma Publishing House unless you name your own in Book details), the ISBN as a barcode and the price.",
+    "imprintStrip": "Imprint strip"
   }
 }

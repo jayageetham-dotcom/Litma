@@ -126,6 +126,8 @@ export interface BookCover {
   publisherMark?: boolean;
   /** Back cover: repeat the title and author at the top, beside the author picture. Default on. */
   backTitle?: boolean;
+  /** Back cover imprint strip on/off (default on). */
+  imprintStrip?: boolean;
   /** Back cover imprint strip (shown when any of these, the publisher or the ISBN is set). */
   genreLine?: string;
   category?: string;
@@ -138,7 +140,7 @@ export interface BookCover {
   authorBio?: string;
   /** Uploaded author photo (only while photo uploads are on; older books may still have one). */
   authorPhoto?: string | null;
-  /** Author picture on the back cover: "letter", a drawn avatar id from AVATAR_ART, or "none". Default "letter". */
+  /** Author picture on the back cover: "letter", an avatar picture id from AVATAR_IMAGES (e.g. "f-1", "m-1"), or "none". Default "letter". */
   authorAvatar?: string | null;
   price?: string;
 }

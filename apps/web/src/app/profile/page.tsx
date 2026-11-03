@@ -6,7 +6,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { Select } from "@/components/ui/Select";
 import { AppHeader, Avatar } from "@/components/AppHeader";
 import { Field, Notice } from "@/components/AuthShell";
-import { AVATAR_ART, AVATAR_TINTS, AvatarArt, profileAvatar, tintPaint, type AvatarTint } from "@/components/art/Avatars";
+import { AVATAR_CHOICES, AVATAR_IMAGES, isAvatarImage, AVATAR_TINTS, AvatarArt, profileAvatar, tintPaint, type AvatarTint } from "@/components/art/Avatars";
 import { RequireAuth, authMessage } from "@/lib/auth";
 import { PHOTO_UPLOADS } from "@/lib/config";
 import { useT } from "@/i18n/react";
@@ -158,10 +158,11 @@ function ProfileView() {
   }
 
   const av = profileAvatar(p);
+  const avatarLabel = (id: string) => t("avatar.picture", { n: AVATAR_IMAGES.indexOf(id) + 1 });
   const chosen = av.id ?? (av.photo ? null : "letter");
   const shuffle = () => {
-    const opts = AVATAR_ART.filter((a) => a.id !== av.id);
-    choose(opts[Math.floor(Math.random() * opts.length)].id, AVATAR_TINTS[Math.floor(Math.random() * AVATAR_TINTS.length)]);
+    const opts = AVATAR_CHOICES.filter((a) => a !== av.id);
+    choose(opts[Math.floor(Math.random() * opts.length)], AVATAR_TINTS[Math.floor(Math.random() * AVATAR_TINTS.length)]);
   };
 
   return (
@@ -186,7 +187,7 @@ function ProfileView() {
                 </button>
               </div>
               <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("avatar.title")}>
-                {[{ id: "letter", label: t("avatar.letter") }, ...AVATAR_ART.map((a) => ({ id: a.id, label: t(`avatar.art.${a.id}` as MessageKey) }))].map((o) => (
+                {[{ id: "letter", label: t("avatar.letter") }, ...AVATAR_CHOICES.map((id) => ({ id, label: avatarLabel(id) }))].map((o) => (
                   <button
                     key={o.id}
                     type="button"
@@ -200,7 +201,7 @@ function ProfileView() {
                   </button>
                 ))}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className={`flex flex-wrap items-center gap-2 ${isAvatarImage(av.id) ? "hidden" : ""}`}>
                 <span className="text-xs text-muted">{t("avatar.colour")}</span>
                 {AVATAR_TINTS.map((tn) => (
                   <button

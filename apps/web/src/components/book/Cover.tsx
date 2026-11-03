@@ -34,6 +34,9 @@ export const COVER_FONTS: { name: string; kind: "sans" | "calligraphy" | "displa
   { name: "Rachana", kind: "serif" },
 ];
 
+/** Publisher shown on the back-cover imprint strip (and the front mark) until the writer names their own. */
+export const DEFAULT_PUBLISHER = "Litma Publishing House";
+
 /** Parts of a cover the writer can drag. Offsets are stored in millimetres so print matches the screen. */
 export const COVER_PARTS = { front: ["title", "author", "badge", "mark"], back: ["back-head", "back-text", "back-imprint"] } as const;
 
@@ -122,7 +125,7 @@ type CoverProps = {
 export function CoverFront({ book, w, h, className = "", onMove, moveLabel }: CoverProps) {
   const c = resolve(book);
   const scale = c.titleScale ?? 1;
-  const font = `'${c.font ?? "Anek Malayalam"}'`;
+  const font = `'${c.font ?? "Anek Malayalam"}', Inter, sans-serif`;
   const base = { width: `${w}mm`, height: `${h}mm`, background: c.bg, color: c.fg, fontFamily: font } as React.CSSProperties;
   const title = book.title || "പുസ്തകം";
   const publisher = book.settings?.publisher;
@@ -151,9 +154,9 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel }: Co
           </div>
         </Movable>
       )}
-      {c.publisherMark && publisher && (
+      {c.publisherMark && (
         <Movable id="mark" className="absolute right-[7%] top-[4.5%]">
-          <div style={{ border: "0.5mm solid currentColor", padding: "1.2mm 2.4mm", fontSize: "8pt", fontWeight: 800, lineHeight: 1.1, letterSpacing: "0.06em", textTransform: "uppercase", maxWidth: "36mm", textAlign: "center" }}>{publisher}</div>
+          <PublisherBox name={publisher || DEFAULT_PUBLISHER} small />
         </Movable>
       )}
     </>
@@ -282,6 +285,30 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel }: Co
   );
 }
 
+/**
+ * The publisher's boxed mark (as on the back of printed Malayalam books). Litma Publishing House gets its
+ * own two-line lockup; any other name is set in capitals.
+ */
+function PublisherBox({ name, tagline, small = false }: { name: string; tagline?: string; small?: boolean }) {
+  const litma = name === DEFAULT_PUBLISHER;
+  const k = small ? 0.72 : 1;
+  return (
+    <div style={{ fontFamily: "Inter, sans-serif", border: `${0.6 * k}mm solid currentColor`, padding: `${2 * k}mm ${3 * k}mm`, textAlign: "center", maxWidth: `${40 * k}mm`, lineHeight: 1.1 }}>
+      {litma ? (
+        <>
+          <p style={{ fontFamily: "'Anek Malayalam', Inter, sans-serif", fontWeight: 800, fontSize: `${15 * k}pt`, lineHeight: 1 }}>
+            ലിറ്റ്മ<span style={{ color: "#5b3ef0" }}>.</span>
+          </p>
+          <p style={{ fontSize: `${6.2 * k}pt`, fontWeight: 800, letterSpacing: "0.14em", marginTop: `${1 * k}mm` }}>LITMA PUBLISHING HOUSE</p>
+        </>
+      ) : (
+        <p style={{ fontWeight: 800, fontSize: `${11 * k}pt`, textTransform: "uppercase", letterSpacing: "0.04em" }}>{name}</p>
+      )}
+      {tagline && <p style={{ fontSize: `${6.2 * k}pt`, marginTop: `${1 * k}mm`, letterSpacing: "0.08em", textTransform: "uppercase" }}>{tagline}</p>}
+    </div>
+  );
+}
+
 /** Decorative divider: a fine line with curls and a centre diamond. */
 function Flourish({ color, center = true, margin }: { color: string; center?: boolean; margin?: string | number }) {
   return (
@@ -299,7 +326,7 @@ function Flourish({ color, center = true, margin }: { color: string; center?: bo
 /** Back cover: title and author beside the author picture, blurb, author note, and an imprint strip with the ISBN barcode. */
 export function CoverBack({ book, w, h, className = "", onMove, moveLabel }: CoverProps) {
   const c = resolve(book);
-  const font = `'${c.font ?? "Anek Malayalam"}'`;
+  const font = `'${c.font ?? "Anek Malayalam"}', Inter, sans-serif`;
   const ctx: MoveCtx = { offsets: c.offsets ?? {}, wmm: w, hmm: h, onMove, label: moveLabel };
   const set = book.settings ?? {};
   const head = c.backTitle !== false;
@@ -309,7 +336,8 @@ export function CoverBack({ book, w, h, className = "", onMove, moveLabel }: Cov
   ) : c.authorAvatar !== "none" ? (
     <AvatarArt id={c.authorAvatar ?? "letter"} name={book.author} size="100%" square paint={{ fg: c.accent!, bg: `color-mix(in srgb, ${c.accent} 22%, ${c.bg})` }} />
   ) : null;
-  const hasStrip = !!(set.publisher || isbn13(set.isbn) || c.genreLine || c.category || c.coverCredit || c.website || c.price);
+  const pub = set.publisher?.trim() || DEFAULT_PUBLISHER;
+  const hasStrip = c.imprintStrip !== false;
   return (
     <Move.Provider value={ctx}>
       <div data-cover="" className={`relative overflow-hidden ${className}`} style={{ width: `${w}mm`, height: `${h}mm`, background: c.bg, color: c.fg }}>
@@ -337,7 +365,7 @@ export function CoverBack({ book, w, h, className = "", onMove, moveLabel }: Cov
             </div>
           </Movable>
         )}
-        <Movable id="back-text" className={`absolute inset-x-[16%] ${head ? "top-[30%]" : "top-[14%]"}`} style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+        <Movable id="back-text" className={`absolute inset-x-[16%] ${head ? "top-[30%]" : "top-[14%]"}`} style={{ fontFamily: "'Noto Serif Malayalam', 'Noto Serif', serif" }}>
           {c.blurb && <p style={{ fontSize: "12.5pt", lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{c.blurb}</p>}
           {(c.authorBio || (!head && picture)) && (
             <div className="flex items-start gap-[5mm]" style={{ marginTop: c.blurb ? "10mm" : 0 }}>
@@ -352,19 +380,14 @@ export function CoverBack({ book, w, h, className = "", onMove, moveLabel }: Cov
         {hasStrip && (
           // imprint strip: publisher box · genre and credits · category, barcode, price
           <Movable id="back-imprint" className="absolute inset-x-[6%] bottom-[4%]">
-            <div className="grid items-center gap-[4mm]" style={{ gridTemplateColumns: set.publisher ? "auto 1fr auto" : "1fr auto", background: "#fff", color: "#141414", padding: "4mm 5mm", borderRadius: "1mm", fontFamily: font, fontSize: "8.5pt", lineHeight: 1.45 }}>
-              {set.publisher && (
-                <div style={{ border: "0.6mm solid #141414", padding: "2mm 3mm", textAlign: "center", maxWidth: "40mm" }}>
-                  <p style={{ fontWeight: 800, fontSize: "11pt", lineHeight: 1.1, textTransform: "uppercase", letterSpacing: "0.04em" }}>{set.publisher}</p>
-                  {c.publisherTagline && <p style={{ fontSize: "6.5pt", marginTop: "1mm", letterSpacing: "0.08em", textTransform: "uppercase" }}>{c.publisherTagline}</p>}
-                </div>
-              )}
-              <div style={{ borderLeft: set.publisher ? "0.3mm solid #999" : undefined, paddingLeft: set.publisher ? "4mm" : 0 }}>
+            <div className="grid items-center gap-[4mm]" style={{ gridTemplateColumns: "auto 1fr auto", background: "#fff", color: "#141414", padding: "4mm 5mm", borderRadius: "1mm", fontFamily: font, fontSize: "8.5pt", lineHeight: 1.45 }}>
+              <PublisherBox name={pub} tagline={c.publisherTagline} />
+              <div style={{ borderLeft: "0.3mm solid #999", paddingLeft: "4mm" }}>
                 {c.genreLine && <p style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>{c.genreLine}</p>}
                 {c.coverCredit && <p style={{ textTransform: "uppercase", letterSpacing: "0.03em" }}>{c.coverCredit}</p>}
-                {(set.publisher || c.website) && (
-                  <p style={{ marginTop: "2mm" }}>
-                    {set.publisher && <span style={{ fontWeight: 700, textTransform: "uppercase" }}>{set.publisher}</span>}
+                {(
+                  <p style={{ marginTop: c.genreLine || c.coverCredit ? "2mm" : 0 }}>
+                    <span style={{ fontWeight: 700, textTransform: "uppercase" }}>{pub}</span>
                     {c.website && <span style={{ display: "block" }}>{c.website}</span>}
                   </p>
                 )}

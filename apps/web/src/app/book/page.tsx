@@ -12,10 +12,10 @@ import { BASE, PHOTO_UPLOADS } from "@/lib/config";
 import { templateFor } from "@/lib/templates";
 import { ITEM_LABELS } from "@/lib/book-sections";
 import { resizeImage } from "@/lib/image";
-import { COVER_FONTS, COVER_PARTS, COVER_TEMPLATES, CoverBack, CoverFront } from "@/components/book/Cover";
+import { COVER_FONTS, COVER_PARTS, COVER_TEMPLATES, CoverBack, CoverFront, DEFAULT_PUBLISHER } from "@/components/book/Cover";
 import { MiniEditor } from "@/components/book/MiniEditor";
 import { COVER_ART, CoverArtSvg, coverArtId } from "@/components/art/CoverArt";
-import { AVATAR_ART, AvatarArt } from "@/components/art/Avatars";
+import { AVATAR_CHOICES, AVATAR_IMAGES, AvatarArt } from "@/components/art/Avatars";
 import { useT } from "@/i18n/react";
 import type { MessageKey } from "@litma/i18n";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -253,7 +253,7 @@ function BookEditor() {
           <div className="space-y-3 text-sm">
             <In label="Subtitle" value={book.subtitle ?? ""} onChange={(v) => update({ subtitle: v || null })} />
             <In label="Author" value={book.author ?? ""} onChange={(v) => update({ author: v || null })} />
-            <In label="Publisher" value={st.publisher ?? ""} onChange={(v) => setSt({ publisher: v })} />
+            <In label="Publisher" value={st.publisher ?? ""} onChange={(v) => setSt({ publisher: v })} placeholder={DEFAULT_PUBLISHER} />
             <div className="grid grid-cols-2 gap-2">
               <In label="Year" value={st.year ?? ""} onChange={(v) => setSt({ year: v })} />
               <In label="Edition" value={st.edition ?? ""} onChange={(v) => setSt({ edition: v })} />
@@ -733,14 +733,16 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
               {c.badge && (
                 <input className="field mt-2 !py-1.5" value={c.badgeText ?? ""} onChange={(e) => onCover({ badgeText: e.target.value })} placeholder={book.settings?.edition || "14-ാം പതിപ്പ്"} aria-label={tr("cover.badgeText")} style={ml} />
               )}
-              {c.publisherMark && !book.settings?.publisher && <p className="mt-1.5 text-xs text-muted">{tr("cover.needsPublisher")}</p>}
             </div>
             <p className="text-xs text-muted">Title, subtitle, author and publisher come from Book details.</p>
           </>
         )}
         {back && (
           <>
-            <div className="flex flex-wrap gap-1.5">{chip(c.backTitle !== false, tr("cover.backTitle"), () => onCover({ backTitle: c.backTitle === false }))}</div>
+            <div className="flex flex-wrap gap-1.5">
+              {chip(c.backTitle !== false, tr("cover.backTitle"), () => onCover({ backTitle: c.backTitle === false }))}
+              {chip(c.imprintStrip !== false, tr("cover.imprintStrip"), () => onCover({ imprintStrip: c.imprintStrip === false }))}
+            </div>
             <label className="block">
               <span className="mb-1 block text-xs text-muted">Blurb</span>
               <textarea className="field min-h-36" value={c.blurb ?? ""} onChange={(e) => onCover({ blurb: e.target.value })} placeholder="ഈ പുസ്തകത്തെക്കുറിച്ച്…" style={ml} />
@@ -761,7 +763,7 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
                 </p>
               ) : null}
               <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("cover.authorPicture")}>
-                {[{ id: "none", label: tr("cover.none") }, { id: "letter", label: tr("cover.letter") }, ...AVATAR_ART.map((a) => ({ id: a.id, label: tr(`avatar.art.${a.id}` as MessageKey) }))].map((o) => {
+                {[{ id: "none", label: tr("cover.none") }, { id: "letter", label: tr("cover.letter") }, ...AVATAR_CHOICES.map((id) => ({ id, label: tr("avatar.picture", { n: AVATAR_IMAGES.indexOf(id) + 1 }) }))].map((o) => {
                   const on = !c.authorPhoto && (c.authorAvatar ?? "letter") === o.id;
                   return (
                     <button key={o.id} type="button" role="radio" aria-checked={on} title={o.label} onClick={() => onCover({ authorAvatar: o.id, authorPhoto: null })} className={`rounded-full p-0.5 ${on ? "ring-2 ring-accent" : "hover:ring-2 hover:ring-line-strong"}`}>

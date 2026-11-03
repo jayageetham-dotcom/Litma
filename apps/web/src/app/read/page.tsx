@@ -11,7 +11,7 @@ import { store } from "@/lib/store";
 import { useUser } from "@/lib/auth";
 import { kindDot } from "@/lib/tints";
 import { renderDocHtml } from "@/lib/doc-html";
-import { settingsFor, templateFor } from "@/lib/templates";
+import { docClasses, settingsFor, templateFor } from "@/lib/templates";
 import type { LitmaDoc } from "@/lib/types";
 
 /** Reading time at a calm pace for Malayalam prose (about 150 words a minute). */
@@ -194,7 +194,7 @@ function Reader() {
           <Outline root={sheet} html={html} />
           <article
             ref={sheet}
-            className={`reader-sheet page-stack tpl-${doc.kind} overflow-hidden rounded-md`}
+            className={`reader-sheet page-stack ${docClasses(doc.kind, s)} overflow-hidden rounded-md`}
             aria-label={doc.title}
             style={
               {

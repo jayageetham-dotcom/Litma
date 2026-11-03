@@ -85,10 +85,16 @@ function measure(view: EditorView, geo: PageGeometry) {
     used += h;
     while (used > H) used -= H; // blocks taller than a page simply flow on
   });
+  // the list of footnotes shown after the last block (extensions/footnote.ts) takes room too
+  const notes = view.dom.querySelector(":scope > .doc-endnotes") as HTMLElement | null;
+  if (notes) {
+    const h = outerHeight(notes);
+    if (used + h > H + 0.5 && used > 0) breaks.push({ pos: view.state.doc.content.size, height: Math.max(0, H - used) + geo.gap });
+  }
   return breaks;
 }
 
-export const Pagination = Extension.create<{ geometry: PageGeometry }, { geometry: PageGeometry; pages: number }>({
+export const Pagination = Extension.create<{ geometry: PageGeometry }, { geometry: PageGeometry; pages: number; paged: boolean }>({
   name: "pagination",
 
   addOptions() {
@@ -96,7 +102,8 @@ export const Pagination = Extension.create<{ geometry: PageGeometry }, { geometr
   },
 
   addStorage() {
-    return { geometry: this.options.geometry, pages: 1 };
+    // paged = false: one continuous sheet (phones), no page breaks
+    return { geometry: this.options.geometry, pages: 1, paged: true };
   },
 
   addProseMirrorPlugins() {
@@ -131,7 +138,7 @@ export const Pagination = Extension.create<{ geometry: PageGeometry }, { geometr
             cancelAnimationFrame(frame);
             frame = requestAnimationFrame(() => {
               if (!view.dom.isConnected) return;
-              const breaks = measure(view, ext.storage.geometry);
+              const breaks = ext.storage.paged ? measure(view, ext.storage.geometry) : [];
               const prev = paginationKey.getState(view.state)?.breaks ?? [];
               const same =
                 prev.length === breaks.length &&

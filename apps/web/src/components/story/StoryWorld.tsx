@@ -11,6 +11,20 @@ import { PHOTO_UPLOADS } from "@/lib/config";
 import { manglish } from "@litma/shared/manglish";
 import type { LitmaDoc } from "@/lib/types";
 import { proseReport, scriptReport, verseReport } from "./reports";
+import { useI18n, type MessageKey } from "@/i18n/react";
+
+/** A Story World section's name and summary prompt in the writer's interface language. */
+function useTabText() {
+  const { t, locale } = useI18n();
+  const label = (tab: StoryTab) => t(`story.tabs.${tab.id}.label` as MessageKey);
+  return {
+    locale,
+    label,
+    summary: (tab: StoryTab) => t(`story.tabs.${tab.id}.summary` as MessageKey),
+    /** "Add character" / "കഥാപാത്രങ്ങൾ ചേർക്കുക" */
+    add: (tab: StoryTab) => (locale === "en" ? `Add ${label(tab).toLowerCase().replace(/s$/, "")}` : `${label(tab)} ${t("story.add")}`),
+  };
+}
 
 const ml = { fontFamily: "'Noto Sans Malayalam'" } as const;
 
@@ -28,6 +42,7 @@ export function StoryWorld({
   onColumns?: (c: string[]) => void;
   onClose: () => void;
 }) {
+  const txt = useTabText();
   const tabs = tabsFor(doc.kind);
   const [tab, setTab] = useState<StoryTab>(tabs[0]);
   const [items, setItems] = useState<StoryItem[] | null>(null);
@@ -123,7 +138,7 @@ export function StoryWorld({
               onClick={() => setTab(t)}
               className={`shrink-0 border-b-2 px-3 py-2.5 text-sm ${tab.kind === t.kind ? "border-highlight font-semibold text-ink" : "border-transparent text-muted hover:text-ink"}`}
             >
-              {t.ml} <span className="text-xs text-muted">{t.label}</span>
+              {t.ml} {txt.locale !== "ml" && <span className="text-xs text-muted">{txt.label(t)}</span>}
               {n ? <span className="ml-1.5 rounded-full bg-subtle px-1.5 text-[11px]">{n}</span> : null}
             </button>
           );
@@ -151,6 +166,7 @@ export function StoryWorld({
 }
 
 function CardGrid({ tab, items, onAdd, onOpen, onInsert }: { tab: StoryTab; items: StoryItem[]; onAdd: () => void; onOpen: (i: StoryItem) => void; onInsert?: (name: string) => void }) {
+  const txt = useTabText();
   const fields = FIELDS[tab.kind as StoryKind];
   const sub = (it: StoryItem) => fields.slice(0, 3).map((f) => it.data?.[f.key]).filter(Boolean).join(" · ");
   return (
@@ -185,7 +201,7 @@ function CardGrid({ tab, items, onAdd, onOpen, onInsert }: { tab: StoryTab; item
       ))}
       <button onClick={onAdd} className="grid min-h-40 place-items-center rounded-lg border-2 border-dashed border-line text-muted hover:border-accent hover:text-accent">
         <span className="flex items-center gap-2">
-          <Plus size={18} /> Add {tab.label.toLowerCase().replace(/s$/, "")}
+          <Plus size={18} /> {txt.add(tab)}
         </span>
       </button>
     </div>
@@ -462,6 +478,7 @@ function Timeline({ items, onAdd, onOpen }: { items: StoryItem[]; onAdd: () => v
 }
 
 function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem; tab: StoryTab; onSave: (i: StoryItem) => Promise<StoryItem>; onDelete: (i: StoryItem) => void; onClose: (latest: StoryItem) => void }) {
+  const txt = useTabText();
   const [it, setIt] = useState(item);
   const close = () => onClose(it);
   useEffect(() => {
@@ -501,7 +518,8 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
       <aside className="scrollbar-thin h-full w-full max-w-lg overflow-y-auto dialog p-6" onClick={(e) => e.stopPropagation()} aria-label="Edit card">
         <div className="mb-4 flex items-center justify-between">
           <span className="text-xs font-semibold text-highlight">
-            {tab.ml} · {tab.label}
+            {tab.ml}
+            {txt.locale !== "ml" && ` · ${txt.label(tab)}`}
           </span>
           <span className="text-xs text-muted" aria-live="polite">
             {state === "saving" ? "Saving…" : state === "saved" ? "Saved" : state === "error" ? "Couldn't save" : ""}
@@ -555,7 +573,7 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
         <p className="mt-1 text-[11px] text-muted">Typed in Manglish? Use ⇄ below to convert to Malayalam.</p>
         <label className="mt-4 block">
           <span className="mb-1 flex items-center justify-between text-sm">
-            {tab.summary ?? "Summary"}
+            {txt.summary(tab)}
             <button type="button" className="text-xs text-accent underline" onClick={() => set({ name: manglish(it.name), summary: manglish(it.summary) })} title="Convert Manglish in name and summary to Malayalam">
               ⇄ Manglish → മലയാളം
             </button>

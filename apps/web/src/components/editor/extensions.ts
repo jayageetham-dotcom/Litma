@@ -15,6 +15,8 @@ import { Manglish, type InputMode } from "@/extensions/manglish";
 import { Pagination, geometryFor } from "@/extensions/pagination";
 import { FirstLetterColour, PageBreak, StyledBlock } from "@/extensions/blocks";
 import { ScreenplayKeys, ScreenplayNodes } from "@/extensions/screenplay";
+import { DramaNodes } from "@/extensions/drama";
+import { Endnotes, Footnote } from "@/extensions/footnote";
 import { Metre, Search, Typewriter } from "@/extensions/tools";
 import { SmartBold } from "@/extensions/bold";
 import { KeepSelection } from "@/extensions/keep-selection";
@@ -23,7 +25,7 @@ import type { DocKind, DocSettings } from "@/lib/types";
 const VARIANT_PLACEHOLDER: Record<string, string> = {
   title: "ശീർഷകം",
   subtitle: "ഉപശീർഷകം",
-  author: "എഴുത്തുകാരന്റെ പേര്",
+  author: "എഴുതിയ ആളുടെ പേര്",
   chapter: "അദ്ധ്യായത്തിന്റെ പേര്",
   kicker: "വിഭാഗം (ഉദാ: യാത്ര)",
   standfirst: "ലേഖനത്തിന്റെ ചുരുക്കം രണ്ടു വരിയിൽ…",
@@ -35,10 +37,19 @@ const VARIANT_PLACEHOLDER: Record<string, string> = {
   dateline: "തീയതി",
   epigraph: "ആമുഖവാക്യം",
   caption: "അടിക്കുറിപ്പ്",
+  stanza: "ഖണ്ഡത്തിന് പേര് (വേണമെങ്കിൽ)",
+  act: "അങ്കത്തിന് പേര് (വേണമെങ്കിൽ)",
+  scene: "സ്ഥലം, സമയം (വേണമെങ്കിൽ)",
+  refrain: "ആവർത്തിക്കുന്ന വരി",
+  credits: "ചിത്രം / ആൽബം · സംഗീതം · ആലാപനം",
+  infobox: "വിവരപ്പെട്ടി: ചെറിയ വസ്തുതകൾ, കണക്കുകൾ…",
+  references: "അവലംബം",
 };
 
 const NODE_PLACEHOLDER: Record<string, string> = {
   sceneHeading: "Int./Ext. സ്ഥലം",
+  castName: "കഥാപാത്രം",
+  castRole: "ആരാണ് (ഒറ്റവരിയിൽ)",
   sceneTime: "പകൽ / രാത്രി",
   sceneCast: "കഥാപാത്രങ്ങൾ",
   action: "രംഗവിവരണം…   Tab → സംഭാഷണം",
@@ -72,6 +83,7 @@ const Color = BaseColor.extend({
 
 export function buildExtensions(kind: DocKind, settings: DocSettings, inputMode: InputMode) {
   const usesDialogueKeys = kind === "screenplay" || kind === "drama";
+  const verse = kind === "poem" || kind === "lyrics";
   return [
     StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
     Underline,
@@ -89,13 +101,18 @@ export function buildExtensions(kind: DocKind, settings: DocSettings, inputMode:
     Placeholder.configure({
       includeChildren: true,
       showOnlyCurrent: false,
-      placeholder: ({ node, hasAnchor, editor }) => {
+      placeholder: ({ node, hasAnchor, editor, pos }) => {
         if (node.type.name === "styledBlock") return VARIANT_PLACEHOLDER[node.attrs.variant] ?? "";
         if (NODE_PLACEHOLDER[node.type.name]) return NODE_PLACEHOLDER[node.type.name];
         if (node.type.name === "paragraph") {
           if (editor.isEmpty) return "എഴുതിത്തുടങ്ങൂ…  (Manglish: ezhuthu → എഴുത്)";
+          // the first line under a song part or stanza always says what goes there
+          if (verse) {
+            const before = pos > 0 ? editor.state.doc.resolve(pos).nodeBefore : null;
+            if (before?.type.name === "styledBlock" && ["part", "stanza"].includes(before.attrs.variant)) return "വരി…";
+          }
           if (!hasAnchor) return "";
-          return kind === "poem" || kind === "lyrics" ? "വരി…" : "എഴുതൂ…";
+          return verse ? "വരി…" : "എഴുതൂ…";
         }
         return "";
       },
@@ -107,7 +124,10 @@ export function buildExtensions(kind: DocKind, settings: DocSettings, inputMode:
     FirstLetterColour,
     StyledBlock,
     ...ScreenplayNodes,
-    ScreenplayKeys.configure({ enabled: () => usesDialogueKeys }),
+    ...DramaNodes,
+    Footnote,
+    Endnotes,
+    ScreenplayKeys.configure({ enabled: () => usesDialogueKeys, drama: () => kind === "drama" }),
     Metre,
     Search,
     Typewriter,

@@ -23,8 +23,8 @@ const FORM_NAMES: Record<string, string> = {
   screenplay:
     "a Malayalam film screenplay (തിരക്കഥ) in the Kerala format: Scene headings, time (പകൽ/രാത്രി), cast list, action in present tense, and dialogue written as 'കഥാപാത്രം: സംഭാഷണം' with optional (parentheticals)",
   feature: "a Malayalam feature article for a magazine",
-  essay: "a Malayalam essay or article (ലേഖനം)",
-  drama: "a Malayalam stage play (നാടകം)",
+  essay: "a Malayalam essay or article (ലേഖനം), with footnotes and references where facts need a source",
+  drama: "a Malayalam stage play (നാടകം) with acts (അങ്കം), scenes (രംഗം), stage directions in parentheses and dialogue as 'പേര്: സംഭാഷണം'",
   lyrics: "Malayalam song lyrics (പല്ലവി, അനുപല്ലവി, ചരണം) that must be singable",
   diary: "a Malayalam diary or memoir entry",
   blank: "a Malayalam piece of writing",

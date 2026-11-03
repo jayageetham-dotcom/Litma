@@ -438,14 +438,14 @@ function Chooser({ onPick, creating }: { onPick: (k: DocKind) => void; creating:
   return (
     <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] sm:gap-x-5 sm:gap-y-7">
       {TEMPLATES.map((t) => (
-        <button key={t.kind} onClick={() => onPick(t.kind)} disabled={!!creating} className="group flex flex-col items-start self-start text-left" title={t.blurb}>
+        <button key={t.kind} onClick={() => onPick(t.kind)} disabled={!!creating} className="group flex flex-col items-start self-start text-left" title={tr(`types.${t.kind}.blurb`)}>
           <div className="transition-transform group-hover:-translate-y-1 group-focus-visible:-translate-y-1">
             <TemplatePreview kind={t.kind} width={140} />
           </div>
           <div className="mt-2.5 font-semibold">
             {t.ml} <span className="text-sm font-normal text-muted">{t.en}</span>
           </div>
-          <p className="mt-0.5 text-xs leading-snug text-muted">{creating === t.kind ? <span className="inline-flex items-center gap-1.5 text-accent"><span className="ink-spinner" aria-hidden />{tr("desk.opening")}</span> : t.blurb}</p>
+          <p className="mt-0.5 text-xs leading-snug text-muted">{creating === t.kind ? <span className="inline-flex items-center gap-1.5 text-accent"><span className="ink-spinner" aria-hidden />{tr("desk.opening")}</span> : tr(`types.${t.kind}.blurb`)}</p>
         </button>
       ))}
     </div>

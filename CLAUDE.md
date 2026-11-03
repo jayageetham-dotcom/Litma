@@ -80,6 +80,10 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Alignment buttons show for every writing type; disabled on screenplay scene/dialogue nodes.
 - Metre marks (akshara count, laghu/guru) are hidden by default; toolbar toggle വൃത്തം and Ctrl/⌘+Alt+V, saved as `settings.showMetre`.
 - Typewriter scrolling only follows the cursor right after typing keys (not on clicks or selection).
+- Writing-type flow: Enter on a template line moves to the next empty line the template left (`moveToNextSlot`, steps over a filled പല്ലവി/കഥാപാത്രങ്ങൾ label). Prompts follow their line's alignment. Author block is "രചന", prompt "എഴുതിയ ആളുടെ പേര്" (no gendered wording).
+- Numbered blocks are CSS counters (`scene`, `chapter`, `act`, `dscene`, `stanza`, `footnote`); the PDF paginator carries them across pages (`countersAfter` in `lib/paginate.ts`). Layout choices travel as classes from `docClasses()` (`chapter-numbers`, `labels-ml`/`labels-en`, `verse-center`) to the editor, reader, PDF and book. Settings: `chapterNumbers`, `headingLabels` (screenplays without it keep "Scene: 1"; new ones get "ml" via `newSettings`), `verseAlign`.
+- Plays: `castEntry` nodes (`extensions/drama.ts`, filled from Story World with `fillCastList`), numbered act/scene blocks shown in both languages in menus ("അങ്കം · Act"). Screenplays: scene tools (Int./Ext., time, fill cast) in `extensions/screenplay.ts`. Essays/features: `footnote` inline nodes, listed at the end by the `Endnotes` widget and `renderDocHtml`, real footnotes in Word. Diary: "New entry" adds today's date.
+- Phones show the writing at full size on one continuous sheet (`pageless`, pagination off); More → Pages shows the printed pages (`litma:phone-pages`).
 - Phones: no autofocus on open; the editor shows a keyboard accessory strip while focused and the tab bar otherwise.
 
 ## നാട്ടറിവ് (Dictionary tab, owner's rules)

@@ -1,7 +1,7 @@
 "use client";
 import type { JSONContent } from "@tiptap/core";
 import { renderDocHtml } from "./doc-html";
-import { settingsFor } from "./templates";
+import { docClasses, settingsFor } from "./templates";
 import { PAGE_SIZES } from "@/extensions/pagination";
 import type { Book, BookItem, LitmaDoc } from "./types";
 import type { PageSpec, Section } from "./paginate";
@@ -37,7 +37,7 @@ export function documentPrint(doc: LitmaDoc): { spec: PageSpec; sections: Sectio
         kind: "flow",
         id: doc.id,
         html: docHtml(doc, doc.content),
-        className: `tpl-${doc.kind}`,
+        className: docClasses(doc.kind, s),
         vars: varsFor(s.font, s.fontSize, s.lineHeight),
         numbering: "arabic",
         runningHead: s.header || "",
@@ -166,7 +166,7 @@ export function bookSections(book: Book, docs: Map<string, LitmaDoc>): Section[]
           quietFirst: true,
           startRight: !!st.chaptersOnRight,
           runningHead: st.runningHead !== false ? title : undefined,
-          className: `tpl-${d.kind}`,
+          className: docClasses(d.kind, own),
           vars,
           html: heading + docHtml(d, bodyOf(d.content, showTitle)),
         });

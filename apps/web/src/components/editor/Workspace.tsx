@@ -27,6 +27,7 @@ import {
   Search,
   Type,
   Bookmark,
+  Files,
 } from "lucide-react";
 import { buildExtensions } from "./extensions";
 import { MobileFormatStrip, MobileSelectionBar, Toolbar } from "./Toolbar";
@@ -39,7 +40,9 @@ import { ManglishPopup } from "./ManglishPopup";
 import { AIPanel, HistoryPanel, InboxPanel, KeysPanel, OutlinePanel, PagePanel } from "./Panels";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { store } from "@/lib/store";
-import { templateFor } from "@/lib/templates";
+import { docClasses, templateFor } from "@/lib/templates";
+import { fillCastList } from "@/extensions/drama";
+import { FootnoteDialog } from "./FootnoteDialog";
 import type { DocSettings, LitmaDoc } from "@/lib/types";
 import { countWords, readingMinutes, aksharas } from "@litma/shared/manglish";
 import { MM, PAGE_GAP_PX, PAGE_SIZES, geometryFor, paginationKey, remeasurePages } from "@/extensions/pagination";
@@ -100,6 +103,30 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const [shareId, setShareId] = useState(initial.share_id ?? null);
   const [menu, setMenu] = useState<"export" | "share" | null>(null);
   const [stats, setStats] = useState({ words: initial.word_count, chars: 0, aksharas: 0, pages: 1 });
+  // Phones show the writing at full size on one continuous sheet; "Pages" (More) brings the printed pages back.
+  const [phonePages, setPhonePages] = useState(false);
+  useEffect(() => {
+    try {
+      setPhonePages(localStorage.getItem("litma:phone-pages") === "on");
+    } catch {
+      /* storage may be unavailable */
+    }
+  }, []);
+  const togglePhonePages = () =>
+    setPhonePages((v) => {
+      try {
+        localStorage.setItem("litma:phone-pages", v ? "off" : "on");
+      } catch {
+        /* ignore */
+      }
+      return !v;
+    });
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!notice) return;
+    const id = setTimeout(() => setNotice(null), 3500);
+    return () => clearTimeout(id);
+  }, [notice]);
 
   const router = useRouter();
   const [showKeys, setShowKeys] = useState(false);
@@ -382,6 +409,23 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [editor, saveContent, focus, template.metre, updateSettings]);
 
+  const pageless = phone && !phonePages;
+  useEffect(() => {
+    if (!editor) return;
+    if (editor.storage.pagination.paged === !pageless) return;
+    editor.storage.pagination.paged = !pageless;
+    remeasurePages();
+  }, [editor, pageless]);
+
+  /** Plays: put the Story World characters into the cast list. */
+  const fillCast = useCallback(async () => {
+    if (!editor) return;
+    const items = await store.listStory(initial.id).catch(() => []);
+    const people = items.filter((i) => i.kind === "character" && i.name.trim()).sort((a, b) => a.position - b.position).map((i) => ({ name: i.name, role: i.summary }));
+    const added = fillCastList(editor, people);
+    setNotice(added ? t("editor.drama.fillCastDone", { count: added }) : people.length ? t("editor.drama.fillCastNone") : t("editor.drama.fillCastEmpty"));
+  }, [editor, initial.id, t]);
+
   const pageSize = PAGE_SIZES[settings.pageSize] ?? PAGE_SIZES.A4;
   // shrink the page to fit narrow screens (phones, side panels open)
   useEffect(() => {
@@ -398,19 +442,35 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const pageH = pageSize.h * MM;
   const totalH = stats.pages * pageH + (stats.pages - 1) * PAGE_GAP_PX;
 
-  const stackStyle = {
-    "--page-w": `${pageSize.w}mm`,
-    "--page-h": `${pageSize.h}mm`,
-    "--m-top": `${settings.margins.top}mm`,
-    "--m-right": `${settings.margins.right}mm`,
-    "--m-bottom": `${settings.margins.bottom}mm`,
-    "--m-left": `${settings.margins.left}mm`,
-    "--doc-font": `'${settings.font}'`,
-    "--doc-size": `${settings.fontSize}pt`,
-    "--doc-lh": settings.lineHeight,
-    height: totalH,
-    transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-  } as React.CSSProperties;
+  const metreOn = !!settings.showMetre && !!template.metre;
+  const stackStyle = (
+    pageless
+      ? {
+          "--page-w": "100%",
+          "--page-h": "auto",
+          "--m-top": "22px",
+          // room for the akshara counts in the left margin when metre marks are on
+          "--m-left": metreOn ? "34px" : "18px",
+          "--m-right": "18px",
+          "--m-bottom": "22px",
+          "--doc-font": `'${settings.font}'`,
+          "--doc-size": `${settings.fontSize}pt`,
+          "--doc-lh": settings.lineHeight,
+        }
+      : {
+          "--page-w": `${pageSize.w}mm`,
+          "--page-h": `${pageSize.h}mm`,
+          "--m-top": `${settings.margins.top}mm`,
+          "--m-right": `${settings.margins.right}mm`,
+          "--m-bottom": `${settings.margins.bottom}mm`,
+          "--m-left": `${settings.margins.left}mm`,
+          "--doc-font": `'${settings.font}'`,
+          "--doc-size": `${settings.fontSize}pt`,
+          "--doc-lh": settings.lineHeight,
+          height: totalH,
+          transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+        }
+  ) as unknown as React.CSSProperties;
 
   const pageCss = `@page{size:${pageSize.w}mm ${pageSize.h}mm;margin:${settings.margins.top}mm ${settings.margins.right}mm ${settings.margins.bottom}mm ${settings.margins.left}mm}`;
 
@@ -431,7 +491,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     { label: "Word (.docx)", run: () => exportDocx(currentDoc()) },
     { label: "Markdown (.md)", run: () => exportMarkdown(currentDoc()) },
     { label: "Plain text (.txt)", run: () => exportText(currentDoc()) },
-    { label: "Web page (.html)", run: () => exportHTML(currentDoc(), editor?.getHTML() ?? "") },
+    { label: "Web page (.html)", run: () => exportHTML(currentDoc()) },
   ];
 
   const shareBody = store.isCloud() ? (
@@ -492,7 +552,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         {id === "story" && <StoryPanel editor={editor} doc={docRef.current} settings={settings} onChange={updateSettings} onOpen={() => setStoryOpen(true)} refresh={storyOpen ? 0 : 1} />}
         {id === "history" && <HistoryPanel editor={editor} doc={docRef.current} onSnapshot={(l) => saveContent(editor, l)} />}
         {id === "keys" && <KeysPanel editor={editor} />}
-        {id === "page" && <PagePanel settings={settings} onChange={updateSettings} showMetreOption={!!template.metre} />}
+        {id === "page" && <PagePanel kind={initial.kind} settings={settings} onChange={updateSettings} showMetreOption={!!template.metre} />}
       </>
     );
   const panelMode = phone ? "sheet" : screen === "wide" ? "dock" : "drawer";
@@ -548,7 +608,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
               <span className="font-semibold text-highlight">{template.ml}</span>
               {phone ? (
                 <span>
-                  {stats.words.toLocaleString("en-IN")} {stats.words === 1 ? "word" : "words"} · {stats.pages} {stats.pages === 1 ? "page" : "pages"}
+                  {stats.words.toLocaleString("en-IN")} {stats.words === 1 ? "word" : "words"}
+                  {!pageless && ` · ${stats.pages} ${stats.pages === 1 ? "page" : "pages"}`}
                 </span>
               ) : (
                 <span>{settings.pageSize}</span>
@@ -599,13 +660,13 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         </header>
       )}
 
-      {!focus && !phone && editor && <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => setFindOpen(true)} metre={metreToggle} />}
+      {!focus && !phone && editor && <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => setFindOpen(true)} metre={metreToggle} onFillCast={initial.kind === "drama" ? fillCast : undefined} />}
 
       <div className="flex min-h-0 flex-1">
         {/* ── Outline: docked on laptops and up ── */}
         {!focus && outline && editor && (screen === "desktop" || screen === "wide") && (
           <aside className="no-print scrollbar-thin w-56 shrink-0 overflow-y-auto border-r border-line bg-surface px-3 py-4">
-            <OutlinePanel editor={editor} />
+            <OutlinePanel editor={editor} labelsEn={settings.headingLabels === "en"} />
           </aside>
         )}
 
@@ -637,12 +698,12 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 </button>
               </div>
             )}
-            <div style={{ height: totalH * zoom + 4, width: `calc(${pageSize.w}mm * ${zoom})` }} className="mx-auto">
+            <div style={pageless ? undefined : { height: totalH * zoom + 4, width: `calc(${pageSize.w}mm * ${zoom})` }} className="mx-auto">
               <div
-                className={`page-stack tpl-${initial.kind} ${settings.showMetre && template.metre ? "show-metre" : ""} ${focus ? "focus-mode" : ""}`}
+                className={`page-stack ${docClasses(initial.kind, settings)} ${metreOn ? "show-metre" : ""} ${focus ? "focus-mode" : ""} ${pageless ? "pageless" : ""}`}
                 style={{ ...stackStyle, transformOrigin: "top left" }}
               >
-                {Array.from({ length: stats.pages }, (_, i) => (
+                {!pageless && Array.from({ length: stats.pages }, (_, i) => (
                   <div key={i} className="sheet" style={{ top: i * (pageH + PAGE_GAP_PX), height: pageH }}>
                     {i > 0 && (settings.header || title) && (
                       <div className="sheet-head">
@@ -656,6 +717,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 <EditorContent editor={editor} className="page-content" />
                 {/* the gap between two sheets: "Insert page" adds a blank page there (Backspace on it removes it again) */}
                 {!focus &&
+                  !pageless &&
                   editor &&
                   Array.from({ length: stats.pages - 1 }, (_, i) => (
                     <div
@@ -681,11 +743,17 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             </div>
             {editor && <ManglishPopup editor={editor} />}
             {editor && usesCues && <CueSuggest editor={editor} names={castNames} />}
+            {editor && template.footnotes && <FootnoteDialog editor={editor} bottomOffset={phone ? kb : 0} />}
+            {notice && (
+              <div className="no-print pop-in fixed bottom-16 left-1/2 z-50 -translate-x-1/2 rounded-full bg-primary px-4 py-2 text-sm text-primary-ink shadow-lg" role="status">
+                {notice}
+              </div>
+            )}
           </main>
 
           {!focus && screen === "tablet" && outline && editor && (
             <Sheet mode="drawer" side="left" title="Contents" onClose={() => setOutline(false)}>
-              <OutlinePanel editor={editor} title={false} />
+              <OutlinePanel editor={editor} title={false} labelsEn={settings.headingLabels === "en"} />
             </Sheet>
           )}
           {!focus && panel && editor && panelMode === "drawer" && (
@@ -732,13 +800,13 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       )}
       {phone && phoneSheet === "format" && editor && (
         <Sheet mode="sheet" bottomOffset={kb} title="Format" onClose={() => setPhoneSheet(null)}>
-          <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => { setPhoneSheet(null); setFindOpen(true); }} variant="sheet" metre={metreToggle} />
+          <Toolbar editor={editor} template={template} mode={mode} onMode={changeMode} onFind={() => { setPhoneSheet(null); setFindOpen(true); }} variant="sheet" metre={metreToggle} onFillCast={initial.kind === "drama" ? () => { setPhoneSheet(null); fillCast(); } : undefined} />
         </Sheet>
       )}
       {phone && phoneSheet === "outline" && editor && (
         <Sheet mode="sheet" bottomOffset={kb} title="Contents" onClose={() => setPhoneSheet(null)}>
           <div onClickCapture={(e) => (e.target as HTMLElement).closest("button") && setTimeout(() => setPhoneSheet(null), 120)}>
-            <OutlinePanel editor={editor} title={false} />
+            <OutlinePanel editor={editor} title={false} labelsEn={settings.headingLabels === "en"} />
           </div>
         </Sheet>
       )}
@@ -751,6 +819,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             <Tile icon={Search} label="Find" onClick={() => { setPhoneSheet(null); setFindOpen(true); }} />
             <Tile icon={TypewriterIcon} label="Typewriter" tint="text-tint-lime" active={typewriter} onClick={() => setTypewriter((t) => !t)} />
             <Tile icon={Maximize2} label="Focus" onClick={() => { setPhoneSheet(null); setFocus(true); }} />
+            <Tile icon={Files} label={t("editor.pages.tile")} tint="text-tint-sky" active={phonePages} onClick={() => { togglePhonePages(); setPhoneSheet(null); }} />
             {store.isCloud() && shareId && isPublic && <Tile icon={Eye} label="Reader" onClick={() => window.open(`${BASE}/read/?s=${shareId}`, "_blank")} />}
           </div>
           <h3 className="mb-1.5 mt-5 text-xs font-semibold uppercase tracking-wide text-muted">Export</h3>

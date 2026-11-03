@@ -77,6 +77,11 @@ html:has(.landing) {
   --tint-coral: #e0466a;
   --tint-sky: #2b8fd6;
   --tint-lime: #5f9e1a;
+  /* print and PDF pages are always ink on white, in light colours whatever the app theme */
+  --print-accent: #5b3ef0;
+  --print-highlight: #a84d08;
+  --print-muted: #55555f;
+  --print-line: #d4d4da;
   --tint-tangerine: #d06c00;
 
   /* Charts (admin dashboard): a categorical set checked for colour-blind separation, in fixed order */

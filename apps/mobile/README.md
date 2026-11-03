@@ -38,6 +38,17 @@ Behaviour fixed on the web that the Flutter app must match:
 - **Cover presets and sample values:** offer the same ten presets (`COVER_PRESETS` in `apps/web/src/components/book/Cover.tsx`, applied with `presetPatch`, which clears positions and sizes) as live previews; per-part sizes are `cover.sizes` (title uses `titleScale`). Fill never-set book fields with the samples in `apps/web/src/lib/book-samples.ts`.
 
 - **Book details fields:** Title, Subtitle and Author accept Malayalam, English or Manglish with a മലയാളം / As typed switch per field (see `toMalayalam` in `apps/web/src/components/ScriptField.tsx`: Name-cased words read all small; capitals with no meaning in the scheme are lowered). Cover layouts and the separate Frame option as in `Cover.tsx`.
+- **Writing types (Nov 2026):** starter content and settings come from `packages/shared/src/forms.ts` (`starterContent`, `newSettings` for new works; new screenplays get `headingLabels: "ml"`). Match the web editor:
+  - **Enter on a template line** (title, author, chapter, scene time…) moves to the next empty line the template left, stepping over a filled label like പല്ലവി or കഥാപാത്രങ്ങൾ; only when there is none does it add body text (`moveToNextSlot` in `apps/web/src/extensions/blocks.ts`).
+  - **Prompts** sit where the text goes (centred on centred lines). Author prompt is "എഴുതിയ ആളുടെ പേര്" and the block is "രചന · Author" (no gendered wording).
+  - **New blocks** (`styledBlock` variants): `stanza` (poems, numbered), `act` and `scene` (plays, numbered; scene numbers restart in each act), `refrain` (songs, starts with the first words of the പല്ലവി), `credits` (song details), `infobox` (features), `references` (essays). Show menus and buttons in both languages ("അങ്കം · Act", "രംഗം · Scene").
+  - **Plays:** cast list as `castEntry` (`castName` + `castRole`) nodes, filled from Story World characters; stage direction button; Tab after speech adds a stage direction; Enter on an empty speaker line becomes a stage direction.
+  - **Screenplays:** Enter on the empty line after the last cast name goes on to the action; scene tools set Int./Ext. and the time and fill the cast from the scene's speakers; scene numbers read "രംഗം 1", "Scene 1" or the older "Scene: 1" (`settings.headingLabels`).
+  - **Footnotes** (essays, features): inline `footnote` node with `attrs.text`, numbered in order and listed at the end ("കുറിപ്പുകൾ") on screen, in print and in Word.
+  - **Diary:** "New entry" adds today's date heading at the end (`todayLine()`), or goes to the end if today's entry exists.
+  - **Settings:** `chapterNumbers` (novel/story), `headingLabels` (screenplay/drama), `verseAlign` (poem/lyrics). Layout classes as in `docClasses()` (`apps/web/src/lib/templates.ts`).
+  - **Phones** show the writing at full size on one continuous sheet (no A4 page shrunk to the screen); a "Pages" switch shows the printed pages.
+  - Strings: `editor.drama.*`, `editor.scene.*`, `editor.diary.*`, `editor.footnote.*`, `editor.page.*`, `types.<kind>.blurb`, `story.tabs.*` in `packages/i18n`.
 - **നാട്ടറിവ് icons:** each category card shows an icon in a soft tile of its tint; the web uses lucide icons keyed by category id (`ICONS` in `apps/web/src/components/Nattarivu.tsx`). The Flutter app can use the same names from the `lucide_icons` package.
 
 ## Usage statistics (mirror the web app)

@@ -13,7 +13,7 @@ import { cors, json, preflight } from "../_shared/cors.ts";
 import { recordUsage } from "../_shared/usage.ts";
 import { textToNodes, toMarkdown, toPlainText, type JSONContent } from "../_shared/serialize.ts";
 import { WRITING_GUIDES } from "../_shared/guides.ts";
-import { FORM_NAMES, KINDS, settingsFor, starterContent, type DocKind } from "../_shared/forms.ts";
+import { FORM_NAMES, KINDS, newSettings, starterContent, type DocKind } from "../_shared/forms.ts";
 import { createDictionary } from "../_shared/dict.ts";
 import { transliteratePhrase } from "../_shared/google.ts";
 
@@ -128,8 +128,9 @@ const TOOLS: Tool[] = [
       if (!d) return out("Document not found.", true);
       const c = d.content as JSONContent;
       const fmt = String(a.format ?? "markdown");
-      const body = fmt === "json" ? JSON.stringify(c) : fmt === "text" ? toPlainText(c) : toMarkdown(c);
       const st = d.settings as Json;
+      const opts = { kind: String(d.kind), labels: st?.headingLabels === "en" || st?.headingLabels === "ml" ? (st.headingLabels as "en" | "ml") : undefined };
+      const body = fmt === "json" ? JSON.stringify(c) : fmt === "text" ? toPlainText(c, opts) : toMarkdown(c, opts);
       const notes = st?.notes ? `\n\n---\nWriter's notes:\n${st.notes}` : "";
       const f = formName(String(d.kind));
       return out(`# ${d.title}\nWriting type (സാഹിത്യരൂപം): ${f.en} (${f.ml}) · ${d.word_count} words · edit: ${docLink(String(d.id))}\n\n${body}${notes}`);
@@ -149,7 +150,7 @@ const TOOLS: Tool[] = [
       const plain = toPlainText(content);
       const { data, error } = await db
         .from("documents")
-        .insert({ user_id: u, title, kind, content, settings: { ...settingsFor(kind), pristine: !a.text }, plain_text: plain, word_count: words(plain) })
+        .insert({ user_id: u, title, kind, content, settings: { ...newSettings(kind), pristine: !a.text }, plain_text: plain, word_count: words(plain) })
         .select("id")
         .single();
       if (error) return out(error.message, true);

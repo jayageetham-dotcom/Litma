@@ -80,7 +80,7 @@ export const PageBreak = Node.create({
 export const BLOCK_VARIANTS = {
   title: { label: "Title", ml: "ശീർഷകം" },
   subtitle: { label: "Subtitle", ml: "ഉപശീർഷകം" },
-  author: { label: "Author", ml: "എഴുത്തുകാരൻ" },
+  author: { label: "Author", ml: "രചന" },
   chapter: { label: "Chapter", ml: "അദ്ധ്യായം" },
   kicker: { label: "Kicker", ml: "കിക്കർ" },
   standfirst: { label: "Standfirst", ml: "ആമുഖം" },
@@ -92,6 +92,13 @@ export const BLOCK_VARIANTS = {
   dateline: { label: "Date", ml: "തീയതി" },
   epigraph: { label: "Epigraph", ml: "ആമുഖവാക്യം" },
   caption: { label: "Caption", ml: "അടിക്കുറിപ്പ്" },
+  stanza: { label: "Stanza", ml: "ഖണ്ഡം" },
+  act: { label: "Act", ml: "അങ്കം" },
+  scene: { label: "Scene", ml: "രംഗം" },
+  refrain: { label: "Repeat line", ml: "ആവർത്തനം" },
+  credits: { label: "Song details", ml: "ഗാനവിവരം" },
+  infobox: { label: "Info box", ml: "വിവരപ്പെട്ടി" },
+  references: { label: "References", ml: "അവലംബം" },
 } as const;
 export type BlockVariant = keyof typeof BLOCK_VARIANTS;
 
@@ -123,16 +130,50 @@ export const StyledBlock = Node.create({
   },
   addKeyboardShortcuts() {
     return {
-      // Enter at the end of a styled block continues with body text
+      // Enter at the end of a styled block moves on to the next empty line the template left
+      // (title → author → chapter…); when there is none it continues with body text.
       Enter: ({ editor }) => {
         const { $from, empty } = editor.state.selection;
-        if (!empty || $from.parent.type.name !== this.name) return false;
+        if (!empty || $from.depth !== 1 || $from.parent.type.name !== this.name) return false;
         if ($from.parentOffset !== $from.parent.content.size) return false;
+        if (moveToNextSlot(editor, $from.after(1))) return true;
         return editor.chain().insertContentAt($from.after(), { type: "paragraph" }).focus($from.after() + 1).run();
       },
     };
   },
 });
+
+/** The first empty text line inside a block (the block itself, or the first child of a dialogue/cast entry). */
+function emptySlotOffset(node: import("@tiptap/pm/model").Node): number | null {
+  if (node.isTextblock) return node.content.size === 0 ? 1 : null;
+  if (node.type.name === "pageBreak" || node.isAtom) return null;
+  if (node.textContent.length) return null;
+  const first = node.firstChild;
+  return first?.isTextblock ? 2 : null;
+}
+
+/**
+ * Put the cursor in the block that starts at `pos` when it is an empty line waiting to be filled
+ * (a template's author line, chapter heading, scene time…). Returns false when there is none.
+ */
+export function moveToNextSlot(editor: import("@tiptap/core").Editor, pos: number): boolean {
+  const { state } = editor;
+  if (pos > state.doc.content.size) return false;
+  let next = state.doc.resolve(pos).nodeAfter;
+  if (!next) return false;
+  // a label the template filled in (പല്ലവി, കഥാപാത്രങ്ങൾ) is stepped over to the empty line under it
+  if (next.type.name === "styledBlock" && ["part", "subhead"].includes(next.attrs.variant) && next.content.size > 0) {
+    const after = pos + next.nodeSize;
+    const under = after <= state.doc.content.size ? state.doc.resolve(after).nodeAfter : null;
+    if (!under || emptySlotOffset(under) == null) return false;
+    pos = after;
+    next = under;
+  }
+  const off = emptySlotOffset(next);
+  if (off == null) return false;
+  editor.view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, pos + off)).scrollIntoView());
+  return true;
+}
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -175,3 +216,71 @@ export const FirstLetterColour = Extension.create({
     ];
   },
 });
+
+/**
+ * Turn the current line into a styled block when it is empty, otherwise add the block after the
+ * current one (so a scene heading never swallows a line of speech). Optional starting text.
+ */
+export function insertStyledBlock(editor: import("@tiptap/core").Editor, variant: string, text?: string, where: "after" | "before" = "after") {
+  const { state } = editor;
+  const { $from } = state.selection;
+  if ($from.depth < 1) return false;
+  const top = $from.node(1);
+  const pos = $from.before(1);
+  const s = state.schema;
+  const block = s.nodes.styledBlock.create({ variant }, text ? s.text(text) : undefined);
+  let tr = state.tr;
+  let at: number;
+  if (top.isTextblock && top.content.size === 0) {
+    tr = tr.replaceWith(pos, pos + top.nodeSize, block);
+    at = pos;
+  } else {
+    at = where === "before" ? pos : pos + top.nodeSize;
+    tr = tr.insert(at, block);
+  }
+  tr.setSelection(TextSelection.create(tr.doc, at + 1 + block.content.size));
+  editor.view.dispatch(tr.scrollIntoView());
+  editor.view.focus();
+  return true;
+}
+
+/** Songs: the first line of the പല്ലവി, to repeat it later ("പൂവിളി പൂവിളി…"). */
+export function refrainText(doc: import("@tiptap/pm/model").Node): string {
+  let afterPart = false;
+  let line = "";
+  doc.forEach((n) => {
+    if (line) return;
+    if (n.type.name === "styledBlock" && n.attrs.variant === "part") afterPart = true;
+    else if (afterPart && n.type.name === "paragraph" && n.textContent.trim()) line = n.textContent.trim();
+  });
+  if (!line) return "";
+  const words = line.split(/\s+/);
+  return words.length > 4 ? `${words.slice(0, 4).join(" ")}…` : `${line}…`;
+}
+
+/**
+ * Diaries: a new dated entry at the end, ready to write in. When the last entry is already today's,
+ * the cursor just goes to the end.
+ */
+export function appendDiaryEntry(editor: import("@tiptap/core").Editor, today: string) {
+  const { state } = editor;
+  const s = state.schema;
+  let lastDate = "";
+  state.doc.forEach((n) => {
+    if (n.type.name === "styledBlock" && n.attrs.variant === "dateline") lastDate = n.textContent.trim();
+  });
+  const end = state.doc.content.size;
+  if (lastDate === today) {
+    editor.chain().focus("end").scrollIntoView().run();
+    return true;
+  }
+  const last = state.doc.lastChild;
+  const lastEmpty = !!last && last.type.name === "paragraph" && last.content.size === 0;
+  const nodes = [s.nodes.styledBlock.create({ variant: "dateline" }, s.text(today)), s.nodes.paragraph.create()];
+  const from = lastEmpty ? end - last!.nodeSize : end;
+  const tr = state.tr.replaceWith(from, end, nodes);
+  tr.setSelection(TextSelection.create(tr.doc, tr.doc.content.size - 1));
+  editor.view.dispatch(tr.scrollIntoView());
+  editor.view.focus();
+  return true;
+}

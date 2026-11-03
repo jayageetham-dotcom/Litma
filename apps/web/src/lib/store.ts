@@ -6,7 +6,8 @@
 import type { JSONContent } from "@tiptap/core";
 import { getSupabase } from "./supabase/client";
 import { track } from "./analytics";
-import { settingsFor, templateFor } from "./templates";
+import { templateFor } from "./templates";
+import { newSettings } from "@litma/shared/forms";
 import type { Book, DocKind, DocVersion, LitmaDoc, Profile, Suggestion, WordBookmark } from "./types";
 import type { StoryItem, StoryKind } from "./story";
 import { textToNodes } from "@litma/shared/serialize";
@@ -87,7 +88,7 @@ export const store = {
       title: title || `പുതിയ ${t.ml}`,
       kind,
       content: t.content(),
-      settings: { ...settingsFor(kind), pristine: true } as LitmaDoc["settings"],
+      settings: { ...newSettings(kind), pristine: true } as LitmaDoc["settings"],
       word_count: 0,
     };
     const sb = getSupabase();

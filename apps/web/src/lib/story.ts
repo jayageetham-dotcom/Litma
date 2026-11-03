@@ -90,6 +90,8 @@ export const FIELDS: Record<StoryKind, FieldDef[]> = {
 
 export interface StoryTab {
   kind: StoryKind | "report";
+  /** i18n id: story.tabs.<id>.label / .summary */
+  id: string;
   label: string;
   ml: string;
   /** label for the "summary" field */
@@ -98,61 +100,65 @@ export interface StoryTab {
 
 /** Which Story World sections each writing type gets (modelled on Final Draft, Scrivener, Celtx…). */
 export function tabsFor(kind: DocKind): StoryTab[] {
-  const report: StoryTab = { kind: "report", label: "Reports", ml: "റിപ്പോർട്ട്" };
+  const report: StoryTab = { kind: "report", id: "report", label: "Reports", ml: "റിപ്പോർട്ട്" };
   switch (kind) {
     case "screenplay":
-    case "drama":
+    case "drama": {
+      const play = kind === "drama";
       return [
-        { kind: "character", label: "Characters", ml: "കഥാപാത്രങ്ങൾ", summary: "One-line description" },
-        { kind: "location", label: "Locations", ml: "ലൊക്കേഷനുകൾ", summary: "One-line description" },
-        { kind: "item", label: "Props", ml: "സാമഗ്രികൾ", summary: "One-line description" },
-        { kind: "beat", label: "Beat board", ml: "ബീറ്റുകൾ", summary: "What happens" },
-        { kind: "event", label: "Timeline", ml: "കാലക്രമം", summary: "What happened" },
-        { kind: "note", label: "Notes", ml: "കുറിപ്പുകൾ", summary: "Note" },
+        { kind: "character", id: "characters", label: "Characters", ml: "കഥാപാത്രങ്ങൾ", summary: "One-line description" },
+        play
+          ? { kind: "location", id: "sets", label: "Sets", ml: "രംഗപടങ്ങൾ", summary: "One-line description" }
+          : { kind: "location", id: "locations", label: "Locations", ml: "ലൊക്കേഷനുകൾ", summary: "One-line description" },
+        { kind: "item", id: "props", label: "Props", ml: "സാമഗ്രികൾ", summary: "One-line description" },
+        { kind: "beat", id: "beats", label: "Beat board", ml: "ബീറ്റുകൾ", summary: "What happens" },
+        { kind: "event", id: "timeline", label: "Timeline", ml: "കാലക്രമം", summary: "What happened" },
+        { kind: "note", id: "notes", label: "Notes", ml: "കുറിപ്പുകൾ", summary: "Note" },
         report,
       ];
+    }
     case "novel":
     case "story":
       return [
-        { kind: "character", label: "Characters", ml: "കഥാപാത്രങ്ങൾ", summary: "One-line description" },
-        { kind: "location", label: "Places", ml: "സ്ഥലങ്ങൾ", summary: "One-line description" },
-        { kind: "item", label: "Objects", ml: "വസ്തുക്കൾ", summary: "One-line description" },
-        { kind: "beat", label: "Plot board", ml: "കഥാഘടന", summary: "What happens" },
-        { kind: "event", label: "Timeline", ml: "കാലക്രമം", summary: "What happened" },
-        { kind: "note", label: "Research", ml: "ഗവേഷണം", summary: "Note" },
+        { kind: "character", id: "characters", label: "Characters", ml: "കഥാപാത്രങ്ങൾ", summary: "One-line description" },
+        { kind: "location", id: "places", label: "Places", ml: "സ്ഥലങ്ങൾ", summary: "One-line description" },
+        { kind: "item", id: "objects", label: "Objects", ml: "വസ്തുക്കൾ", summary: "One-line description" },
+        { kind: "beat", id: "plot", label: "Plot board", ml: "കഥാഘടന", summary: "What happens" },
+        { kind: "event", id: "timeline", label: "Timeline", ml: "കാലക്രമം", summary: "What happened" },
+        { kind: "note", id: "research", label: "Research", ml: "ഗവേഷണം", summary: "Note" },
         report,
       ];
     case "poem":
     case "lyrics":
       return [
-        { kind: "note", label: "Images & ideas", ml: "ബിംബങ്ങൾ", summary: "Image, line or idea" },
-        { kind: "beat", label: "Structure", ml: "ഘടന", summary: "What this stanza/part does" },
-        { kind: "character", label: "Voices", ml: "ശബ്ദങ്ങൾ", summary: "Who speaks" },
+        { kind: "note", id: "images", label: "Images & ideas", ml: "ബിംബങ്ങൾ", summary: "Image, line or idea" },
+        { kind: "beat", id: "structure", label: "Structure", ml: "ഘടന", summary: "What this stanza or part does" },
+        { kind: "character", id: "voices", label: "Voices", ml: "ശബ്ദങ്ങൾ", summary: "Who speaks" },
         report,
       ];
     case "feature":
     case "essay":
       return [
-        { kind: "character", label: "People", ml: "വ്യക്തികൾ", summary: "Who they are" },
-        { kind: "location", label: "Places", ml: "സ്ഥലങ്ങൾ", summary: "One-line description" },
-        { kind: "note", label: "Sources", ml: "സ്രോതസ്സുകൾ", summary: "Quote, fact or source" },
-        { kind: "beat", label: "Outline", ml: "രൂപരേഖ", summary: "Point to make" },
+        { kind: "character", id: "people", label: "People", ml: "വ്യക്തികൾ", summary: "Who they are" },
+        { kind: "location", id: "places", label: "Places", ml: "സ്ഥലങ്ങൾ", summary: "One-line description" },
+        { kind: "note", id: "sources", label: "Sources", ml: "സ്രോതസ്സുകൾ", summary: "Quote, fact or source" },
+        { kind: "beat", id: "outline", label: "Outline", ml: "രൂപരേഖ", summary: "Point to make" },
         report,
       ];
     case "diary":
       return [
-        { kind: "character", label: "People", ml: "വ്യക്തികൾ", summary: "Who they are" },
-        { kind: "location", label: "Places", ml: "സ്ഥലങ്ങൾ", summary: "One-line description" },
-        { kind: "event", label: "Timeline", ml: "കാലക്രമം", summary: "What happened" },
-        { kind: "note", label: "Notes", ml: "കുറിപ്പുകൾ", summary: "Note" },
+        { kind: "character", id: "people", label: "People", ml: "വ്യക്തികൾ", summary: "Who they are" },
+        { kind: "location", id: "places", label: "Places", ml: "സ്ഥലങ്ങൾ", summary: "One-line description" },
+        { kind: "event", id: "timeline", label: "Timeline", ml: "കാലക്രമം", summary: "What happened" },
+        { kind: "note", id: "notes", label: "Notes", ml: "കുറിപ്പുകൾ", summary: "Note" },
         report,
       ];
     default:
       return [
-        { kind: "character", label: "Characters", ml: "കഥാപാത്രങ്ങൾ", summary: "One-line description" },
-        { kind: "location", label: "Places", ml: "സ്ഥലങ്ങൾ", summary: "One-line description" },
-        { kind: "beat", label: "Outline", ml: "രൂപരേഖ", summary: "What happens" },
-        { kind: "note", label: "Notes", ml: "കുറിപ്പുകൾ", summary: "Note" },
+        { kind: "character", id: "characters", label: "Characters", ml: "കഥാപാത്രങ്ങൾ", summary: "One-line description" },
+        { kind: "location", id: "places", label: "Places", ml: "സ്ഥലങ്ങൾ", summary: "One-line description" },
+        { kind: "beat", id: "outlineStory", label: "Outline", ml: "രൂപരേഖ", summary: "What happens" },
+        { kind: "note", id: "notes", label: "Notes", ml: "കുറിപ്പുകൾ", summary: "Note" },
         report,
       ];
   }
@@ -161,13 +167,14 @@ export function tabsFor(kind: DocKind): StoryTab[] {
 export const BEAT_COLORS: Record<string, string> = {
   kayal: "var(--accent)",
   kasavu: "var(--highlight)",
-  rose: "#b0566b",
-  sky: "#3f72af",
-  grey: "#7d8986",
+  rose: "var(--tint-coral)",
+  sky: "var(--tint-sky)",
+  grey: "var(--muted)",
 };
 
 export function defaultGroups(kind: DocKind): string[] {
-  if (kind === "screenplay" || kind === "drama") return ["Act 1 · ആരംഭം", "Act 2 · സംഘർഷം", "Act 3 · പരിഹാരം"];
+  if (kind === "screenplay") return ["Act 1 · ആരംഭം", "Act 2 · സംഘർഷം", "Act 3 · പരിഹാരം"];
+  if (kind === "drama") return ["അങ്കം 1 · Act 1", "അങ്കം 2 · Act 2", "അങ്കം 3 · Act 3"];
   if (kind === "novel" || kind === "story") return ["ആരംഭം", "മധ്യം", "അന്ത്യം"];
   if (kind === "poem" || kind === "lyrics") return ["പല്ലവി", "അനുപല്ലവി", "ചരണം"];
   return ["ആമുഖം", "പ്രധാന ഭാഗം", "ഉപസംഹാരം"];

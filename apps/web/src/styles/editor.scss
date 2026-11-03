@@ -53,14 +53,15 @@ $mm: 3.7795275591px;
   padding: var(--m-top) var(--m-right) 0 var(--m-left);
   min-height: calc(var(--page-h) - var(--m-bottom));
   outline: none;
-  font-family: var(--doc-font), "Noto Serif Malayalam", serif;
+  // Latin letters (Manglish hints, "Scene 1", names in English) fall back to Inter, not the browser's Times
+  font-family: var(--doc-font), "Noto Serif Malayalam", "Inter", system-ui, sans-serif;
   font-size: var(--doc-size);
   line-height: var(--doc-lh);
   color: var(--ink);
   caret-color: var(--accent);
   word-wrap: break-word;
   font-variant-ligatures: common-ligatures;
-  counter-reset: scene chapter;
+  counter-reset: scene chapter act dscene stanza footnote;
 
   > * {
     flex: none;
@@ -165,6 +166,21 @@ $mm: 3.7795275591px;
     pointer-events: none;
     font-style: normal;
     text-indent: 0;
+  }
+  // A line's prompt sits where its text will go: centred on centred lines (title, chapter…),
+  // on the right on right-aligned ones, instead of always at the left edge.
+  > .is-empty:not(.sp-scene) {
+    position: relative;
+  }
+  > .is-empty:not(.sp-scene)::before {
+    float: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: auto;
+    text-align: inherit;
+    white-space: nowrap;
   }
 
   // Styled literary blocks
@@ -280,6 +296,157 @@ $mm: 3.7795275591px;
     margin: 1.4em 0 0.8em;
   }
 
+  // Numbered headings: the number (::after, shown first) and the writer's own words under it.
+  // Prompts stay inline here so they sit on the text line, not over the number.
+  .sb-act,
+  .sb-scene,
+  .sb-stanza {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    &::after {
+      order: -1;
+      display: block;
+    }
+    &.is-empty::before {
+      position: static;
+      height: 0;
+      overflow: visible;
+    }
+  }
+  .sb-act {
+    counter-increment: act;
+    counter-set: dscene 0;
+    font-size: 1.45em;
+    font-weight: 700;
+    margin: 2.2em 0 1.2em;
+    &::after {
+      content: "അങ്കം " counter(act);
+      font-size: 0.7em;
+      color: var(--highlight);
+      margin-bottom: 0.2em;
+    }
+  }
+  .sb-scene {
+    counter-increment: dscene;
+    font-size: 1em;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--ink) 80%, var(--muted));
+    margin: 1.8em 0 0.8em;
+    &::after {
+      content: "രംഗം " counter(dscene);
+      font-size: 1.2em;
+      font-weight: 700;
+      color: var(--ink);
+    }
+  }
+  .sb-stanza {
+    counter-increment: stanza;
+    font-size: 0.92em;
+    color: var(--muted);
+    margin: 1.1em 0 0.4em;
+    &::after {
+      content: counter(stanza);
+      font-family: var(--font-ui);
+      font-weight: 600;
+      font-size: 0.85em;
+      color: var(--highlight);
+    }
+  }
+  .sb-refrain {
+    font-style: italic;
+    color: color-mix(in srgb, var(--ink) 75%, var(--muted));
+    margin: 0.4em 0 0.6em 1.5em;
+    &:not(.is-empty)::before {
+      content: "↻ ";
+      font-style: normal;
+      color: var(--highlight);
+    }
+  }
+  .sb-credits {
+    text-align: center;
+    font-family: var(--font-ui);
+    font-size: 0.82em;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0 0 1.4em;
+  }
+  .sb-infobox {
+    border: 1px solid var(--line-strong, var(--line));
+    border-radius: 6px;
+    padding: 0.8em 1em;
+    margin: 1em 0 1.2em;
+    font-size: 0.92em;
+    line-height: 1.6;
+  }
+  .sb-references {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin: 2em 0 0.5em;
+    padding-top: 0.6em;
+    border-top: 1px solid var(--line);
+  }
+
+  // A play's cast list: name, then who they are
+  .cast-entry {
+    display: grid;
+    grid-template-columns: minmax(6em, 28%) minmax(0, 1fr);
+    column-gap: 1em;
+    margin: 0 0 0.35em;
+  }
+  .cast-name {
+    font-weight: 700;
+  }
+  .cast-role {
+    color: color-mix(in srgb, var(--ink) 80%, var(--muted));
+  }
+  .cast-name.is-empty::before,
+  .cast-role.is-empty::before {
+    float: left;
+  }
+
+  // Footnotes: a small number in the text, the notes listed at the end
+  .fn {
+    counter-increment: footnote;
+    font-family: var(--font-ui);
+    font-size: 0.68em;
+    font-weight: 600;
+    color: var(--accent);
+    padding: 0 0.12em;
+    cursor: pointer;
+    vertical-align: super;
+    line-height: 0;
+    &::after {
+      content: counter(footnote);
+    }
+    &.ProseMirror-selectednode {
+      outline: 2px solid var(--accent-soft);
+      border-radius: 2px;
+    }
+  }
+  .doc-endnotes {
+    margin-top: 2.2em;
+    padding-top: 0.8em;
+    border-top: 1px solid var(--line);
+    font-size: 0.85em;
+    line-height: 1.6;
+    user-select: none;
+    .endnotes-h {
+      font-weight: 700;
+      margin: 0 0 0.4em;
+      text-indent: 0;
+    }
+    ol {
+      list-style: decimal;
+      padding-left: 1.6em;
+      margin: 0;
+    }
+    li {
+      margin: 0 0 0.25em;
+    }
+  }
+
   // the selection, kept while a panel or sheet has focus (phones collapse it otherwise)
   .kept-selection {
     background: color-mix(in srgb, var(--accent) 22%, transparent);
@@ -330,6 +497,28 @@ $mm: 3.7795275591px;
   }
 }
 
+// "അദ്ധ്യായം 1" above each chapter heading (Page & type → Number chapters)
+.chapter-numbers .ProseMirror .sb-chapter:not(.is-empty)::before {
+  content: "അദ്ധ്യായം " counter(chapter);
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 0.55em;
+  font-weight: 600;
+  color: var(--highlight);
+  margin-bottom: 0.35em;
+}
+.labels-en .ProseMirror {
+  .sb-act::after {
+    content: "Act " counter(act);
+  }
+  .sb-scene::after {
+    content: "Scene " counter(dscene);
+  }
+}
+.labels-en.chapter-numbers .ProseMirror .sb-chapter:not(.is-empty)::before {
+  content: "Chapter " counter(chapter);
+}
+
 // Every writing type reads like Google Docs: ragged-right body text, so short Malayalam lines never
 // open wide gaps between words. Writers can still justify a paragraph from the toolbar.
 .tpl-novel,
@@ -353,6 +542,11 @@ $mm: 3.7795275591px;
   .ProseMirror > p:has(> br:only-child) {
     margin-bottom: 0.9em;
   }
+}
+
+// Page & type → Centre the lines
+.verse-center .ProseMirror > p:not(.sb) {
+  text-align: center;
 }
 
 .show-metre {
@@ -395,6 +589,7 @@ $mm: 3.7795275591px;
     counter-increment: scene;
     &::before {
       content: "Scene: " counter(scene);
+      font-family: var(--font-ui);
       display: block;
       font-size: 1.3em;
       margin-bottom: 0.1em;
@@ -451,6 +646,15 @@ $mm: 3.7795275591px;
       float: right;
     }
   }
+}
+
+// Screenplay scene numbers in Malayalam ("രംഗം 1") or English ("Scene 1"); older scripts keep "Scene: 1"
+.tpl-screenplay.labels-ml .ProseMirror .sp-scene::before {
+  content: "രംഗം " counter(scene);
+  font-family: var(--font-display);
+}
+.tpl-screenplay.labels-en .ProseMirror .sp-scene::before {
+  content: "Scene " counter(scene);
 }
 
 // Stage play: speaker on the left, speech hanging
@@ -545,11 +749,11 @@ $mm: 3.7795275591px;
   flex: none;
   // the manuscript styles use theme colours — print is always ink on paper
   --ink: #1a1a1a;
-  --muted: #5f6b67;
+  --muted: var(--print-muted);
   --paper: #fff;
-  --line: #cfd6d3;
-  --accent: #1d5a52;
-  --highlight: #a17a28;
+  --line: var(--print-line);
+  --accent: var(--print-accent);
+  --highlight: var(--print-highlight);
 }
 .pp-body {
   position: absolute;
@@ -574,6 +778,9 @@ $mm: 3.7795275591px;
   }
   p.pp-cont {
     text-indent: 0 !important;
+  }
+  .fn {
+    cursor: default;
   }
   // a justified paragraph split across two pages keeps its first half's last line full width
   p.pp-split[style*="justify"] {
@@ -608,7 +815,7 @@ $mm: 3.7795275591px;
     display: block;
     font-size: 0.55em;
     font-weight: 600;
-    color: #a17a28;
+    color: var(--highlight);
     margin-bottom: 3mm;
   }
 }
@@ -691,7 +898,7 @@ $mm: 3.7795275591px;
   justify-content: center;
   text-align: center;
   .pp-part-k {
-    color: #a17a28;
+    color: var(--highlight);
     font-weight: 600;
     margin-bottom: 4mm;
   }
@@ -711,7 +918,7 @@ $mm: 3.7795275591px;
   }
   .pp-toc-no {
     width: 8mm;
-    color: #a17a28;
+    color: var(--highlight);
     font-weight: 600;
   }
   .pp-toc-dots {
@@ -789,4 +996,43 @@ $mm: 3.7795275591px;
 }
 .dark .tc-swatch svg {
   color: var(--on-pop);
+}
+
+// ─── Phones: one continuous sheet at real text size ─────────────────────
+// The A4 page shrunk to a phone's width made 12 pt text about 6 px tall. On phones the editor
+// shows the writing like a pageless document; pages come back in Print / PDF (and with More → Pages).
+.page-stack.pageless {
+  width: 100% !important;
+  height: auto !important;
+  transform: none !important;
+  background: var(--paper);
+  box-shadow: var(--sheet-shadow);
+  border-radius: 6px;
+  .ProseMirror {
+    min-height: 60vh;
+    padding-bottom: 3rem;
+  }
+  .page-break {
+    height: 1.5em;
+  }
+}
+.pageless.tpl-screenplay .ProseMirror {
+  .sp-action {
+    width: 100%;
+  }
+  .sp-dialogue {
+    grid-template-columns: 34% minmax(0, 1fr);
+  }
+  .sp-cast {
+    margin-left: 40%;
+  }
+}
+.pageless.tpl-drama .ProseMirror .sp-dialogue {
+  grid-template-columns: 5.5em minmax(0, 1fr);
+}
+.pageless.show-metre .ProseMirror [data-aksharas]::after {
+  display: none;
+}
+.pageless .ProseMirror > .is-empty::before {
+  white-space: normal;
 }

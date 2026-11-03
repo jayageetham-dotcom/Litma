@@ -11,11 +11,12 @@ import { AI_ACTIONS, type AIAction } from "@litma/shared/ai-prompts";
 import { store } from "@/lib/store";
 import { aiStream, listAiKeys, type AIProvider } from "@/lib/functions";
 import { BASE } from "@/lib/config";
-import type { DocSettings, DocVersion, LitmaDoc, Suggestion } from "@/lib/types";
+import type { DocKind, DocSettings, DocVersion, LitmaDoc, Suggestion } from "@/lib/types";
 import { FONTS } from "@/lib/templates";
 import { PAGE_SIZES, type PageSizeKey } from "@/extensions/pagination";
 import { collectCharacters } from "@/extensions/screenplay";
 import { manglish } from "@litma/shared/manglish";
+import { useT } from "@/i18n/react";
 
 const BILLING: Record<AIProvider, [string, string]> = {
   anthropic: ["Anthropic Console", "https://console.anthropic.com/settings/billing"],
@@ -51,7 +52,7 @@ export function insertText(editor: Editor, text: string, replace = false) {
 
 // ─── Outline ────────────────────────────────────────────────────────────
 
-export function OutlinePanel({ editor, title = true }: { editor: Editor; title?: boolean }) {
+export function OutlinePanel({ editor, title = true, labelsEn = false }: { editor: Editor; title?: boolean; labelsEn?: boolean }) {
   const [, force] = useState(0);
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
@@ -68,13 +69,23 @@ export function OutlinePanel({ editor, title = true }: { editor: Editor; title?:
 
   const items: { pos: number; label: string; level: number }[] = [];
   let scene = 0;
+  let act = 0;
+  let dscene = 0;
+  let stanza = 0;
   editor.state.doc.forEach((node, pos) => {
     const n = node.type.name;
     const text = node.textContent.trim();
+    const v = n === "styledBlock" ? (node.attrs.variant as string) : "";
     if (n === "heading") items.push({ pos, label: text || "—", level: node.attrs.level });
     else if (n === "sceneHeading") items.push({ pos, label: `${++scene}. ${text || "—"}`, level: 1 });
-    else if (n === "styledBlock" && ["title", "chapter", "subhead", "part", "dateline"].includes(node.attrs.variant) && text)
-      items.push({ pos, label: text, level: node.attrs.variant === "subhead" || node.attrs.variant === "part" ? 2 : 1 });
+    // a play's acts and scenes are numbered even without words of their own
+    else if (v === "act") {
+      dscene = 0;
+      items.push({ pos, label: `${labelsEn ? "Act" : "അങ്കം"} ${++act}${text ? `: ${text}` : ""}`, level: 1 });
+    } else if (v === "scene") items.push({ pos, label: `${labelsEn ? "Scene" : "രംഗം"} ${++dscene}${text ? `: ${text}` : ""}`, level: act ? 2 : 1 });
+    else if (v === "stanza") items.push({ pos, label: `${++stanza}${text ? `. ${text}` : ""}`, level: 2 });
+    else if (["title", "chapter", "subhead", "part", "dateline", "references"].includes(v) && text)
+      items.push({ pos, label: text, level: v === "subhead" || v === "part" ? 2 : 1 });
   });
 
   const go = (pos: number) => {
@@ -731,7 +742,8 @@ export function KeysPanel({ editor }: { editor: Editor }) {
 
 // ─── Page setup ────────────────────────────────────────────────────────
 
-export function PagePanel({ settings, onChange, showMetreOption }: { settings: DocSettings; onChange: (p: Partial<DocSettings>) => void; showMetreOption: boolean }) {
+export function PagePanel({ kind, settings, onChange, showMetreOption }: { kind: DocKind; settings: DocSettings; onChange: (p: Partial<DocSettings>) => void; showMetreOption: boolean }) {
+  const t = useT();
   const m = settings.margins;
   const setM = (k: keyof typeof m, v: number) => onChange({ margins: { ...m, [k]: Math.max(5, Math.min(60, v || 0)) } });
   return (
@@ -796,6 +808,39 @@ export function PagePanel({ settings, onChange, showMetreOption }: { settings: D
           <input type="checkbox" checked={!!settings.showMetre} onChange={(e) => onChange({ showMetre: e.target.checked })} className="accent-[var(--accent)]" />
           Show akshara count and laghu (∪) / guru (–) marks
         </label>
+      )}
+      {(kind === "novel" || kind === "story") && (
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={!!settings.chapterNumbers} onChange={(e) => onChange({ chapterNumbers: e.target.checked })} className="accent-[var(--accent)]" />
+          {t("editor.page.chapterNumbers")}
+        </label>
+      )}
+      {(kind === "screenplay" || kind === "drama") && (
+        <Select
+          label={t("editor.page.headingLabels")}
+          labelClassName="mb-1 block text-xs text-muted"
+          className="w-full"
+          value={settings.headingLabels ?? (kind === "screenplay" ? "legacy" : "ml")}
+          onChange={(v) => onChange({ headingLabels: v === "legacy" ? undefined : (v as "ml" | "en") })}
+          options={[
+            { value: "ml", label: t(kind === "drama" ? "editor.page.labelsMlDrama" : "editor.page.labelsMl") },
+            { value: "en", label: t(kind === "drama" ? "editor.page.labelsEnDrama" : "editor.page.labelsEn") },
+            ...(kind === "screenplay" ? [{ value: "legacy", label: t("editor.page.labelsLegacy") }] : []),
+          ]}
+        />
+      )}
+      {(kind === "poem" || kind === "lyrics") && (
+        <Select
+          label={t("editor.page.verseAlign")}
+          labelClassName="mb-1 block text-xs text-muted"
+          className="w-full"
+          value={settings.verseAlign ?? "start"}
+          onChange={(v) => onChange({ verseAlign: v as "start" | "center" })}
+          options={[
+            { value: "start", label: t("editor.page.verseStart") },
+            { value: "center", label: t("editor.page.verseCenter") },
+          ]}
+        />
       )}
     </div>
   );

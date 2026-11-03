@@ -89,6 +89,29 @@ async function loadFonts(sections: Section[]) {
   await document.fonts.ready;
 }
 
+/**
+ * Numbered things (scenes, chapters, acts, stanzas, footnotes) are CSS counters, which restart on
+ * every page's flow. Each new page of a section starts its counters where the last page left off.
+ */
+function countersAfter(flows: HTMLElement[]): string {
+  const c = { scene: 0, chapter: 0, act: 0, dscene: 0, stanza: 0, footnote: 0 };
+  for (const flow of flows) {
+    flow.querySelectorAll(".sp-scene, .sb-chapter, .sb-act, .sb-scene, .sb-stanza, .fn").forEach((el) => {
+      if (el.classList.contains("sp-scene")) c.scene++;
+      else if (el.classList.contains("sb-chapter")) c.chapter++;
+      else if (el.classList.contains("sb-act")) {
+        c.act++;
+        c.dscene = 0;
+      } else if (el.classList.contains("sb-scene")) c.dscene++;
+      else if (el.classList.contains("sb-stanza")) c.stanza++;
+      else c.footnote++;
+    });
+  }
+  return Object.entries(c)
+    .map(([k, v]) => `${k} ${v}`)
+    .join(" ");
+}
+
 export async function paginate(root: HTMLElement, spec: PageSpec, sections: Section[], bookTitle = ""): Promise<PaginateResult> {
   await loadFonts(sections);
   root.innerHTML = "";
@@ -164,9 +187,18 @@ export async function paginate(root: HTMLElement, spec: PageSpec, sections: Sect
     return !!last && last.offsetTop + last.offsetHeight > bodyH + 0.5;
   };
 
+  let secFlows: HTMLElement[] = [];
+  const startPage = (sec: Section, first: boolean) => {
+    const pg = newPage(sec, first);
+    if (!first) pg.flow.style.counterReset = countersAfter(secFlows);
+    secFlows.push(pg.flow);
+    return pg;
+  };
+
   for (const sec of sections) {
     if (sec.startRight && pageNo % 2 === 1) blank();
-    let page = newPage(sec, true);
+    secFlows = [];
+    let page = startPage(sec, true);
     starts[sec.id] = page.label;
 
     if (sec.kind === "fixed") {
@@ -183,7 +215,7 @@ export async function paginate(root: HTMLElement, spec: PageSpec, sections: Sect
     while (queue.length && guard++ < 20000) {
       const block = queue.shift()!;
       if (block.matches("[data-page-break], .page-break")) {
-        if (page.flow.children.length) page = newPage(sec, false);
+        if (page.flow.children.length) page = startPage(sec, false);
         continue;
       }
       page.flow.appendChild(block);
@@ -194,23 +226,24 @@ export async function paginate(root: HTMLElement, spec: PageSpec, sections: Sect
       const tail = splitBlock(block, limit);
       if (tail) {
         queue.unshift(tail);
-        page = newPage(sec, false);
+        page = startPage(sec, false);
         continue;
       }
       if (page.flow.children.length === 1) {
         // a single block taller than a page: leave it (clipped) rather than loop
-        page = newPage(sec, false);
+        page = startPage(sec, false);
         continue;
       }
       block.remove();
       // keep headings with the following text
-      const prev = page.flow.lastElementChild as HTMLElement | null;
+      // (a whole scene heading: scene, time and cast move together, as do act + scene)
       const carry: HTMLElement[] = [];
-      if (prev && prev.matches("h1,h2,h3,.sb-chapter,.sb-subhead,.sb-part,.sp-scene,.sp-time,.sp-cast,.pp-chapter")) {
-        carry.push(prev);
+      for (let prev = page.flow.lastElementChild as HTMLElement | null; prev && carry.length < 3 && page.flow.children.length > 1; prev = page.flow.lastElementChild as HTMLElement | null) {
+        if (!prev.matches("h1,h2,h3,.sb-chapter,.sb-subhead,.sb-part,.sb-act,.sb-scene,.sb-stanza,.sp-scene,.sp-time,.sp-cast,.pp-chapter")) break;
+        carry.unshift(prev);
         prev.remove();
       }
-      page = newPage(sec, false);
+      page = startPage(sec, false);
       for (const c of carry) page.flow.appendChild(c);
       queue.unshift(block);
     }

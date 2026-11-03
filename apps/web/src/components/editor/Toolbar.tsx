@@ -28,12 +28,16 @@ import {
   Sparkles,
   Copy,
   X,
+  CalendarPlus,
+  Users,
 } from "lucide-react";
 import { useT } from "@/i18n/react";
 import type { Template } from "@/lib/templates";
 import { FONTS } from "@/lib/templates";
-import { BLOCK_VARIANTS } from "@/extensions/blocks";
-import { SCREENPLAY_ELEMENTS, setScreenplayElement } from "@/extensions/screenplay";
+import { BLOCK_VARIANTS, appendDiaryEntry, insertStyledBlock, refrainText } from "@/extensions/blocks";
+import { SCENE_PLACES, SCENE_TIMES, SCREENPLAY_ELEMENTS, fillSceneCast, setSceneTime, setScenePlace, setScreenplayElement, setStageDirection } from "@/extensions/screenplay";
+import { FOOTNOTE_EVENT } from "@/extensions/footnote";
+import { todayLine } from "@litma/shared/forms";
 import type { InputMode } from "@/extensions/manglish";
 import { Select } from "@/components/ui/Select";
 import { boldIsOn } from "@/extensions/bold";
@@ -108,6 +112,7 @@ export function Toolbar({
   onFind,
   variant = "bar",
   metre,
+  onFillCast,
 }: {
   editor: Editor;
   template: Template;
@@ -118,7 +123,10 @@ export function Toolbar({
   variant?: "bar" | "sheet";
   /** poems and lyrics: show/hide akshara counts and laghu–guru marks */
   metre?: { on: boolean; toggle: () => void };
+  /** plays: add Story World characters to the cast list */
+  onFillCast?: () => void;
 }) {
+  const t = useT();
   const e = editor;
   const chain = () => e.chain().focus();
 
@@ -132,13 +140,40 @@ export function Toolbar({
 
   const setStyle = (v: string) => {
     if (v === "paragraph") chain().setParagraph().run();
+    else if (v === "hr") chain().setHorizontalRule().run();
     else if (v.startsWith("h")) chain().setHeading({ level: Number(v[1]) as 1 | 2 | 3 }).run();
-    else if (v.startsWith("sb:")) chain().setNode("styledBlock", { variant: v.slice(3) }).run();
+    else if (v === "sb:refrain") {
+      // a repeat line starts as the first words of the പല്ലവി
+      const empty = $from.parent.isTextblock && $from.parent.content.size === 0;
+      if (empty || parentName !== "paragraph") insertStyledBlock(e, "refrain", refrainText(e.state.doc) || undefined);
+      else chain().setNode("styledBlock", { variant: "refrain" }).run();
+    } else if (v === "sb:stanza" && parentName === "paragraph" && $from.parent.content.size > 0) {
+      // a stanza number goes above the line the cursor is on
+      insertStyledBlock(e, "stanza", undefined, "before");
+    } else if (v.startsWith("sb:")) {
+      // headings of a play go in as their own line when the cursor is in speech or a cast entry
+      if (!$from.parent.isTextblock || $from.depth > 1) insertStyledBlock(e, v.slice(3));
+      else chain().setNode("styledBlock", { variant: v.slice(3) }).run();
+    }
   };
 
   const font = (e.getAttributes("textStyle").fontFamily as string | undefined)?.replace(/['"]/g, "") ?? "";
   const inScreenplay = template.screenplay;
   const usesDialogue = template.screenplay || template.dialogue;
+  const isDrama = template.kind === "drama";
+  const scriptButton = (key: string, ml: string, en: string, active: boolean, run: () => void, hint?: string) => (
+    <button
+      key={key}
+      type="button"
+      onMouseDown={(ev) => ev.preventDefault()}
+      onClick={run}
+      title={hint ?? en}
+      className={`flex h-8 shrink-0 items-center gap-1 rounded-md px-2 text-[13px] ${active ? "bg-accent text-accent-ink" : "hover:bg-subtle"}`}
+    >
+      {ml}
+      <span className="text-[11px] opacity-70">{en}</span>
+    </button>
+  );
 
   return (
     <div
@@ -173,6 +208,7 @@ export function Toolbar({
           options={[
             { value: "paragraph", label: "Body text" },
             ...template.blocks.map((v) => ({ value: `sb:${v}`, label: `${BLOCK_VARIANTS[v].ml} · ${BLOCK_VARIANTS[v].label}` })),
+            ...(template.sceneBreak ? [{ value: "hr", label: template.kind === "novel" ? "⁂ രംഗഭേദം · Scene break" : "⁂ ഭാഗഭേദം · Section break" }] : []),
             { value: "h1", label: "Heading 1" },
             { value: "h2", label: "Heading 2" },
             { value: "h3", label: "Heading 3" },
@@ -182,34 +218,72 @@ export function Toolbar({
 
       {usesDialogue && (
         <div className="flex shrink-0 items-center gap-0.5" aria-label="Script elements">
-          {SCREENPLAY_ELEMENTS.filter((x) => inScreenplay || ["action", "dialogue"].includes(x.type)).map((el) => {
+          {SCREENPLAY_ELEMENTS.filter((x) => inScreenplay || x.type === "dialogue").map((el) => {
             const active = parentName === el.type || (el.type === "dialogue" && (parentName === "dialogueCue" || parentName === "dialogueSpeech"));
-            return (
-              <button
-                key={el.type}
-                type="button"
-                onMouseDown={(ev) => ev.preventDefault()}
-                onClick={() => setScreenplayElement(e, el.type)}
-                title={`${el.label} (Ctrl+Alt+${el.key})`}
-                className={`h-8 rounded-md px-2 text-[13px] ${active ? "bg-accent text-accent-ink" : "hover:bg-subtle"}`}
-              >
-                {el.ml}
-              </button>
-            );
+            return scriptButton(el.type, el.ml, el.label, active, () => setScreenplayElement(e, el.type), `${el.label} (Ctrl+Alt+${el.key})`);
           })}
+          {isDrama && (
+            <>
+              {scriptButton("stage", "രംഗനിർദ്ദേശം", "Stage direction", current === "sb:stage", () => setStageDirection(e))}
+              {scriptButton("scene", "രംഗം", "Scene", current === "sb:scene", () => insertStyledBlock(e, "scene"), t("editor.drama.sceneHint"))}
+              {scriptButton("act", "അങ്കം", "Act", current === "sb:act", () => insertStyledBlock(e, "act"), t("editor.drama.actHint"))}
+              {onFillCast && (
+                <button
+                  type="button"
+                  onMouseDown={(ev) => ev.preventDefault()}
+                  onClick={onFillCast}
+                  title={t("editor.drama.fillCastHint")}
+                  className="flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-[13px] hover:bg-subtle"
+                >
+                  <Users size={15} className="text-tint-lime" aria-hidden /> {t("editor.drama.fillCast")}
+                </button>
+              )}
+            </>
+          )}
           {inScreenplay && (
-            <Select
-              size={variant === "sheet" ? "md" : "sm"}
-              className="ml-1"
-              preventFocusSteal
-              aria-label="Insert a title-page block"
-              value=""
-              placeholder="Title page…"
-              onChange={(v) => v && setStyle(v)}
-              options={template.blocks.map((v) => ({ value: `sb:${v}`, label: BLOCK_VARIANTS[v].ml, hint: BLOCK_VARIANTS[v].label }))}
-            />
+            <>
+              <Select
+                size={variant === "sheet" ? "md" : "sm"}
+                className="ml-1"
+                preventFocusSteal
+                aria-label={t("editor.scene.tools")}
+                value=""
+                placeholder={t("editor.scene.tools")}
+                onChange={(v) => {
+                  if (v.startsWith("place:")) setScenePlace(e, v.slice(6));
+                  else if (v.startsWith("time:")) setSceneTime(e, v.slice(5));
+                  else if (v === "cast") fillSceneCast(e);
+                }}
+                options={[
+                  ...SCENE_PLACES.map((p) => ({ value: `place:${p}`, label: p, hint: p === "Int./" ? "അകത്ത് · Interior" : p === "Ext./" ? "പുറത്ത് · Exterior" : "Interior and exterior" })),
+                  ...SCENE_TIMES.map((x) => ({ value: `time:${x}`, label: x, hint: t("editor.scene.time") })),
+                  { value: "cast", label: t("editor.scene.fillCast"), hint: t("editor.scene.fillCastHint") },
+                ]}
+              />
+              <Select
+                size={variant === "sheet" ? "md" : "sm"}
+                className="ml-1"
+                preventFocusSteal
+                aria-label="Insert a title-page block"
+                value=""
+                placeholder="Title page…"
+                onChange={(v) => v && setStyle(v)}
+                options={template.blocks.map((v) => ({ value: `sb:${v}`, label: BLOCK_VARIANTS[v].ml, hint: BLOCK_VARIANTS[v].label }))}
+              />
+            </>
           )}
         </div>
+      )}
+      {template.kind === "diary" && (
+        <button
+          type="button"
+          onMouseDown={(ev) => ev.preventDefault()}
+          onClick={() => appendDiaryEntry(e, todayLine())}
+          title={t("editor.diary.newEntryHint")}
+          className="ml-1 flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-[13px] hover:bg-subtle"
+        >
+          <CalendarPlus size={15} className="text-tint-sky" aria-hidden /> {t("editor.diary.newEntry")}
+        </button>
       )}
       <Sep />
 
@@ -300,6 +374,11 @@ export function Toolbar({
           <Btn title="Scene break ⁂" onClick={() => chain().setHorizontalRule().run()}>
             <Asterisk size={16} />
           </Btn>
+          {template.footnotes && (
+            <Btn title={t("editor.footnote.add")} onClick={() => window.dispatchEvent(new CustomEvent(FOOTNOTE_EVENT, { detail: {} }))}>
+              <span className="text-[12px] font-semibold">¹</span>
+            </Btn>
+          )}
         </>
       )}
       <Sep />
@@ -397,12 +476,22 @@ export function MobileFormatStrip({
           <Redo2 size={18} />
         </B>
         {usesDialogue
-          ? SCREENPLAY_ELEMENTS.filter((x) => template.screenplay || ["action", "dialogue"].includes(x.type)).map((el) => (
+          ? SCREENPLAY_ELEMENTS.filter((x) => template.screenplay || x.type === "dialogue").map((el) => (
               <B key={el.type} t={el.label} on={() => setScreenplayElement(e, el.type)} act={parentName === el.type || (el.type === "dialogue" && parentName.startsWith("dialogue"))}>
                 {el.ml}
               </B>
             ))
           : null}
+        {template.kind === "drama" && (
+          <B t="Stage direction" on={() => setStageDirection(e)} act={parentName === "styledBlock" && e.state.selection.$from.parent.attrs.variant === "stage"}>
+            രംഗനിർദ്ദേശം
+          </B>
+        )}
+        {template.kind === "diary" && (
+          <B t={t("editor.diary.newEntry")} on={() => appendDiaryEntry(e, todayLine())}>
+            <CalendarPlus size={18} />
+          </B>
+        )}
         <B t="Bold" on={() => chain().toggleSmartBold().run()} act={boldIsOn(e)}>
           <Bold size={18} />
         </B>

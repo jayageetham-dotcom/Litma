@@ -18,10 +18,20 @@ export function scriptReport(doc: JSONContent) {
   const scenes: SceneRow[] = [];
   const chars = new Map<string, { lines: number; words: number; scenes: Set<number> }>();
   let cur: SceneRow | null = null;
+  let act = 0;
+  let actScene = 0;
   for (const n of doc.content ?? []) {
     const t = inlineText(n).trim();
-    if (n.type === "sceneHeading" || (n.type === "styledBlock" && n.attrs?.variant === "chapter")) {
-      cur = { n: scenes.length + 1, heading: t || "—", time: "", cast: [], speakers: [], words: 0 };
+    const v = n.type === "styledBlock" ? n.attrs?.variant : "";
+    if (v === "act") {
+      act++;
+      actScene = 0;
+      continue;
+    }
+    if (n.type === "sceneHeading" || v === "chapter" || v === "scene") {
+      // plays: "അങ്കം 1 · രംഗം 2: place"
+      const heading = v === "scene" ? `${act ? `അങ്കം ${act} · ` : ""}രംഗം ${++actScene}${t ? `: ${t}` : ""}` : t || "—";
+      cur = { n: scenes.length + 1, heading, time: "", cast: [], speakers: [], words: 0 };
       scenes.push(cur);
       continue;
     }

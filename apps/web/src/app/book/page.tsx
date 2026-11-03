@@ -3,7 +3,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { InkLoader } from "@/components/ui/Skeleton";
-import { ArrowDown, ArrowLeft, ArrowUp, Camera, ExternalLink, FileText, GripVertical, ListOrdered, Loader2, PanelTop, Plus, Printer, Settings2, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Camera, ExternalLink, FileText, GripVertical, ListOrdered, Loader2, PanelTop, Plus, Printer, RotateCcw, Settings2, X } from "lucide-react";
 import { useScreen } from "@/lib/useLayout";
 import { Select } from "@/components/ui/Select";
 import { RequireAuth } from "@/lib/auth";
@@ -12,14 +12,14 @@ import { BASE, PHOTO_UPLOADS } from "@/lib/config";
 import { templateFor } from "@/lib/templates";
 import { ITEM_LABELS } from "@/lib/book-sections";
 import { resizeImage } from "@/lib/image";
-import { COVER_FONTS, COVER_TEMPLATES, CoverBack, CoverFront } from "@/components/book/Cover";
+import { COVER_FONTS, COVER_PARTS, COVER_TEMPLATES, CoverBack, CoverFront } from "@/components/book/Cover";
 import { MiniEditor } from "@/components/book/MiniEditor";
 import { COVER_ART, CoverArtSvg, coverArtId } from "@/components/art/CoverArt";
 import { AVATAR_ART, AvatarArt } from "@/components/art/Avatars";
 import { useT } from "@/i18n/react";
 import type { MessageKey } from "@litma/i18n";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import type { Book, BookCover, BookItem, BookSettings, LitmaDoc } from "@/lib/types";
+import type { Book, BookCover, BookItem, BookSettings, CoverOffset, LitmaDoc } from "@/lib/types";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const ml = { fontFamily: "'Noto Sans Malayalam'" } as const;
@@ -570,6 +570,11 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
   const t = c.template ?? "kasavu";
   const tdef = COVER_TEMPLATES.find((x) => x.id === t)!;
   const paint = { bg: c.bg ?? tdef.defaults.bg!, fg: c.fg ?? tdef.defaults.fg!, accent: c.accent ?? tdef.defaults.accent! };
+  const chip = (on: boolean, label: string, onClick: () => void) => (
+    <button key={label} type="button" aria-pressed={on} onClick={onClick} className={`rounded-full border px-3 py-1 text-xs ${on ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
+      {label}
+    </button>
+  );
   const tile = (on: boolean) => `overflow-hidden rounded-[6px] border-2 transition ${on ? "border-accent" : "border-transparent hover:border-line-strong"}`;
   const upload = async (key: "image" | "authorPhoto", f?: File) => {
     if (!f) return;
@@ -582,10 +587,25 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
   };
   const W = 210,
     H = 297;
+  // dragging the title, author or back-cover blocks on the preview
+  const parts: readonly string[] = back ? COVER_PARTS.back : COVER_PARTS.front;
+  const move = (id: string, o: CoverOffset) => onCover({ offsets: { ...(c.offsets ?? {}), [id]: o } });
+  const moveLabel = (id: string) => tr(`cover.move.${id}` as MessageKey);
+  const moved = parts.some((k) => c.offsets?.[k] && (c.offsets[k].x || c.offsets[k].y));
   return (
     <div className="flex flex-wrap items-start gap-8">
       <div className="origin-top-left" style={{ width: `${W * 0.5}mm`, height: `${H * 0.5}mm` }}>
-        <div style={{ transform: "scale(0.5)", transformOrigin: "top left", boxShadow: "var(--sheet-shadow)" }}>{back ? <CoverBack book={book} w={W} h={H} /> : <CoverFront book={book} w={W} h={H} />}</div>
+        <div style={{ transform: "scale(0.5)", transformOrigin: "top left", boxShadow: "var(--sheet-shadow)" }}>
+          {back ? <CoverBack book={book} w={W} h={H} onMove={move} moveLabel={moveLabel} /> : <CoverFront book={book} w={W} h={H} onMove={move} moveLabel={moveLabel} />}
+        </div>
+        <div className="mt-3 flex items-start justify-between gap-3" style={{ width: `${W * 0.5}mm` }}>
+          <p className="text-xs text-muted">{tr(back ? "cover.moveHintBack" : "cover.moveHint")}</p>
+          {moved && (
+            <button type="button" className="btn btn-ghost shrink-0 !px-2 !py-1 !text-xs" onClick={() => onCover({ offsets: Object.fromEntries(Object.entries(c.offsets ?? {}).filter(([k]) => !parts.includes(k as never))) })}>
+              <RotateCcw size={13} /> {tr("cover.resetPositions")}
+            </button>
+          )}
+        </div>
       </div>
       <div className="min-w-64 max-w-sm flex-1 space-y-4 text-sm">
         <h2 className="font-semibold">{back ? "Back cover" : "Front cover"}</h2>
@@ -594,7 +614,7 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
           <div className="flex flex-wrap gap-1.5">
             {COVER_TEMPLATES.filter((x) => PHOTO_UPLOADS || x.id !== "photo" || t === "photo").map((x) => (
               <button key={x.id} onClick={() => {
-                  const keep = x.id === "art" ? COVER_ART.find((a) => a.id === coverArtId(c.art)) : undefined;
+                  const keep = COVER_ART.find((a) => a.id === coverArtId(c.art)); // a chosen background keeps its colours in every design
                   onCover({ template: x.id, ...x.defaults, ...(keep ? { art: keep.id, bg: keep.bg, fg: keep.fg, accent: keep.accent } : {}) });
                 }} className={`rounded-full border px-3 py-1 text-xs ${t === x.id ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
                 {x.label}
@@ -625,13 +645,40 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
                 className="w-full"
                 value={c.font ?? "Anek Malayalam"}
                 onChange={(v) => onCover({ font: v })}
-                options={COVER_FONTS.map((f) => ({ value: f, label: f, style: { fontFamily: `'${f}'` } }))}
+                options={COVER_FONTS.map((f) => ({ value: f.name, label: `${f.name} · പുസ്തകം`, text: f.name, hint: tr(`cover.fontKind.${f.kind}` as MessageKey), style: { fontFamily: `'${f.name}'` } }))}
               />
             </div>
             <label className="block">
               <span className="mb-1 block text-xs text-muted">Title size</span>
               <input type="range" min={0.6} max={1.6} step={0.05} className="w-full" value={c.titleScale ?? 1} onChange={(e) => onCover({ titleScale: Number(e.target.value) })} />
             </label>
+            <div>
+              <span className="mb-1.5 block text-xs text-muted">{tr("cover.titleEffects")}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {(
+                  [
+                    ["titleShadow", "cover.shadow"],
+                    ["titleBox", "cover.box"],
+                  ] as const
+                ).map(([k, l]) => (
+                  <button key={k} type="button" aria-pressed={!!c[k]} onClick={() => onCover({ [k]: !c[k] })} className={`rounded-full border px-3 py-1 text-xs ${c[k] ? "border-accent bg-accent-soft text-accent" : "border-line hover:border-accent"}`}>
+                    {tr(l)}
+                  </button>
+                ))}
+              </div>
+              {c.titleBox && (
+                <div className="mt-2 grid grid-cols-[5rem_1fr] items-end gap-3">
+                  <label className="text-xs text-muted">
+                    {tr("cover.boxColour")}
+                    <input type="color" className="mt-1 block h-9 w-full cursor-pointer rounded border border-line" value={c.titleBoxColor ?? paint.bg} onChange={(e) => onCover({ titleBoxColor: e.target.value })} />
+                  </label>
+                  <label className="text-xs text-muted">
+                    {tr("cover.boxStrength")}
+                    <input type="range" min={0.2} max={1} step={0.05} className="mt-2 w-full" value={c.titleBoxOpacity ?? 0.75} onChange={(e) => onCover({ titleBoxOpacity: Number(e.target.value) })} />
+                  </label>
+                </div>
+              )}
+            </div>
             <div>
               <span className="mb-1.5 block text-xs text-muted">{tr("cover.illustration")}</span>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -641,12 +688,12 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
                   </button>
                 )}
                 {COVER_ART.map((a) => (
-                  <button key={a.id} type="button" onClick={() => onCover(t === "art" || t === "photo" ? { art: a.id, bg: a.bg, fg: a.fg, accent: a.accent } : { art: a.id })} className={tile(coverArtId(c.art) === a.id)} title={tr(`cover.art.${a.id}` as MessageKey)} aria-label={tr(`cover.art.${a.id}` as MessageKey)} aria-pressed={coverArtId(c.art) === a.id}>
+                  <button key={a.id} type="button" onClick={() => onCover({ art: a.id, bg: a.bg, fg: a.fg, accent: a.accent })} className={tile(coverArtId(c.art) === a.id)} title={tr(`cover.art.${a.id}` as MessageKey)} aria-label={tr(`cover.art.${a.id}` as MessageKey)} aria-pressed={coverArtId(c.art) === a.id}>
                     <CoverArtSvg id={a.id} className="block aspect-[2/3] w-full" />
                   </button>
                 ))}
               </div>
-              {t === "art" && <p className="mt-1.5 text-xs text-muted">{tr("cover.artHint")}</p>}
+              <p className="mt-1.5 text-xs text-muted">{tr("cover.artHint")}</p>
             </div>
             {/* Cover photo upload is paused (PHOTO_UPLOADS in lib/config.ts); older covers keep their picture. */}
             {(PHOTO_UPLOADS || c.image) && (
@@ -671,11 +718,29 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
                 )}
               </div>
             )}
+            <div>
+              <span className="mb-1.5 block text-xs text-muted">{tr("cover.ornament")}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {(["line", "flourish", "none"] as const).map((o) => chip((c.ornament ?? "line") === o, tr(`cover.ornaments.${o}`), () => onCover({ ornament: o })))}
+              </div>
+            </div>
+            <div>
+              <span className="mb-1.5 block text-xs text-muted">{tr("cover.extras")}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {chip(!!c.badge, tr("cover.badge"), () => onCover({ badge: !c.badge }))}
+                {chip(!!c.publisherMark, tr("cover.publisherMark"), () => onCover({ publisherMark: !c.publisherMark }))}
+              </div>
+              {c.badge && (
+                <input className="field mt-2 !py-1.5" value={c.badgeText ?? ""} onChange={(e) => onCover({ badgeText: e.target.value })} placeholder={book.settings?.edition || "14-ാം പതിപ്പ്"} aria-label={tr("cover.badgeText")} style={ml} />
+              )}
+              {c.publisherMark && !book.settings?.publisher && <p className="mt-1.5 text-xs text-muted">{tr("cover.needsPublisher")}</p>}
+            </div>
             <p className="text-xs text-muted">Title, subtitle, author and publisher come from Book details.</p>
           </>
         )}
         {back && (
           <>
+            <div className="flex flex-wrap gap-1.5">{chip(c.backTitle !== false, tr("cover.backTitle"), () => onCover({ backTitle: c.backTitle === false }))}</div>
             <label className="block">
               <span className="mb-1 block text-xs text-muted">Blurb</span>
               <textarea className="field min-h-36" value={c.blurb ?? ""} onChange={(e) => onCover({ blurb: e.target.value })} placeholder="ഈ പുസ്തകത്തെക്കുറിച്ച്…" style={ml} />
@@ -723,7 +788,24 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
               <span className="mb-1 block text-xs text-muted">Price</span>
               <input className="field !py-1.5" value={c.price ?? ""} onChange={(e) => onCover({ price: e.target.value })} placeholder="₹ 250" />
             </label>
-            <p className="text-xs text-muted">Publisher and ISBN come from Book details.</p>
+            <div className="space-y-2">
+              <span className="block text-xs text-muted">{tr("cover.imprint")}</span>
+              {(
+                [
+                  ["genreLine", "cover.genreLine", "മലയാളം നോവൽ"],
+                  ["category", "cover.category", "Fiction"],
+                  ["coverCredit", "cover.coverCredit", "Cover design: …"],
+                  ["publisherTagline", "cover.publisherTagline", ""],
+                  ["website", "cover.website", "www.example.com"],
+                ] as const
+              ).map(([k, l, ph]) => (
+                <label key={k} className="block text-xs text-muted">
+                  {tr(l)}
+                  <input className="field mt-1 !py-1.5" value={c[k] ?? ""} onChange={(e) => onCover({ [k]: e.target.value })} placeholder={ph} style={ml} />
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-muted">{tr("cover.imprintHint")}</p>
           </>
         )}
       </div>

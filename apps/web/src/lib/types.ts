@@ -94,6 +94,12 @@ export interface BookSettings {
   year?: string;
 }
 
+/** How far the writer dragged a cover part from its design position, in millimetres. */
+export interface CoverOffset {
+  x: number;
+  y: number;
+}
+
 export interface BookCover {
   template?: "kasavu" | "art" | "solid" | "photo" | "type" | "minimal";
   /** Drawn illustration id from COVER_ART (components/art/CoverArt.tsx), or null for none. */
@@ -105,6 +111,29 @@ export interface BookCover {
   image?: string | null;
   imageOpacity?: number;
   titleScale?: number;
+  /** Soft drop shadow behind the title text. */
+  titleShadow?: boolean;
+  /** Colour box behind the title block; colour defaults to the cover background. */
+  titleBox?: boolean;
+  titleBoxColor?: string;
+  titleBoxOpacity?: number;
+  /** Divider under the title: a plain line (default), a flourish, or none. */
+  ornament?: "line" | "flourish" | "none";
+  /** Round badge on the front (e.g. "14-ാം പതിപ്പ്"); text defaults to the book's edition. */
+  badge?: boolean;
+  badgeText?: string;
+  /** Publisher's name as a small boxed mark in the front's top corner. */
+  publisherMark?: boolean;
+  /** Back cover: repeat the title and author at the top, beside the author picture. Default on. */
+  backTitle?: boolean;
+  /** Back cover imprint strip (shown when any of these, the publisher or the ISBN is set). */
+  genreLine?: string;
+  category?: string;
+  coverCredit?: string;
+  website?: string;
+  publisherTagline?: string;
+  /** Dragged positions of cover parts (COVER_PARTS in components/book/Cover.tsx). */
+  offsets?: Record<string, CoverOffset>;
   blurb?: string;
   authorBio?: string;
   /** Uploaded author photo (only while photo uploads are on; older books may still have one). */

@@ -236,19 +236,17 @@ export const tintPaint = (t: AvatarTint): Paint => ({ fg: `var(--tint-${t})`, bg
  * One avatar: `id` is "letter" or a drawn character from AVATAR_ART. Colours come from a theme tint,
  * or pass `paint` for fixed colours (book covers, which print).
  */
-export function AvatarArt({ id, name, tint, paint, size = 32, className = "", title }: { id?: string | null; name?: string | null; tint?: AvatarTint; paint?: Paint; size?: number | string; className?: string; title?: string }) {
+export function AvatarArt({ id, name, tint, paint, size = 32, className = "", title, square = false }: { id?: string | null; name?: string | null; tint?: AvatarTint; paint?: Paint; size?: number | string; className?: string; title?: string; square?: boolean }) {
   const p = paint ?? tintPaint(tint ?? tintFor(name));
   const art = AVATAR_ART.find((a) => a.id === id);
   const dim = typeof size === "number" ? `${size}px` : size;
   const clip = `av${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   return (
-    <svg viewBox="0 0 64 64" width={dim} height={dim} className={`shrink-0 rounded-full ${className}`} role={title ? "img" : undefined} aria-label={title} aria-hidden={title ? undefined : true} style={{ width: dim, height: dim }}>
+    <svg viewBox="0 0 64 64" preserveAspectRatio={square ? "xMidYMid slice" : undefined} width={dim} height={dim} className={`shrink-0 ${square ? "" : "rounded-full"} ${className}`} role={title ? "img" : undefined} aria-label={title} aria-hidden={title ? undefined : true} style={{ width: dim, height: dim }}>
       <defs>
-        <clipPath id={clip}>
-          <circle cx="32" cy="32" r="32" />
-        </clipPath>
+        <clipPath id={clip}>{square ? <rect width="64" height="64" /> : <circle cx="32" cy="32" r="32" />}</clipPath>
       </defs>
-      <circle cx="32" cy="32" r="32" fill={p.bg} />
+      {square ? <rect width="64" height="64" fill={p.bg} /> : <circle cx="32" cy="32" r="32" fill={p.bg} />}
       {art ? (
         <g clipPath={`url(#${clip})`}>{art.draw(p)}</g>
       ) : (

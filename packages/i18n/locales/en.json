@@ -309,6 +309,48 @@
       "literary": "Literary",
       "historical": "Historical",
       "selfhelp": "Self-help"
-    }
+    },
+    "move": {
+      "title": "Move the title",
+      "author": "Move the author",
+      "back-text": "Move the blurb and author note",
+      "back-imprint": "Move the publisher and ISBN",
+      "badge": "Move the badge",
+      "mark": "Move the publisher mark",
+      "back-head": "Move the title and author picture"
+    },
+    "moveHint": "Drag the title or the author on the cover to move them. Arrow keys nudge (Shift for bigger steps).",
+    "moveHintBack": "Drag the blurb or the publisher block to move them. Arrow keys nudge (Shift for bigger steps).",
+    "resetPositions": "Reset positions",
+    "titleEffects": "Title effects",
+    "shadow": "Drop shadow",
+    "box": "Background box",
+    "boxColour": "Box colour",
+    "boxStrength": "Box strength",
+    "fontKind": {
+      "sans": "Sans",
+      "calligraphy": "Calligraphy",
+      "display": "Display",
+      "serif": "Serif"
+    },
+    "ornament": "Divider",
+    "ornaments": {
+      "line": "Line",
+      "flourish": "Flourish",
+      "none": "None"
+    },
+    "extras": "Extras",
+    "badge": "Edition badge",
+    "badgeText": "Badge text",
+    "publisherMark": "Publisher mark",
+    "needsPublisher": "Add the publisher in Book details to show the mark.",
+    "backTitle": "Title and author at the top",
+    "imprint": "Imprint strip",
+    "genreLine": "Genre line",
+    "category": "Category",
+    "coverCredit": "Cover design credit",
+    "publisherTagline": "Publisher tagline",
+    "website": "Website",
+    "imprintHint": "The strip also shows the publisher, the ISBN (as a barcode) and the price. Publisher and ISBN come from Book details."
   }
 }

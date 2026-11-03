@@ -27,6 +27,21 @@ export const viewport: Viewport = {
 const FONTS =
   "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400..800&family=Anek+Malayalam:wdth,wght@75..125,300..800&family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Manjari:wght@400;700&family=Gayathri:wght@400;700&family=Chilanka&family=Baloo+Chettan+2:wght@400;600;700&display=swap";
 
+/** SMC Malayalam fonts bundled for cover titles (public/fonts/smc, SIL OFL). */
+const fontBase = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/fonts/smc`;
+const SMC_FONTS = (
+  [
+    ["Karumbi", "Karumbi", 400],
+    ["Dyuthi", "Dyuthi", 400],
+    ["Uroob", "Uroob", 700],
+    ["Meera", "Meera", 400],
+    ["Rachana", "Rachana-Regular", 400],
+    ["Rachana", "Rachana-Bold", 700],
+  ] as const
+)
+  .map(([family, file, weight]) => `@font-face{font-family:'${family}';src:url('${fontBase}/${file}.woff2') format('woff2');font-weight:${weight === 700 && family === "Uroob" ? "100 900" : weight};font-display:swap}`)
+  .join("");
+
 const themeScript = `try{var t=localStorage.getItem('litma:theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -36,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="stylesheet" href={FONTS} />
+        <style dangerouslySetInnerHTML={{ __html: SMC_FONTS }} />
         <link rel="icon" href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/icon.svg`} type="image/svg+xml" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

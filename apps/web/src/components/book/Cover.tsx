@@ -276,7 +276,7 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
         </Movable>
         <Movable id="title" className="absolute inset-x-[10%] top-[24%]" style={box}>
           {h1(92, 1.02, 800, { wordBreak: "break-word" })}
-          {c.ornament === "flourish" && <Flourish color={c.accent!} center={false} margin="6mm 0 0" />}
+          {orn({ height: "1.4mm", width: "26mm", background: c.accent, marginTop: "7mm" }, false)}
         </Movable>
         <div className="absolute inset-x-[10%] bottom-[10%] flex items-end justify-between" style={{ fontSize: "12pt" }}>
           <span style={{ textShadow: shadow }}>{book.subtitle}</span>

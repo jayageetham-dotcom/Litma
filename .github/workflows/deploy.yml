@@ -98,22 +98,51 @@ jobs:
 
       - name: 📂 Upload to getlitma.in (FTPS, resumable)
         env:
-          # Repository settings → Secrets and variables → Actions:
-          #   variable LITMA_FTP_USERNAME  the FTP account made for getlitma.in (e.g. deploy@getlitma.in)
-          #   secret   LITMA_FTP_PASSWORD  its password
-          #   variable LITMA_FTP_SERVER    optional, defaults to ftp.getlitma.in
-          #   variable LITMA_FTP_DIR       optional, defaults to "/" (the account's own folder, i.e. getlitma.in's web root)
-          # Until the username and password exist the site is built and checked but not uploaded,
-          # so the old address (jayageetham.com/litma) keeps running untouched.
-          FTP_HOST: ${{ vars.LITMA_FTP_SERVER || 'ftp.getlitma.in' }}
-          FTP_USER: ${{ vars.LITMA_FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.LITMA_FTP_PASSWORD }}
-          FTP_DIR: ${{ vars.LITMA_FTP_DIR || '/' }}
+          # Repository settings → Secrets and variables → Actions (repository level, not an environment):
+          #   LITMA_FTP_USERNAME  the getlitma.in FTP account (litma@getlitma.in), as a variable or a secret
+          #   LITMA_FTP_PASSWORD  its password, as a secret
+          #   LITMA_FTP_SERVER    optional variable, defaults to ftp.getlitma.in
+          #   LITMA_FTP_DIR       optional variable: the web root inside the account. Defaults to "/", and when
+          #                       the account opens on the cPanel home (public_html is inside it) the upload
+          #                       goes into public_html by itself.
+          FTP_HOST: ${{ vars.LITMA_FTP_SERVER || secrets.LITMA_FTP_SERVER || 'ftp.getlitma.in' }}
+          FTP_USER: ${{ vars.LITMA_FTP_USERNAME || secrets.LITMA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.LITMA_FTP_PASSWORD || vars.LITMA_FTP_PASSWORD }}
+          FTP_DIR_SET: ${{ vars.LITMA_FTP_DIR }}
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
         run: |
+          echo "FTP server:   $FTP_HOST"
+          echo "FTP username: ${FTP_USER:-(missing)}"
+          echo "FTP password: $([ -n "$FTP_PASSWORD" ] && echo set || echo '(missing)')"
           if [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
-            echo "::warning::getlitma.in FTP account not set up yet (LITMA_FTP_USERNAME variable and LITMA_FTP_PASSWORD secret). The site was built but not uploaded."
-            exit 0
+            msg="getlitma.in FTP details missing: add LITMA_FTP_USERNAME (variable) and LITMA_FTP_PASSWORD (secret) under Settings → Secrets and variables → Actions, at repository level. The site was built but not uploaded."
+            if [ "$MANUAL" = "true" ]; then echo "::error::$msg"; exit 1; fi
+            echo "::warning::$msg"; exit 0
           fi
+          if ! getent hosts "$FTP_HOST" >/dev/null; then
+            echo "::error::$FTP_HOST does not resolve. Set LITMA_FTP_SERVER to the FTP server shown in cPanel → FTP Accounts → Configure FTP Client."
+            exit 1
+          fi
+          LOGIN="set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set ftp:passive-mode true; set net:timeout 30; set net:max-retries 3"
+
+          # Where are we? List the account's top folder once (also checks the login).
+          if ! TOP=$(lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" -e "$LOGIN; cls -1a /; bye" 2>&1); then
+            echo "$TOP" | tail -5
+            echo "::error::Could not sign in to $FTP_HOST as $FTP_USER. Check the password (cPanel → FTP Accounts → Change Password, then update the LITMA_FTP_PASSWORD secret)."
+            exit 1
+          fi
+          echo "The account's top folder holds:"; echo "$TOP" | head -30
+          FTP_DIR="${FTP_DIR_SET:-/}"
+          if [ -z "$FTP_DIR_SET" ] && echo "$TOP" | grep -qE '^/?public_html/?$'; then
+            FTP_DIR="/public_html"
+            echo "This account opens on the cPanel home, so Litma goes into /public_html."
+          fi
+          if echo "$TOP" | grep -qE '^/?(mail|etc)/?$' && [ "$FTP_DIR" = "/" ]; then
+            echo "::error::This account opens on the cPanel home folder. Set the variable LITMA_FTP_DIR to /public_html."
+            exit 1
+          fi
+          echo "Uploading to: $FTP_DIR"
+
           # The mirror compares sizes only, so a changed file of the same size (version.json, an HTML page)
           # would be skipped. Files under _next/ carry a content hash in their name and dict/ is built data;
           # every other file is small, so it is always uploaded again, after the mirror (new chunks land first).
@@ -136,8 +165,12 @@ jobs:
           mput -d -O $FTP_DIR $ALWAYS
           bye
           LFTP
-            then echo "Upload complete"; exit 0; fi
-            echo "Attempt $attempt failed — retrying in 20s (already-uploaded files are skipped)"
+            then
+              echo "Upload complete. $FTP_DIR now holds:"
+              lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" -e "$LOGIN; cls -1a $FTP_DIR; bye" 2>/dev/null | head -20
+              exit 0
+            fi
+            echo "Attempt $attempt failed. Retrying in 20s (already-uploaded files are skipped)"
             sleep 20
           done
           echo "::error::FTP upload failed after 3 attempts."

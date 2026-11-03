@@ -225,8 +225,8 @@ jobs:
       - name: 📂 Put latest.json on the website (a few KB; the installers stay on GitHub)
         env:
           # same FTP account as deploy.yml (getlitma.in)
-          FTP_HOST: ${{ vars.LITMA_FTP_SERVER || 'ftp.getlitma.in' }}
-          FTP_USER: ${{ vars.LITMA_FTP_USERNAME }}
+          FTP_HOST: ${{ vars.LITMA_FTP_SERVER || secrets.LITMA_FTP_SERVER || 'ftp.getlitma.in' }}
+          FTP_USER: ${{ vars.LITMA_FTP_USERNAME || secrets.LITMA_FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.LITMA_FTP_PASSWORD }}
           FTP_DIR: ${{ vars.LITMA_FTP_DIR || '/' }}
         run: |

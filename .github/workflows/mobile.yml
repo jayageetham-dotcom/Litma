@@ -1,0 +1,55 @@
+# Checks the Flutter app (apps/mobile) on every change to it or to what it shares with the web:
+# generated tokens and strings are up to date, the code analyses cleanly, the tests pass.
+# Store builds (TestFlight, Play Console) are a later step; see apps/mobile/README.md.
+name: Mobile app checks
+
+on:
+  push:
+    paths:
+      - "apps/mobile/**"
+      - "packages/i18n/**"
+      - "packages/tokens/**"
+      - "packages/shared/src/manglish.ts"
+      - "packages/shared/src/forms.ts"
+      - "apps/web/public/brands/**"
+      - "scripts/build-mobile-assets.mjs"
+      - ".github/workflows/mobile.yml"
+  pull_request:
+    paths:
+      - "apps/mobile/**"
+      - "packages/i18n/**"
+      - "packages/tokens/**"
+      - "scripts/build-mobile-assets.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Shared tokens and strings are up to date
+        working-directory: .
+        run: |
+          node scripts/build-mobile-assets.mjs
+          git diff --exit-code -- apps/mobile/lib/core/tokens.g.dart apps/mobile/assets apps/mobile/test/manglish_vectors.json || {
+            echo "::error::Run npm run mobile:assets and commit the result."; exit 1; }
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test

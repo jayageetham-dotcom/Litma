@@ -5,6 +5,7 @@
  */
 import type { JSONContent } from "@tiptap/core";
 import { getSupabase } from "./supabase/client";
+import { track } from "./analytics";
 import { settingsFor, templateFor } from "./templates";
 import type { Book, DocKind, DocVersion, LitmaDoc, Profile, Suggestion, WordBookmark } from "./types";
 import type { StoryItem, StoryKind } from "./story";
@@ -80,6 +81,7 @@ export const store = {
   },
 
   async createDoc(kind: DocKind, title?: string): Promise<LitmaDoc> {
+    track("work_created", { kind });
     const t = templateFor(kind);
     const base = {
       title: title || `പുതിയ ${t.ml}`,
@@ -316,6 +318,7 @@ export const store = {
   },
 
   async createBook(init: Partial<Book>): Promise<Book> {
+    track("book_created");
     const sb = getSupabase();
     if (!sb) {
       const now = new Date().toISOString();

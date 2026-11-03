@@ -150,7 +150,12 @@
   "settings": {
     "language": "Language",
     "languageHint": "The language of menus and buttons. Your writing is not affected.",
-    "uiLanguage": "App language"
+    "uiLanguage": "App language",
+    "usage": "Usage statistics",
+    "usageHint": "Help improve Litma by sharing which pages and buttons you use, how long you write and what kind of device you use. Your writing, titles and names are never sent.",
+    "usageOn": "Share usage statistics",
+    "admin": "Admin dashboard",
+    "adminHint": "Usage, writers and charts for the whole of Litma. Only admins see this."
   },
   "download": {
     "title": "Litma for your computer",
@@ -384,5 +389,162 @@
     "title": "Title",
     "subtitle": "Subtitle",
     "author": "Author"
+  },
+  "admin": {
+    "title": "Admin",
+    "subtitle": "How Litma is used. Writing stays private: works are counted, never shown.",
+    "denied": "This page is for Litma's admins.",
+    "deniedHint": "Sign in with an admin account, or ask the owner to add you.",
+    "demo": "Local mode: these are made-up sample numbers to check the layout.",
+    "error": "Couldn't load the numbers.",
+    "updated": "Updated {time}",
+    "refresh": "Refresh",
+    "includeMe": "Include admins' own visits",
+    "onlineNow": "{n} online now",
+    "range": {
+      "label": "Period",
+      "d7": "7 days",
+      "d30": "30 days",
+      "d90": "90 days",
+      "d365": "12 months"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "audience": "Audience",
+      "behaviour": "Behaviour",
+      "writers": "Writers"
+    },
+    "vsPrev": "vs previous period",
+    "kpi": {
+      "visitors": "Visitors",
+      "visitorsHint": "Devices that opened Litma",
+      "activeWriters": "Active writers",
+      "activeWritersHint": "Signed-in writers who used Litma or wrote",
+      "newWriters": "New writers",
+      "totalWriters": "Writers in total",
+      "sessions": "Visits",
+      "pageViews": "Page views",
+      "engaged": "Active time per visit",
+      "engagedHint": "Time with the app open and in use",
+      "words": "Words written",
+      "works": "Works started",
+      "returning": "Returning visitors"
+    },
+    "charts": {
+      "traffic": "Visitors and writers",
+      "pageViews": "Page views",
+      "signups": "New writers per day",
+      "words": "Words written per day",
+      "hours": "When people use Litma (India time)",
+      "funnel": "From visit to writing",
+      "platform": "App",
+      "device": "Device",
+      "os": "Operating system",
+      "browser": "Browser",
+      "country": "Country",
+      "locale": "App language",
+      "lang": "Device language",
+      "referrer": "Where visits come from",
+      "appVersion": "Desktop app versions",
+      "providers": "Sign-in method",
+      "kinds": "Writing types",
+      "pages": "Top pages",
+      "clicks": "Most used buttons and links",
+      "features": "Features",
+      "countryNote": "Country comes from the network when available, otherwise from the device's time zone. Litma stores no IP addresses.",
+      "noData": "No data for this period yet."
+    },
+    "funnel": {
+      "visitors": "Visited",
+      "signedUp": "Created an account",
+      "started": "Started a work",
+      "wrote": "Wrote something"
+    },
+    "cols": {
+      "page": "Page",
+      "views": "Views",
+      "visitors": "Visitors",
+      "button": "Button or link",
+      "clicks": "Clicks",
+      "feature": "Feature",
+      "detail": "Detail",
+      "uses": "Uses",
+      "people": "People",
+      "type": "Writing type",
+      "works": "Works",
+      "writers": "Writers",
+      "words": "Words"
+    },
+    "features": {
+      "work_created": "New work",
+      "book_created": "New book",
+      "export": "Export",
+      "dictionary_lookup": "Dictionary lookup",
+      "ai_request": "AI companion",
+      "mcp_call": "AI assistant over MCP",
+      "sign_in": "Sign in",
+      "sign_up": "Sign up"
+    },
+    "platforms": {
+      "web": "Website",
+      "desktop": "Desktop app",
+      "installed": "Installed web app",
+      "android": "Android app",
+      "ios": "iPhone app",
+      "server": "Server",
+      "unknown": "Unknown"
+    },
+    "devices": {
+      "phone": "Phone",
+      "computer": "Computer",
+      "tablet": "Tablet",
+      "unknown": "Unknown"
+    },
+    "users": {
+      "search": "Search by name, email or country",
+      "count_one": "{count} writer",
+      "count_other": "{count} writers",
+      "writer": "Writer",
+      "joined": "Joined",
+      "lastSeen": "Last seen",
+      "where": "Where",
+      "device": "Device",
+      "visits": "Visits",
+      "activeDays": "Active days",
+      "words": "Words",
+      "works": "Works",
+      "never": "Never",
+      "admin": "Admin",
+      "unconfirmed": "Email not confirmed",
+      "sort": "Sort",
+      "sortSeen": "Last seen",
+      "sortJoined": "Newest",
+      "sortWords": "Most words",
+      "sortActive": "Most active",
+      "export": "Download CSV",
+      "none": "No writers match."
+    },
+    "user": {
+      "activity": "Activity, last 90 days",
+      "events": "Actions",
+      "devices": "Devices",
+      "recent": "Recent activity",
+      "beforeSignIn": "before signing in",
+      "private": "Their works are counted, never listed. Writing is private.",
+      "time": "Time",
+      "what": "What",
+      "where": "Page",
+      "ai": "AI requests",
+      "mcp": "MCP calls",
+      "books": "Books",
+      "activeTime": "Active time",
+      "provider": "Sign-in",
+      "location": "Location (from profile)",
+      "noEvents": "No activity recorded yet. Statistics started on 3 November 2026."
+    },
+    "events": {
+      "page_view": "Opened",
+      "click": "Clicked"
+    }
   }
 }

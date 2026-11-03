@@ -6,6 +6,7 @@ import { AuthShell, Field, GoogleButton, Notice } from "@/components/AuthShell";
 import { getSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { authMessage, authRedirect, safeNext, useRedirectIfSignedIn } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 function LoginForm() {
   const router = useRouter();
@@ -36,10 +37,12 @@ function LoginForm() {
       if (magic) {
         const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: authRedirect(next), shouldCreateUser: false } });
         if (error) throw error;
+        track("sign_in", { method: "email_link" });
         setMsg({ kind: "info", text: `Sign-in link sent to ${email}. Open it on this device.` });
       } else {
         const { error } = await sb.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        track("sign_in", { method: "password" });
         router.replace(next);
       }
     } catch (err) {
@@ -92,7 +95,7 @@ function LoginForm() {
         or
         <span className="h-px flex-1 bg-line" />
       </div>
-      <GoogleButton onClick={() => sb?.auth.signInWithOAuth({ provider: "google", options: { redirectTo: authRedirect(next) } })} />
+      <GoogleButton onClick={() => (track("sign_in", { method: "google" }), sb?.auth.signInWithOAuth({ provider: "google", options: { redirectTo: authRedirect(next) } }))} />
     </form>
   );
 }

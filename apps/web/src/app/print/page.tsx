@@ -5,6 +5,7 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { PagesSkeleton } from "@/components/ui/Skeleton";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
+import { track } from "@/lib/analytics";
 import { paginate, type PageSpec, type Section } from "@/lib/paginate";
 import { bookSections, bookSpec, documentPrint } from "@/lib/book-sections";
 import { CoverBack, CoverFront } from "@/components/book/Cover";
@@ -61,7 +62,7 @@ function PrintView() {
       // wait for cover artwork before the print dialog opens
       await Promise.all([...(root.current?.ownerDocument.images ?? [])].map((i) => (i.complete ? null : new Promise((r) => ((i.onload = r), (i.onerror = r))))));
       if (cancelled) return;
-      if (auto) setTimeout(() => window.print(), 400);
+      if (auto) setTimeout(() => (track("export", { format: "pdf", from: "assistant" }), window.print()), 400);
     })();
     return () => {
       cancelled = true;
@@ -88,7 +89,7 @@ function PrintView() {
           Zoom
           <input type="range" min={0.3} max={1} step={0.05} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} />
         </label>
-        <button className="btn btn-primary" disabled={pages === null} onClick={() => window.print()}>
+        <button className="btn btn-primary" disabled={pages === null} onClick={() => (track("export", { format: "pdf" }), window.print())}>
           <Printer size={16} /> Save as PDF
         </button>
       </header>

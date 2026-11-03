@@ -8,6 +8,7 @@ next-env.d.ts
 out
 .dict-cache
 apps/web/public/dict
+apps/web/public/track-labels.json
 apps/desktop/dist
 apps/desktop/release
 apps/desktop/app

@@ -10,6 +10,7 @@
  */
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.118.0";
 import { cors, json, preflight } from "../_shared/cors.ts";
+import { recordUsage } from "../_shared/usage.ts";
 import { textToNodes, toMarkdown, toPlainText, type JSONContent } from "../_shared/serialize.ts";
 import { WRITING_GUIDES } from "../_shared/guides.ts";
 import { FORM_NAMES, KINDS, settingsFor, starterContent, type DocKind } from "../_shared/forms.ts";
@@ -686,6 +687,7 @@ async function handle(msg: Json, userId: string | null) {
       if (!userId) return ok(id, out("Not authorised. Create a token in Litma → Settings → MCP and send it as a Bearer token.", true));
       const tool = byName.get(String(params?.name));
       if (!tool) return ok(id, out(`Unknown tool: ${params?.name}`, true));
+      recordUsage(db, userId, "mcp_call", tool.name);
       try {
         return ok(id, await tool.run((params?.arguments as Args) ?? {}, userId));
       } catch (e) {

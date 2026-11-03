@@ -2,6 +2,7 @@
 import type { JSONContent } from "@tiptap/core";
 import { AlignmentType, Document, HeadingLevel, Packer, PageBreak, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, BorderStyle } from "docx";
 import type { LitmaDoc } from "./types";
+import { track } from "./analytics";
 import { PAGE_SIZES } from "@/extensions/pagination";
 
 function download(name: string, blob: Blob) {
@@ -54,6 +55,7 @@ const ALIGN: Record<string, (typeof AlignmentType)[keyof typeof AlignmentType]> 
 const NONE = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 
 export async function exportDocx(d: LitmaDoc) {
+  track("export", { format: "docx", kind: d.kind });
   const s = d.settings;
   const pt = (v: number) => Math.round(v * 2); // half-points
   const body: (Paragraph | Table)[] = [];
@@ -170,12 +172,15 @@ export async function exportDocx(d: LitmaDoc) {
 }
 
 export function exportText(d: LitmaDoc) {
+  track("export", { format: "txt", kind: d.kind });
   download(`${safe(d.title)}.txt`, new Blob([toPlainText(d.content)], { type: "text/plain;charset=utf-8" }));
 }
 export function exportMarkdown(d: LitmaDoc) {
+  track("export", { format: "md", kind: d.kind });
   download(`${safe(d.title)}.md`, new Blob([toMarkdown(d.content)], { type: "text/markdown;charset=utf-8" }));
 }
 export function exportHTML(d: LitmaDoc, html: string) {
+  track("export", { format: "html", kind: d.kind });
   const page = `<!doctype html><html lang="ml"><head><meta charset="utf-8"><title>${d.title}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam&family=Noto+Sans+Malayalam&family=Manjari&display=swap">
 <style>body{max-width:42rem;margin:3rem auto;padding:0 1rem;font-family:'${d.settings.font}',serif;line-height:${d.settings.lineHeight};font-size:${d.settings.fontSize}pt}

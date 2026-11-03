@@ -4,9 +4,9 @@
   "private": true,
   "description": "Litma web app (Next.js static export)",
   "scripts": {
-    "dev": "next dev",
-    "build": "node ../../scripts/sync-shared.mjs && next build && node ../../scripts/write-version.mjs",
-    "build:desktop": "node ../../scripts/sync-shared.mjs && NEXT_PUBLIC_BASE_PATH= NEXT_PUBLIC_DESKTOP=1 next build && NEXT_PUBLIC_DESKTOP=1 node ../../scripts/write-version.mjs",
+    "dev": "node ../../scripts/build-track-labels.mjs && next dev",
+    "build": "node ../../scripts/sync-shared.mjs && node ../../scripts/build-track-labels.mjs && next build && node ../../scripts/write-version.mjs",
+    "build:desktop": "node ../../scripts/sync-shared.mjs && node ../../scripts/build-track-labels.mjs && NEXT_PUBLIC_BASE_PATH= NEXT_PUBLIC_DESKTOP=1 next build && NEXT_PUBLIC_DESKTOP=1 node ../../scripts/write-version.mjs",
     "lint": "next lint",
     "preview": "node scripts/preview.mjs",
     "typecheck": "tsc --noEmit"

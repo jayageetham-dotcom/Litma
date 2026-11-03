@@ -79,6 +79,16 @@ html:has(.landing) {
   --tint-lime: #5f9e1a;
   --tint-tangerine: #d06c00;
 
+  /* Charts (admin dashboard): a categorical set checked for colour-blind separation, in fixed order */
+  --chart-1: #6250d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #2a78d6;
+  --chart-5: #eda100;
+  --chart-6: #e87ba4;
+  --chart-grid: #ebeaf0;
+  --chart-axis: #c9c8d2;
+
   /* Home page palette (the colourful landing): bright fills with dark text on them,
      a deep "night" for the dark bands, and a soft lilac "mist" behind everything */
   --mist: #f4f2fb;
@@ -161,6 +171,15 @@ html:has(.landing) {
   --tint-sky: #8ad1ff;
   --tint-lime: #b9e05a;
   --tint-tangerine: #ffb066;
+
+  --chart-1: #9085e9;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #3987e5;
+  --chart-5: #c98500;
+  --chart-6: #d55181;
+  --chart-grid: #26262c;
+  --chart-axis: #3a3a42;
 
   --mist: #0d0b1f;
   --night: #1c1846;

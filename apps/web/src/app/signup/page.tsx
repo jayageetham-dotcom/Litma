@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell, Field, GoogleButton, Notice } from "@/components/AuthShell";
 import { getSupabase } from "@/lib/supabase/client";
 import { authMessage, authRedirect, safeNext, useRedirectIfSignedIn } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 function strength(p: string) {
   let s = 0;
@@ -54,6 +55,7 @@ function SignupForm() {
     try {
       const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name.trim() }, emailRedirectTo: authRedirect(next) } });
       if (error) throw error;
+      track("sign_up", { method: "password" });
       if (data.session) router.replace(next);
       else setSent(true);
     } catch (err) {
@@ -113,7 +115,7 @@ function SignupForm() {
         or
         <span className="h-px flex-1 bg-line" />
       </div>
-      <GoogleButton onClick={() => sb?.auth.signInWithOAuth({ provider: "google", options: { redirectTo: authRedirect(next) } })} />
+      <GoogleButton onClick={() => (track("sign_up", { method: "google" }), sb?.auth.signInWithOAuth({ provider: "google", options: { redirectTo: authRedirect(next) } }))} />
       <p className="text-xs leading-relaxed text-muted">Your writing stays private unless you share a link to it.</p>
     </form>
   );

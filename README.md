@@ -111,6 +111,18 @@ Until `LITMA_FTP_USERNAME` and `LITMA_FTP_PASSWORD` exist, pushes still build an
 6. Google Search Console: add `https://getlitma.in` as a property, submit `https://getlitma.in/sitemap.xml`, and use **Change of address** from the old jayageetham.com property if it was registered.
 7. Email templates: paste the regenerated `supabase/templates/*.html` (they link to getlitma.in) into Supabase → Authentication → Emails → Templates.
 
+### Admin dashboard and usage statistics
+
+https://getlitma.in/admin/ shows how Litma is used: visitors, active writers, sign-ups, words written, when people write, countries, devices, languages, referrers, the most used pages, buttons and features, and a list of writers with each one's activity. Writing is never collected: works are counted, not listed, and click labels are limited to Litma's own interface text. Writers can switch statistics off in Settings.
+
+One-time setup, after the migration has run (push to `main` with `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` set, or `supabase db push`), in Supabase → SQL editor:
+
+```sql
+insert into public.app_admins (user_id) select id from auth.users where email = 'you@example.com';
+```
+
+The Edge Functions `litma-track` and `litma-admin` deploy with the others. Events are kept until you delete them (`delete from analytics_events where created_at < now() - interval '13 months'`).
+
 ### Search and sharing
 
 Every page has a title, description and canonical URL (`src/lib/seo.ts`, `pageMetadata`), with Open Graph and Twitter cards using `public/og-image.jpg` (1200 × 630). Public pages (home, dictionary, download, sign-up, sign-in) are in `/sitemap.xml`; writers' own pages (desk, editor, books, reader, settings…) are `noindex` and disallowed in `/robots.txt`. The home page carries schema.org data (Organization, WebSite, SoftwareApplication). `/manifest.webmanifest` makes the site installable on phones and in Chrome, with icons in `public/icons/` made from the desktop app icon (`apps/desktop/build/icon.png`).

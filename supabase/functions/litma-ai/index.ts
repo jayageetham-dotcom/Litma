@@ -11,6 +11,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 import { cors, preflight } from "../_shared/cors.ts";
 import { AI_ACTIONS, systemPrompt, userPrompt, type AIAction } from "../_shared/ai-prompts.ts";
+import { recordUsage } from "../_shared/usage.ts";
 
 type Provider = "anthropic" | "openai" | "gemini";
 const PROVIDERS: Provider[] = ["anthropic", "openai", "gemini"];
@@ -121,6 +122,7 @@ Deno.serve(async (req) => {
   const names = { anthropic: "Anthropic (Claude)", openai: "OpenAI (GPT)", gemini: "Google (Gemini)" };
   if (!apiKey) return text(`Add your ${names[provider]} API key in Settings → AI to use it.`);
   const model = b.model || stored?.model || DEFAULT_MODEL[provider];
+  recordUsage(admin, uid, "ai_request", b.action, { provider });
   const system = systemPrompt(b.kind ?? "blank");
   const prompt = userPrompt(b.action, b);
   const enc = new TextEncoder();

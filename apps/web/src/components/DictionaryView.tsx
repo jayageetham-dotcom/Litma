@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { BookmarkButton, useBookmarks } from "@/components/SavedWords";
 import { InkDots } from "@/components/ui/Skeleton";
+import { track } from "@/lib/analytics";
 import { loadIndex, lookup, manglishCandidates, opposites, suggest, type LookupResult } from "@/lib/dictionary";
 
 /** Malayalam text, with the UI font for any Latin letters (glosses, English words) */
@@ -152,6 +153,8 @@ export function DictionaryView({
     sugSeq.current++; // a suggestion list still loading must not reopen over the result
     setSugs([]);
     setOpp(null);
+    // which kind of word, never the word itself
+    track("dictionary_lookup", { script: /[\u0D00-\u0D7F]/.test(w) ? "malayalam" : "latin" });
     const [r, m] = await Promise.all([lookup(w), manglishCandidates(w)]);
     if (id !== seq.current) return;
     setRes(r);

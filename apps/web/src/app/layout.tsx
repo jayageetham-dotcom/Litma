@@ -3,6 +3,7 @@ import "./globals.css";
 import "@/styles/editor.scss";
 import { I18nProvider } from "@/i18n/react";
 import { UpdateNotice } from "@/components/UpdateNotice";
+import { Analytics } from "@/components/Analytics";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, KEYWORDS, SHARE_IMAGE, SITE, SITE_NAME } from "@/lib/seo";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -92,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <I18nProvider>
           {children}
           <UpdateNotice />
+          <Analytics />
         </I18nProvider>
       </body>
     </html>

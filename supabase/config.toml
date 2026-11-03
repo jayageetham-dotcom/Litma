@@ -11,6 +11,14 @@ verify_jwt = false
 [functions.litma-ai]
 verify_jwt = true
 
+[functions.litma-track]
+# usage events from the apps; signed-out visitors too (it reads the token itself when there is one)
+verify_jwt = false
+
+[functions.litma-admin]
+# the owner's /admin/ reports; also checks app_admins
+verify_jwt = true
+
 # ── Auth emails ─────────────────────────────────────────────────────────────
 # Branded Litma templates, built by `node scripts/build-email-templates.mjs`.
 # Paste each file into Dashboard → Authentication → Emails → Templates.

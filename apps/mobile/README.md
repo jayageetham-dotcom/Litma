@@ -39,3 +39,8 @@ Behaviour fixed on the web that the Flutter app must match:
 
 - **Book details fields:** Title, Subtitle and Author accept Malayalam, English or Manglish with a മലയാളം / As typed switch per field (see `toMalayalam` in `apps/web/src/components/ScriptField.tsx`: Name-cased words read all small; capitals with no meaning in the scheme are lowered). Cover layouts and the separate Frame option as in `Cover.tsx`.
 - **നാട്ടറിവ് icons:** each category card shows an icon in a soft tile of its tint; the web uses lucide icons keyed by category id (`ICONS` in `apps/web/src/components/Nattarivu.tsx`). The Flutter app can use the same names from the `lucide_icons` package.
+
+## Usage statistics (mirror the web app)
+
+Send the same events as `apps/web/src/lib/analytics.ts` to the `litma-track` Edge Function (POST JSON `{ vid, sid, ctx, events }`, the writer's access token as Bearer), with `ctx.platform` = `android` or `ios`: `page_view` per screen (route path only), `click` with a label only from the app's own strings, `work_created`, `book_created`, `export`, `dictionary_lookup`, `sign_in`, `sign_up`, and `engagement` (`{ seconds }`). Honour the Settings switch. Never send writing, titles, names or search words.
+

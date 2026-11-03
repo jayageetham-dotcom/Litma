@@ -2,6 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { manglish } from "@litma/shared/manglish";
 import { transliterate } from "@/lib/functions";
+import { useInView } from "@/lib/useInView";
 
 type Word = { m: string; ml: string[] };
 
@@ -93,7 +94,9 @@ function useLiveManglish(input: string, on: boolean) {
 export function TryManglish() {
   const [touched, setTouched] = useState(false);
   const [text, setText] = useState("");
-  const demo = useTypingDemo(!touched);
+  // the demo types only while it is on screen (no work, and no re-renders, while scrolled away)
+  const [box, inView] = useInView<HTMLDivElement>();
+  const demo = useTypingDemo(!touched && inView);
   const live = useLiveManglish(text, touched);
   const view = touched ? live : demo;
   const input = touched ? text : demo.typed;
@@ -116,7 +119,7 @@ export function TryManglish() {
   }, [hasPop, view.output, view.partial]);
 
   return (
-    <div className="relative">
+    <div ref={box} className={`relative ${inView ? "" : "paused"}`}>
       {/* two coloured sheets under the card */}
       <div aria-hidden className="absolute inset-0 translate-x-5 translate-y-6 rotate-3 rounded-[2rem] bg-lime" />
       <div aria-hidden className="absolute inset-0 -translate-x-3 translate-y-3 -rotate-2 rounded-[2rem] bg-violet" />

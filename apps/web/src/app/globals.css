@@ -343,16 +343,14 @@ body {
   font-stretch: 100%;
   animation: litma-ink-settle 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+/* opacity and movement only: animating the variable font's weight and width re-laid out the
+   8 rem headline on every frame, which stuttered on phones */
 @keyframes litma-ink-settle {
   from {
-    font-stretch: 75%;
-    font-weight: 300;
     opacity: 0;
     transform: translateY(0.12em);
   }
   to {
-    font-stretch: 100%;
-    font-weight: 800;
     opacity: 1;
     transform: none;
   }
@@ -476,6 +474,31 @@ body {
 }
 .marquee:hover .marquee-track {
   animation-play-state: paused;
+}
+/* animations scrolled out of view stop (useInView), so phones only paint what the visitor sees */
+.paused,
+.paused * {
+  animation-play-state: paused !important;
+}
+/* Soft colour fields: a radial gradient, not a blurred circle. filter: blur() on big elements made
+   iPhone Safari run out of layer memory and leave whole sections of the home page blank. */
+.glow {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(closest-side, var(--glow) 0%, var(--glow) 30%, transparent 100%);
+}
+/* the floating nav on public pages: frosted glass only where it is cheap (mouse and trackpad
+   devices); phones get a near-solid bar, which also keeps Safari from repainting the page under it */
+.landing-nav {
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .landing-nav {
+    background: var(--header);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+  }
 }
 @keyframes litma-marquee {
   to {

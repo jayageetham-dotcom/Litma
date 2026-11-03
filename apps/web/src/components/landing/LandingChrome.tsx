@@ -17,7 +17,7 @@ export function LandingNav({ right, links = true }: { right?: React.ReactNode; l
     <header className="fixed inset-x-0 top-0 z-40 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:pt-[calc(env(safe-area-inset-top)+1rem)]">
       {/* same width and side padding as the page content (max-w-7xl, px-5 / md:px-10), so the pill lines up with the text below */}
       <div className="mx-auto max-w-7xl px-3 sm:px-5 md:px-10">
-      <nav aria-label="Main" className="bg-header flex items-center justify-between gap-2 rounded-full border border-line py-1.5 pl-4 pr-1.5 shadow-[var(--pop-chip-shadow)] sm:py-2 sm:pl-5 sm:pr-2">
+      <nav aria-label="Main" className="landing-nav flex items-center justify-between gap-2 rounded-full border border-line py-1.5 pl-4 pr-1.5 shadow-[var(--pop-chip-shadow)] sm:py-2 sm:pl-5 sm:pr-2">
         <Logo />
         {links && (
           <div className="hidden items-center gap-7 text-sm font-semibold text-muted lg:flex">
@@ -39,9 +39,9 @@ export function LandingNav({ right, links = true }: { right?: React.ReactNode; l
 export function ColourField() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute -left-32 -top-40 size-[34rem] rounded-full bg-violet/30 blur-[110px]" />
-      <div className="absolute right-[-10rem] top-20 size-[30rem] rounded-full bg-coral/30 blur-[110px]" />
-      <div className="absolute bottom-[-12rem] left-1/3 size-[28rem] rounded-full bg-lime/50 blur-[120px]" />
+      <div className="glow -left-56 -top-64 size-[48rem] [--glow:color-mix(in_srgb,var(--violet)_30%,transparent)]" />
+      <div className="glow right-[-17rem] -top-4 size-[44rem] [--glow:color-mix(in_srgb,var(--coral)_30%,transparent)]" />
+      <div className="glow bottom-[-19rem] left-[calc(33%-7rem)] size-[42rem] [--glow:color-mix(in_srgb,var(--lime)_50%,transparent)]" />
       <div className="dot-grid absolute inset-0 text-ink/[0.06] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]" />
     </div>
   );

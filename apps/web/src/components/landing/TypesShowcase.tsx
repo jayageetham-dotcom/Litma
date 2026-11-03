@@ -2,17 +2,18 @@
 import { useEffect, useRef, useState } from "react";
 import { TemplatePreview } from "@/components/TemplatePreview";
 import { TEMPLATES } from "@/lib/templates";
+import { useT } from "@/i18n/react";
 
 const TYPES = TEMPLATES.filter((t) => t.kind !== "blank");
 const DWELL = 4200;
 
 /** Each writing type gets a colour from the home palette. `ink` is the text colour on that fill (AA contrast). */
 const COLOURS = [
-  { fill: "bg-violet", glow: "bg-violet", text: "text-violet", ink: "text-night-ink", soft: "text-night-ink/70" },
-  { fill: "bg-coral", glow: "bg-coral", text: "text-coral", ink: "text-on-pop", soft: "text-on-pop/70" },
-  { fill: "bg-sky", glow: "bg-sky", text: "text-sky", ink: "text-on-pop", soft: "text-on-pop/70" },
-  { fill: "bg-lime", glow: "bg-lime", text: "text-lime", ink: "text-on-pop", soft: "text-on-pop/70" },
-  { fill: "bg-tangerine", glow: "bg-tangerine", text: "text-tangerine", ink: "text-on-pop", soft: "text-on-pop/70" },
+  { fill: "bg-violet", glow: "[--glow:var(--violet)]", text: "text-violet", ink: "text-night-ink", soft: "text-night-ink/70" },
+  { fill: "bg-coral", glow: "[--glow:var(--coral)]", text: "text-coral", ink: "text-on-pop", soft: "text-on-pop/70" },
+  { fill: "bg-sky", glow: "[--glow:var(--sky)]", text: "text-sky", ink: "text-on-pop", soft: "text-on-pop/70" },
+  { fill: "bg-lime", glow: "[--glow:var(--lime)]", text: "text-lime", ink: "text-on-pop", soft: "text-on-pop/70" },
+  { fill: "bg-tangerine", glow: "[--glow:var(--tangerine)]", text: "text-tangerine", ink: "text-on-pop", soft: "text-on-pop/70" },
 ];
 const colourOf = (i: number) => COLOURS[i % COLOURS.length];
 
@@ -22,6 +23,7 @@ const colourOf = (i: number) => COLOURS[i % COLOURS.length];
  * while nobody touches it, it steps through the types on its own.
  */
 export function TypesShowcase() {
+  const tr = useT();
   const [active, setActive] = useState(0);
   const [auto, setAuto] = useState(true);
   const [visible, setVisible] = useState(false);
@@ -71,7 +73,7 @@ export function TypesShowcase() {
   return (
     <section ref={root} id="types" className="relative overflow-hidden bg-night py-24 text-night-ink md:py-32">
       <div aria-hidden className="dot-grid pointer-events-none absolute inset-0 text-night-ink/[0.05]" />
-      <div aria-hidden className={`pointer-events-none absolute right-[-8rem] top-1/3 size-[32rem] rounded-full opacity-30 blur-[120px] transition-colors duration-700 ${c.glow}`} />
+      <div aria-hidden className={`glow right-[-15rem] top-[calc(33%-7rem)] size-[46rem] opacity-30 ${c.glow}`} />
 
       <div className="relative mx-auto max-w-7xl px-5 md:px-10">
         <div className="on-night flex flex-wrap items-end justify-between gap-6">
@@ -132,7 +134,7 @@ export function TypesShowcase() {
                 </span>
                 <span className="font-semibold text-ink/80">{t.en}</span>
               </p>
-              <p className="mt-1 text-muted">{t.blurb}</p>
+              <p className="mt-1 text-muted">{tr(`types.${t.kind}.blurb`)}</p>
             </div>
           </div>
         </div>

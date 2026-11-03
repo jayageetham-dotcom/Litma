@@ -57,8 +57,8 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
     return (
       <section id="download" className="px-4 py-24 md:py-32">
         <div className="relative isolate mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-violet px-6 py-14 text-night-ink sm:px-10 md:px-16 md:py-20">
-          <div aria-hidden className="absolute -bottom-24 -right-20 size-96 rounded-full bg-lime/40 blur-3xl" />
-          <div aria-hidden className="absolute -left-20 -top-24 size-80 rounded-full bg-sky/40 blur-3xl" />
+          <div aria-hidden className="glow -bottom-32 -right-28 size-[28rem] [--glow:color-mix(in_srgb,var(--lime)_40%,transparent)]" />
+          <div aria-hidden className="glow -left-28 -top-32 size-[24rem] [--glow:color-mix(in_srgb,var(--sky)_40%,transparent)]" />
           <div aria-hidden className="dot-grid absolute inset-0 text-night-ink/10" />
           <span aria-hidden className="pointer-events-none absolute -bottom-16 -right-6 select-none text-[16rem] font-extrabold leading-none text-night-ink/10 md:text-[22rem]" style={{ fontFamily: "var(--font-display)" }}>
             അ
@@ -160,7 +160,7 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
     // the desk: a quiet card (neutral surface, a faint violet glow) so it never pulls focus from the works
     return (
       <section className="relative isolate mt-16 overflow-hidden rounded-2xl border border-line bg-surface px-6 py-7 sm:mt-20 sm:px-8 sm:py-8" aria-label={t("download.deskTitle")}>
-        <div aria-hidden className="absolute -right-20 -top-24 -z-10 size-64 rounded-full bg-violet/10 blur-3xl" />
+        <div aria-hidden className="glow -right-28 -top-32 -z-10 size-[20rem] [--glow:color-mix(in_srgb,var(--violet)_10%,transparent)]" />
         <div aria-hidden className="dot-grid absolute inset-0 -z-10 text-ink/[0.035] [mask-image:linear-gradient(to_left,black,transparent_60%)]" />
         <div className="grid items-center gap-7 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
           <div>

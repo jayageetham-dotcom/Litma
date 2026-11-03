@@ -81,7 +81,7 @@ function HeroDownload() {
   return (
     <Link
       href="/download/"
-      className="group mt-8 inline-flex items-center gap-3 rounded-2xl border border-line bg-surface/70 px-4 py-3 text-sm font-bold text-ink backdrop-blur transition hover:border-violet/40 hover:bg-surface"
+      className="group mt-8 inline-flex items-center gap-3 rounded-2xl border border-line bg-surface/90 px-4 py-3 text-sm font-bold text-ink transition hover:border-violet/40 hover:bg-surface"
     >
       <span className="grid size-8 place-items-center rounded-xl bg-violet text-night-ink">
         <Download size={16} aria-hidden />

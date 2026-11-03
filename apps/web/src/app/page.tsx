@@ -88,7 +88,7 @@ export default function Home() {
           <ColourField />
 
           <div className="relative mx-auto max-w-7xl px-5 md:px-10">
-            <p className="mb-8 inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 py-1.5 pl-1.5 pr-4 text-xs font-bold text-muted backdrop-blur">
+            <p className="mb-8 inline-flex items-center gap-2 rounded-full border border-line bg-surface/90 py-1.5 pl-1.5 pr-4 text-xs font-bold text-muted">
               <span className="rounded-full bg-lime px-2.5 py-1 text-on-pop" style={display}>
                 മലയാളം
               </span>

@@ -61,8 +61,8 @@ export function AuthShell({
         {quote && (
           <aside aria-hidden className="relative hidden overflow-hidden rounded-[2.5rem] bg-night px-12 pb-14 pt-16 text-night-ink lg:block">
             <div className="dot-grid absolute inset-0 text-night-ink/[0.04]" />
-            <div className={`absolute -right-32 -top-32 size-72 rounded-full blur-3xl ${line % 2 ? "bg-coral/15" : "bg-violet/25"}`} />
-            <div className="absolute -bottom-36 -left-28 size-72 rounded-full bg-lime/10 blur-3xl" />
+            <div className={`glow -right-40 -top-40 size-[26rem] ${line % 2 ? "[--glow:color-mix(in_srgb,var(--coral)_15%,transparent)]" : "[--glow:color-mix(in_srgb,var(--violet)_25%,transparent)]"}`} />
+            <div className="glow -bottom-44 -left-36 size-[26rem] [--glow:color-mix(in_srgb,var(--lime)_10%,transparent)]" />
             <span className="relative block select-none text-[7rem] font-extrabold leading-[0.6] text-coral" style={display}>
               “
             </span>

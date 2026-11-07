@@ -19,6 +19,10 @@ verify_jwt = false
 # the owner's /admin/ reports; also checks app_admins
 verify_jwt = true
 
+[functions.litma-send-email]
+# Supabase Auth's Send Email hook calls it with its own signature (SEND_EMAIL_HOOK_SECRET), no user token
+verify_jwt = false
+
 # ── Auth emails ─────────────────────────────────────────────────────────────
 # Branded Litma templates, built by `node scripts/build-email-templates.mjs`.
 # Paste each file into Dashboard → Authentication → Emails → Templates.

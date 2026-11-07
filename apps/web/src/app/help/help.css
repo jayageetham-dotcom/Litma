@@ -1,0 +1,238 @@
+/* The help site's article text (Markdown from apps/web/content/help, rendered by lib/help.ts). */
+.help-prose {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: var(--ink);
+}
+.help-prose > :first-child {
+  margin-top: 0;
+}
+.help-prose > p:first-child {
+  font-size: 1.2rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.help-prose p,
+.help-prose ul,
+.help-prose ol,
+.help-prose table {
+  margin: 1rem 0;
+}
+.help-prose h3 {
+  margin: 2.6rem 0 0.75rem;
+  scroll-margin-top: 7rem;
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.help-prose h4 {
+  margin: 1.8rem 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+.help-prose a {
+  color: var(--violet-text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.help-prose a:hover {
+  text-decoration: none;
+}
+.help-prose strong {
+  font-weight: 700;
+}
+.help-prose code {
+  border-radius: 6px;
+  background: var(--mist);
+  padding: 0.1em 0.4em;
+  font-size: 0.9em;
+}
+.help-prose kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 7px;
+  background: var(--surface);
+  padding: 0 0.45em;
+  font-family: var(--font-sans, Inter), sans-serif;
+  font-size: 0.82em;
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* bullet lists: small violet dots */
+.help-prose ul {
+  padding-left: 1.4rem;
+  list-style: none;
+}
+.help-prose ul > li {
+  position: relative;
+  margin: 0.35rem 0;
+}
+.help-prose ul > li::before {
+  content: "";
+  position: absolute;
+  left: -1.05rem;
+  top: 0.72em;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: var(--violet);
+}
+
+/* numbered lists are steps: lime circles with the number, like the download page */
+.help-prose ol {
+  counter-reset: step;
+  padding-left: 0;
+  list-style: none;
+}
+.help-prose ol > li {
+  counter-increment: step;
+  position: relative;
+  margin: 0.9rem 0;
+  min-height: 2.2rem;
+  padding-left: 3.1rem;
+}
+.help-prose ol > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  background: var(--lime);
+  color: var(--on-pop);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.help-prose ol > li > p {
+  margin: 0.25rem 0;
+}
+.help-prose li > .help-shot,
+.help-prose li > p > .help-shot {
+  margin: 0.9rem 0 1.2rem;
+}
+
+/* pictures: a framed screen with a soft lift; phone pictures stand narrow like a phone */
+.help-shot {
+  margin: 1.6rem 0;
+}
+.help-shot img {
+  display: block;
+  /* natural size up to the column width, so small crops stay crisp and don't balloon */
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  background: var(--mist);
+  box-shadow: var(--pop-chip-shadow);
+}
+.help-shot figcaption {
+  margin-top: 0.7rem;
+  text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.help-shot.is-phone {
+  max-width: 270px;
+  margin-inline: auto;
+}
+.help-shot.is-phone img {
+  width: 100%;
+  border: 6px solid var(--night);
+  border-radius: 2rem;
+}
+.help-shots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 1.6rem 0;
+}
+.help-shots .help-shot {
+  flex: 1 1 220px;
+  margin: 0;
+}
+.help-shots .help-shot.is-phone {
+  flex: 0 1 230px;
+}
+
+/* callouts: > **Tip:** … */
+.help-prose blockquote {
+  margin: 1.4rem 0;
+  border-radius: 1.1rem;
+  background: color-mix(in srgb, var(--violet) 9%, var(--surface));
+  padding: 0.9rem 1.2rem;
+}
+.help-prose blockquote > p {
+  margin: 0.3rem 0;
+}
+.help-callout.is-tip {
+  background: color-mix(in srgb, var(--lime) 30%, var(--surface));
+}
+.help-callout.is-note,
+.help-callout.is-good-to-know {
+  background: color-mix(in srgb, var(--sky) 24%, var(--surface));
+}
+.help-callout.is-phone,
+.help-callout.is-desktop {
+  background: color-mix(in srgb, var(--tangerine) 18%, var(--surface));
+}
+.help-callout > p:first-child > strong:first-child {
+  display: inline-block;
+  margin-right: 0.45rem;
+  border-radius: 999px;
+  background: var(--night);
+  padding: 0 0.6rem;
+  color: var(--night-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  text-transform: uppercase;
+  vertical-align: 0.12em;
+}
+
+/* tables: shortcuts and comparisons */
+.help-prose table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  font-size: 0.95rem;
+}
+.help-prose th,
+.help-prose td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+}
+.help-prose th {
+  background: var(--mist);
+  font-weight: 700;
+}
+.help-prose tr:last-child td {
+  border-bottom: 0;
+}
+@media (max-width: 640px) {
+  .help-prose {
+    font-size: 1rem;
+  }
+  .help-prose table {
+    display: block;
+    overflow-x: auto;
+  }
+}

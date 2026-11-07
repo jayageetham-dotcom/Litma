@@ -94,7 +94,7 @@ const _movedArt = {'backwaters': 'literary', 'palms': 'romance', 'monsoon': 'thr
 String? coverArtId(Object? id) => id is String ? (coverArt.containsKey(id) ? id : _movedArt[id]) : null;
 
 /// Parts the writer can drag; offsets are millimetres (COVER_PARTS).
-const coverPartsFront = ['title', 'author', 'badge', 'mark'];
+const coverPartsFront = ['title', 'author', 'publisher', 'badge', 'mark'];
 const coverPartsBack = ['back-head', 'back-text', 'back-imprint'];
 
 const defaultPublisher = 'Litma Publishing House';
@@ -441,6 +441,31 @@ List<Widget> _front(_Ctx x) {
   final pub = x.publisher;
   final authorShadow = [Shadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: _mm(2.6))];
   final badgeText = (c['badgeText'] as String?)?.trim().isNotEmpty ?? false ? (c['badgeText'] as String).trim() : (x.settings['edition'] as String?)?.trim();
+  // Artwork sits under the text, so the publisher's small line gets a plate of the cover colour.
+  final busy = coverArtId(c['art']) != null || c['image'] != null;
+
+  /// The publisher's name: its own part (moves and sizes apart from the author), like the web's `pub()`.
+  /// Over artwork it sits on a soft pill of the cover colour in the full text colour, so it reads on
+  /// every background.
+  Widget? pubPart({double? left, double? right, required double bottom, required double pt, TextAlign align = TextAlign.center, Color? color, double? maxWidth}) {
+    if (pub == null) return null;
+    final text = Text(
+      pub,
+      textAlign: align,
+      style: TextStyle(fontFamily: 'Inter', fontFamilyFallback: const ['AnekMalayalam', 'NotoSansMalayalam'], fontSize: _pt(pt), fontWeight: FontWeight.w600, letterSpacing: _pt(pt) * 0.03, height: 1.2, color: busy ? p.fg : (color ?? p.fg.withValues(alpha: 0.85))),
+    );
+    Widget child = busy
+        ? Container(
+            padding: EdgeInsets.symmetric(vertical: _mm(1.2), horizontal: _mm(3.2)),
+            decoration: BoxDecoration(color: p.bg.withValues(alpha: 0.82), borderRadius: BorderRadius.circular(_mm(20))),
+            child: text,
+          )
+        : text;
+    if (maxWidth != null) child = ConstrainedBox(constraints: BoxConstraints(maxWidth: maxWidth * _mm(coverW)), child: child);
+    if (left != null && right != null) child = Align(alignment: align == TextAlign.center ? Alignment.center : Alignment.centerRight, child: child);
+    return x.part('publisher', child, left: left, right: right, bottom: bottom);
+  }
+
   final extras = [
     if (c['badge'] == true && (badgeText?.isNotEmpty ?? false))
       x.part(
@@ -475,14 +500,12 @@ List<Widget> _front(_Ctx x) {
         ),
         x.part(
           'author',
-          _column([
-            Text(x.author, textAlign: TextAlign.center, style: TextStyle(fontSize: _pt(18), fontWeight: FontWeight.w600, letterSpacing: _pt(18) * 0.02, shadows: authorShadow)),
-            if (pub != null) Padding(padding: EdgeInsets.only(top: _mm(2)), child: Text(pub, textAlign: TextAlign.center, style: TextStyle(fontSize: _pt(9.5), color: p.fg.withValues(alpha: 0.8)))),
-          ]),
+          Text(x.author, textAlign: TextAlign.center, style: TextStyle(fontSize: _pt(18), fontWeight: FontWeight.w600, letterSpacing: _pt(18) * 0.02, shadows: authorShadow)),
           left: 0.11,
           right: 0.11,
-          bottom: 0.06,
+          bottom: pub != null ? 0.06 + 8 / coverH : 0.06,
         ),
+        ?pubPart(left: 0.11, right: 0.11, bottom: 0.06, pt: 9.5),
         ...extras,
       ];
     case 'photo':
@@ -511,33 +534,17 @@ List<Widget> _front(_Ctx x) {
           right: 0.12,
           top: 0.14,
         ),
-        x.part(
-          'author',
-          Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Flexible(child: Text(x.author, style: TextStyle(fontSize: _pt(18), fontWeight: FontWeight.w600))),
-            if (pub != null) Text(pub, style: TextStyle(fontSize: _pt(10), color: p.fg.withValues(alpha: 0.75))),
-          ]),
-          left: 0.12,
-          right: 0.12,
-          bottom: 0.09,
-        ),
+        x.part('author', Text(x.author, style: TextStyle(fontSize: _pt(18), fontWeight: FontWeight.w600)), left: 0.12, right: pub != null ? 0.46 : 0.12, bottom: 0.09),
+        ?pubPart(right: 0.12, bottom: 0.09, pt: 10, align: TextAlign.right, maxWidth: 0.34),
         ...extras,
       ];
     case 'type':
       return [
         x.part('author', Text(x.author, style: TextStyle(fontSize: _pt(14), fontWeight: FontWeight.w600, color: p.accent)), left: 0.10, right: 0.10, top: 0.10),
         x.part('title', x.box(_column([x.titleText(92, lh: 1.02), x.ornament(h: 1.4, w: 26, topMm: 7, center: false)], cross: CrossAxisAlignment.start)), left: 0.10, right: 0.10, top: 0.24),
-        x.part(
-          'subline',
-          Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Flexible(child: Text(x.subtitle ?? '', style: TextStyle(fontSize: _pt(12), shadows: x.shadow))),
-            Text(pub ?? '', style: TextStyle(fontSize: _pt(12), color: p.fg.withValues(alpha: 0.7))),
-          ]),
-          left: 0.10,
-          right: 0.10,
-          bottom: 0.10,
-          movable: false,
-        ),
+        if (x.subtitle?.isNotEmpty ?? false)
+          x.part('subline', Text(x.subtitle!, style: TextStyle(fontSize: _pt(12), shadows: x.shadow)), left: 0.10, right: pub != null ? 0.46 : 0.10, bottom: 0.10, movable: false),
+        ?pubPart(right: 0.10, bottom: 0.10, pt: 11, align: TextAlign.right, maxWidth: 0.34),
         ...extras,
       ];
     case 'minimal':
@@ -550,7 +557,7 @@ List<Widget> _front(_Ctx x) {
           top: 0.36,
         ),
         x.part('author', Text(x.author, textAlign: TextAlign.center, style: TextStyle(fontSize: _pt(13))), left: 0.14, right: 0.14, top: 0.58),
-        if (pub != null) x.part('pub', Text(pub, textAlign: TextAlign.center, style: TextStyle(fontSize: _pt(9), color: p.fg.withValues(alpha: 0.6))), left: 0, right: 0, bottom: 0.10, movable: false),
+        ?pubPart(left: 0.14, right: 0.14, bottom: 0.10, pt: 9),
         ...extras,
       ];
     default: // kasavu
@@ -562,16 +569,8 @@ List<Widget> _front(_Ctx x) {
           right: 0.16,
           top: 0.24,
         ),
-        x.part(
-          'author',
-          _column([
-            Text(x.author, textAlign: TextAlign.center, style: TextStyle(fontSize: _pt(17), fontWeight: FontWeight.w600)),
-            if (pub != null) Padding(padding: EdgeInsets.only(top: _mm(3)), child: Text(pub, textAlign: TextAlign.center, style: TextStyle(fontSize: _pt(10), color: p.accent))),
-          ]),
-          left: 0.16,
-          right: 0.16,
-          bottom: 0.14,
-        ),
+        x.part('author', Text(x.author, textAlign: TextAlign.center, style: TextStyle(fontSize: _pt(17), fontWeight: FontWeight.w600)), left: 0.16, right: 0.16, bottom: pub != null ? 0.14 + 9 / coverH : 0.14),
+        ?pubPart(left: 0.16, right: 0.16, bottom: 0.14, pt: 10, color: p.accent),
         ...extras,
       ];
   }

@@ -15,6 +15,15 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+## 2026-11-07 (evening): Litma Help; publisher line
+
+- `src/main.ts`: Help menu has **Litma Help** (F1 on Windows/Linux) opening `${SITE}/help/` in the
+  browser; `setWindowOpenHandler` sends `/help` links on the site to the browser instead of an app
+  window (Settings → Help and guide and the account menu use the site URL in the desktop app).
+- Gets the web's cover change (publisher as its own part, readable over artwork) with the next
+  Release. Unverified in a packaged app: the menu item (typecheck only).
+
+
 ## 2026-11-07: Help menu
 
 - `src/main.ts`: Help → "What's new" (opened `CHANGELOG.md` on GitHub) removed; "Report a problem"

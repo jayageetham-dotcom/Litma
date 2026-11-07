@@ -9,6 +9,27 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-07 (evening): publisher line on covers; help site
+
+- `components/book/Cover.tsx`: `pub()` renders the publisher as its own `Movable id="publisher"` in
+  the art, solid, type, minimal and kasavu layouts (photo layout still has none, as before). Over
+  artwork (`c.image || c.art`) it gets a pill of `c.bg` at 82 % with `c.fg` text. Author moves up by
+  the publisher's height only when a publisher is set. The type layout's subtitle is its own line.
+  Strings `cover.move.publisher`, `cover.part.publisher` (en, ml). Checked: all ten presets in the
+  print view; dragging the publisher leaves the author in place.
+- Help site: `app/help/page.tsx` (server component reads `content/help/*.md` at build through
+  `lib/help.ts`, markdown-it), `components/help/HelpCenter.tsx` (home, topic and guide views,
+  search with `/`, topic chips on phones), `app/help/help.css` (`.help-prose`: lime step circles,
+  framed pictures, phone frames for `phone-*`, callouts), `app/help/layout.tsx` metadata,
+  `PUBLIC_PAGES` in `lib/seo.ts`, Help link in `LandingNav` and `LandingFooter`.
+  `components/HelpLink.tsx`: `useHelpHref()` (site link on the desktop app) and `HelpCard` in
+  Settings; account menu item in `AppHeader`. New dependency `markdown-it` (+ types).
+- Screenshots were made in local mode with Playwright and the app's own fonts; phone pictures come
+  from the `ci/phone-screens` branch. Unverified: sharing, sign-in and offline screens (cloud-only)
+  are described in words without pictures; the dictionary lookup picture is the phone's (no dict
+  data in the sandbox).
+
+
 ## 2026-11-07: print view starts at the top of the page; no changelog links
 
 - `styles/editor.scss` `@media print`: the print view's wrapper kept its on-screen `py-8`, so

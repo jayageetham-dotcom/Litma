@@ -61,7 +61,7 @@ export function presetPatch(id: string): Partial<BookCover> {
 export const DEFAULT_PUBLISHER = "Litma Publishing House";
 
 /** Parts of a cover the writer can drag. Offsets are stored in millimetres so print matches the screen. */
-export const COVER_PARTS = { front: ["title", "author", "badge", "mark"], back: ["back-head", "back-text", "back-imprint"] } as const;
+export const COVER_PARTS = { front: ["title", "author", "publisher", "badge", "mark"], back: ["back-head", "back-text", "back-imprint"] } as const;
 
 function resolve(book: Pick<Book, "cover">) {
   const c = book.cover ?? {};
@@ -186,6 +186,33 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
   const orn = (line: React.CSSProperties, center = true) =>
     c.ornament === "none" ? null : c.ornament === "flourish" ? <Flourish color={c.accent!} center={center} margin={line.margin ?? line.marginTop ?? "6mm 0 0"} /> : <div style={line} />;
   const badgeText = c.badgeText?.trim() || book.settings?.edition?.trim();
+  /** Artwork or a picture sits under the text, so small lines need a plate of the cover colour to stay readable. */
+  const busy = Boolean(c.image || c.art);
+  /**
+   * The publisher's name: its own part (moves and sizes apart from the author). Over artwork it sits on a soft
+   * pill of the cover colour in the full text colour, so it reads on every background (dark corners of the
+   * romance art made the old faded line disappear).
+   */
+  const pub = (className: string, size: number, color?: string) =>
+    publisher ? (
+      <Movable id="publisher" className={className}>
+        <p
+          style={{
+            display: "inline-block",
+            // Inter for a Latin name, Anek Malayalam for a Malayalam one; never the title's display font
+            fontFamily: "Inter, 'Anek Malayalam', sans-serif",
+            fontSize: `${size}pt`,
+            fontWeight: 600,
+            letterSpacing: "0.03em",
+            lineHeight: 1.2,
+            color: busy ? c.fg : color ?? c.fg,
+            ...(busy ? { background: `color-mix(in srgb, ${c.bg} 82%, transparent)`, padding: "1.2mm 3.2mm", borderRadius: "999px" } : { opacity: color ? 1 : 0.85 }),
+          }}
+        >
+          {publisher}
+        </p>
+      </Movable>
+    ) : null;
   const extras = (
     <>
       {c.badge && badgeText && (
@@ -223,10 +250,10 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
           {sub(15, { marginTop: "4mm" })}
           {orn({ height: "1mm", width: "20mm", background: c.accent, margin: "7mm auto 0" })}
         </Movable>
-        <Movable id="author" className="absolute inset-x-[11%] bottom-[6%] text-center" style={{ textShadow: "0 1px 10px rgba(0,0,0,0.2)" }}>
+        <Movable id="author" className="absolute inset-x-[11%] text-center" style={{ bottom: publisher ? "calc(6% + 8mm)" : "6%", textShadow: "0 1px 10px rgba(0,0,0,0.2)" }}>
           <p style={{ fontSize: "18pt", fontWeight: 600, letterSpacing: "0.02em" }}>{book.author}</p>
-          {publisher && <p style={{ fontSize: "9.5pt", marginTop: "2mm", opacity: 0.8 }}>{publisher}</p>}
         </Movable>
+        {pub("absolute inset-x-[11%] bottom-[6%] text-center", 9.5)}
       </>,
     );
 
@@ -261,10 +288,10 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
           // eslint-disable-next-line @next/next/no-img-element
           <img src={c.image} alt="" className="absolute bottom-[22%] right-[12%] w-[40%] rounded-sm object-cover" style={{ opacity: c.imageOpacity ?? 1 }} />
         )}
-        <Movable id="author" className="absolute inset-x-[12%] bottom-[9%] flex items-end justify-between">
+        <Movable id="author" className={`absolute left-[12%] bottom-[9%] ${publisher ? "right-[46%]" : "right-[12%]"}`}>
           <p style={{ fontSize: "18pt", fontWeight: 600 }}>{book.author}</p>
-          {publisher && <p style={{ fontSize: "10pt", opacity: 0.75 }}>{publisher}</p>}
         </Movable>
+        {pub("absolute right-[12%] bottom-[9%] max-w-[34%] text-right", 10)}
       </>,
     );
 
@@ -278,10 +305,12 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
           {h1(92, 1.02, 800, { wordBreak: "break-word" })}
           {orn({ height: "1.4mm", width: "26mm", background: c.accent, marginTop: "7mm" }, false)}
         </Movable>
-        <div className="absolute inset-x-[10%] bottom-[10%] flex items-end justify-between" style={{ fontSize: "12pt" }}>
-          <span style={{ textShadow: shadow }}>{book.subtitle}</span>
-          <span style={{ opacity: 0.7 }}>{publisher}</span>
-        </div>
+        {book.subtitle && (
+          <p className={`absolute left-[10%] bottom-[10%] ${publisher ? "right-[46%]" : "right-[10%]"}`} style={{ fontSize: "12pt", textShadow: shadow }}>
+            {book.subtitle}
+          </p>
+        )}
+        {pub("absolute right-[10%] bottom-[10%] max-w-[34%] text-right", 11)}
       </>,
     );
 
@@ -296,7 +325,7 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
         <Movable id="author" className="absolute inset-x-[14%] top-[58%] text-center">
           <p style={{ fontSize: "13pt" }}>{book.author}</p>
         </Movable>
-        {publisher && <p style={{ position: "absolute", bottom: "10%", left: 0, right: 0, textAlign: "center", fontSize: "9pt", opacity: 0.6 }}>{publisher}</p>}
+        {pub("absolute inset-x-[14%] bottom-[10%] text-center", 9)}
       </>,
     );
 
@@ -312,10 +341,10 @@ export function CoverFront({ book, w, h, className = "", onMove, moveLabel, sele
         // eslint-disable-next-line @next/next/no-img-element
         <img src={c.image} alt="" className="absolute left-1/2 top-[48%] w-[44%] -translate-x-1/2 rounded-sm object-cover" style={{ opacity: c.imageOpacity ?? 1, maxHeight: "28%" }} />
       )}
-      <Movable id="author" className="absolute inset-x-[16%] bottom-[14%] text-center">
+      <Movable id="author" className="absolute inset-x-[16%] text-center" style={{ bottom: publisher ? "calc(14% + 9mm)" : "14%" }}>
         <p style={{ fontSize: "17pt", fontWeight: 600 }}>{book.author}</p>
-        {publisher && <p style={{ fontSize: "10pt", marginTop: "3mm", color: c.accent }}>{publisher}</p>}
       </Movable>
+      {pub("absolute inset-x-[16%] bottom-[14%] text-center", 10, c.accent)}
     </>,
   );
 }

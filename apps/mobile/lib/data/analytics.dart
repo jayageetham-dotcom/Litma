@@ -118,7 +118,7 @@ class Analytics with WidgetsBindingObserver {
     final now = DateTime.now();
     if (now.difference(_lastEvent) > _idle) _sid = _id();
     _lastEvent = now;
-    _queue.add({'n': name, 'p': _path, if (label != null) 'l': label, if (props.isNotEmpty) 'props': props, 't': now.millisecondsSinceEpoch});
+    _queue.add({'n': name, 'p': _path, 'l': ?label, if (props.isNotEmpty) 'props': props, 't': now.millisecondsSinceEpoch});
     if (_queue.length >= 40) unawaited(_flush());
   }
 

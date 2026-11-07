@@ -51,6 +51,7 @@ dependencies:
   url_launcher: ^6.3.3
   share_plus: ^13.3.1
   printing: ^5.15.1
+  pdf: ^3.13.1
   path_provider: ^2.1.6
 dev_dependencies:
   flutter_test:
@@ -77,6 +78,7 @@ flutter:
     - assets/brands/
     - assets/avatars/
     - assets/data/
+    - assets/covers/
   fonts:
     - family: Inter
       fonts:
@@ -132,6 +134,34 @@ flutter:
           weight: 400
         - asset: assets/fonts/Gayathri_700Bold.ttf
           weight: 700
+    # book-cover title fonts (SIL OFL, see assets/fonts/covers): the same set as the web's COVER_FONTS
+    - family: Karumbi
+      fonts:
+        - asset: assets/fonts/covers/Karumbi.ttf
+    - family: Dyuthi
+      fonts:
+        - asset: assets/fonts/covers/Dyuthi.ttf
+    - family: Uroob
+      fonts:
+        - asset: assets/fonts/covers/Uroob.ttf
+    - family: Meera
+      fonts:
+        - asset: assets/fonts/covers/Meera.ttf
+    - family: Rachana
+      fonts:
+        - asset: assets/fonts/covers/Rachana-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/covers/Rachana-Bold.ttf
+          weight: 700
+    - family: Chilanka
+      fonts:
+        - asset: assets/fonts/covers/Chilanka-Regular.ttf
+    - family: BalooChettan2
+      fonts:
+        - asset: assets/fonts/covers/BalooChettan2-400.ttf
+          weight: 400
+        - asset: assets/fonts/covers/BalooChettan2-800.ttf
+          weight: 800
 
 # App icon from the desktop icon (apps/desktop/build/icon.png → assets/icon/): dart run flutter_launcher_icons
 flutter_launcher_icons:

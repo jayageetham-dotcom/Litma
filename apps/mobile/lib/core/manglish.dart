@@ -201,3 +201,19 @@ int countWords(String text) {
 
 /// Reading time in minutes (Malayalam prose reads at about 150 words a minute).
 int readingMinutes(int words) => (words / 150).round().clamp(1, 1 << 30);
+
+// ── names and titles typed in Manglish (the web's ScriptField toMalayalam) ──
+
+final _meaningfulCaps = {for (final c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')) if (!RegExp('[A-Za-z]').hasMatch(manglishWord(c))) c};
+const _vowelLatin = {'അ': 'a', 'ആ': 'aa', 'ഇ': 'i', 'ഈ': 'ee', 'ഉ': 'u', 'ഊ': 'oo', 'എ': 'e', 'ഏ': 'E', 'ഐ': 'ai', 'ഒ': 'o', 'ഓ': 'O', 'ഔ': 'au'};
+
+/// Manglish → Malayalam for names: a Name-cased word reads all small, and capitals with no meaning
+/// in the scheme are lowered.
+String toMalayalam(String text) {
+  text = text.replaceAllMapped(RegExp('([A-Za-z])([അആഇഈഉഊഎഏഐഒഓഔ])'), (m) => '${m[1]}${_vowelLatin[m[2]]}');
+  return text.replaceAllMapped(RegExp(r'[A-Za-z~_^]+'), (m) {
+    final w = m[0]!;
+    final word = RegExp(r'^[A-Z][a-z~_^]+$').hasMatch(w) ? w.toLowerCase() : w.replaceAllMapped(RegExp('[A-Z]'), (c) => _meaningfulCaps.contains(c[0]) ? c[0]! : c[0]!.toLowerCase());
+    return manglishWord(word);
+  });
+}

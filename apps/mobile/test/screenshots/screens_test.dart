@@ -29,7 +29,9 @@ import 'package:litma/features/settings/settings_screen.dart';
 import 'package:litma/features/profile/profile_screen.dart';
 import 'package:litma/features/profile/edit_profile_screen.dart';
 import 'package:litma/features/books/book_screen.dart';
-import 'package:litma/data/models.dart' show Profile;
+import 'package:litma/data/models.dart' show Book, Profile;
+import 'package:litma/features/books/cover.dart';
+import 'package:litma/features/books/cover_designer.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -486,6 +488,64 @@ void main() {
         await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
         await settle(t);
       });
+    });
+    // ── books: cover designer, details, every preset ──
+    Future<Book> sampledBook(Services s) async {
+      final b = await s.store.getBook('b-1');
+      return Book({...b!.row, ...?bookSamples(b.row)});
+    }
+
+    Future<void> loadCoverArt(WidgetTester t) async {
+      final context = t.element(find.byType(Scaffold).first);
+      await t.runAsync(() async {
+        for (final id in coverArt.keys) {
+          await precacheImage(coverArtImage(id), context);
+        }
+      });
+      await settle(t, 5);
+    }
+
+    for (final dark in [false, true]) {
+      testWidgets('cover designer${dark ? ' dark' : ''}', (t) async {
+        final s = await t.runAsync(() => services()) as Services;
+        final book = await t.runAsync(() => sampledBook(s)) as Book;
+        await shoot(t, 'cover-designer${dark ? '-dark' : ''}', app(s, home: CoverDesignerScreen(book: book, onCover: (_) {})), brightness: dark ? Brightness.dark : Brightness.light, then: loadCoverArt);
+      });
+    }
+    testWidgets('cover designer back', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      final book = await t.runAsync(() => sampledBook(s)) as Book;
+      await shoot(t, 'cover-designer-back', app(s, home: CoverDesignerScreen(book: book, onCover: (_) {}, back: true)), then: loadCoverArt);
+    });
+    testWidgets('cover designer tools', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      final book = await t.runAsync(() => sampledBook(s)) as Book;
+      await shoot(t, 'cover-designer-tools', app(s, home: CoverDesignerScreen(book: book, onCover: (_) {})), size: const Size(390, 2200), then: loadCoverArt);
+    });
+    testWidgets('book details', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      await shoot(t, 'book-details', app(s, home: const BookScreen(bookId: 'b-1')), size: const Size(390, 1500), then: (t) async {
+        await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+        await settle(t);
+        await t.tap(find.text('Book details'));
+        await settle(t);
+      });
+    });
+    testWidgets('cover presets', (t) async {
+      // every preset, front and back, at a readable size (compare with the web's covers)
+      final s = await t.runAsync(() => services()) as Services;
+      final book = await t.runAsync(() => sampledBook(s)) as Book;
+      Widget one(String id, bool back) => Padding(
+            padding: const EdgeInsets.all(8),
+            child: CoverView(title: book.title, subtitle: book.subtitle, author: book.author, settings: book.settings, back: back, width: 230, cover: {...book.cover, ...presetPatch(id), 'badge': true, 'publisherMark': true}),
+          );
+      await shoot(
+        t,
+        'cover-presets',
+        app(s, home: Scaffold(body: SingleChildScrollView(child: Wrap(children: [for (final id in coverPresets.keys) ...[one(id, false), one(id, true)]])))),
+        size: const Size(1000, 2050),
+        then: loadCoverArt,
+      );
     });
   });
 }

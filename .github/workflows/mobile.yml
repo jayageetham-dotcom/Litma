@@ -54,3 +54,27 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+
+  # Pictures of the phone screens for review (test/screenshots), uploaded as the "phone-screens"
+  # artifact. Fonts render a little differently on each machine, so this never fails the checks.
+  screens:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: SCREENSHOTS=1 flutter test test/screenshots --update-goldens
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phone-screens
+          path: apps/mobile/test/screenshots/out/
+          retention-days: 14

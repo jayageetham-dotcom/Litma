@@ -24,6 +24,7 @@ import '../features/story/story_world_screen.dart';
 import '../widgets/common.dart';
 import 'document.dart';
 import 'export.dart';
+import 'pdf_fonts.dart';
 import 'session.dart';
 import 'work_tools.dart';
 
@@ -616,9 +617,10 @@ class _ShareState extends ConsumerState<_Share> {
   Future<void> _export(String format) async {
     final s = widget.session;
     await s.saver.flush();
-    final html = docToHtml(s.document, title: s.title, kind: s.kind, settings: s.settings);
+    final pdf = format == 'pdf';
+    final html = docToHtml(s.document, title: s.title, kind: s.kind, settings: s.settings, fontsCss: pdf ? await fontFaceCss([s.settings['font'] as String?]) : '');
     final safe = s.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').trim();
-    if (format == 'pdf') {
+    if (pdf) {
       // the phone's own web engine lays out the HTML, so Malayalam conjuncts shape correctly
       // (the pure-Dart PDF writer can't); deprecated upstream but still the right tool here
       // ignore: deprecated_member_use

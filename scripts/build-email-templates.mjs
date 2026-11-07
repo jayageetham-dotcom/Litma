@@ -10,6 +10,7 @@ const BRAND = {
   name: "Litma",
   wordmark: "ലിറ്റ്മ",
   site: "https://getlitma.in",
+  support: "support@getlitma.in",
   ink: "#111113",
   muted: "#6b6b76",
   line: "#e2e2e6",
@@ -58,7 +59,8 @@ function layout({ preheader, title, lead, button, url = "{{ .ConfirmationURL }}"
     </td></tr>
     <tr><td style="padding:20px 4px 0;font-family:${font};font-size:12px;line-height:1.6;color:${b.muted};">
       <span style="font-family:${mlFont};">${b.wordmark}</span> · the Malayalam writing desk · <a href="${b.site}" style="color:${b.muted};">${b.site.replace(/^https?:\/\//, "")}</a><br>
-      You’re receiving this because someone used this address on ${b.name}. If that wasn’t you, you can ignore this email.
+      You’re receiving this because someone used this address on ${b.name}. If that wasn’t you, you can ignore this email.<br>
+      Questions? Write to <a href="mailto:${b.support}" style="color:${b.muted};">${b.support}</a>. Replies to this email aren’t read.
     </td></tr>
   </table>
 </td></tr>

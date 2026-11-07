@@ -158,17 +158,21 @@
   },
   "download": {
     "title": "കമ്പ്യൂട്ടറിനായി ലിറ്റ്മ",
-    "body": "അതേ ലിറ്റ്മ, Mac-നും Windows-നുമുള്ള ആപ്പായി. എഴുത്ത് വെബ്ബുമായി സിങ്ക് ആകും.",
+    "body": "അതേ ലിറ്റ്മ, Mac, Windows, Linux എന്നിവയ്ക്കുള്ള ആപ്പായി. എഴുത്ത് വെബ്ബുമായി സിങ്ക് ആകും.",
     "mac": "Mac-നായി ഡൗൺലോഡ്",
     "macHint": "Apple silicon, Intel · .dmg",
     "windows": "Windows-നായി ഡൗൺലോഡ്",
     "windowsHint": "Windows 10, 11 · .exe",
+    "linux": "Linux-നായി ഡൗൺലോഡ്",
+    "linuxHint": "64-bit · AppImage",
+    "linuxReq": "മിക്ക 64-bit Linux ഡെസ്ക്ടോപ്പുകളിലും (Ubuntu, Fedora, Debian തുടങ്ങിയവ). ഇൻസ്റ്റാൾ ചെയ്യാതെ തുറക്കാവുന്ന AppImage.",
+    "appimage": ".AppImage ഡൗൺലോഡ്",
     "allReleases": "എല്ലാ പതിപ്പുകളും",
     "soon": "ആദ്യ പതിപ്പ് ഉടൻ",
     "soonBadge": "ഉടൻ",
     "nav": "ഡൗൺലോഡ്",
-    "navTitle": "Mac, Windows, iPhone, Android എന്നിവയ്ക്കായി ലിറ്റ്മ ഡൗൺലോഡ് ചെയ്യുക",
-    "heroLink": "Mac-നും Windows-നുമുള്ള ആപ്പ്",
+    "navTitle": "Mac, Windows, Linux, iPhone, Android എന്നിവയ്ക്കായി ലിറ്റ്മ ഡൗൺലോഡ് ചെയ്യുക",
+    "heroLink": "Mac, Windows, Linux എന്നിവയ്ക്കുള്ള ആപ്പ്",
     "kicker": "ലിറ്റ്മ ഡൗൺലോഡ്",
     "heroTitle": "{platform}-നായി ലിറ്റ്മ",
     "heroTitleAny": "എല്ലാ ഉപകരണത്തിലും ലിറ്റ്മ",
@@ -200,7 +204,10 @@
       "mac3": "ആദ്യമായി തുറക്കുമ്പോൾ Applications-ൽ Litma-യിൽ റൈറ്റ്-ക്ലിക്ക് ചെയ്ത് Open, വീണ്ടും Open തിരഞ്ഞെടുക്കുക.",
       "win1": "Downloads ഫോൾഡറിലെ Litma-win.exe തുറക്കുക.",
       "win2": "“Windows protected your PC” എന്ന് കണ്ടാൽ More info, പിന്നെ Run anyway അമർത്തുക.",
-      "win3": "ഇൻസ്റ്റാളർ പൂർത്തിയാക്കുക. ലിറ്റ്മ തുറക്കും, ഡെസ്ക്ടോപ്പിൽ ഷോർട്ട്കട്ടും വരും."
+      "win3": "ഇൻസ്റ്റാളർ പൂർത്തിയാക്കുക. ലിറ്റ്മ തുറക്കും, ഡെസ്ക്ടോപ്പിൽ ഷോർട്ട്കട്ടും വരും.",
+      "linux1": "Litma-linux.AppImage ഡൗൺലോഡ്സിൽ നിന്ന് സ്ഥിരമായി സൂക്ഷിക്കുന്ന ഒരു ഫോൾഡറിലേക്ക് (ഉദാ. ഹോം ഫോൾഡർ) മാറ്റുക.",
+      "linux2": "റൈറ്റ്-ക്ലിക്ക് ചെയ്ത് Properties → Permissions-ൽ “Allow executing file as program” തിരഞ്ഞെടുക്കുക (അല്ലെങ്കിൽ chmod +x).",
+      "linux3": "ഡബിൾ-ക്ലിക്ക് ചെയ്ത് ലിറ്റ്മ തുറക്കുക. തുറക്കുന്നില്ലെങ്കിൽ സോഫ്റ്റ്‌വെയർ സെന്ററിൽ നിന്ന് libfuse2 ഇൻസ്റ്റാൾ ചെയ്യുക."
     },
     "unsignedNote": "Apple, Microsoft സർട്ടിഫിക്കറ്റ് ഒപ്പ് ലിറ്റ്മയ്ക്ക് ഇതുവരെയില്ല, അതിനാൽ ആദ്യം തുറക്കുമ്പോൾ കമ്പ്യൂട്ടർ ഒരിക്കൽ ചോദിക്കും. ഈ വെബ്സൈറ്റിലെ അതേ ആപ്പാണിത്.",
     "newTitle": "പുതിയതെന്ത്",
@@ -482,6 +489,9 @@
     }
   },
   "story": {
+    "deleteCard": "“{name}” മായ്ക്കണോ?",
+    "thisCard": "ഈ കാർഡ്",
+    "deleteCardBody": "ഈ കാർഡ് കഥാലോകത്തിൽ നിന്ന് മാറ്റും.",
     "tabs": {
       "characters": {
         "label": "കഥാപാത്രങ്ങൾ",

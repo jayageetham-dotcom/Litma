@@ -19,7 +19,8 @@ export type Release = {
   notes?: string[];
   mac?: string;
   win?: string;
-  desktop?: { version: string; mac?: FileInfo; win?: FileInfo };
+  linux?: string;
+  desktop?: { version: string; mac?: FileInfo; win?: FileInfo; linux?: FileInfo };
   mobile?: { version: string | null; ios: string | null; android: string | null };
 };
 
@@ -36,14 +37,17 @@ const toUrl = (f?: string | FileInfo) => {
  * dead-ending, and `viaGithub` tells the page not to claim a download has started.
  */
 export function downloadsFor(r: Release | null | undefined) {
-  if (r === undefined) return { mac: null, win: null, macSize: null, winSize: null, viaGithub: false };
-  if (r === null) return { mac: `${RELEASES_PAGE}/latest`, win: `${RELEASES_PAGE}/latest`, macSize: null, winSize: null, viaGithub: true };
+  if (r === undefined) return { mac: null, win: null, linux: null, macSize: null, winSize: null, linuxSize: null, viaGithub: false };
+  if (r === null) return { mac: `${RELEASES_PAGE}/latest`, win: `${RELEASES_PAGE}/latest`, linux: `${RELEASES_PAGE}/latest`, macSize: null, winSize: null, linuxSize: null, viaGithub: true };
   return {
     viaGithub: false,
     mac: toUrl(r.desktop?.mac ?? r.mac),
     win: toUrl(r.desktop?.win ?? r.win),
+    // releases before the Linux build have none: the page says it's on its way
+    linux: toUrl(r.desktop?.linux ?? r.linux),
     macSize: r.desktop?.mac?.size ?? null,
     winSize: r.desktop?.win?.size ?? null,
+    linuxSize: r.desktop?.linux?.size ?? null,
   };
 }
 
@@ -59,13 +63,14 @@ async function fromGithubApi(): Promise<Release | null> {
   const version = j.tag_name.replace(/^v/, "");
   const mac = asset(/mac\.dmg$/i);
   const win = asset(/win\.exe$/i);
+  const linux = asset(/linux\.AppImage$/i);
   if (!mac && !win) return null;
   const notes = (j.body ?? "")
     .split("\n")
     .map((l) => l.trim())
     .filter((l) => /^[-*] /.test(l))
     .map((l) => l.slice(2).trim());
-  return { version, date: j.published_at, notes, desktop: { version, mac, win } };
+  return { version, date: j.published_at, notes, desktop: { version, mac, win, linux } };
 }
 
 /**

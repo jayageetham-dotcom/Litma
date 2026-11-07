@@ -11,7 +11,8 @@ import { PHOTO_UPLOADS } from "@/lib/config";
 import { manglish } from "@litma/shared/manglish";
 import type { LitmaDoc } from "@/lib/types";
 import { proseReport, scriptReport, verseReport } from "./reports";
-import { useI18n, type MessageKey } from "@/i18n/react";
+import { useI18n, useT, type MessageKey } from "@/i18n/react";
+import { useConfirm } from "@/components/ui/Confirm";
 
 /** A Story World section's name and summary prompt in the writer's interface language. */
 function useTabText() {
@@ -479,6 +480,8 @@ function Timeline({ items, onAdd, onOpen }: { items: StoryItem[]; onAdd: () => v
 
 function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem; tab: StoryTab; onSave: (i: StoryItem) => Promise<StoryItem>; onDelete: (i: StoryItem) => void; onClose: (latest: StoryItem) => void }) {
   const txt = useTabText();
+  const t = useT();
+  const [confirmDialog, ask] = useConfirm();
   const [it, setIt] = useState(item);
   const close = () => onClose(it);
   useEffect(() => {
@@ -514,6 +517,8 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
   const mlBlur = (v: string) => (/[A-Za-z]/.test(v) && !/[ഀ-ൿ]/.test(v) ? v : v); // keep what the writer typed
 
   return (
+    <>
+      {confirmDialog}
     <div className="fixed inset-0 z-[60] flex justify-end scrim" onClick={close}>
       <aside className="scrollbar-thin h-full w-full max-w-lg overflow-y-auto dialog p-6" onClick={(e) => e.stopPropagation()} aria-label="Edit card">
         <div className="mb-4 flex items-center justify-between">
@@ -605,11 +610,12 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
         <div className="mt-8 flex justify-between border-t border-line pt-4">
           <button
             className="btn btn-ghost hover:!text-danger"
-            onClick={() => {
-              if (confirm(`Delete “${it.name || "this card"}”?`)) onDelete(it);
+            onClick={async () => {
+              const ok = await ask({ title: t("story.deleteCard", { name: it.name || t("story.thisCard") }), body: t("story.deleteCardBody"), confirm: t("common.delete"), danger: true });
+              if (ok) onDelete(it);
             }}
           >
-            <Trash2 size={15} /> Delete
+            <Trash2 size={15} /> {t("common.delete")}
           </button>
           <button className="btn btn-primary" onClick={close}>
             Done
@@ -617,6 +623,7 @@ function ItemEditor({ item, tab, onSave, onDelete, onClose }: { item: StoryItem;
         </div>
       </aside>
     </div>
+    </>
   );
 }
 

@@ -1,6 +1,6 @@
 name: 🖥️ Desktop app
 
-# Builds Litma for macOS (.dmg, universal) and Windows (.exe) and publishes them:
+# Builds Litma for macOS (.dmg, universal), Windows (.exe) and Linux (.AppImage) and publishes them:
 #   - attached to the GitHub release for the version
 #   - latest.json uploaded to getlitma.in/downloads/ (add/replace only), which
 #     the home page reads for its download buttons and installed desktop apps read to update themselves.
@@ -86,6 +86,7 @@ jobs:
         include:
           - { name: macOS, os: macos-latest, flag: --mac }
           - { name: Windows, os: windows-latest, flag: --win }
+          - { name: Linux, os: ubuntu-latest, flag: --linux }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -135,6 +136,7 @@ jobs:
           path: |
             apps/desktop/release/Litma-mac.dmg
             apps/desktop/release/Litma-win.exe
+            apps/desktop/release/Litma-linux.AppImage
           if-no-files-found: error
 
   publish:
@@ -170,6 +172,7 @@ jobs:
         run: |
           mv downloads/Litma-mac.dmg "downloads/Litma-$V-mac.dmg"
           mv downloads/Litma-win.exe "downloads/Litma-$V-win.exe"
+          mv downloads/Litma-linux.AppImage "downloads/Litma-$V-linux.AppImage"
           mkdir -p manifest
           # notes: only what the owner typed in the Release form (this version's section of CHANGELOG.md, minus the generic fallback line)
           node -e '
@@ -181,14 +184,15 @@ jobs:
             const notes = (m ? m[1] : "").split("\n").map(s => s.replace(/^- /, "").trim()).filter((n) => n && n !== "Small fixes and improvements." && n !== "Maintenance release").slice(0, 12);
             fs.writeFileSync("notes.md", notes.map(n => "- " + n).join("\n") || "- Small fixes and improvements.");
             const file = (f) => ({ file: f, url: base + f, sha256: crypto.createHash("sha256").update(fs.readFileSync("downloads/" + f)).digest("hex"), size: fs.statSync("downloads/" + f).size });
-            const mac = file("Litma-" + v + "-mac.dmg"), win = file("Litma-" + v + "-win.exe");
+            const mac = file("Litma-" + v + "-mac.dmg"), win = file("Litma-" + v + "-win.exe"), linux = file("Litma-" + v + "-linux.AppImage");
             const latest = {
               version: v,
               date: new Date().toISOString(),
               notes,
               mac: mac.url,
               win: win.url,
-              desktop: { version: v, minimumVersion: process.env.MIN || null, mac, win },
+              linux: linux.url,
+              desktop: { version: v, minimumVersion: process.env.MIN || null, mac, win, linux },
               mobile: { version: null, minimumVersion: null, ios: null, android: null }
             };
             fs.writeFileSync("manifest/latest.json", JSON.stringify(latest, null, 2) + "\n");
@@ -206,6 +210,7 @@ jobs:
           files: |
             downloads/Litma-${{ env.V }}-mac.dmg
             downloads/Litma-${{ env.V }}-win.exe
+            downloads/Litma-${{ env.V }}-linux.AppImage
             manifest/latest.json
       - name: Release notes in this repository (no files)
         uses: softprops/action-gh-release@v3

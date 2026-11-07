@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { ArrowRight, Download } from "lucide-react";
-import { AppleLogo, WindowsLogo } from "@/components/icons/Brands";
+import { AppleLogo, LinuxLogo, WindowsLogo } from "@/components/icons/Brands";
 import { downloadsFor, useInDesktopApp, usePlatform, useRelease } from "@/lib/release";
 import { StoreBadges } from "@/components/StoreBadges";
 import { useT } from "@/i18n/react";
@@ -21,6 +21,8 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
   const items = [
     { id: "mac" as const, icon: AppleLogo, label: t("download.mac"), hint: t("download.macHint"), href: links.mac },
     { id: "win" as const, icon: WindowsLogo, label: t("download.windows"), hint: t("download.windowsHint"), href: links.win },
+    // Linux only for Linux visitors (first); everyone else finds it on /download
+    ...(platform === "linux" ? [{ id: "linux" as const, icon: LinuxLogo, label: t("download.linux"), hint: t("download.linuxHint"), href: links.linux }] : []),
   ].sort((a, b) => (a.id === platform ? -1 : b.id === platform ? 1 : 0));
 
   const buttons = (
@@ -30,9 +32,9 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
           <a
             key={it.id}
             href={it.href}
-            className={`btn justify-start !rounded-xl !px-4 !py-3 ${i === 0 && (platform === "mac" || platform === "win") ? "btn-primary" : "btn-outline"}`}
+            className={`btn justify-start !rounded-xl !px-4 !py-3 ${i === 0 && (platform === "mac" || platform === "win" || platform === "linux") ? "btn-primary" : "btn-outline"}`}
           >
-            <it.icon size={20} onDark={i === 0 && (platform === "mac" || platform === "win")} />
+            <it.icon size={20} onDark={i === 0 && (platform === "mac" || platform === "win" || platform === "linux")} />
             <span className="text-left">
               <span className="block">{it.label}</span>
               <span className="block text-xs font-normal opacity-75">{it.hint}</span>

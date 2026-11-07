@@ -160,17 +160,21 @@
   },
   "download": {
     "title": "Litma for your computer",
-    "body": "The same Litma, as an app for Mac and Windows. Your work syncs with the web.",
+    "body": "The same Litma, as an app for Mac, Windows and Linux. Your work syncs with the web.",
     "mac": "Download for Mac",
     "macHint": "Apple silicon and Intel · .dmg",
     "windows": "Download for Windows",
     "windowsHint": "Windows 10 and 11 · .exe",
+    "linux": "Download for Linux",
+    "linuxHint": "64-bit · AppImage",
+    "linuxReq": "Most 64-bit Linux desktops (Ubuntu, Fedora, Debian and others). An AppImage that runs without installing.",
+    "appimage": "Download .AppImage",
     "allReleases": "All versions",
     "soon": "The first release is on its way",
     "soonBadge": "Soon",
     "nav": "Download",
-    "navTitle": "Download Litma for Mac, Windows, iPhone and Android",
-    "heroLink": "Get the app for Mac and Windows",
+    "navTitle": "Download Litma for Mac, Windows, Linux, iPhone and Android",
+    "heroLink": "Get the app for Mac, Windows and Linux",
     "kicker": "Download Litma",
     "heroTitle": "Litma for {platform}",
     "heroTitleAny": "Litma on every device",
@@ -202,7 +206,10 @@
       "mac3": "The first time, right-click Litma in Applications and choose Open, then Open again.",
       "win1": "Open Litma-win.exe from your Downloads folder.",
       "win2": "If Windows shows “Windows protected your PC”, click More info, then Run anyway.",
-      "win3": "Follow the installer. Litma opens when it's done and adds a desktop shortcut."
+      "win3": "Follow the installer. Litma opens when it's done and adds a desktop shortcut.",
+      "linux1": "Move Litma-linux.AppImage from Downloads to a folder you keep, such as your home folder.",
+      "linux2": "Right-click it, open Properties → Permissions and tick “Allow executing file as program” (or run chmod +x on it).",
+      "linux3": "Double-click it to open Litma. If it doesn't start, install libfuse2 from your software centre."
     },
     "unsignedNote": "Litma isn't signed with an Apple or Microsoft certificate yet, so your computer asks once before opening it. The app is the same as this website.",
     "newTitle": "What's new",
@@ -641,6 +648,9 @@
     }
   },
   "story": {
+    "deleteCard": "Delete “{name}”?",
+    "thisCard": "this card",
+    "deleteCardBody": "The card is removed from Story World.",
     "tabs": {
       "characters": {
         "label": "Characters",

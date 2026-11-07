@@ -2,13 +2,16 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Download, Globe, RefreshCw, ShieldCheck } from "lucide-react";
-import { AndroidLogo, AppleLogo, WindowsLogo } from "@/components/icons/Brands";
+import { AndroidLogo, AppleLogo, LinuxLogo, WindowsLogo } from "@/components/icons/Brands";
 import { ColourField, LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
 import { MobileNav } from "@/components/MobileNav";
 import { StoreBadges } from "@/components/StoreBadges";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { RELEASES_PAGE, downloadsFor, formatSize, useInDesktopApp, usePlatform, useRelease, type Platform } from "@/lib/release";
-import { useT } from "@/i18n/react";
+import { useT, type MessageKey } from "@/i18n/react";
+
+/** Computers Litma has an app for. */
+type Desk = "mac" | "win" | "linux";
 
 /**
  * /download: finds the visitor's operating system and offers the right Litma first
@@ -21,20 +24,25 @@ export default function DownloadPage() {
   const release = useRelease();
   const inApp = useInDesktopApp();
   const links = downloadsFor(release);
-  const [started, setStarted] = useState<"mac" | "win" | null>(null);
-  const [helpFor, setHelpFor] = useState<"mac" | "win">("mac");
+  const [started, setStarted] = useState<Desk | null>(null);
+  const [helpFor, setHelpFor] = useState<Desk>("mac");
   const helpRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    if (platform === "win") setHelpFor("win");
+    if (platform === "win" || platform === "linux") setHelpFor(platform);
   }, [platform]);
 
-  const start = (p: "mac" | "win") => {
+  const start = (p: Desk) => {
     setStarted(p);
     setHelpFor(p);
     setTimeout(() => helpRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 250);
   };
   const date = release?.date ? new Date(release.date).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "";
-  const desktopOs = platform === "mac" || platform === "win" ? platform : null;
+  const desktopOs: Desk | null = platform === "mac" || platform === "win" || platform === "linux" ? platform : null;
+  const label: Record<Desk, { button: MessageKey; hint: MessageKey; size: number | null }> = {
+    mac: { button: "download.mac", hint: "download.macHint", size: links.macSize },
+    win: { button: "download.windows", hint: "download.windowsHint", size: links.winSize },
+    linux: { button: "download.linux", hint: "download.linuxHint", size: links.linuxSize },
+  };
   const name: Record<Platform, string> = {
     mac: "Mac",
     win: "Windows",
@@ -75,14 +83,22 @@ export default function DownloadPage() {
               links[desktopOs] ? (
                 <>
                   <a href={links[desktopOs]!} onClick={() => !links.viaGithub && start(desktopOs)} className="btn btn-primary !px-8 !py-4 !text-lg">
-                    <Download size={22} aria-hidden /> {t(desktopOs === "mac" ? "download.mac" : "download.windows")}
+                    <Download size={22} aria-hidden /> {t(label[desktopOs].button)}
                   </a>
                   <p className="text-sm text-muted" hidden={links.viaGithub}>
                     {t("download.versionLine", { version: release?.version ?? "", date })}
-                    {formatSize(desktopOs === "mac" ? links.macSize : links.winSize) && ` · ${formatSize(desktopOs === "mac" ? links.macSize : links.winSize)}`}
+                    {formatSize(label[desktopOs].size) && ` · ${formatSize(label[desktopOs].size)}`}
                     {" · "}
-                    {desktopOs === "mac" ? t("download.macHint") : t("download.windowsHint")}
+                    {t(label[desktopOs].hint)}
                   </p>
+                </>
+              ) : desktopOs === "linux" ? (
+                // releases from before the Linux build: the browser works fully meanwhile
+                <>
+                  <p className="max-w-md text-muted">{t("download.linuxSoon")}</p>
+                  <Link href="/desk/" className="btn btn-primary !px-7 !py-3.5">
+                    <Globe size={18} aria-hidden /> {t("download.useWeb")}
+                  </Link>
                 </>
               ) : (
                 <p className="text-muted">{t("download.soon")}</p>
@@ -129,7 +145,7 @@ export default function DownloadPage() {
             <h2 className="text-4xl font-extrabold leading-[1.15] md:text-5xl" style={{ fontFamily: "var(--font-display)" }}>
               എല്ലായിടത്തും. <span className="text-ink/40">{t("download.allBody")}</span>
             </h2>
-            <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <PlatformCard
                 icon={AppleLogo}
                 title="Mac"
@@ -149,6 +165,17 @@ export default function DownloadPage() {
                 current={platform === "win"}
                 loading={release === undefined}
                 action={links.win ? <a href={links.win} onClick={() => !links.viaGithub && start("win")} className="btn btn-primary w-full justify-center !py-3 hover:!bg-surface hover:!text-ink"><Download size={16} aria-hidden /> {t("download.exe")}</a> : null}
+                youLabel={t("download.yourDevice")}
+                soon={t("download.soon")}
+              />
+              <PlatformCard
+                icon={LinuxLogo}
+                title="Linux"
+                fill="bg-tangerine text-on-pop"
+                detail={t("download.linuxReq")}
+                current={platform === "linux"}
+                loading={release === undefined}
+                action={links.linux ? <a href={links.linux} onClick={() => !links.viaGithub && start("linux")} className="btn btn-primary w-full justify-center !py-3 hover:!bg-surface hover:!text-ink"><Download size={16} aria-hidden /> {t("download.appimage")}</a> : null}
                 youLabel={t("download.yourDevice")}
                 soon={t("download.soon")}
               />
@@ -197,14 +224,14 @@ export default function DownloadPage() {
             <div>
               <h2 className="text-3xl font-extrabold md:text-4xl" style={{ fontFamily: "var(--font-display)" }}>{t("download.installTitle")}</h2>
               <div className="mt-5 inline-flex rounded-full border border-line bg-surface p-1 text-sm" role="tablist">
-                {(["mac", "win"] as const).map((p) => (
+                {(["mac", "win", "linux"] as const).map((p) => (
                   <button key={p} role="tab" aria-selected={helpFor === p} onClick={() => setHelpFor(p)} className={`rounded-full px-4 py-1.5 font-semibold ${helpFor === p ? "bg-night text-night-ink" : "text-muted hover:text-ink"}`}>
-                    {p === "mac" ? "Mac" : "Windows"}
+                    {p === "mac" ? "Mac" : p === "win" ? "Windows" : "Linux"}
                   </button>
                 ))}
               </div>
               <ol className="mt-6 space-y-4">
-                {(helpFor === "mac" ? ["mac1", "mac2", "mac3"] : ["win1", "win2", "win3"]).map((k, i) => (
+                {[1, 2, 3].map((n) => `${helpFor}${n}`).map((k, i) => (
                   <li key={k} className="fade-in flex gap-4" style={{ animationDelay: `${i * 60}ms` }}>
                     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-sm font-extrabold text-on-pop">{i + 1}</span>
                     <p className="pt-1 leading-relaxed">{t(`download.steps.${k}` as "download.steps.mac1")}</p>

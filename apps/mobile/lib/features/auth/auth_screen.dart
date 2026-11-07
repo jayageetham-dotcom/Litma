@@ -10,6 +10,7 @@ import '../../core/theme.dart';
 import '../../data/auth.dart';
 import '../../widgets/brand.dart';
 import '../../core/keyboard.dart';
+import '../../data/analytics.dart';
 
 /// Sign in / Create account: one screen that morphs between the two, the form card on a stack of
 /// violet and lime sheets (the web's AuthShell). Always light, like the website's public pages.
@@ -36,6 +37,12 @@ class AuthScreen extends ConsumerStatefulWidget {
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   late bool _signUp = widget.signUp;
+
+  @override
+  void initState() {
+    super.initState();
+    Analytics.screen(widget.signUp ? '/signup/' : '/login/');
+  }
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();

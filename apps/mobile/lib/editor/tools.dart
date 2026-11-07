@@ -27,29 +27,81 @@ import 'export.dart';
 import 'pdf_fonts.dart';
 import 'session.dart';
 import 'work_tools.dart';
+import '../data/analytics.dart';
 
 /// The editor's tools, as tinted tiles (the web's phone "More" sheet: each tool keeps its own tint).
 Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s) async {
   final c = context.c;
   final tools = [
-    (LucideIcons.notebookPen, context.t('app.tools.story'), c.tintLime, () => openStoryWorld(context, s)),
-    (LucideIcons.bookA, context.t('nav.dictionary'), c.tintTangerine, () => showLookUpSheet(context, s)),
-    (LucideIcons.sparkles, context.t('app.tools.ai'), c.tintViolet, () => showAiSheet(context, ref, s)),
-    (LucideIcons.inbox, context.t('app.tools.inbox'), c.tintViolet, () => showInboxSheet(context, ref, s)),
-    (LucideIcons.history, context.t('app.tools.history'), c.tintSky, () => showHistorySheet(context, ref, s)),
-    (LucideIcons.share2, context.t('app.tools.share'), c.tintCoral, () => showShareSheet(context, ref, s)),
-    (LucideIcons.palette, context.t('app.tools.format'), c.tintViolet, () => showFormatSheet(context, s)),
-    (LucideIcons.list, context.t('app.tools.outline'), c.tintSky, () => showOutlineSheet(context, s)),
-    (LucideIcons.search, context.t('app.tools.find'), c.tintTangerine, () => showFindSheet(context, s)),
-    (LucideIcons.bookmark, context.t('saved.title'), c.tintLime, () => showSavedWordsSheet(context, ref, s)),
-    (LucideIcons.ruler, context.t('app.tools.page'), c.tintCoral, () => showPageSetupSheet(context, s)),
-    (LucideIcons.fileText, context.t('editor.pages.tile'), c.tintSky, () => showPagesPreview(context, s)),
-    (LucideIcons.plus, context.t('editor.insertPage'), c.tintLime, s.insertPage),
+    (LucideIcons.notebookPen, context.t('app.tools.story'), c.tintLime, () {
+      Analytics.tap('app.tools.story');
+      openStoryWorld(context, s);
+    }),
+    (LucideIcons.bookA, context.t('nav.dictionary'), c.tintTangerine, () {
+      Analytics.tap('nav.dictionary');
+      showLookUpSheet(context, s);
+    }),
+    (LucideIcons.sparkles, context.t('app.tools.ai'), c.tintViolet, () {
+      Analytics.tap('app.tools.ai');
+      showAiSheet(context, ref, s);
+    }),
+    (LucideIcons.inbox, context.t('app.tools.inbox'), c.tintViolet, () {
+      Analytics.tap('app.tools.inbox');
+      showInboxSheet(context, ref, s);
+    }),
+    (LucideIcons.history, context.t('app.tools.history'), c.tintSky, () {
+      Analytics.tap('app.tools.history');
+      showHistorySheet(context, ref, s);
+    }),
+    (LucideIcons.share2, context.t('app.tools.share'), c.tintCoral, () {
+      Analytics.tap('app.tools.share');
+      showShareSheet(context, ref, s);
+    }),
+    (LucideIcons.palette, context.t('app.tools.format'), c.tintViolet, () {
+      Analytics.tap('app.tools.format');
+      showFormatSheet(context, s);
+    }),
+    (LucideIcons.list, context.t('app.tools.outline'), c.tintSky, () {
+      Analytics.tap('app.tools.outline');
+      showOutlineSheet(context, s);
+    }),
+    (LucideIcons.search, context.t('app.tools.find'), c.tintTangerine, () {
+      Analytics.tap('app.tools.find');
+      showFindSheet(context, s);
+    }),
+    (LucideIcons.bookmark, context.t('saved.title'), c.tintLime, () {
+      Analytics.tap('saved.title');
+      showSavedWordsSheet(context, ref, s);
+    }),
+    (LucideIcons.ruler, context.t('app.tools.page'), c.tintCoral, () {
+      Analytics.tap('app.tools.page');
+      showPageSetupSheet(context, s);
+    }),
+    (LucideIcons.fileText, context.t('editor.pages.tile'), c.tintSky, () {
+      Analytics.tap('editor.pages.tile');
+      showPagesPreview(context, s);
+    }),
+    (LucideIcons.plus, context.t('editor.insertPage'), c.tintLime, () {
+      Analytics.tap('editor.insertPage');
+      s.insertPage();
+    }),
     // each writing type's own tools, as on the web toolbar
-    if (s.kind == DocKind.essay || s.kind == DocKind.feature) (LucideIcons.superscript, context.t('editor.footnote.add'), c.tintViolet, () => showFootnoteDialog(context, s)),
-    if (s.kind == DocKind.drama) (LucideIcons.users, context.t('editor.drama.fillCast'), c.tintCoral, () => fillCastFromStory(context, ref, s)),
-    if (s.kind == DocKind.screenplay) (LucideIcons.drama, context.t('editor.scene.tools'), c.tintTangerine, () => showSceneSheet(context, s)),
-    if (s.kind == DocKind.diary) (LucideIcons.calendarDays, context.t('editor.diary.newEntry'), c.tintSky, () => s.appendDiaryEntry(todayLine(DateTime.now()))),
+    if (s.kind == DocKind.essay || s.kind == DocKind.feature) (LucideIcons.superscript, context.t('editor.footnote.add'), c.tintViolet, () {
+      Analytics.tap('editor.footnote.add');
+      showFootnoteDialog(context, s);
+    }),
+    if (s.kind == DocKind.drama) (LucideIcons.users, context.t('editor.drama.fillCast'), c.tintCoral, () {
+      Analytics.tap('editor.drama.fillCast');
+      fillCastFromStory(context, ref, s);
+    }),
+    if (s.kind == DocKind.screenplay) (LucideIcons.drama, context.t('editor.scene.tools'), c.tintTangerine, () {
+      Analytics.tap('editor.scene.tools');
+      showSceneSheet(context, s);
+    }),
+    if (s.kind == DocKind.diary) (LucideIcons.calendarDays, context.t('editor.diary.newEntry'), c.tintSky, () {
+      Analytics.tap('editor.diary.newEntry');
+      s.appendDiaryEntry(todayLine(DateTime.now()));
+    }),
   ];
   await showModalBottomSheet<void>(
     context: context,
@@ -618,6 +670,7 @@ class _ShareState extends ConsumerState<_Share> {
     final s = widget.session;
     await s.saver.flush();
     final pdf = format == 'pdf';
+    Analytics.track('export', {'format': format, 'kind': s.kind.name});
     final html = docToHtml(s.document, title: s.title, kind: s.kind, settings: s.settings, fontsCss: pdf ? await fontFaceCss([s.settings['font'] as String?]) : '');
     final safe = s.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').trim();
     if (pdf) {

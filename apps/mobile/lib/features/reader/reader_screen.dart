@@ -9,6 +9,7 @@ import '../../data/forms.dart';
 import '../../editor/block_style.dart';
 import '../../editor/document.dart';
 import '../../editor/page_view.dart';
+import '../../data/analytics.dart';
 
 /// Reading view: one continuous sheet like a pageless document (the web's /read/), the work's
 /// own fonts and layout, reading progress across the top.
@@ -45,6 +46,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.screen('/read/');
     _scroll.addListener(() {
       final p = _scroll.position;
       _progress.value = p.maxScrollExtent <= 0 ? 1 : (p.pixels / p.maxScrollExtent).clamp(0, 1);

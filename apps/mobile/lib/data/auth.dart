@@ -108,6 +108,9 @@ class SupabaseAuth implements AuthGateway {
           data: name == null || name.trim().isEmpty ? null : {'full_name': name.trim()},
         );
         return r.session == null;
+      }).then((confirmFirst) {
+        Analytics.track('sign_up', {'method': 'password'});
+        return confirmFirst;
       });
 
   @override
@@ -132,7 +135,7 @@ class SupabaseAuth implements AuthGateway {
         await client.auth.signInWithIdToken(provider: OAuthProvider.apple, idToken: token, nonce: raw);
         final name = [cred.givenName, cred.familyName].whereType<String>().join(' ').trim();
         if (name.isNotEmpty) await client.auth.updateUser(UserAttributes(data: {'full_name': name}));
-      });
+      }).then((_) => Analytics.track('sign_in', {'method': 'apple'}));
 
   @override
   Future<String?> accessToken() async => client.auth.currentSession?.accessToken;

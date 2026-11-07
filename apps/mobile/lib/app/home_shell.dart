@@ -7,6 +7,7 @@ import '../core/theme.dart';
 import '../features/desk/desk_screen.dart';
 import '../features/dictionary/dictionary_screen.dart';
 import '../features/profile/profile_screen.dart';
+import '../data/analytics.dart';
 
 /// Signed-in home: Desk · Dictionary · Me in a bottom tab bar (the web's MobileNav), fading through
 /// between them. Each tab keeps its place when you come back to it.
@@ -21,6 +22,14 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
   int _index = 0;
   final _visited = <int>{0};
   late final _fade = AnimationController(vsync: this, duration: Motion.medium, value: 1);
+
+  static const _paths = ['/desk/', '/dictionary/', '/profile/'];
+
+  @override
+  void initState() {
+    super.initState();
+    Analytics.screen(_paths[_index]);
+  }
 
   @override
   void dispose() {
@@ -59,6 +68,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
             _index = i;
             _visited.add(i);
           });
+          if (i < _paths.length) Analytics.screen(_paths[i]);
           if (!Motion.reduced(context)) _fade.forward(from: 0);
         },
         destinations: [

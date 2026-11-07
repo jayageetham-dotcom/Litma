@@ -11,6 +11,7 @@ import '../../data/models.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/common.dart';
 import 'cover.dart';
+import '../../data/analytics.dart';
 
 /// The cover designer, the phone version of the web's CoverDesigner (apps/web/src/app/book/page.tsx):
 /// the cover stays in view at the top (tap a text to size it, drag it to move it) and the tools
@@ -40,6 +41,12 @@ class _CoverDesignerScreenState extends State<CoverDesignerScreen> {
   void _set(Json patch) {
     setState(() => _cover = {..._cover, ...patch});
     widget.onCover(patch);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Analytics.screen('/book/cover/');
   }
 
   TextEditingController _field(String key) => _fields.putIfAbsent(key, () => TextEditingController(text: (_cover[key] as String?) ?? ''));

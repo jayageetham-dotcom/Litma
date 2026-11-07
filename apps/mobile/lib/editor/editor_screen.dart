@@ -23,6 +23,7 @@ import 'saver.dart';
 import 'session.dart';
 import 'tools.dart';
 import 'work_tools.dart';
+import '../data/analytics.dart';
 
 /// Opens a work: loads it (from the server or this phone), restores a newer journal, then edits.
 class EditorScreen extends ConsumerStatefulWidget {
@@ -43,6 +44,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.screen('/write/');
     _open();
   }
 

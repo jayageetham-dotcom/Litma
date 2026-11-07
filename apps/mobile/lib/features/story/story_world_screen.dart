@@ -10,6 +10,7 @@ import '../../data/forms.dart';
 import '../../data/story.dart';
 import '../../widgets/common.dart';
 import '../../core/keyboard.dart';
+import '../../data/analytics.dart';
 
 /// Story World (കഥാലോകം) for one work: characters, places, objects, plot board, timeline, notes
 /// and a report, with the sections each writing type uses (the web's StoryWorld).
@@ -38,6 +39,7 @@ class _StoryWorldScreenState extends ConsumerState<StoryWorldScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.screen('/story/');
     _load();
   }
 

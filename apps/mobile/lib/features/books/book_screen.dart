@@ -19,6 +19,7 @@ import '../reader/reader_screen.dart';
 import 'book_export.dart';
 import 'cover.dart';
 import 'cover_designer.dart';
+import '../../data/analytics.dart';
 
 /// A book's front cover as a small card (desk and book screen), drawn like the real cover.
 class MiniCover extends StatelessWidget {
@@ -64,6 +65,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.screen('/book/');
     _load();
   }
 
@@ -196,6 +198,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
       ),
     );
     if (choice == null || !mounted) return;
+    Analytics.track('export', {'format': 'pdf', 'from': choice == 'cover' ? 'cover' : 'book'});
     await _flush();
     if (!mounted) return;
     final b = _book!;

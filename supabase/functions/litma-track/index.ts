@@ -1,7 +1,8 @@
 /**
- * POST /functions/v1/litma-track: usage events from the web, desktop and (later) phone apps.
+ * POST /functions/v1/litma-track: usage events from the web, desktop and phone apps.
  *
- * Body: { vid, sid, ctx: { platform, lang, locale, tz, screen, v, ref }, events: [{ n, p?, l?, props?, t? }] }
+ * Body: { vid, sid, ctx: { platform, lang, locale, tz, screen, v, ref, device? }, events: [{ n, p?, l?, props?, t? }] }
+ * The phone app (platform ios/android) sends no browser user agent, so it names its device (phone or tablet).
  * Optional Authorization: Bearer <the writer's access token> ties events to their account.
  *
  * Stores no IP address and no writing: the apps send page paths without query strings and button
@@ -151,6 +152,7 @@ Deno.serve(async (req) => {
   const tz = str(ctx.tz, 60);
   const lang = str(ctx.lang, 20);
   const platform = ["web", "desktop", "installed", "android", "ios"].includes(String(ctx.platform)) ? String(ctx.platform) : "web";
+  const native = platform === "android" || platform === "ios";
   const base = {
     user_id: await userId(req).catch(() => null),
     visitor_id: vid,
@@ -158,9 +160,9 @@ Deno.serve(async (req) => {
     source: "app",
     referrer: refHost(ctx.ref),
     platform,
-    device: platform === "desktop" ? "computer" : ua.device,
-    os: ua.os,
-    browser: ua.browser,
+    device: platform === "desktop" ? "computer" : native ? (ctx.device === "tablet" ? "tablet" : "phone") : ua.device,
+    os: native ? (platform === "ios" ? "iOS" : "Android") : ua.os,
+    browser: native ? "Litma app" : ua.browser,
     lang,
     locale: str(ctx.locale, 10),
     tz,

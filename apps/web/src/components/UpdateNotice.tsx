@@ -175,9 +175,6 @@ export function AboutLitma() {
             {busy ? <span className="ink-spinner" aria-hidden /> : <RefreshCw size={14} aria-hidden />} {t("update.check")}
           </button>
         )}
-        <a href="https://github.com/jayageetham-dotcom/Litma/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer" className="text-sm font-medium text-accent underline underline-offset-2">
-          {t("update.whatsNew")}
-        </a>
       </div>
     </section>
   );

@@ -98,7 +98,7 @@ function PrintView() {
       </p>
       {error && <p className="mx-auto mt-10 max-w-md text-center text-danger">{error}</p>}
       {!state && !error && <PagesSkeleton />}
-      <div className="pp-root py-8" style={{ zoom: pages === null ? 1 : zoom }}>
+      <div className="pp-root pp-doc py-8" style={{ zoom: pages === null ? 1 : zoom }}>
         {state?.book && hasCover && <CoverFront book={state.book} w={state.spec.w} h={state.spec.h} className="pp-cover" />}
         <div ref={root} className="pp-root" />
         {state?.book && hasBack && <CoverBack book={state.book} w={state.spec.w} h={state.spec.h} className="pp-cover" />}

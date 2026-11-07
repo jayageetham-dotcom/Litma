@@ -18,7 +18,6 @@ Only the owner can do these (accounts, secrets, dashboards):
 - **Desktop signing:** `CSC_LINK`/`CSC_KEY_PASSWORD` and Apple notarisation (`APPLE_ID`,
   `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`) for macOS, `WIN_CSC_LINK` for Windows. Unsigned
   installers show security warnings.
-- **Branded auth emails:** paste `supabase/templates/*` into Supabase and set up custom SMTP.
 - **Optional branded MCP URL** (see CLAUDE.md).
 
 Needs a real device (emulators and CI can't fully check these):
@@ -33,6 +32,20 @@ Known differences by design:
   and the cover as two PDFs.
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
+
+## 2026-11-07: Print view, whole-book PDF on the phone, no changelog links
+
+- **Web/desktop:** the print view (book and work PDFs) printed every sheet 32 px low: a white strip
+  above the cover and extra pages. Fixed in the print CSS. Desktop gets it with a Release.
+- **Phone:** the book export sheet has **Whole book (PDF)** (cover, pages, back cover in one file)
+  beside the pages and cover files. Its pages are pictures (240 dpi); see `mobile.md`.
+- **Web/desktop:** the update card's and the Help menu's "What's new" links to `CHANGELOG.md` are
+  gone (owner's rule). Help → Report a problem writes to support@getlitma.in.
+- **Emails:** the owner switched on the Send Email hook; Gmail no longer reports a missing
+  Message-ID. Branded emails are done.
+- Owner's own book had the old jayageetham.com/litma address in its back-cover Website field;
+  changed to getlitma.in. The other jayageetham references in the repo are deliberate (old-address
+  redirect, accepting the old address, the GitHub account name, the desktop app id).
 
 ## 2026-11-07: Email links work in any browser
 

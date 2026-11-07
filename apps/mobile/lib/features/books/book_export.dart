@@ -18,9 +18,9 @@ import '../../editor/pdf_fonts.dart';
 import '../../widgets/avatar.dart';
 import 'cover.dart';
 
-/// A book as PDFs on the phone, the way printers ask for them: the pages (front matter and
-/// chapters, laid out by the phone's web engine so Malayalam shapes correctly) and the cover
-/// (front and back, drawn by the app at print size). The web's print view (lib/book-sections.ts)
+/// A book as PDFs on the phone: the whole book in one file, or the two files printers ask for, the
+/// pages (front matter and chapters, laid out by the phone's web engine so Malayalam shapes
+/// correctly) and the cover (front and back, drawn by the app at print size). The web's print view (lib/book-sections.ts)
 /// is the model; the phone can't number pages, so the contents list has no page numbers and
 /// chapters don't wait for a right-hand page.
 
@@ -169,13 +169,57 @@ $exportCss
 </style></head><body>${pages.map((p) => '<section>$p</section>').join()}</body></html>''';
 }
 
-/// Draws the front and back covers at print size while showing them, then hands back a PDF of the
-/// two pages (no margins). Returns null if the writer closed it.
-Future<Uint8List?> buildCoverPdf(BuildContext context, Book book) => showDialog<Uint8List>(
+/// A cover drawn at print size: raw RGBA pixels.
+typedef CoverImage = ({Uint8List rgba, int width, int height});
+
+/// Draws the front and back covers at print size while showing them. Returns [front, back], or
+/// null if they couldn't be drawn.
+Future<List<CoverImage>?> captureCovers(BuildContext context, Book book) => showDialog<List<CoverImage>>(
       context: context,
       barrierDismissible: false,
       builder: (_) => _CoverCapture(book: book),
     );
+
+/// A page filled edge to edge with one picture (covers, and the pages of the whole-book PDF).
+pw.Page _picturePage(PdfPageFormat format, pw.ImageProvider image) => pw.Page(
+      pageFormat: format,
+      margin: pw.EdgeInsets.zero,
+      build: (_) => pw.SizedBox(width: format.width, height: format.height, child: pw.Image(image, fit: pw.BoxFit.cover)),
+    );
+
+pw.ImageProvider _coverImage(CoverImage c) => pw.RawImage(bytes: c.rgba, width: c.width, height: c.height);
+
+/// The front and back covers as a two-page PDF (no margins). Returns null if the writer closed it.
+Future<Uint8List?> buildCoverPdf(BuildContext context, Book book) async {
+  final covers = await captureCovers(context, book);
+  if (covers == null) return null;
+  final format = bookPageFormat(book.settings, margins: false);
+  final doc = pw.Document(title: book.title, author: book.author, creator: 'Litma');
+  for (final c in covers) {
+    doc.addPage(_picturePage(format, _coverImage(c)));
+  }
+  return doc.save();
+}
+
+/// Sharpness of the pages in the whole-book PDF.
+const _wholeBookDpi = 240.0;
+
+/// The whole book in one PDF, like the web's print view: front cover, the pages, back cover (each
+/// cover only if the book has it). The pages come from the phone's web engine like the pages
+/// PDF; the pdf package can't join two PDFs, so each page is placed as a picture.
+Future<Uint8List> buildWholeBookPdf(Book book, String interiorHtml, {CoverImage? front, CoverImage? back}) async {
+  final format = bookPageFormat(book.settings);
+  final sheet = bookPageFormat(book.settings, margins: false);
+  // ignore: deprecated_member_use
+  final pages = await Printing.convertHtml(format: format, html: interiorHtml);
+  final doc = pw.Document(title: book.title, author: book.author, creator: 'Litma');
+  if (front != null) doc.addPage(_picturePage(sheet, _coverImage(front)));
+  await for (final page in Printing.raster(pages, dpi: _wholeBookDpi)) {
+    doc.addPage(_picturePage(sheet, pw.MemoryImage(await page.toPng())));
+  }
+  if (back != null) doc.addPage(_picturePage(sheet, _coverImage(back)));
+  return doc.save();
+}
 
 class _CoverCapture extends StatefulWidget {
   const _CoverCapture({required this.book});
@@ -211,26 +255,16 @@ class _CoverCaptureState extends State<_CoverCapture> {
       setState(() {});
       await Future<void>.delayed(const Duration(milliseconds: 350));
       await WidgetsBinding.instance.endOfFrame;
-      final pages = <(Uint8List, int, int)>[];
+      final pages = <CoverImage>[];
       for (final key in [_front, _back]) {
         final boundary = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
         if (boundary == null) throw StateError('cover not drawn');
         final image = await boundary.toImage(pixelRatio: _px / boundary.size.width);
         final data = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
-        pages.add((data!.buffer.asUint8List(), image.width, image.height));
+        pages.add((rgba: data!.buffer.asUint8List(), width: image.width, height: image.height));
         image.dispose();
       }
-      final format = bookPageFormat(widget.book.settings, margins: false);
-      final doc = pw.Document(title: widget.book.title, author: widget.book.author, creator: 'Litma');
-      for (final (rgba, w, h) in pages) {
-        doc.addPage(pw.Page(
-          pageFormat: format,
-          margin: pw.EdgeInsets.zero,
-          build: (_) => pw.SizedBox(width: format.width, height: format.height, child: pw.Image(pw.RawImage(bytes: rgba, width: w, height: h), fit: pw.BoxFit.cover)),
-        ));
-      }
-      final bytes = await doc.save();
-      if (mounted) Navigator.pop(context, bytes);
+      if (mounted) Navigator.pop(context, pages);
     } catch (_) {
       if (mounted) Navigator.pop(context);
     }

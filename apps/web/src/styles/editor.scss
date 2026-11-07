@@ -953,16 +953,27 @@ $mm: 3.7795275591px;
 }
 
 @media print {
+  // the on-screen padding (py-8) pushed every sheet down: a white strip on top of the first page
+  // and each sheet spilling onto an extra page
   .pp-root {
     gap: 0;
     display: block;
+    padding: 0 !important;
+    margin: 0 !important;
     zoom: 1 !important;
   }
   .pp-page,
   .pp-cover {
     box-shadow: none;
+    margin: 0 !important;
     break-after: page;
     page-break-after: always;
+  }
+  // no blank page after the last sheet
+  .pp-doc > :last-child,
+  .pp-doc > .pp-root:last-child > :last-child {
+    break-after: auto;
+    page-break-after: auto;
   }
 }
 

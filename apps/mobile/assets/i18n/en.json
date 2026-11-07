@@ -156,7 +156,9 @@
     "usageHint": "Help improve Litma by sharing which pages and buttons you use, how long you write and what kind of device you use. Your writing, titles and names are never sent.",
     "usageOn": "Share usage statistics",
     "admin": "Admin dashboard",
-    "adminHint": "Usage, writers and charts for the whole of Litma. Only admins see this."
+    "adminHint": "Usage, writers and charts for the whole of Litma. Only admins see this.",
+    "help": "Help and guide",
+    "helpHint": "Step-by-step guides with pictures for every part of Litma. Opens in your browser."
   },
   "download": {
     "title": "Litma for your computer",
@@ -371,6 +373,7 @@
     "move": {
       "title": "Move the title",
       "author": "Move the author",
+      "publisher": "Move the publisher",
       "back-text": "Move the blurb and author note",
       "back-imprint": "Move the publisher and ISBN",
       "badge": "Move the badge",
@@ -414,6 +417,7 @@
     "part": {
       "title": "title",
       "author": "author",
+      "publisher": "publisher",
       "badge": "badge",
       "mark": "publisher mark",
       "back-head": "title and picture",

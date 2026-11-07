@@ -14,6 +14,17 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-07 (evening): publisher line; Help and guide
+
+- `lib/features/books/cover.dart`: `pubPart()` draws the publisher as its own part `publisher`
+  (in `coverPartsFront`, so the designer can pick, size and drag it) in the art, solid, type,
+  minimal and kasavu layouts, on a pill of the cover colour over artwork, like the web.
+- `lib/features/settings/settings_screen.dart`: About has **Help and guide** (opens
+  getlitma.in/help/ in the browser, `url_launcher`) and the website row now opens the site.
+  Strings `settings.help`, `settings.helpHint` (assets regenerated).
+- Unverified: no Flutter SDK in the sandbox; relies on CI (`flutter analyze`, tests, screenshots).
+
+
 ## 2026-11-07: whole book in one PDF
 
 - `lib/features/books/book_screen.dart` export sheet: **Whole book (PDF)** first (front cover,

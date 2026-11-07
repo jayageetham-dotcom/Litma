@@ -179,7 +179,9 @@ function routeNavigation(win: BrowserWindow) {
     // reader view, print/PDF view and book previews open as app windows
     if (url.startsWith(ORIGIN)) return { action: "allow", overrideBrowserWindowOptions: { width: 1100, height: 860, autoHideMenuBar: true } };
     const site = siteOf(url);
-    if (site && url.startsWith(`${site}/`) && !url.includes("/auth/")) {
+    // the help site is read in the browser, beside the app (Settings → Help and guide, Help menu)
+    const help = site && /^\/help(\/|$|\?)/.test(url.slice(site.length));
+    if (site && !help && url.startsWith(`${site}/`) && !url.includes("/auth/")) {
       createWindow(ORIGIN + url.slice(site.length));
       return { action: "deny" };
     }
@@ -269,6 +271,8 @@ function buildMenu() {
       role: "help",
       submenu: [
         ...(mac ? [] : [{ label: "Check for updates…", click: () => checkForUpdates(true) }, { type: "separator" as const }]),
+        { label: "Litma Help", accelerator: mac ? undefined : "F1", click: () => shell.openExternal(`${SITE}/help/`) },
+        { type: "separator" },
         { label: `Litma ${app.getVersion()}`, enabled: false },
         { label: "Litma on the web", click: () => shell.openExternal(SITE) },
         { label: "Report a problem", click: () => shell.openExternal("mailto:support@getlitma.in?subject=Litma%20desktop") },

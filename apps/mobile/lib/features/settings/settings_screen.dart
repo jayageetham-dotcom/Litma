@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/providers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../core/config.dart';
 import '../../core/i18n.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
@@ -154,7 +156,24 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ]),
             ),
-            ListTile(leading: const Icon(LucideIcons.globe), title: Text(context.t('app.settings.website')), subtitle: const Text('getlitma.in')),
+            // the help site (getlitma.in/help/) opens in the phone's browser
+            ListTile(
+              leading: const Icon(LucideIcons.lifeBuoy),
+              title: Text(context.t('settings.help')),
+              subtitle: Text(context.t('settings.helpHint')),
+              trailing: const Icon(LucideIcons.externalLink, size: 16),
+              onTap: () {
+                Analytics.tap('settings.help');
+                launchUrl(Uri.parse('${AppConfig.site}/help/'), mode: LaunchMode.externalApplication);
+              },
+            ),
+            ListTile(
+              leading: const Icon(LucideIcons.globe),
+              title: Text(context.t('app.settings.website')),
+              subtitle: const Text('getlitma.in'),
+              trailing: const Icon(LucideIcons.externalLink, size: 16),
+              onTap: () => launchUrl(Uri.parse(AppConfig.site), mode: LaunchMode.externalApplication),
+            ),
             ListTile(leading: const Icon(LucideIcons.shieldCheck), title: Text(context.t('legal.privacy')), trailing: const Icon(LucideIcons.externalLink, size: 16), onTap: () => openLegal('privacy')),
             ListTile(leading: const Icon(LucideIcons.fileText), title: Text(context.t('legal.terms')), trailing: const Icon(LucideIcons.externalLink, size: 16), onTap: () => openLegal('terms')),
           ])),

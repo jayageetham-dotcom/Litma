@@ -6,6 +6,7 @@ const NAV = [
   { href: "/#types", label: "Writing types" },
   { href: "/#how", label: "How it works" },
   { href: "/#desk", label: "Features" },
+  { href: "/help/", label: "Help" },
 ];
 
 /**
@@ -66,6 +67,9 @@ export function LandingFooter() {
             </Link>
             <Link href="/dictionary/" className="hover:text-lime">
               Dictionary
+            </Link>
+            <Link href="/help/" className="hover:text-lime">
+              Help
             </Link>
             <Link href="/login/" className="hover:text-lime">
               Sign in

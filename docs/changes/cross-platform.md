@@ -21,10 +21,17 @@ Only the owner can do these (accounts, secrets, dashboards):
 - **Optional branded MCP URL** (see CLAUDE.md).
 
 Needs a real device (emulators and CI can't fully check these):
+- Help links: desktop Help → Litma Help and Settings → Help and guide open the browser (not an app
+  window); phone Settings → Help and guide opens the browser.
 - Phone app on an iPhone and an Android phone: cover designer (drag, sizes), book and cover PDFs
   (fonts, margins, page breaks), Book details script switch, usage statistics arriving in /admin/.
 - Website on iOS Safari: Manglish words typed mid-line convert when you tap away (checked with
   Chromium's iPhone and Pixel emulation only; WebKit couldn't be installed in the sandbox).
+
+Help site:
+- When a feature changes, update its guide in `apps/web/content/help/` (and its picture). Guides for
+  sharing, sign-in and offline have no pictures yet (cloud-only screens); the dictionary lookup
+  picture is the phone's.
 
 Known differences by design:
 - A book PDF made on the phone has no page numbers, running heads or right-hand chapter starts
@@ -32,6 +39,26 @@ Known differences by design:
   and the cover as two PDFs.
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
+
+## 2026-11-07 (evening): Publisher line on covers; help site
+
+- **Publisher line readable and independent (web, desktop, phone):** the front cover's publisher name
+  ("Litma Publishing House") is now its own cover part `publisher` (`COVER_PARTS.front`, Dart
+  `coverPartsFront`), dragged and sized apart from the author (offsets `cover.offsets.publisher`).
+  Over artwork it sits on a pill of the cover colour (82 %) in the full text colour, in Inter /
+  Anek Malayalam, so it reads on dark corners (romance preset was the report). Web `pub()` in
+  `CoverFront` (`components/book/Cover.tsx`), phone `pubPart()` in `_front` (`cover.dart`). All
+  ten presets checked by eye in the print view. Old covers: the author keeps its place; the
+  publisher line now sits under it as before (same spacing).
+- **Help site (web):** `/help/` (+ `?c=<topic>`, `?a=<guide>`) in the home page's landing style:
+  search, topic cards, guides with screenshots. Content is Markdown in `apps/web/content/help/`
+  (README there explains how to add guides); 11 topics, 56 guides, 46 pictures in
+  `public/help/shots/`. Linked from the home nav and footer, Settings → Help and guide, the
+  account menu, the desktop Help menu (Help → Litma Help, F1 on Windows/Linux) and the phone's
+  Settings → Help and guide. Desktop and phone open it in the browser.
+- **Needs:** website deploy (push to main) for the help site and the web cover; a desktop Release
+  for the desktop cover fix and Help menu; a phone build for the phone cover and Settings link.
+
 
 ## 2026-11-07: Print view, whole-book PDF on the phone, no changelog links
 

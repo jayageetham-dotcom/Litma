@@ -198,10 +198,12 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # An exact version: "latest" asks GitHub's API, which fails with "rate limit exceeded" on
+      # shared runners. The commands below use CLI 3 options (--remote); raise this on purpose.
       - uses: supabase/setup-cli@v1
         if: steps.check.outputs.skip != 'true'
         with:
-          version: latest
+          version: 3.0.0
 
       - name: Deploy Edge Functions
         if: steps.check.outputs.skip != 'true'

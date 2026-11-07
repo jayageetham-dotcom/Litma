@@ -152,7 +152,10 @@ void main() {
       expect(patches.last['template'], 'art');
       await t.tap(find.text('Back cover'));
       await settle(t, 5);
-      expect(find.text('Blurb'), findsOneWidget);
+      expect(find.text('Title and author at the top'), findsOneWidget);
+      final blurb = find.widgetWithText(TextField, 'Blurb');
+      await t.dragUntilVisible(blurb, find.byType(ListView).first, const Offset(0, -240));
+      expect(blurb, findsOneWidget);
       final price = find.widgetWithText(TextField, 'Price');
       await t.dragUntilVisible(price, find.byType(ListView).first, const Offset(0, -240));
       await settle(t, 3);

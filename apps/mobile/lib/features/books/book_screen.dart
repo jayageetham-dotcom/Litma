@@ -13,6 +13,7 @@ import '../../data/models.dart';
 import '../../editor/document.dart';
 import '../../widgets/common.dart';
 import '../reader/reader_screen.dart';
+import '../../core/keyboard.dart';
 
 Color? _hex(Object? v) {
   final s = '$v'.trim();
@@ -224,11 +225,11 @@ class _BookScreenState extends ConsumerState<BookScreen> {
               const SizedBox(width: 18),
               Expanded(
                 child: Column(children: [
-                  TextField(controller: _title, decoration: InputDecoration(labelText: context.t('app.books.title'), isDense: true), onChanged: (v) => _change({'title': v.trim().isEmpty ? 'പുതിയ പുസ്തകം' : v.trim()})),
+                  TextField(onTapOutside: dismissKeyboard, controller: _title, decoration: InputDecoration(labelText: context.t('app.books.title'), isDense: true), onChanged: (v) => _change({'title': v.trim().isEmpty ? 'പുതിയ പുസ്തകം' : v.trim()})),
                   const SizedBox(height: 10),
-                  TextField(controller: _subtitle, decoration: InputDecoration(labelText: context.t('app.books.subtitle'), isDense: true), onChanged: (v) => _change({'subtitle': v.trim().isEmpty ? null : v.trim()})),
+                  TextField(onTapOutside: dismissKeyboard, controller: _subtitle, decoration: InputDecoration(labelText: context.t('app.books.subtitle'), isDense: true), onChanged: (v) => _change({'subtitle': v.trim().isEmpty ? null : v.trim()})),
                   const SizedBox(height: 10),
-                  TextField(controller: _author, decoration: InputDecoration(labelText: context.t('app.books.author'), isDense: true), onChanged: (v) => _change({'author': v.trim().isEmpty ? null : v.trim()})),
+                  TextField(onTapOutside: dismissKeyboard, controller: _author, decoration: InputDecoration(labelText: context.t('app.books.author'), isDense: true), onChanged: (v) => _change({'author': v.trim().isEmpty ? null : v.trim()})),
                 ]),
               ),
             ]),

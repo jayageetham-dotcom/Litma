@@ -18,6 +18,12 @@ the code, and what is still unverified.
   reading and print.
 - Desktop app gets the 2026-11-07 changes only after Actions → **Release**.
 
+## 2026-11-07: Keyboard on the phone app's desk
+
+- Phone app only: the keyboard no longer opens on the desk after leaving the editor, and tapping
+  outside a form or search field closes it (see `mobile.md`). The website and desktop use the
+  browser's own focus handling, which already behaves this way.
+
 ## 2026-11-07: Assistant inbox, keyboard strip, Manglish suggestions
 
 Reported by the owner from the iPhone app. Same behaviour on web (phone layout), desktop and

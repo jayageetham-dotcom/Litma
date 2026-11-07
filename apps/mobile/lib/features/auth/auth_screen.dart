@@ -9,6 +9,7 @@ import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../data/auth.dart';
 import '../../widgets/brand.dart';
+import '../../core/keyboard.dart';
 
 /// Sign in / Create account: one screen that morphs between the two, the form card on a stack of
 /// violet and lime sheets (the web's AuthShell). Always light, like the website's public pages.
@@ -95,7 +96,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           const SizedBox(height: 6),
           Text(context.t('app.auth.resetBody'), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: context.c.muted)),
           const SizedBox(height: 16),
-          TextField(controller: ctrl, keyboardType: TextInputType.emailAddress, autofillHints: const [AutofillHints.email], decoration: InputDecoration(labelText: context.t('app.auth.email'))),
+          TextField(onTapOutside: dismissKeyboard, controller: ctrl, keyboardType: TextInputType.emailAddress, autofillHints: const [AutofillHints.email], decoration: InputDecoration(labelText: context.t('app.auth.email'))),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () async {
@@ -181,11 +182,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         child: _signUp
             ? Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: TextField(controller: _name, textInputAction: TextInputAction.next, autofillHints: const [AutofillHints.name], decoration: InputDecoration(labelText: context.t('app.auth.name'))),
+                child: TextField(onTapOutside: dismissKeyboard, controller: _name, textInputAction: TextInputAction.next, autofillHints: const [AutofillHints.name], decoration: InputDecoration(labelText: context.t('app.auth.name'))),
               )
             : const SizedBox(width: double.infinity),
       ),
-      TextField(
+      TextField(onTapOutside: dismissKeyboard, 
         controller: _email,
         keyboardType: TextInputType.emailAddress,
         textInputAction: TextInputAction.next,
@@ -194,7 +195,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         decoration: InputDecoration(labelText: context.t('app.auth.email')),
       ),
       const SizedBox(height: 12),
-      TextField(
+      TextField(onTapOutside: dismissKeyboard, 
         controller: _password,
         obscureText: !_show,
         textInputAction: TextInputAction.done,

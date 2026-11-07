@@ -11,6 +11,7 @@ import '../../core/theme.dart';
 import '../../data/auth.dart';
 import '../../data/models.dart';
 import '../../widgets/avatar.dart';
+import '../../core/keyboard.dart';
 
 /// Edit the profile: picture, names, details, daily goal, default typing, and the password.
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -88,7 +89,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final email = ref.watch(writerProvider).value?.email ?? widget.profile.email;
     Widget field(TextEditingController ctrl, String label, {String? hint, TextInputType? type, int lines = 1, int? max, List<String>? autofill}) => Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: TextField(
+          child: TextField(onTapOutside: dismissKeyboard, 
             controller: ctrl,
             keyboardType: type,
             maxLines: lines,
@@ -232,7 +233,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           const SizedBox(height: 4),
           Text(context.t('app.profile.signedInAs', {'email': email ?? ''}), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: c.muted)),
           const SizedBox(height: 14),
-          TextField(
+          TextField(onTapOutside: dismissKeyboard, 
             controller: _password,
             obscureText: true,
             autofillHints: const [AutofillHints.newPassword],

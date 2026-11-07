@@ -7,7 +7,8 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 ## Open items
 
 - **Release needed** for the 2026-11-07 web changes (inbox Copy keeps the suggestion,
-  selectable inbox text, Manglish word finishing when the cursor leaves it).
+  selectable inbox text, Manglish word finishing when the cursor leaves it, empty line as a
+  section break in novels and stories).
 - Not yet driven in Electron with Playwright (`_electron.launch`, see CLAUDE.md).
 
 ## 2026-11-07

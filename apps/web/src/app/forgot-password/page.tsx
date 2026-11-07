@@ -3,8 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AuthShell, Field, Notice } from "@/components/AuthShell";
 import { getSupabase } from "@/lib/supabase/client";
-import { appUrl } from "@/lib/config";
-import { authMessage } from "@/lib/auth";
+import { authMessage, authRedirect } from "@/lib/auth";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -24,7 +23,7 @@ export default function ForgotPasswordPage() {
           if (!email) return setMsg({ kind: "error", text: "Enter your email address." });
           setBusy(true);
           setMsg(null);
-          const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: appUrl("/auth/callback/?next=%2Freset-password%2F") });
+          const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: authRedirect("/reset-password/") });
           setBusy(false);
           setMsg(error ? { kind: "error", text: authMessage(error) } : { kind: "info", text: `If ${email} has a Litma account, a reset link is on its way.` });
         }}

@@ -9,6 +9,12 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-07: email links verified on the site
+
+- `app/auth/callback/page.tsx`: `token_hash` + `type` → `verifyOtp` (any browser); `code` still
+  exchanged for Google sign-in and older emails. `lib/auth.tsx` `authMessage`: plain text for
+  code-verifier and expired-link errors. `app/forgot-password/page.tsx` uses `authRedirect`.
+
 ## 2026-11-07: shared strings in the book screen (PR #6)
 
 - `app/book/page.tsx`: Book details (Publisher, Year, Edition, ISBN, Page & type, page sizes,

@@ -84,6 +84,8 @@ export function authMessage(e: unknown): string {
   if (/password should be at least/i.test(m)) return "Use a password of at least 8 characters.";
   if (/rate limit|too many/i.test(m)) return "Too many attempts. Wait a minute, then try again.";
   if (/network|fetch/i.test(m)) return "Can't reach the server. Check your connection and try again.";
+  if (/code verifier|code challenge|flow state/i.test(m)) return "This link was opened in a different browser from the one where you asked for it. Ask for a new link, then open it here.";
+  if (/expired|invalid|otp/i.test(m) && /link|token|otp/i.test(m)) return "This link has expired or was already used. Ask for a new one.";
   return m || "Something went wrong. Try again.";
 }
 

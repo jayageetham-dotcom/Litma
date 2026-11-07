@@ -469,7 +469,19 @@ export function AIPanel({ editor, kind, docId, title, onOpenInbox }: { editor: E
 // ─── MCP suggestions inbox ──────────────────────────────────────────────
 
 export function InboxPanel({ editor, docId, onCount }: { editor: Editor; docId: string; onCount: (n: number) => void }) {
+  const t = useT();
   const [items, setItems] = useState<Suggestion[]>([]);
+  // Copy only copies: the suggestion stays until the writer applies or dismisses it
+  const [copied, setCopied] = useState<string | null>(null);
+  const copy = async (s: Suggestion) => {
+    try {
+      await navigator.clipboard.writeText(s.content);
+      setCopied(s.id);
+      setTimeout(() => setCopied((c) => (c === s.id ? null : c)), 1600);
+    } catch {
+      /* clipboard blocked: the text can still be selected and copied by hand */
+    }
+  };
   useEffect(() => {
     let alive = true;
     const load = () => store.listSuggestions(docId).then((s) => alive && (setItems(s), onCount(s.length)));
@@ -526,7 +538,7 @@ export function InboxPanel({ editor, docId, onCount }: { editor: Editor; docId: 
                 <span>{s.kind === "replace" ? "Replace" : s.kind === "comment" ? "Note" : "Insert"}</span>
               </div>
               {s.target_text && <p className="mb-1 text-xs text-muted line-through">{s.target_text}</p>}
-              <p className="whitespace-pre-wrap text-[14px] leading-relaxed" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
+              <p className="select-text whitespace-pre-wrap text-[14px] leading-relaxed" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
                 {s.content}
               </p>
               {s.note && <p className="mt-1.5 text-xs text-muted">{s.note}</p>}
@@ -536,8 +548,11 @@ export function InboxPanel({ editor, docId, onCount }: { editor: Editor; docId: 
                     <Check size={13} /> {s.kind === "replace" ? "Replace" : "Insert"}
                   </button>
                 )}
+                <button className="btn btn-ghost !px-2 !py-1 !text-xs" onClick={() => copy(s)} aria-live="polite">
+                  {copied === s.id ? <Check size={13} /> : <Copy size={13} />} {copied === s.id ? t("app.inbox.copied") : t("app.inbox.copy")}
+                </button>
                 <button className="btn btn-ghost !px-2 !py-1 !text-xs" onClick={() => act(s, false)}>
-                  <X size={13} /> Dismiss
+                  <X size={13} /> {t("app.inbox.dismiss")}
                 </button>
               </div>
             </li>

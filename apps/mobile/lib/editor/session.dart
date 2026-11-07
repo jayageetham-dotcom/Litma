@@ -53,6 +53,9 @@ class EditorSession extends ChangeNotifier {
   /// Styles text marks; set by the editor screen from the theme.
   MarkStyler styler = (m, b) => b;
 
+  /// Set by the editor screen: scroll a line into view and put the cursor there (Contents, Find).
+  void Function(TextBlock line)? reveal;
+
   // ── lines ──
 
   /// Every editable line, top to bottom (inside dialogues and cast entries too).
@@ -389,6 +392,304 @@ class EditorSession extends ChangeNotifier {
     _doc = _doc.copyWith(title: t);
     notifyListeners();
     saver.touch();
+  }
+
+  // ── text style, highlight, lists (the Format sheet) ──
+
+  String? styleAt(String attr) => current?.styleAt(attr);
+  String? get highlightAt => current?.highlightAt;
+
+  /// Text colour (a CSS colour) or font size ("14pt"); null goes back to automatic.
+  void setStyle(String attr, String? value) {
+    final c = current;
+    if (c == null) return;
+    c.setStyleAttr(attr, value);
+    notifyListeners();
+  }
+
+  void setHighlight(String? color) {
+    final c = current;
+    if (c == null) return;
+    c.setHighlight(color);
+    notifyListeners();
+  }
+
+  /// The writer's own font size at the cursor in pt, or the work's size when none is set.
+  double get fontSizeAt {
+    final own = double.tryParse((styleAt('fontSize') ?? '').replaceAll('pt', ''));
+    return own ?? ((settings['fontSize'] as num?)?.toDouble() ?? 12);
+  }
+
+  /// The list type the current line is in ('bulletList', 'orderedList') or null.
+  String? get listType {
+    final f = focused;
+    if (f == null) return null;
+    final g = groupOf(f);
+    return g != null && (g.type == 'bulletList' || g.type == 'orderedList') ? g.type : null;
+  }
+
+  bool get canList {
+    final f = focused;
+    if (f == null) return false;
+    final g = groupOf(f);
+    return (g == null && f.type == 'paragraph') || listType != null;
+  }
+
+  /// Make the current line a list item, switch the list's kind, or turn the list back into
+  /// body lines (pressing the same list button again), like the web's list buttons.
+  void toggleList(String type) {
+    final f = focused;
+    if (f == null || !canList) return;
+    _beforeChange();
+    final i = topIndexOf(f);
+    final g = groupOf(f);
+    if (g == null) {
+      // join a list of the same kind right above, else start one
+      final prev = i > 0 ? document.blocks[i - 1] : null;
+      final item = GroupBlock('listItem', {}, [f]);
+      if (prev is GroupBlock && prev.type == type) {
+        prev.children.add(item);
+        document.blocks.removeAt(i);
+      } else {
+        document.blocks[i] = GroupBlock(type, {}, [item]);
+      }
+    } else if (g.type != type) {
+      document.blocks[i] = GroupBlock(type, {...g.attrs}, g.children, extra: g.extra);
+    } else {
+      document.blocks.replaceRange(i, i + 1, [
+        for (final t in g.textChildren)
+          if (t.type == 'paragraph') t else TextBlock('paragraph', {}, text: t.text, marks: [...t.marks], atoms: {...t.atoms}),
+      ]);
+    }
+    focusLine(f, at: controllerFor(f).blockSelection.extentOffset);
+    _afterChange();
+  }
+
+  // ── writing-type tools ──
+
+  /// Essays and features: a footnote at the cursor (listed at the end on every app).
+  void insertFootnote(String text) {
+    final c = current;
+    if (c == null || text.trim().isEmpty) return;
+    _beforeChange();
+    c.insertAtom({'type': 'footnote', 'attrs': {'text': text.trim()}});
+    _afterChange();
+  }
+
+  /// Diary: today's date heading at the end (or go to today's entry), like the web's "New entry".
+  void appendDiaryEntry(String today) {
+    _beforeChange();
+    TextBlock? lastDate;
+    for (final b in document.blocks) {
+      if (b is TextBlock && b.type == 'styledBlock' && b.variant == 'dateline') lastDate = b;
+    }
+    if (lastDate != null && lastDate.text.trim() == today) {
+      final end = lines.last;
+      focusLine(end, at: end.text.length);
+      return;
+    }
+    final last = document.blocks.last;
+    if (last is TextBlock && last.type == 'paragraph' && last.isEmpty) document.blocks.removeLast();
+    final body = TextBlock('paragraph', {});
+    document.blocks.addAll([TextBlock('styledBlock', {'variant': 'dateline'}, text: today), body]);
+    focusLine(body, at: 0);
+    _afterChange();
+  }
+
+  /// Plays: add Story World characters to the cast list (names already there are skipped).
+  /// Returns how many were added.
+  int fillCastList(List<({String name, String? role})> people) {
+    final have = <String>{};
+    int? emptyAt;
+    var lastEnd = -1;
+    var headingEnd = -1;
+    for (var i = 0; i < document.blocks.length; i++) {
+      final b = document.blocks[i];
+      if (b is GroupBlock && b.type == 'castEntry') {
+        final kids = b.textChildren.toList();
+        final name = kids.isEmpty ? '' : kids.first.text.trim();
+        if (name.isNotEmpty) {
+          have.add(name);
+        } else if (kids.every((k) => k.text.trim().isEmpty)) {
+          emptyAt ??= i;
+        }
+        lastEnd = i + 1;
+      } else if (b is TextBlock && b.type == 'styledBlock' && b.variant == 'subhead' && RegExp('കഥാപാത്ര|cast', caseSensitive: false).hasMatch(b.text) && headingEnd < 0) {
+        headingEnd = i + 1;
+      }
+    }
+    final fresh = people.where((p) => p.name.trim().isNotEmpty && !have.contains(p.name.trim())).toList();
+    if (fresh.isEmpty) return 0;
+    _beforeChange();
+    final entries = [
+      for (final p in fresh)
+        GroupBlock('castEntry', {}, [TextBlock('castName', {}, text: p.name.trim()), TextBlock('castRole', {}, text: p.role?.trim() ?? '')]),
+    ];
+    if (emptyAt != null) {
+      document.blocks.replaceRange(emptyAt, emptyAt + 1, entries);
+    } else {
+      final f = focused;
+      final at = lastEnd >= 0 ? lastEnd : headingEnd >= 0 ? headingEnd : (f == null ? document.blocks.length : topIndexOf(f) + 1);
+      document.blocks.insertAll(at, entries);
+    }
+    _afterChange();
+    return fresh.length;
+  }
+
+  /// Screenplays: the scene the cursor is in, as [heading index, end index) of top-level blocks.
+  (int, int)? _currentScene() {
+    final heads = [for (var i = 0; i < document.blocks.length; i++) if (document.blocks[i] is TextBlock && document.blocks[i].type == 'sceneHeading') i];
+    if (heads.isEmpty) return null;
+    final f = focused;
+    final cursor = f == null ? 0 : topIndexOf(f);
+    final before = heads.where((h) => h <= cursor).length;
+    final k = before == 0 ? 0 : before - 1;
+    return (heads[k], k + 1 < heads.length ? heads[k + 1] : document.blocks.length);
+  }
+
+  bool get inScene => kind == DocKind.screenplay && _currentScene() != null;
+
+  /// Int./Ext. at the start of the scene heading, keeping the place name.
+  void setScenePlace(String prefix) {
+    final sc = _currentScene();
+    if (sc == null) return;
+    final h = document.blocks[sc.$1] as TextBlock;
+    _beforeChange();
+    final rest = h.text.replaceFirst(RegExp(r'^\s*(int\.?\s*/\s*ext\.?|int\.?|ext\.?)\s*/?\s*', caseSensitive: false), '');
+    final next = '$prefix$rest';
+    final c = controllerFor(h);
+    c.replaceRange(0, h.text.length, next);
+    focusLine(h, at: prefix.length);
+    _afterChange();
+  }
+
+  /// The scene's time line (പകൽ, രാത്രി…): filled in, or added after the heading.
+  void setSceneTime(String time) {
+    final sc = _currentScene();
+    if (sc == null) return;
+    _beforeChange();
+    TextBlock? t;
+    for (var i = sc.$1 + 1; i < sc.$2; i++) {
+      final b = document.blocks[i];
+      if (b is TextBlock && b.type == 'sceneTime') {
+        t = b;
+        break;
+      }
+    }
+    if (t == null) {
+      t = TextBlock('sceneTime', {});
+      document.blocks.insert(sc.$1 + 1, t);
+    }
+    controllerFor(t).replaceRange(0, t.text.length, time);
+    _afterChange();
+  }
+
+  /// The scene's cast line from the names that speak in it. Returns how many names were added.
+  int fillSceneCast() {
+    final sc = _currentScene();
+    if (sc == null) return 0;
+    final speakers = <String>[];
+    TextBlock? cast;
+    var timeAt = -1;
+    for (var i = sc.$1; i < sc.$2; i++) {
+      final b = document.blocks[i];
+      if (b is TextBlock && b.type == 'sceneCast') cast ??= b;
+      if (b is TextBlock && b.type == 'sceneTime' && timeAt < 0) timeAt = i;
+      if (b is GroupBlock && b.type == 'dialogue') {
+        final cue = b.textChildren.firstOrNull;
+        final name = (cue?.text ?? '').replaceAll(RegExp(r'\(.*?\)'), '').replaceAll(RegExp(r'[:：]\s*$'), '').trim();
+        if (name.isNotEmpty && !speakers.contains(name)) speakers.add(name);
+      }
+    }
+    final existing = cast == null ? <String>[] : cast.text.split(RegExp('[,$hardBreakChar\n]')).map((x) => x.trim()).where((x) => x.isNotEmpty).toList();
+    final fresh = speakers.where((x) => !existing.contains(x)).toList();
+    if (fresh.isEmpty) return 0;
+    _beforeChange();
+    final text = [...existing, ...fresh].join(hardBreakChar);
+    if (cast == null) {
+      cast = TextBlock('sceneCast', {});
+      document.blocks.insert(timeAt >= 0 ? timeAt + 1 : sc.$1 + 1, cast);
+    }
+    controllerFor(cast).replaceRange(0, cast.text.length, text);
+    _afterChange();
+    return fresh.length;
+  }
+
+  /// Insert page: a page of its own after the current line (page break, empty line, page
+  /// break), like the web's "+ Insert page".
+  void insertPage() {
+    final f = focused;
+    final i = f == null ? document.blocks.length - 1 : topIndexOf(f);
+    _beforeChange();
+    final blank = TextBlock('paragraph', {});
+    document.blocks.insertAll(i + 1, [OpaqueBlock({'type': 'pageBreak'}), blank, OpaqueBlock({'type': 'pageBreak'})]);
+    focusLine(blank, at: 0);
+    _afterChange();
+  }
+
+  // ── find, outline ──
+
+  /// Every place [term] appears, top to bottom.
+  List<({TextBlock line, int at})> find(String term, {bool caseSensitive = false}) {
+    if (term.isEmpty) return const [];
+    final needle = caseSensitive ? term : term.toLowerCase();
+    final out = <({TextBlock line, int at})>[];
+    for (final l in lines) {
+      final hay = caseSensitive ? l.text : l.text.toLowerCase();
+      var i = hay.indexOf(needle);
+      while (i >= 0) {
+        out.add((line: l, at: i));
+        i = hay.indexOf(needle, i + needle.length);
+      }
+    }
+    return out;
+  }
+
+  /// Select a found place (the editor has already brought its line into view).
+  void showMatch(TextBlock line, int at, int length) {
+    focused = line;
+    controllerFor(line).select(at, at + length);
+    notifyListeners();
+  }
+
+  /// Replace every place [term] appears with [text]; returns how many were replaced.
+  int replaceAll(String term, String text, {bool caseSensitive = false}) {
+    final hits = find(term, caseSensitive: caseSensitive);
+    if (hits.isEmpty) return 0;
+    _beforeChange();
+    // from the end of each line so earlier positions stay right
+    for (final h in hits.reversed) {
+      controllerFor(h.line).replaceRange(h.at, h.at + term.length, text);
+    }
+    _afterChange();
+    return hits.length;
+  }
+
+  /// The work's headings for the Contents sheet (same rules as the web's outline).
+  List<({TextBlock line, String label, int level})> outline() {
+    final en = settings['headingLabels'] == 'en';
+    final out = <({TextBlock line, String label, int level})>[];
+    var scene = 0, act = 0, dscene = 0, stanza = 0;
+    for (final b in document.blocks) {
+      if (b is! TextBlock) continue;
+      final text = b.plainText.trim();
+      final v = b.type == 'styledBlock' ? (b.variant ?? '') : '';
+      if (b.type == 'heading') {
+        out.add((line: b, label: text.isEmpty ? '—' : text, level: (b.attrs['level'] as num?)?.toInt() ?? 1));
+      } else if (b.type == 'sceneHeading') {
+        out.add((line: b, label: '${++scene}. ${text.isEmpty ? '—' : text}', level: 1));
+      } else if (v == 'act') {
+        dscene = 0;
+        out.add((line: b, label: '${en ? 'Act' : 'അങ്കം'} ${++act}${text.isEmpty ? '' : ': $text'}', level: 1));
+      } else if (v == 'scene') {
+        out.add((line: b, label: '${en ? 'Scene' : 'രംഗം'} ${++dscene}${text.isEmpty ? '' : ': $text'}', level: act > 0 ? 2 : 1));
+      } else if (v == 'stanza') {
+        out.add((line: b, label: '${++stanza}${text.isEmpty ? '' : '. $text'}', level: 2));
+      } else if (const {'title', 'chapter', 'subhead', 'part', 'dateline', 'references'}.contains(v) && text.isNotEmpty) {
+        out.add((line: b, label: text, level: v == 'subhead' || v == 'part' ? 2 : 1));
+      }
+    }
+    return out;
   }
 
   // ── tools (AI, inbox, dictionary, history) ──

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/akshara.dart';
+import '../core/metre.dart';
 import '../core/motion.dart';
 import '../core/theme.dart';
 import '../data/forms.dart';
@@ -141,7 +142,54 @@ class EditableLine extends StatelessWidget {
       ],
     );
 
+    // വൃത്തം: akshara count and the laghu (∪) / guru (–) pattern under each verse line
+    final verse = session.kind == DocKind.poem || session.kind == DocKind.lyrics;
+    final metre = verse && session.settings['showMetre'] == true && (block.type == 'paragraph' || block.variant == 'part') && block.text.trim().isNotEmpty;
+    if (metre) {
+      final a = aksharas(block.plainText);
+      return LineFrame(
+        look: look,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+          _affixed(withPrompt, look),
+          Text('${a.length} · ${a.map((x) => x.long ? '–' : '∪').join()}',
+              textAlign: look.align, maxLines: 1, overflow: TextOverflow.fade, softWrap: false, style: TextStyle(fontSize: 11, letterSpacing: 1, color: t.muted)),
+        ]),
+      );
+    }
     return LineFrame(look: look, child: _affixed(withPrompt, look));
+  }
+}
+
+/// The footnotes of a work in order, numbered (the web's Endnotes, "കുറിപ്പുകൾ").
+List<Json> footnotesOf(EditorSession s) => [
+      for (final l in s.lines)
+        for (final i in (l.atoms.keys.toList()..sort()))
+          if (l.atoms[i]!['type'] == 'footnote') l.atoms[i]!,
+    ];
+
+class Endnotes extends StatelessWidget {
+  const Endnotes({super.key, required this.notes, required this.style});
+  final List<Json> notes;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.c;
+    final em = style.fontSize ?? 16;
+    return Padding(
+      padding: EdgeInsets.only(top: em * 2),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Divider(color: t.line, height: 1),
+        SizedBox(height: em * 0.8),
+        Text('കുറിപ്പുകൾ', style: style.copyWith(fontWeight: FontWeight.w700)),
+        SizedBox(height: em * 0.4),
+        for (final (i, n) in notes.indexed)
+          Padding(
+            padding: EdgeInsets.only(bottom: em * 0.3),
+            child: Text('${i + 1}. ${n['attrs']?['text'] ?? ''}', style: style.copyWith(fontSize: em * 0.85)),
+          ),
+      ]),
+    );
   }
 }
 

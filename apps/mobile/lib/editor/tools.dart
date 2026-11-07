@@ -17,6 +17,7 @@ import '../core/i18n.dart';
 import '../core/motion.dart';
 import '../core/theme.dart';
 import '../data/ai.dart';
+import '../data/forms.dart' show DocKind, todayLine;
 import '../features/dictionary/dictionary_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/story/story_world_screen.dart';
@@ -24,6 +25,7 @@ import '../widgets/common.dart';
 import 'document.dart';
 import 'export.dart';
 import 'session.dart';
+import 'work_tools.dart';
 
 /// The editor's tools, as tinted tiles (the web's phone "More" sheet: each tool keeps its own tint).
 Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s) async {
@@ -35,19 +37,32 @@ Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s
     (LucideIcons.inbox, context.t('app.tools.inbox'), c.tintViolet, () => showInboxSheet(context, ref, s)),
     (LucideIcons.history, context.t('app.tools.history'), c.tintSky, () => showHistorySheet(context, ref, s)),
     (LucideIcons.share2, context.t('app.tools.share'), c.tintCoral, () => showShareSheet(context, ref, s)),
+    (LucideIcons.a, context.t('app.tools.format'), c.tintViolet, () => showFormatSheet(context, s)),
+    (LucideIcons.list, context.t('app.tools.outline'), c.tintSky, () => showOutlineSheet(context, s)),
+    (LucideIcons.search, context.t('app.tools.find'), c.tintTangerine, () => showFindSheet(context, s)),
+    (LucideIcons.bookmark, context.t('saved.title'), c.tintLime, () => showSavedWordsSheet(context, ref, s)),
+    (LucideIcons.ruler, context.t('app.tools.page'), c.tintCoral, () => showPageSetupSheet(context, s)),
+    (LucideIcons.fileText, context.t('editor.pages.tile'), c.tintSky, () => showPagesPreview(context, s)),
+    (LucideIcons.plus, context.t('editor.insertPage'), c.tintLime, s.insertPage),
+    // each writing type's own tools, as on the web toolbar
+    if (s.kind == DocKind.essay || s.kind == DocKind.feature) (LucideIcons.superscript, context.t('editor.footnote.add'), c.tintViolet, () => showFootnoteDialog(context, s)),
+    if (s.kind == DocKind.drama) (LucideIcons.users, context.t('editor.drama.fillCast'), c.tintCoral, () => fillCastFromStory(context, ref, s)),
+    if (s.kind == DocKind.screenplay) (LucideIcons.drama, context.t('editor.scene.tools'), c.tintTangerine, () => showSceneSheet(context, s)),
+    if (s.kind == DocKind.diary) (LucideIcons.calendarDays, context.t('editor.diary.newEntry'), c.tintSky, () => s.appendDiaryEntry(todayLine(DateTime.now()))),
   ];
   await showModalBottomSheet<void>(
     context: context,
+    isScrollControlled: true,
     builder: (sheet) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheet).height * 0.8),
         child: GridView.count(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           crossAxisCount: 3,
           shrinkWrap: true,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
           childAspectRatio: 1.05,
-          physics: const NeverScrollableScrollPhysics(),
           children: [
             for (final (i, (icon, label, tint, run)) in tools.indexed)
               FadeSlideIn(

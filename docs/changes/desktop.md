@@ -8,8 +8,23 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 
 - **Release needed** for the 2026-11-07 web changes (inbox Copy keeps the suggestion,
   selectable inbox text, Manglish word finishing when the cursor leaves it, empty line as a
-  section break in novels and stories).
-- Not yet driven in Electron with Playwright (`_electron.launch`, see CLAUDE.md).
+  section break in novels and stories, Book details and cover labels in Malayalam, in-app
+  confirm dialogs) and to publish the first Linux AppImage.
+- Installers are unsigned until the signing secrets exist (see cross-platform.md).
+- In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
+  from an open editor, was aborted; in-app clicks work. Use clicks in tests.
+
+## 2026-11-07: Electron check (PR #6)
+
+- Drove the local-mode desktop build with Playwright's `_electron.launch` under `xvfb-run`
+  (pass `executablePath: node_modules/electron/dist/electron`): desk → new story → Manglish typing
+  converts; Books → New book opens the book page with Book details, Page & type and sample values;
+  no page errors.
+
+## 2026-11-07: Linux (PR #4)
+
+- `electron-builder.yml` and `desktop.yml` build `Litma-<v>-linux.AppImage` (x64), listed in
+  `latest.json`; `src/updater.ts` replaces the AppImage in place and reopens it.
 
 ## 2026-11-07
 

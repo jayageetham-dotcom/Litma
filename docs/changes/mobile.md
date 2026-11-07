@@ -5,10 +5,45 @@ Reaches writers only through store builds. Cross-app summary and open items:
 
 ## Open items
 
-- The 2026-11-07 changes were written in a session without the Flutter SDK; `flutter analyze`
-  and `flutter test` ran in CI (`mobile.yml`) only. Try them on a real iPhone: inbox Copy and
-  selection, the inbox tool in the keyboard bar, the scrolling suggestion row, and a Manglish
-  word typed mid-line converting when you tap elsewhere.
+- Sessions without the Flutter SDK (the cloud sandbox can't download it) rely on CI: `flutter
+  analyze` (infos fail it too), `flutter test`, and the screenshots job, whose pictures are on the
+  `ci/phone-screens` branch (`git fetch origin ci/phone-screens`).
+- Try on a real iPhone and Android phone: everything from 2026-11-07 (inbox, keyboard strip,
+  suggestion row, mid-line Manglish, desk keyboard, editor tools from #5, cover designer, book
+  PDFs, Book details, statistics reaching /admin/).
+- The phone can't edit book pages that carry formatting (shown read-only with a note), and
+  can't upload pictures (uploads are off everywhere for now).
+
+## 2026-11-07: cover designer, book details, book PDFs, statistics (PR #6)
+
+- `lib/features/books/cover.dart`: covers drawn like the web's CoverFront/CoverBack in the same
+  210 × 297 mm space (layouts, presets, backgrounds, frame, effects, divider, badge, publisher
+  mark, back cover with author picture, imprint strip and EAN-13 barcode), `bookSamples`,
+  `isbn13`. `forPrint` decodes the background at full size.
+- `lib/features/books/cover_designer.dart`: the designer screen (cover stays in view; tap a text
+  to size it, drag to move; tools scroll below), `pickCoverColour`.
+- `lib/features/books/book_screen.dart`: real cover on the desk card and book screen, Contents /
+  Book details tabs, page editing sheet (plain text only; formatted pages read-only), Add page,
+  export sheet, sample values on open, a cleared field stays empty.
+- `lib/features/books/book_export.dart`: `bookInteriorHtml` (pages like `lib/book-sections.ts`),
+  `buildCoverPdf` (draws both covers at 1748 px wide and writes a two-page PDF with the `pdf`
+  package), `bookPageFormat`, `showBookPdf`.
+- `lib/editor/export.dart`: `docBodyHtml` and `exportCss` shared by works and books; empty line =
+  section break (`p.gap`), footnotes numbered and listed, lists, super/subscript.
+  `lib/editor/pdf_fonts.dart` embeds the bundled fonts in PDFs.
+- `lib/widgets/script_field.dart` (മലയാളം / As typed); `toMalayalam` moved to `core/manglish.dart`.
+- `lib/data/analytics.dart`: statistics like the web (`Analytics.screen/track/tap/input`), started
+  in `main.dart`, Settings switch, events from `store.dart`, `dictionary.dart`, `auth.dart`,
+  exports and the editor's tools sheet.
+- `assets/covers/*.jpg` re-rendered at 1500 × 2220 (`scripts/render-mobile-covers.py`);
+  `assets/fonts/covers/` holds the SMC and other title fonts (OFL).
+- Tests: `test/books_test.dart`; screenshots for the designer, presets sheet and Book details.
+
+## 2026-11-07: editor tools (PR #5)
+
+- `lib/editor/work_tools.dart` (format, contents, find, saved words, page setup, Pages preview,
+  footnote dialog, cast list, scene tools), `lib/core/metre.dart`, session tools in
+  `session.dart`; tests in `test/tools_test.dart`.
 
 ## 2026-11-07: empty line is a section break
 

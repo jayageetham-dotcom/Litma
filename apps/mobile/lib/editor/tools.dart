@@ -37,7 +37,7 @@ Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s
     (LucideIcons.inbox, context.t('app.tools.inbox'), c.tintViolet, () => showInboxSheet(context, ref, s)),
     (LucideIcons.history, context.t('app.tools.history'), c.tintSky, () => showHistorySheet(context, ref, s)),
     (LucideIcons.share2, context.t('app.tools.share'), c.tintCoral, () => showShareSheet(context, ref, s)),
-    (LucideIcons.a, context.t('app.tools.format'), c.tintViolet, () => showFormatSheet(context, s)),
+    (LucideIcons.palette, context.t('app.tools.format'), c.tintViolet, () => showFormatSheet(context, s)),
     (LucideIcons.list, context.t('app.tools.outline'), c.tintSky, () => showOutlineSheet(context, s)),
     (LucideIcons.search, context.t('app.tools.find'), c.tintTangerine, () => showFindSheet(context, s)),
     (LucideIcons.bookmark, context.t('saved.title'), c.tintLime, () => showSavedWordsSheet(context, ref, s)),

@@ -106,7 +106,9 @@ class _FormatSheet extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: on ? c.accent : c.lineStrong, width: on ? 2.5 : 1),
             ),
-            child: hex == null ? Icon(highlight ? LucideIcons.ban : LucideIcons.a, size: 16, color: c.muted) : null,
+            child: hex == null
+                ? (highlight ? Icon(LucideIcons.ban, size: 16, color: c.muted) : Center(child: Text('A', style: TextStyle(fontWeight: FontWeight.w700, color: c.ink))))
+                : null,
           ),
         );
 
@@ -493,6 +495,7 @@ Future<void> showPagesPreview(BuildContext context, EditorSession s) {
         allowSharing: false,
         allowPrinting: true,
         pdfFileName: '${s.title}.pdf',
+        // ignore: deprecated_member_use
         build: (format) => Printing.convertHtml(format: format, html: docToHtml(s.document, title: s.title, kind: s.kind, settings: s.settings)),
       ),
     ),

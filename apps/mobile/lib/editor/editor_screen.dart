@@ -454,7 +454,7 @@ class _KeyboardBarState extends State<_KeyboardBar> {
                 _Tool(icon: LucideIcons.strikethrough, label: context.t('app.editor.strike'), active: s.markActive('strike'), onTap: () => s.toggleMark('strike')),
                 // size, colour, highlight, lists: the full Format sheet (the web's "All formatting")
                 _Tool(
-                  icon: LucideIcons.a,
+                  icon: LucideIcons.palette,
                   label: context.t('app.tools.format'),
                   tint: c.tintViolet,
                   onTap: () {

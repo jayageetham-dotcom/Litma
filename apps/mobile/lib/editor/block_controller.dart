@@ -27,11 +27,16 @@ class BlockController extends TextEditingController {
     required this.onMergeBack,
     required this.onChanged,
     this.mode = InputMode.manglish,
+    this.spelling,
   }) : super.fromValue(TextEditingValue(text: '$sentinel${block.text}', selection: TextSelection.collapsed(offset: block.text.length + 1)));
 
   final TextBlock block;
   MarkStyler styler;
   InputMode mode;
+
+  /// The spelling the suggestion strip shows first for [word] (Google's best when it has
+  /// answered), so a space takes what the writer sees. Null: the offline engine decides.
+  final String? Function(String word)? spelling;
 
   /// Enter at [at] (position in the block's text). The editor splits the block.
   final void Function(BlockController c, int at) onSplit;
@@ -142,7 +147,7 @@ class BlockController extends TextEditingController {
         if (keepEnglish == word) {
           keepEnglish = null;
         } else {
-          final ml = manglishWord(word);
+          final ml = spelling?.call(word) ?? manglishWord(word);
           final start = end - word.length;
           final marksOfWord = block.marks[start];
           _replace(start, end, ml, marksOfWord);

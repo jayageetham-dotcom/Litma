@@ -33,6 +33,9 @@ class EditorSession extends ChangeNotifier {
 
   late EditorDocument document;
   late InputMode mode;
+
+  /// Set by the editor screen: the best spelling it is showing for a Manglish word.
+  String? Function(String word)? spelling;
   late final DocSaver saver;
 
   /// New works stay pristine until the writer types; pristine works are discarded on close.
@@ -60,7 +63,7 @@ class EditorSession extends ChangeNotifier {
 
   BlockController controllerFor(TextBlock b) => _controllers.putIfAbsent(
         b,
-        () => BlockController(block: b, styler: styler, mode: mode, onSplit: _onSplit, onMergeBack: _onMergeBack, onChanged: _onChanged),
+        () => BlockController(block: b, styler: styler, mode: mode, spelling: (w) => spelling?.call(w), onSplit: _onSplit, onMergeBack: _onMergeBack, onChanged: _onChanged),
       );
 
   FocusNode focusFor(TextBlock b) => _focus.putIfAbsent(b, () {

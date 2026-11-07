@@ -38,7 +38,7 @@ export function HowItWorks() {
         </div>
 
         <div className="mt-14 grid gap-5 md:grid-cols-6">
-          <Card className="md:col-span-3" fill="bg-violet" dark title="Pick the right word" body="Type Manglish; Litma offers the Malayalam spellings as you go. Space takes the first, 1–7 picks another.">
+          <Card className="md:col-span-3" fill="bg-violet" dark title="Pick the right word" body="Type Manglish; Litma offers the Malayalam spellings as you go. Space takes the first, 1–3 picks another.">
             <div className="mx-auto max-w-xs">
               <div className="rounded-2xl bg-night px-4 py-3 font-mono text-sm text-lime">
                 nammude

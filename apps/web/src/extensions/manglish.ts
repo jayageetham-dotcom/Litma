@@ -27,6 +27,20 @@ export interface CommitInfo {
 
 export const manglishKey = new PluginKey<ComposeState>("manglish");
 
+/** How many spellings the writer is offered: the closest few, so the list never covers the page. */
+export const MAX_CANDIDATES = 3;
+
+/** Best first, no repeats, at most MAX_CANDIDATES. */
+export function topCandidates(list: string[]): string[] {
+  const out: string[] = [];
+  for (const c of list) {
+    const w = c?.trim();
+    if (w && !out.includes(w)) out.push(w);
+    if (out.length === MAX_CANDIDATES) break;
+  }
+  return out;
+}
+
 const EMPTY: ComposeState = { active: false, dismissed: false, from: 0, to: 0, word: "", candidates: [], index: 0, fetched: false };
 
 declare module "@tiptap/core" {
@@ -196,7 +210,7 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
             const meta = tr.getMeta(manglishKey);
             if (meta?.reset) return computeCompose(newState, EMPTY, ext.storage.mode);
             if (meta?.candidates && prev.active && meta.word === prev.word) {
-              return { ...prev, candidates: meta.candidates, index: 0, fetched: true };
+              return { ...prev, candidates: topCandidates(meta.candidates), index: 0, fetched: true };
             }
             if (typeof meta?.index === "number") return { ...prev, index: meta.index };
             if (meta?.dismiss) return { ...prev, dismissed: true };

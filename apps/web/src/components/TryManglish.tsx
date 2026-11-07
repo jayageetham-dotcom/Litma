@@ -190,7 +190,7 @@ export function TryManglish() {
                       </span>
                     ))}
                     <span className="block px-2 pb-0.5 pt-1 text-[10px] font-semibold text-muted" style={{ fontFamily: "var(--font-landing)" }}>
-                      Space picks 1 · 1–7 picks another
+                      Space picks 1 · 1–3 picks another
                     </span>
                   </span>
                 )}

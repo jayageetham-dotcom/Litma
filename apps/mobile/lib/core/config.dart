@@ -25,11 +25,14 @@ class Transliterator {
   final http.Client _client;
   final _cache = <String, List<String>>{};
 
+  /// How many spellings the writer is offered: the closest few, best first (same as the web).
+  static const maxCandidates = 3;
+
   /// Offline candidate, immediately.
   List<String> offline(String word) => [manglishWord(word)];
 
-  Future<List<String>> candidates(String word, {int num = 6}) async {
-    final hit = _cache[word];
+  Future<List<String>> candidates(String word, {int num = maxCandidates}) async {
+    final hit = _cache['$num/$word'];
     if (hit != null) return hit;
     final local = manglishWord(word);
     try {
@@ -39,9 +42,10 @@ class Transliterator {
       if (r.statusCode != 200) return [local];
       final j = jsonDecode(r.body) as Map<String, dynamic>;
       final list = ((j['candidates'] as List?) ?? const []).cast<String>();
-      final out = <String>[...list, if (!list.contains(local)) local];
+      // Google's ranking first; the offline guess only fills a gap, never more than [num]
+      final out = <String>{...list.map((e) => e.trim()).where((e) => e.isNotEmpty), local}.take(num).toList();
       if (_cache.length > 400) _cache.clear();
-      return _cache[word] = out;
+      return _cache['$num/$word'] = out;
     } catch (_) {
       return [local];
     }

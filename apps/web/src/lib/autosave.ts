@@ -79,13 +79,17 @@ export class DocSaver {
   touch() {
     this.version++;
     this.o.onStatus("dirty");
-    // journal: write now, then at most every 200 ms while typing continues
+    // journal: about once a second while typing, in the browser's idle time. Serialising a long
+    // work inside a keystroke made typing stutter; closing the tab or leaving still writes at once.
     if (!this.journalTimer) {
-      this.writeJournal();
       this.journalTimer = setTimeout(() => {
-        this.journalTimer = null;
-        if (this.unsaved) this.writeJournal();
-      }, 200);
+        const write = () => {
+          this.journalTimer = null;
+          if (this.unsaved && !this.disposed) this.writeJournal();
+        };
+        if (typeof requestIdleCallback === "function") requestIdleCallback(write, { timeout: 1000 });
+        else write();
+      }, 800);
     }
     if (this.debounce) clearTimeout(this.debounce);
     this.debounce = setTimeout(() => this.flush(), 900);

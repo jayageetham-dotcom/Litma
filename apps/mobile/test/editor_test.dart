@@ -180,6 +180,19 @@ void main() {
       expect(c.block.text, 'എന്റെ നാദു ');
       expect(c.blockSelection.extentOffset, c.block.text.length);
     });
+    test('the space takes the spelling the suggestion strip shows first', () {
+      final c = BlockController(
+        block: TextBlock('paragraph', {}),
+        styler: _styler,
+        spelling: (w) => w == 'naadu' ? 'നാട്' : null,
+        onSplit: (c, at) {},
+        onMergeBack: (c) {},
+        onChanged: (c, {required textChanged}) {},
+      );
+      type(c, 'ente naadu ');
+      expect(c.block.text, 'എന്റെ നാട് ');
+      expect(c.blockSelection.extentOffset, c.block.text.length);
+    });
     test('"Keep English" leaves the word as typed', () {
       final c = _controller(TextBlock('paragraph', {}));
       type(c, 'Litma');

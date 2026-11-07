@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../app/providers.dart';
+import '../core/config.dart';
 import '../core/i18n.dart';
 import '../core/manglish.dart';
 import '../core/motion.dart';
@@ -123,15 +124,20 @@ class _EditorState extends ConsumerState<_Editor> {
   void initState() {
     super.initState();
     s.addListener(_changed);
+    s.spelling = (word) => _best[word];
   }
 
   @override
   void dispose() {
     s.removeListener(_changed);
+    s.spelling = null;
     _suggestTimer?.cancel();
     _scroll.dispose();
     super.dispose();
   }
+
+  /// Best spelling per word once Google has answered, so a space takes what the strip shows.
+  final _best = <String, String>{};
 
   void _changed() {
     final word = s.current?.wordAtCursor;
@@ -141,10 +147,15 @@ class _EditorState extends ConsumerState<_Editor> {
       if (word == null) {
         _candidates = const [];
       } else {
-        _candidates = [manglishWord(word)];
+        final known = _best[word];
+        _candidates = [known ?? manglishWord(word)];
         _suggestTimer = Timer(const Duration(milliseconds: 140), () async {
           final list = await ref.read(servicesProvider).transliterator.candidates(word);
-          if (mounted && _word == word) setState(() => _candidates = list.take(6).toList());
+          if (list.isNotEmpty) {
+            if (_best.length > 300) _best.clear();
+            _best[word] = list.first;
+          }
+          if (mounted && _word == word) setState(() => _candidates = list.take(Transliterator.maxCandidates).toList());
         });
       }
     }
@@ -377,12 +388,6 @@ class _KeyboardBar extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(border: Border(top: BorderSide(color: c.line))),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          AnimatedSize(
-            duration: Motion.of(context, Motion.fast),
-            curve: Motion.emphasized,
-            alignment: Alignment.topCenter,
-            child: word == null ? const SizedBox(width: double.infinity) : _Suggestions(session: s, word: word!, candidates: candidates),
-          ),
           SizedBox(
             height: 50,
             child: ListView(
@@ -415,65 +420,88 @@ class _KeyboardBar extends StatelessWidget {
               ],
             ),
           ),
+          // right on top of the keyboard, where a phone keyboard shows its own suggestions; the row
+          // stays while Manglish is on so the tools above don't jump at every word
+          AnimatedSize(
+            duration: Motion.of(context, Motion.fast),
+            curve: Motion.emphasized,
+            alignment: Alignment.bottomCenter,
+            child: s.mode == InputMode.manglish
+                ? _Suggestions(session: s, word: word, candidates: candidates)
+                : const SizedBox(width: double.infinity),
+          ),
         ]),
       ),
     );
   }
 }
 
+/// Malayalam spellings for the word being typed, laid out like a phone keyboard's suggestion
+/// row: the word as typed in quotes (keeps English), then the closest three, best one marked.
 class _Suggestions extends StatelessWidget {
   const _Suggestions({required this.session, required this.word, required this.candidates});
   final EditorSession session;
-  final String word;
+  final String? word;
   final List<String> candidates;
 
   @override
   Widget build(BuildContext context) {
     final c = context.c;
     final ctrl = session.current;
-    return SizedBox(
+    final w = word;
+    final list = w == null ? const <String>[] : candidates.take(Transliterator.maxCandidates).toList();
+    return Container(
       height: 46,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
-        children: [
-          for (final (i, cand) in candidates.indexed)
-            FadeSlideIn(
-              key: ValueKey('$word/$cand'),
-              index: i,
-              offset: 6,
-              duration: Motion.medium,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Pressable(
-                  onTap: () => ctrl?.replaceWordAtCursor(word, cand),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: c.line))),
+      child: w == null
+          ? const SizedBox.shrink()
+          : Row(children: [
+              Pressable(
+                semanticLabel: context.t('manglish.keepEnglishAria', {'word': w}),
+                onTap: () {
+                  ctrl?.keepEnglish = w;
+                  ctrl?.replaceWordAtCursor(w, w);
+                },
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.3),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: i == 0 ? c.accentSoft : c.subtle,
-                      borderRadius: BorderRadius.circular(8),
-                      border: i == 0 ? Border.all(color: c.accent.withValues(alpha: 0.35)) : null,
-                    ),
-                    child: Text(cand, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 17, fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w500, color: i == 0 ? c.optionSelectedInk : c.ink)),
+                    child: Text('“$w”', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15.5, color: c.muted)),
                   ),
                 ),
               ),
-            ),
-          Pressable(
-            onTap: () {
-              ctrl?.keepEnglish = word;
-              ctrl?.replaceWordAtCursor(word, word);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: c.line)),
-              child: Text('${context.t('app.editor.keepEnglish')} · $word', style: TextStyle(fontSize: 13.5, color: c.muted, fontWeight: FontWeight.w500)),
-            ),
-          ),
-        ],
-      ),
+              for (final (i, cand) in list.indexed)
+                Expanded(
+                  child: FadeSlideIn(
+                    key: ValueKey('$w/$cand'),
+                    index: i,
+                    offset: 4,
+                    duration: Motion.medium,
+                    child: Pressable(
+                      semanticLabel: cand,
+                      onTap: () => ctrl?.replaceWordAtCursor(w, cand),
+                      child: AnimatedContainer(
+                        duration: Motion.of(context, Motion.fast),
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: i == 0 ? c.accentSoft : Colors.transparent, borderRadius: BorderRadius.circular(9)),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(cand, maxLines: 1, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 17, fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w500, color: i == 0 ? c.optionSelectedInk : c.ink)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              // keep three slots so the row doesn't reflow while Google's answer arrives
+              for (var i = list.length; i < Transliterator.maxCandidates; i++) const Expanded(child: SizedBox()),
+            ]),
     );
   }
 }

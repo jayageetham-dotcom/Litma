@@ -33,7 +33,8 @@ import { buildExtensions } from "./extensions";
 import { MobileFormatStrip, MobileSelectionBar, Toolbar } from "./Toolbar";
 import { keepSelectionNow } from "@/extensions/keep-selection";
 import { useT } from "@/i18n/react";
-import { TextSelection } from "@tiptap/pm/state";
+import { TextSelection, type Transaction } from "@tiptap/pm/state";
+import { ReplaceStep } from "@tiptap/pm/transform";
 import { Sheet } from "@/components/ui/Sheet";
 import { useKeyboardInset, useScreen } from "@/lib/useLayout";
 import { ManglishPopup } from "./ManglishPopup";
@@ -172,7 +173,11 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     editorProps: {
       attributes: { spellcheck: "false", "aria-label": `${template.en} manuscript`, lang: "ml" },
     },
+    // Re-rendering this whole shell (toolbar, rail, panels) on every keystroke made typing lag
+    // on slower computers; `useToolbarRefresh` below refreshes it at the right moments instead.
+    shouldRerenderOnTransaction: false,
   });
+  useToolbarRefresh(editor);
 
   // ── persistence ──
   const persist = useCallback(async (patch: Partial<LitmaDoc>) => {
@@ -594,6 +599,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     const { to } = editor.state.selection;
     editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, to)));
   };
+  // phones while writing: the keyboard accessory strip is on screen and carries the Manglish suggestions
+  const keyboardStrip = phone && !focus && editing;
   const showSelectionBar = phone && !focus && !!editor && !editor.state.selection.empty && !panel && !phoneSheet && !storyOpen;
 
   return (
@@ -694,7 +701,16 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           <main
             ref={deskRef}
             className={`desk-scroll scrollbar-thin relative min-w-0 flex-1 overflow-auto bg-canvas ${phone ? "px-2 pb-6 pt-3" : "px-4 py-8"}`}
-            onClick={(e) => e.target === e.currentTarget && editor?.commands.focus("end")}
+            // A click beside the page or in its margins puts the cursor on that line (like Google Docs),
+            // instead of throwing it to the end of the work.
+            onMouseDown={(e) => {
+              const el = e.target as HTMLElement;
+              if (!editor || e.button !== 0 || editor.view.dom.contains(el)) return;
+              if (el !== e.currentTarget && !el.classList.contains("page-wrap") && !el.closest(".page-stack")) return;
+              if (el.closest("button, a, input, textarea")) return;
+              e.preventDefault();
+              caretNear(editor, e.clientX, e.clientY);
+            }}
           >
             {findOpen && editor && <FindBar editor={editor} onClose={() => setFindOpen(false)} />}
             {recovered && editor && (
@@ -716,7 +732,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 </button>
               </div>
             )}
-            <div style={pageless ? undefined : { height: totalH * zoom + 4, width: `calc(${pageSize.w}mm * ${zoom})` }} className="mx-auto">
+            <div style={pageless ? undefined : { height: totalH * zoom + 4, width: `calc(${pageSize.w}mm * ${zoom})` }} className="page-wrap mx-auto">
               <div
                 className={`page-stack ${docClasses(initial.kind, settings)} ${metreOn ? "show-metre" : ""} ${focus ? "focus-mode" : ""} ${pageless ? "pageless" : ""}`}
                 style={{ ...stackStyle, transformOrigin: "top left" }}
@@ -759,7 +775,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                   ))}
               </div>
             </div>
-            {editor && <ManglishPopup editor={editor} />}
+            {/* phones show the suggestions on the keyboard strip instead (below) */}
+            {editor && !keyboardStrip && <ManglishPopup editor={editor} />}
             {editor && usesCues && <CueSuggest editor={editor} names={castNames} />}
             {editor && template.footnotes && <FootnoteDialog editor={editor} bottomOffset={phone ? kb : 0} />}
             {notice && (
@@ -874,6 +891,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             onLookUp={() => openWithSelection("dict")}
             onAskAI={() => openWithSelection("ai")}
           />
+          {/* right on top of the keyboard, where a phone keyboard shows its own suggestions */}
+          <ManglishPopup editor={editor} docked />
         </div>
       ) : (
         <div className="relative">
@@ -936,6 +955,55 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       )}
     </div>
   );
+}
+
+/** Put the cursor at the text nearest to a point beside or around the page, without scrolling. */
+function caretNear(editor: Editor, x: number, y: number) {
+  const { view } = editor;
+  const box = view.dom.getBoundingClientRect();
+  const left = Math.min(Math.max(x, box.left + 1), box.right - 1);
+  const top = Math.min(Math.max(y, box.top + 1), box.bottom - 1);
+  const hit = view.posAtCoords({ left, top });
+  const doc = view.state.doc;
+  const sel = hit ? TextSelection.near(doc.resolve(Math.min(hit.pos, doc.content.size))) : TextSelection.atEnd(doc);
+  if (!view.state.selection.eq(sel)) view.dispatch(view.state.tr.setSelection(sel));
+  view.focus();
+}
+
+/**
+ * Re-render the editor shell so the toolbar shows the current marks, block type and undo state.
+ * Clicks, arrow keys and formatting refresh on the next frame; plain typing waits for a short
+ * pause, so a keystroke only costs ProseMirror's own work.
+ */
+function useToolbarRefresh(editor: Editor | null) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!editor) return;
+    let frame = 0;
+    let idle: ReturnType<typeof setTimeout> | undefined;
+    const now = () => {
+      clearTimeout(idle);
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setTick((n) => n + 1));
+    };
+    const onTx = ({ transaction: tr }: { transaction: Transaction }) => {
+      // typing, Enter and Backspace only replace text; marks, block types and attributes use other steps
+      const typing = tr.docChanged && tr.selection.empty && tr.steps.every((s) => s instanceof ReplaceStep);
+      if (!typing) return now();
+      clearTimeout(idle);
+      idle = setTimeout(now, 180);
+    };
+    editor.on("transaction", onTx);
+    editor.on("focus", now);
+    editor.on("blur", now);
+    return () => {
+      editor.off("transaction", onTx);
+      editor.off("focus", now);
+      editor.off("blur", now);
+      clearTimeout(idle);
+      cancelAnimationFrame(frame);
+    };
+  }, [editor]);
 }
 
 function TabBtn({ icon: Icon, label, active, onClick, badge = 0 }: { icon: React.ComponentType<{ size?: number }>; label: string; active: boolean; onClick: () => void; badge?: number }) {

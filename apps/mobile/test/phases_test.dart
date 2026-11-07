@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:litma/app/update_check.dart';
+import 'package:litma/core/config.dart';
 import 'package:litma/data/dictionary.dart';
 import 'package:litma/data/fake.dart';
 import 'package:litma/data/forms.dart';
@@ -140,5 +141,12 @@ void main() {
     await store.updateBook(b.id, {'structure': [...b.structure, {'id': 'x', 'type': 'document', 'documentId': 'd1'}]});
     expect((await store.getBook(b.id))!.chapters, 1);
     o.dispose();
+  });
+
+  test('Malayalam suggestions: the closest three, best first, no repeats', () async {
+    final t = Transliterator(client: MockClient((req) async => http.Response(jsonEncode({'candidates': ['എന്ന്', 'എന്നു', 'എന്ന്', 'ഇന്ന്', 'ഇന്നു', 'എന്ന'], 'source': 'google'}), 200, headers: {'content-type': 'application/json; charset=utf-8'})));
+    final list = await t.candidates('ennu');
+    expect(list, ['എന്ന്', 'എന്നു', 'ഇന്ന്']);
+    expect(Transliterator.maxCandidates, 3);
   });
 }

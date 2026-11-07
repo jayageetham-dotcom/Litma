@@ -100,7 +100,7 @@ Future<Services> services({bool signedIn = true, bool withWorks = true, bool off
 
 class _NoNetTransliterator extends Transliterator {
   @override
-  Future<List<String>> candidates(String word, {int num = 6}) async => [...offline(word), '${offline(word).first}ം'];
+  Future<List<String>> candidates(String word, {int num = Transliterator.maxCandidates}) async => [...offline(word), '${offline(word).first}ം'];
 }
 
 Future<Map<String, dynamic>> _json(String path) async => (jsonDecode(File(path).readAsStringSync()) as Map).cast<String, dynamic>();

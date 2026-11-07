@@ -7,7 +7,6 @@ import '../../core/i18n.dart';
 import '../../core/keyboard.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
-import '../../data/forms.dart' show Json;
 import '../../data/models.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/common.dart';

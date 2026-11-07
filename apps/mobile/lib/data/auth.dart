@@ -10,6 +10,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'backend.dart';
+import 'analytics.dart';
 
 /// The signed-in writer as the app needs it.
 @immutable
@@ -96,7 +97,7 @@ class SupabaseAuth implements AuthGateway {
   }
 
   @override
-  Future<void> signIn(String email, String password) => _guard(() => client.auth.signInWithPassword(email: email.trim(), password: password));
+  Future<void> signIn(String email, String password) => _guard(() => client.auth.signInWithPassword(email: email.trim(), password: password)).then((_) => Analytics.track('sign_in', {'method': 'password'}));
 
   @override
   Future<bool> signUp(String email, String password, {String? name}) => _guard(() async {
@@ -113,7 +114,7 @@ class SupabaseAuth implements AuthGateway {
   Future<void> resetPassword(String email) => _guard(() => client.auth.resetPasswordForEmail(email.trim(), redirectTo: authRedirect));
 
   @override
-  Future<void> signInWithGoogle() => _guard(() => client.auth.signInWithOAuth(OAuthProvider.google, redirectTo: authRedirect));
+  Future<void> signInWithGoogle() => _guard(() => client.auth.signInWithOAuth(OAuthProvider.google, redirectTo: authRedirect)).then((_) => Analytics.track('sign_in', {'method': 'google'}));
 
   @override
   bool get appleAvailable => !kIsWeb && Platform.isIOS;

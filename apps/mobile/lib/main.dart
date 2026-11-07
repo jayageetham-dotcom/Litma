@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +15,7 @@ import 'data/backend.dart';
 import 'data/local_db.dart';
 import 'data/offline.dart';
 import 'data/store.dart';
+import 'data/analytics.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +31,9 @@ Future<void> main() async {
   final auth = SupabaseAuth(client, prefs);
   final offline = OfflineLayer(db: db, backend: SupabaseBackend(client), uid: () => auth.writer?.id);
   final services = Services(auth: auth, offline: offline, store: Store(offline), prefs: prefs, messages: messages)..watchNetwork();
+
+  // usage statistics (switch in Settings); sends nothing outside iOS and Android
+  unawaited(Analytics.start(prefs: prefs, token: auth.accessToken, english: messages['en'] ?? const {}));
 
   runApp(ProviderScope(overrides: [servicesProvider.overrideWithValue(services)], child: const LitmaApp()));
 }

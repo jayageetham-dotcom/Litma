@@ -197,6 +197,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
     );
     if (choice == null || !mounted) return;
     await _flush();
+    if (!mounted) return;
     final b = _book!;
     if (choice == 'cover') {
       final bytes = await buildCoverPdf(context, b);
@@ -380,10 +381,13 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                   action: SnackBarAction(label: context.t('app.desk.undo'), onPressed: () => _change({'structure': items})),
                 ));
               },
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 6),
-                decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: c.line)),
-                child: ListTile(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Material(
+                  color: c.surface,
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: c.line)),
+                  child: ListTile(
                   onTap: () => _editItem(it),
                   contentPadding: const EdgeInsets.only(left: 14, right: 4),
                   leading: type == 'cover' || type == 'back-cover'
@@ -398,6 +402,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                   title: Text(_itemTitle(it), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontFamily: LitmaFonts.display, fontWeight: FontWeight.w600)),
                   subtitle: Text(doc != null ? '${kindNames[doc.kind]!.ml} · ${context.t('common.words', {'count': doc.wordCount})}' : (bookItemLabels[type]?.en ?? type)),
                   trailing: ReorderableDragStartListener(index: i, child: Padding(padding: const EdgeInsets.all(12), child: Icon(LucideIcons.gripVertical, size: 20, color: c.muted))),
+                  ),
                 ),
               ),
             );

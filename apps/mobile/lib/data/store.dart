@@ -10,6 +10,7 @@ import 'backend.dart';
 import 'forms.dart';
 import 'models.dart';
 import 'offline.dart';
+import 'analytics.dart';
 
 /// Litma's data layer on the phone: the same operations and rules as the web's store.ts in cloud
 /// mode. Reads come from the server (after sending what waits) and refresh the copy on the phone;
@@ -114,6 +115,7 @@ class Store {
       );
 
   Future<LitmaDoc> createDoc(DocKind kind, {String? title, Profile? profile}) async {
+    Analytics.track('work_created', {'kind': kind.name});
     var content = starterContent(kind);
     final settings = {...newSettings(kind), 'pristine': true};
     final mode = profile?.preferences['inputMode'];
@@ -254,6 +256,7 @@ class Store {
 
   /// A new book with the standard pages and the classic cover; the author line is the writer's name.
   Future<Book> createBook({Profile? profile}) async {
+    Analytics.track('book_created');
     final row = <String, dynamic>{
       'id': newId(),
       'title': 'പുതിയ പുസ്തകം',

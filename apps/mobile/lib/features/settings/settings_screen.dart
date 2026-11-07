@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../app/providers.dart';
@@ -11,11 +12,15 @@ import '../../widgets/brand.dart';
 import '../../widgets/avatar.dart';
 import 'ai_settings.dart';
 import '../../widgets/common.dart';
+import '../../data/analytics.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  static Route<void> route() => MaterialPageRoute(builder: (_) => const SettingsScreen());
+  static Route<void> route() {
+    Analytics.screen('/settings/');
+    return MaterialPageRoute(builder: (_) => const SettingsScreen());
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -132,6 +137,8 @@ class SettingsScreen extends ConsumerWidget {
             item(_Section(context.t('app.settings2.ai'))),
             item(const AiSettings()),
           ],
+          item(_Section(context.t('settings.usage'))),
+          item(_Card(children: [_UsageSwitch(prefs: services.prefs)])),
           item(_Section(context.t('app.settings.about'))),
           item(_Card(children: [
             Padding(
@@ -189,5 +196,29 @@ class _Card extends StatelessWidget {
         decoration: BoxDecoration(color: context.c.surface, borderRadius: BorderRadius.circular(LitmaRadius.lg), border: Border.all(color: context.c.line)),
         clipBehavior: Clip.antiAlias,
         child: Material(type: MaterialType.transparency, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children)),
+      );
+}
+
+/// Settings → Usage statistics: on unless the writer switches it off (same key as the web).
+class _UsageSwitch extends StatefulWidget {
+  const _UsageSwitch({required this.prefs});
+  final SharedPreferences prefs;
+
+  @override
+  State<_UsageSwitch> createState() => _UsageSwitchState();
+}
+
+class _UsageSwitchState extends State<_UsageSwitch> {
+  late bool _on = Analytics.enabledIn(widget.prefs);
+
+  @override
+  Widget build(BuildContext context) => SwitchListTile(
+        value: _on,
+        title: Text(context.t('settings.usageOn')),
+        subtitle: Padding(padding: const EdgeInsets.only(top: 4), child: Text(context.t('settings.usageHint'))),
+        onChanged: (v) {
+          setState(() => _on = v);
+          Analytics.setEnabled(widget.prefs, v);
+        },
       );
 }

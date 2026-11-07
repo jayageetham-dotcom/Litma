@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../core/config.dart';
 import 'forms.dart' show Json;
 import 'offline.dart';
+import 'analytics.dart';
 
 /// Dictionary and thesaurus: a port of packages/shared/src/dict.ts (keep the two in step). The data
 /// is the website's /dict shards (Olam open datasets); each shard is kept on the phone once used,
@@ -120,6 +121,7 @@ class Dictionary {
   }
 
   Future<LookupResult> lookup(String raw) async {
+    if (raw.trim().isNotEmpty) Analytics.track('dictionary_lookup', {'script': RegExp('[\u0D00-\u0D7F]').hasMatch(raw) ? 'ml' : 'en'});
     final query = raw.trim();
     final lang = isMalayalam(query) ? 'ml' : 'en';
     final res = LookupResult(lang: lang, query: query);

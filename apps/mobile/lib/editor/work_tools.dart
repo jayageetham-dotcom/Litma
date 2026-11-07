@@ -10,6 +10,7 @@ import '../core/theme.dart';
 import '../data/forms.dart';
 import 'document.dart';
 import 'export.dart';
+import 'pdf_fonts.dart';
 import 'session.dart';
 
 /// Text colours and highlights: the same swatches as the web's ColorTools.
@@ -496,7 +497,7 @@ Future<void> showPagesPreview(BuildContext context, EditorSession s) {
         allowPrinting: true,
         pdfFileName: '${s.title}.pdf',
         // ignore: deprecated_member_use
-        build: (format) => Printing.convertHtml(format: format, html: docToHtml(s.document, title: s.title, kind: s.kind, settings: s.settings)),
+        build: (format) async => Printing.convertHtml(format: format, html: docToHtml(s.document, title: s.title, kind: s.kind, settings: s.settings, fontsCss: await fontFaceCss([s.settings['font'] as String?]))),
       ),
     ),
   ));

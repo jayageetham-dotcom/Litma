@@ -5,9 +5,24 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
 
 ## Open items
 
-- The 2026-11-07 Manglish "finish on leaving the word" rule was checked with Playwright in local
-  mode on a desktop-size window only; check it on a real phone browser (iOS Safari, Android
-  Chrome), where the system keyboard may compose words differently.
+- The 2026-11-07 Manglish "finish on leaving the word" rule passes in Chromium with iPhone 13 and
+  Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
+  keyboard may compose words differently.
+
+## 2026-11-07: shared strings in the book screen (PR #6)
+
+- `app/book/page.tsx`: Book details (Publisher, Year, Edition, ISBN, Page & type, page sizes,
+  body font, size, line spacing, margins, the two checkboxes) and the cover designer (Front/Back
+  cover, colour labels, Title font, Blurb, About the author, Price, the Book details note) use
+  `bookDetails.*` and `cover.*` strings from `packages/i18n` instead of English text.
+- `supabase/functions/litma-track`: platform `ios`/`android` sets os, device (from `ctx.device`)
+  and browser "Litma app".
+- Checked: typecheck, local-mode build, Playwright in the desktop app (book page labels).
+
+## 2026-11-07: in-app confirm dialogs (PR #4)
+
+- `components/story/StoryWorld.tsx` card delete and `components/editor/Panels.tsx` version
+  restore use `useConfirm()`.
 
 ## 2026-11-07: empty line is a section break
 

@@ -54,3 +54,42 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+
+  # Pictures of the phone screens for review (test/screenshots), uploaded as the "phone-screens"
+  # artifact. Fonts render a little differently on each machine, so this never fails the checks.
+  screens:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: SCREENSHOTS=1 flutter test test/screenshots --update-goldens
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phone-screens
+          path: apps/mobile/test/screenshots/out/
+          retention-days: 14
+      # The same pictures on the ci/phone-screens branch (one commit, replaced on every run), so they
+      # can be looked at on GitHub or fetched with git where artifact downloads are blocked.
+      - name: Put the pictures on the ci/phone-screens branch
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        working-directory: apps/mobile/test/screenshots/out
+        run: |
+          [ -n "$(ls -A . 2>/dev/null)" ] || exit 0
+          git init -q -b ci/phone-screens
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Phone screens for ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci/phone-screens

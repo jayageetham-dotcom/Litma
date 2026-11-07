@@ -11,6 +11,7 @@ import 'home_shell.dart';
 import 'providers.dart';
 import 'update_check.dart';
 import '../core/keyboard.dart';
+import '../data/analytics.dart';
 
 class LitmaApp extends ConsumerWidget {
   const LitmaApp({super.key, this.home});
@@ -30,7 +31,8 @@ class LitmaApp extends ConsumerWidget {
       themeMode: settings.themeMode,
       themeAnimationDuration: Motion.slow,
       themeAnimationCurve: Motion.standard,
-      builder: (context, child) => I18n(strings: strings, child: child!),
+      // any touch keeps the statistics' active time counting (no content is read)
+      builder: (context, child) => Listener(onPointerDown: (_) => Analytics.input(), child: I18n(strings: strings, child: child!)),
       navigatorObservers: [_keyboard],
       home: home ?? const AuthGate(),
     );

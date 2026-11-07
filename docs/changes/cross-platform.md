@@ -9,39 +9,55 @@ the code, and what is still unverified.
 
 ## Open items
 
-### Feature gaps (audit 2026-11-07)
+### Still open (after the 2026-11-07 work)
 
-Phone app (Flutter) is behind the web editor and book tools. Missing:
-- **Cover designer** (front and back): layouts, Frame, presets, genre backgrounds, title fonts
-  and effects, dragging parts, back-cover blurb, author note, imprint strip, EAN-13 barcode.
-  The app only draws a small cover in the book's colours (`MiniCover` in `book_screen.dart`).
-  Spec: README "Cover designer", "Cover presets and sample values".
-- **Book details extras:** മലയാളം / As typed switch (`ScriptField`), sample values for
-  never-set fields (`book-samples.ts`).
-- **Editor formatting:** font size, text colour and highlight, bulleted and numbered lists
-  (shown but can't be made), page setup (font, page size, line spacing), the വൃത്തം metre
-  marks, find in the work.
-- **Writing-type tools:** insert a footnote (shown but can't be added), play cast list from
-  Story World, screenplay scene tools (Int./Ext., time, fill cast), diary "New entry", layout
-  settings (chapter numbers, heading labels, verse alignment).
-- **Pages:** the "Pages" switch to see printed pages, and Insert page.
-- **Outline / contents panel** for a work, and the Saved words panel inside the editor.
-- **Usage statistics** (`litma-track` events and the Settings switch).
-- **Store release:** the App Store / Google Play secrets aren't set, so the app isn't in the
-  stores yet and the web's store buttons say "Coming soon".
+Only the owner can do these (accounts, secrets, dashboards):
+- **Phone app in the stores:** App Store Connect and Google Play Console accounts, then the store
+  secrets listed at the top of `.github/workflows/mobile-release.yml`; until then the web's store
+  buttons say "Coming soon".
+- **Desktop signing:** `CSC_LINK`/`CSC_KEY_PASSWORD` and Apple notarisation (`APPLE_ID`,
+  `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`) for macOS, `WIN_CSC_LINK` for Windows. Unsigned
+  installers show security warnings.
+- **Branded auth emails:** paste `supabase/templates/*` into Supabase and set up custom SMTP.
+- **Optional branded MCP URL** (see CLAUDE.md).
 
-Desktop (Electron):
-- Installers are **unsigned** until signing secrets exist (`CSC_LINK`, Apple notarisation,
-  `WIN_CSC_LINK`): macOS and Windows show security warnings.
-- No Linux build.
-- Not yet driven end to end with Playwright's Electron runner in a session.
+Needs a real device (emulators and CI can't fully check these):
+- Phone app on an iPhone and an Android phone: cover designer (drag, sizes), book and cover PDFs
+  (fonts, margins, page breaks), Book details script switch, usage statistics arriving in /admin/.
+- Website on iOS Safari: Manglish words typed mid-line convert when you tap away (checked with
+  Chromium's iPhone and Pixel emulation only; WebKit couldn't be installed in the sandbox).
 
-Web:
-- Branded auth emails (owner pastes templates, sets up SMTP), optional branded MCP URL, and two
-  old native `confirm()` calls (Story World card delete, version restore). See CLAUDE.md.
-- Manglish "finish when leaving the word" not yet tried on a real phone browser.
+Known differences by design:
+- A book PDF made on the phone has no page numbers, running heads or right-hand chapter starts
+  (the phone's web engine can't paginate like the web's print view). The phone makes the pages
+  and the cover as two PDFs.
 
-- Desktop app gets the 2026-11-07 changes only after Actions → **Release**.
+- Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
+
+## 2026-11-07: Phone app catches up with the web's book tools and statistics (PR #6)
+
+- **Phone app:** cover designer (front and back, same presets, layouts, fonts, backgrounds,
+  effects, dragging and sizing as the web), the real cover on the desk and book screen, Book
+  details with the മലയാളം / As typed switch, Publisher, Year, Edition, ISBN and Page & type,
+  sample values for new books, editing and adding book pages, book PDFs (pages + cover), usage
+  statistics with the Settings switch.
+- **Phone PDFs** (works and books) now carry the app's own fonts, keep empty lines as section
+  breaks and number footnotes with a notes list.
+- **Web/desktop:** Book details and cover designer labels come from the shared strings (they were
+  hard-coded English), so they show in Malayalam too.
+- **Server:** `litma-track` labels phone visits (iOS/Android, phone/tablet, "Litma app").
+- **CI:** phone screenshots on every pull request, pushed to the `ci/phone-screens` branch
+  (one commit, replaced each run) and uploaded as the `phone-screens` artifact.
+
+## 2026-11-07: Phone editor tools; Linux desktop; in-app confirm dialogs (PRs #4, #5)
+
+- **Phone app (#5):** format sheet (font size, text colour, highlight, lists, alignment,
+  super/subscript), contents, find and replace, saved words, page setup and Pages preview,
+  Insert page, footnotes, diary New entry, play cast list, screenplay scene tools, metre marks.
+- **Desktop (#4):** Linux AppImage built and published with the others; the updater swaps it in
+  place. Download page and home card offer Linux.
+- **Web/desktop (#4):** Story World card delete and version restore use the app's own confirm
+  dialog (no native `confirm()` left).
 
 ## 2026-11-07: Empty line is a section break (novel, story)
 

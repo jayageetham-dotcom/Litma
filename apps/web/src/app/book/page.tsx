@@ -250,7 +250,7 @@ function BookEditor() {
           }`}
         >
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Book details</h2>
+            <h2 className="text-sm font-semibold">{tr("bookDetails.heading")}</h2>
             {screen === "tablet" && (
               <button className="btn btn-ghost !p-1" onClick={() => setDetailsOpen(false)} aria-label="Close book details">
                 <X size={15} />
@@ -262,32 +262,32 @@ function BookEditor() {
             <ScriptField label={tr("bookDetails.title")} storageKey="book.title" value={book.title ?? ""} onChange={(v) => update({ title: v })} />
             <ScriptField label={tr("bookDetails.subtitle")} storageKey="book.subtitle" value={book.subtitle ?? ""} onChange={(v) => update({ subtitle: v })} />
             <ScriptField label={tr("bookDetails.author")} storageKey="book.author" defaultMode="plain" value={book.author ?? ""} onChange={(v) => update({ author: v })} />
-            <In label="Publisher" value={st.publisher ?? ""} onChange={(v) => setSt({ publisher: v })} placeholder={DEFAULT_PUBLISHER} />
+            <In label={tr("bookDetails.publisher")} value={st.publisher ?? ""} onChange={(v) => setSt({ publisher: v })} placeholder={DEFAULT_PUBLISHER} />
             <div className="grid grid-cols-2 gap-2">
-              <In label="Year" value={st.year ?? ""} onChange={(v) => setSt({ year: v })} />
-              <In label="Edition" value={st.edition ?? ""} onChange={(v) => setSt({ edition: v })} />
+              <In label={tr("bookDetails.year")} value={st.year ?? ""} onChange={(v) => setSt({ year: v })} />
+              <In label={tr("bookDetails.edition")} value={st.edition ?? ""} onChange={(v) => setSt({ edition: v })} />
             </div>
-            <In label="ISBN" value={st.isbn ?? ""} onChange={(v) => setSt({ isbn: v })} />
+            <In label={tr("bookDetails.isbn")} value={st.isbn ?? ""} onChange={(v) => setSt({ isbn: v })} />
           </div>
-          <h2 className="mb-3 mt-6 text-sm font-semibold">Page &amp; type</h2>
+          <h2 className="mb-3 mt-6 text-sm font-semibold">{tr("bookDetails.pageType")}</h2>
           <div className="space-y-3 text-sm">
             <div>
               <Select
-                label="Page size"
+                label={tr("bookDetails.pageSize")}
                 labelClassName="mb-1 block text-xs text-muted"
                 className="w-full"
                 value={st.pageSize ?? "A4"}
                 onChange={(v) => setSt({ pageSize: v as BookSettings["pageSize"] })}
                 options={[
-                  { value: "A4", label: "A4 (default)" },
-                  { value: "A5", label: "A5 (paperback)" },
-                  { value: "Letter", label: "US Letter" },
+                  { value: "A4", label: tr("bookDetails.pageSizes.A4") },
+                  { value: "A5", label: tr("bookDetails.pageSizes.A5") },
+                  { value: "Letter", label: tr("bookDetails.pageSizes.Letter") },
                 ]}
               />
             </div>
             <div>
               <Select
-                label="Body font (prose chapters)"
+                label={tr("bookDetails.bodyFont")}
                 labelClassName="mb-1 block text-xs text-muted"
                 className="w-full"
                 value={st.font ?? "Noto Serif Malayalam"}
@@ -297,22 +297,22 @@ function BookEditor() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <label>
-                <span className="mb-1 block text-xs text-muted">Size (pt)</span>
+                <span className="mb-1 block text-xs text-muted">{tr("bookDetails.fontSize")}</span>
                 <input type="number" step={0.5} min={8} max={20} className="field !py-1.5" value={st.fontSize ?? 12} onChange={(e) => setSt({ fontSize: Number(e.target.value) || 12 })} />
               </label>
               <label>
-                <span className="mb-1 block text-xs text-muted">Line spacing</span>
+                <span className="mb-1 block text-xs text-muted">{tr("bookDetails.lineHeight")}</span>
                 <input type="number" step={0.05} min={1.2} max={2.6} className="field !py-1.5" value={st.lineHeight ?? 1.8} onChange={(e) => setSt({ lineHeight: Number(e.target.value) || 1.8 })} />
               </label>
             </div>
             <fieldset>
-              <legend className="mb-1 text-xs text-muted">Margins (mm)</legend>
+              <legend className="mb-1 text-xs text-muted">{tr("bookDetails.margins")}</legend>
               <div className="grid grid-cols-4 gap-1.5">
                 {(["top", "bottom", "inner", "outer"] as const).map((k) => {
                   const m = st.margins ?? { top: 22, bottom: 24, inner: 24, outer: 20 };
                   return (
                     <label key={k} className="text-[11px] text-muted">
-                      {k}
+                      {tr(`bookDetails.margin.${k}`)}
                       <input type="number" className="field !px-1.5 !py-1 !text-[13px]" value={m[k]} onChange={(e) => setSt({ margins: { ...m, [k]: Math.max(5, Number(e.target.value) || 0) } })} />
                     </label>
                   );
@@ -321,11 +321,11 @@ function BookEditor() {
             </fieldset>
             <label className="flex items-center gap-2">
               <input type="checkbox" className="accent-[var(--accent)]" checked={!!st.chaptersOnRight} onChange={(e) => setSt({ chaptersOnRight: e.target.checked })} />
-              Start chapters on a right-hand page
+              {tr("bookDetails.chaptersOnRight")}
             </label>
             <label className="flex items-center gap-2">
               <input type="checkbox" className="accent-[var(--accent)]" checked={st.runningHead !== false} onChange={(e) => setSt({ runningHead: e.target.checked })} />
-              Running heads (book title / chapter title)
+              {tr("bookDetails.runningHead")}
             </label>
           </div>
           {phone && (
@@ -649,7 +649,7 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
         </div>
       </div>
       <div className="min-w-64 max-w-sm flex-1 space-y-4 text-sm">
-        <h2 className="font-semibold">{back ? "Back cover" : "Front cover"}</h2>
+        <h2 className="font-semibold">{tr(back ? "cover.back" : "cover.front")}</h2>
         <div>
           <span className="mb-1.5 block text-xs text-muted">{tr("cover.presetsTitle")}</span>
           <div className="grid grid-cols-[repeat(auto-fill,104px)] gap-2.5">
@@ -716,9 +716,9 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
         <div className="grid grid-cols-3 gap-2">
           {(
             [
-              ["bg", "Background"],
-              ["fg", "Text"],
-              ["accent", "Accent"],
+              ["bg", tr("cover.colour.bg")],
+              ["fg", tr("cover.colour.fg")],
+              ["accent", tr("cover.colour.accent")],
             ] as const
           ).map(([k, l]) => (
             <label key={k} className="text-xs text-muted">
@@ -731,7 +731,7 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
           <>
             <div>
               <Select
-                label="Title font"
+                label={tr("cover.titleFont")}
                 labelClassName="mb-1 block text-xs text-muted"
                 className="w-full"
                 value={c.font ?? "Anek Malayalam"}
@@ -821,7 +821,7 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
                 <input className="field mt-2 !py-1.5" value={c.badgeText ?? ""} onChange={(e) => onCover({ badgeText: e.target.value })} placeholder={book.settings?.edition || "14-ാം പതിപ്പ്"} aria-label={tr("cover.badgeText")} style={ml} />
               )}
             </div>
-            <p className="text-xs text-muted">Title, subtitle, author and publisher come from Book details.</p>
+            <p className="text-xs text-muted">{tr("cover.fromDetails")}</p>
           </>
         )}
         {back && (
@@ -831,11 +831,11 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
               {chip(c.imprintStrip !== false, tr("cover.imprintStrip"), () => onCover({ imprintStrip: c.imprintStrip === false }))}
             </div>
             <label className="block">
-              <span className="mb-1 block text-xs text-muted">Blurb</span>
+              <span className="mb-1 block text-xs text-muted">{tr("cover.blurb")}</span>
               <textarea className="field min-h-36" value={c.blurb ?? ""} onChange={(e) => onCover({ blurb: e.target.value })} placeholder="ഈ പുസ്തകത്തെക്കുറിച്ച്…" style={ml} />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-muted">About the author</span>
+              <span className="mb-1 block text-xs text-muted">{tr("cover.authorBio")}</span>
               <textarea className="field min-h-24" value={c.authorBio ?? ""} onChange={(e) => onCover({ authorBio: e.target.value })} style={ml} />
             </label>
             <div>
@@ -874,7 +874,7 @@ function CoverDesigner({ book, back, onCover }: { book: Book; back: boolean; onC
               )}
             </div>
             <label className="block">
-              <span className="mb-1 block text-xs text-muted">Price</span>
+              <span className="mb-1 block text-xs text-muted">{tr("cover.price")}</span>
               <input className="field !py-1.5" value={c.price ?? ""} onChange={(e) => onCover({ price: e.target.value })} placeholder="₹ 250" />
             </label>
             <div className="space-y-2">

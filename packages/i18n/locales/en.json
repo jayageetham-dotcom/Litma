@@ -445,7 +445,24 @@
       "type": "Big type",
       "minimal": "Centre",
       "photo": "Bottom"
-    }
+    },
+    "front": "Front cover",
+    "back": "Back cover",
+    "design": "Design the cover",
+    "colours": "Colours",
+    "colour": {
+      "bg": "Cover",
+      "fg": "Text",
+      "accent": "Accent"
+    },
+    "pickColour": "Pick a colour",
+    "hex": "Colour code",
+    "titleFont": "Title font",
+    "blurb": "Blurb",
+    "authorBio": "About the author",
+    "price": "Price",
+    "fromDetails": "Title, subtitle, author and publisher come from Book details.",
+    "moveHintTouch": "Tap a text on the cover to size it. Drag it to move it."
   },
   "field": {
     "typing": "Typing",
@@ -456,7 +473,32 @@
   "bookDetails": {
     "title": "Title",
     "subtitle": "Subtitle",
-    "author": "Author"
+    "author": "Author",
+    "heading": "Book details",
+    "publisher": "Publisher",
+    "year": "Year",
+    "edition": "Edition",
+    "isbn": "ISBN",
+    "pageType": "Page & type",
+    "pageSize": "Page size",
+    "pageSizes": {
+      "A4": "A4 (default)",
+      "A5": "A5 (paperback)",
+      "Letter": "US Letter"
+    },
+    "bodyFont": "Body font (prose chapters)",
+    "fontSize": "Size (pt)",
+    "lineHeight": "Line spacing",
+    "margins": "Margins (mm)",
+    "margin": {
+      "top": "Top",
+      "bottom": "Bottom",
+      "inner": "Inner",
+      "outer": "Outer"
+    },
+    "chaptersOnRight": "Start chapters on a right-hand page",
+    "runningHead": "Running heads (book title / chapter title)",
+    "phonePrint": "A PDF made on the phone starts each chapter on a new page. Right-hand pages, page numbers and running heads come with the PDF from the website or desktop app."
   },
   "admin": {
     "title": "Admin",
@@ -874,7 +916,20 @@
       "add": "Add",
       "inBook": "in this book",
       "missing": "(missing work)",
-      "removed": "Removed from the book"
+      "removed": "Removed from the book",
+      "exportBook": "Book pages (PDF)",
+      "exportCover": "Cover (PDF)",
+      "exportHint": "Printers usually ask for the pages and the cover as two files.",
+      "preparing": "Getting the cover ready…",
+      "export": "Export",
+      "pageHeading": "Heading",
+      "pageText": "Text",
+      "showTitle": "Show the chapter title",
+      "inToc": "List in the contents",
+      "pageRich": "This page has formatting the phone app can't edit yet. Edit it on the website or in the desktop app.",
+      "pageAuto": "This page is made from Book details (title, subtitle, author and publisher).",
+      "copyrightHint": "Leave empty to use the standard copyright notice from Book details.",
+      "contentsHint": "The contents list is made from the chapters and parts."
     },
     "dict": {
       "hint": "Type a word in Malayalam, English or Manglish.",

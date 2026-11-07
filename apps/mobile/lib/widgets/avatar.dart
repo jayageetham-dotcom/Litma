@@ -10,6 +10,12 @@ const avatarImages = ['f-1', 'm-1', 'f-2', 'm-2', 'f-3', 'm-3', 'f-4', 'm-4', 'f
 /// Pictures drawn in vectors (kept as SVG); the others are PNG.
 const _svgAvatars = {'m-6'};
 
+/// The picture for an avatar id, square and filling its box (book covers frame it themselves).
+Widget avatarPicture(String id) {
+  final path = 'assets/avatars/avatar-$id.${_svgAvatars.contains(id) ? 'svg' : 'png'}';
+  return _svgAvatars.contains(id) ? SvgPicture.asset(path, fit: BoxFit.cover) : Image.asset(path, fit: BoxFit.cover, filterQuality: FilterQuality.medium);
+}
+
 const avatarTints = ['violet', 'coral', 'sky', 'lime', 'tangerine'];
 
 Color tintColor(LitmaTokens c, String tint) => switch (tint) {

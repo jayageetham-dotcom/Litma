@@ -213,6 +213,7 @@ jobs:
           supabase functions deploy litma-ai --remote="$PROJECT_REF" --yes
           supabase functions deploy litma-track --remote="$PROJECT_REF" --no-verify-jwt --yes
           supabase functions deploy litma-admin --remote="$PROJECT_REF" --yes
+          supabase functions deploy litma-send-email --remote="$PROJECT_REF" --no-verify-jwt --yes
 
       - name: Apply database migrations
         if: steps.check.outputs.skip != 'true' && env.SUPABASE_DB_PASSWORD != ''

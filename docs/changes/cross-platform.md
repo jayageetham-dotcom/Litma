@@ -34,6 +34,23 @@ Known differences by design:
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
 
+## 2026-11-07: Sign-in emails from Litma's own mailbox
+
+- Owner set up `no-reply@getlitma.in` (sending) and `support@getlitma.in` (help, forwarded) in
+  cPanel and custom SMTP in Supabase. Mail arrived with SPF, DKIM and DMARC passing but went to
+  Gmail spam: Supabase's mailer sent no Message-ID (`SMTPIN_ADDED_MISSING`) and the host's shared
+  server (lin31.plreseller.com, 43.254.29.98) has a mixed reputation. The owner doesn't want a
+  third-party sender.
+- New Edge Function `litma-send-email` (Supabase Send Email hook) sends the same templates through
+  the cPanel mailbox with a Message-ID on getlitma.in, Reply-To support, a plain-text part and
+  automated-mail headers. Tested in the sandbox with Deno against a local SMTP server (all six
+  actions, email change to both addresses, forged signature refused, mail-server failure answers
+  in under Supabase's hook timeout).
+- Every email's footer names support@getlitma.in.
+- **Owner steps:** hook secret and `SMTP_PASSWORD` secret, then switch the hook on (see the
+  setup page / CLAUDE.md "Auth emails"). Unverified until then: delivery from Supabase's servers
+  to mail.getlitma.in:465 through the host's firewall, and Gmail's verdict.
+
 ## 2026-11-07: Phone app catches up with the web's book tools and statistics (PR #6)
 
 - **Phone app:** cover designer (front and back, same presets, layouts, fonts, backgrounds,

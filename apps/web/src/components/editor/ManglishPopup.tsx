@@ -164,10 +164,8 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
           role="option"
           aria-selected={i === st.index}
           onPointerDown={keep}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            pick(i);
-          }}
+          onMouseDown={keep}
+          onClick={() => pick(i)}
           className={`flex items-center gap-1.5 whitespace-nowrap rounded-[6px] px-2.5 py-1 text-[16px] ${i === st.index ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}
           style={ML_FONT}
         >

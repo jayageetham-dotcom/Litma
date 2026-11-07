@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/akshara.dart';
 import '../core/motion.dart';
 import '../core/theme.dart';
 import '../data/forms.dart';
@@ -318,9 +319,12 @@ class ReadLine extends StatelessWidget {
     if (look.indent > 0) spans.add(WidgetSpan(child: SizedBox(width: look.indent)));
     final t = block.text;
     var i = 0;
-    if (look.dropCap) {
-      final first = t.characters.first;
-      spans.add(TextSpan(text: first, style: styler(block.marks[0], look.style).copyWith(fontSize: (look.style.fontSize ?? 16) * 1.6, fontWeight: FontWeight.w700, color: context.c.accent)));
+    final capLength = look.dropCap ? firstAksharaLength(t) : 0;
+    if (capLength > 0 && !t.substring(0, capLength).contains(atomChar)) {
+      final first = t.substring(0, capLength); // a whole akshara, so conjuncts stay shaped
+      final marked = styler(block.marks[0], look.style);
+      final own = block.marks[0].style('color') != null; // the writer's own colour wins, as on the web
+      spans.add(TextSpan(text: first, style: marked.copyWith(fontSize: (look.style.fontSize ?? 16) * 1.6, fontWeight: FontWeight.w700, color: own ? marked.color : context.c.accent)));
       i = first.length;
     }
     while (i < t.length) {

@@ -1,6 +1,7 @@
 import { Extension, Node, mergeAttributes } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import { firstAksharaLength } from "@litma/shared/akshara";
 
 
 import { TextSelection } from "@tiptap/pm/state";
@@ -183,19 +184,31 @@ declare module "@tiptap/core" {
 }
 
 /**
- * Paragraphs whose first letter has the writer's own text colour get the class `own-first-colour`,
- * so decorative drop caps (novel/story chapters) don't paint over that colour.
+ * Drop cap: the first akshara of the paragraph after a chapter heading is wrapped in a real
+ * `<span class="drop-cap">` (styled only in novels and stories). It used to be CSS ::first-letter,
+ * but Chrome then lost the cursor and the selection in that paragraph (a space typed after a
+ * Manglish word landed after the first letter, selections painted only partly) and cut Malayalam
+ * conjuncts apart. A whole akshara (`firstAksharaLength`) keeps the word shaped as one.
+ * Paragraphs that start with the writer's own text colour also get `own-first-colour`, so the
+ * accent never paints over that colour. `renderDocHtml` adds the same span for reading and print.
  */
 export const FirstLetterColour = Extension.create({
   name: "firstLetterColour",
   addProseMirrorPlugins() {
     const build = (doc: import("@tiptap/pm/model").Node) => {
       const decos: Decoration[] = [];
+      let prev: import("@tiptap/pm/model").Node | null = null;
       doc.forEach((node, offset) => {
+        const before = prev;
+        prev = node;
         if (node.type.name !== "paragraph") return;
         const first = node.firstChild;
         if (first?.isText && first.marks.some((m) => m.type.name === "textStyle" && m.attrs.color)) {
           decos.push(Decoration.node(offset, offset + node.nodeSize, { class: "own-first-colour" }));
+        }
+        if (before?.type.name === "styledBlock" && before.attrs.variant === "chapter" && first?.isText) {
+          const len = firstAksharaLength(first.text ?? "");
+          if (len) decos.push(Decoration.inline(offset + 1, offset + 1 + len, { class: "drop-cap" }));
         }
       });
       return DecorationSet.create(doc, decos);

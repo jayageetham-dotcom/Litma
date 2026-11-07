@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/akshara.dart';
 import '../core/manglish.dart';
 import '../data/forms.dart' show Json;
 import 'document.dart';
@@ -276,8 +277,9 @@ class BlockController extends TextEditingController {
     final t = block.text;
     final spans = <InlineSpan>[TextSpan(text: sentinel, style: indent > 0 ? base.copyWith(letterSpacing: indent) : base)];
     var i = 0;
-    if (dropCapStyle != null && t.isNotEmpty) {
-      final first = t.characters.first;
+    final capLength = dropCapStyle == null ? 0 : firstAksharaLength(t);
+    if (capLength > 0 && !t.substring(0, capLength).contains(atomChar)) {
+      final first = t.substring(0, capLength); // a whole akshara, so conjuncts stay shaped
       final own = block.marks.first.style('color') != null; // the writer's own colour wins
       final marked = styler(block.marks.first, base);
       spans.add(TextSpan(text: first, style: marked.merge(dropCapStyle!.copyWith(color: own ? marked.color : dropCapStyle!.color))));

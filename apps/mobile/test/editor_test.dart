@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:litma/core/akshara.dart';
 import 'package:litma/core/manglish.dart';
 import 'package:litma/data/forms.dart';
 import 'package:litma/editor/block_controller.dart';
@@ -274,5 +275,19 @@ void main() {
       para.append(after);
       expect(jsonEncode(para.toJson()), original);
     });
+  });
+
+  test('drop cap takes a whole akshara, so conjuncts are never cut', () {
+    String cap(String t) => t.substring(0, firstAksharaLength(t));
+    expect(cap('എന്താടോ'), 'എ');
+    expect(cap('സ്നേഹം'), 'സ്നേ');
+    expect(cap('ക്ഷമ'), 'ക്ഷ');
+    expect(cap('ശ്രീ'), 'ശ്രീ');
+    expect(cap('അം'), 'അം');
+    expect(cap('“ഞാൻ'), '“ഞാ');
+    expect(cap('ൻ'), 'ൻ');
+    expect(cap('Hello'), 'H');
+    expect(cap(' x'), '');
+    expect(cap(''), '');
   });
 }

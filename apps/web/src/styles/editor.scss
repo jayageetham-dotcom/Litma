@@ -489,14 +489,16 @@ $mm: 3.7795275591px;
   .ProseMirror > .page-spacer + p {
     text-indent: 0;
   }
-  // drop cap after a chapter heading. ::first-letter sits inside any coloured span, so its colour
-  // would override the writer's own text colour: the accent applies only when the first letter has
-  // no colour of its own (FirstLetterColour in extensions/blocks.ts marks those paragraphs).
-  .ProseMirror > .sb-chapter + p::first-letter {
+  // drop cap after a chapter heading: a real span around the first akshara (FirstLetterColour in
+  // extensions/blocks.ts, renderDocHtml for reading and print), never ::first-letter, which broke
+  // typing and selection in Chrome and cut Malayalam conjuncts. The accent applies only when the
+  // paragraph doesn't start with the writer's own text colour.
+  .drop-cap {
     font-size: 1.6em;
     font-weight: 700;
+    line-height: 1;
   }
-  .ProseMirror > .sb-chapter + p:not(.own-first-colour)::first-letter {
+  p:not(.own-first-colour) .drop-cap {
     color: var(--accent);
   }
 }

@@ -34,6 +34,19 @@ Known differences by design:
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
 
+## 2026-11-07: Email links work in any browser
+
+- Reset link showed "PKCE code verifier not found": Supabase's verify link becomes a PKCE code
+  that only the browser which asked can redeem (another browser, the Gmail app, cleared storage
+  all fail). The send-email hook now links website and desktop requests straight to
+  `getlitma.in/auth/callback/?token_hash=…&type=…` (plus `next`), and the callback page verifies
+  with `verifyOtp`, which works anywhere. The phone app's own scheme keeps Supabase's verify link.
+  Raw Supabase errors on that page became plain messages.
+- Needs the Send Email hook switched on; with the hook off the dashboard templates still use
+  Supabase's verify link (same-browser only). Desktop gets the forgot-password change with a Release.
+- Checked: hook links per case (Deno + local SMTP); callback page with a mock Supabase in a fresh
+  browser (good link → Choose a new password, expired → plain message).
+
 ## 2026-11-07: Sign-in emails from Litma's own mailbox
 
 - Owner set up `no-reply@getlitma.in` (sending) and `support@getlitma.in` (help, forwarded) in

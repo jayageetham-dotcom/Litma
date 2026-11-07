@@ -66,8 +66,32 @@ function fill(template: string, vars: Record<string, string>, html: boolean) {
   });
 }
 
-/** The link the email's button opens: Supabase verifies the token, then sends the writer on to redirect_to. */
-function verifyUrl(tokenHash: string, type: string, redirectTo: string | undefined) {
+/**
+ * The link the email's button opens.
+ * Website and desktop requests: Litma's own /auth/callback/ with the token, verified there with
+ * verifyOtp, so it works in whatever browser opens the email (Supabase's verify link turns into a
+ * PKCE code that only the browser which asked can use: "PKCE code verifier not found").
+ * The desktop app's app:// address goes to the website's callback (keeping `next`).
+ * Phone app (its own scheme): Supabase's verify link, which comes back into the app that asked.
+ */
+function verifyUrl(tokenHash: string, type: string, redirectTo: string | undefined, siteUrl: string) {
+  const site = /^https?:\/\//.test(siteUrl) ? siteUrl.replace(/\/+$/, "") : "https://getlitma.in";
+  let target: URL | null = null;
+  try {
+    if (!redirectTo) target = new URL(`${site}/auth/callback/`);
+    else if (/^https?:\/\//.test(redirectTo)) target = new URL(redirectTo);
+    else if (redirectTo.startsWith("app://")) {
+      const r = new URL(redirectTo);
+      target = new URL(`${site}${r.pathname}${r.search}`);
+    }
+  } catch {
+    target = null;
+  }
+  if (target) {
+    target.searchParams.set("token_hash", tokenHash);
+    target.searchParams.set("type", type);
+    return target.toString();
+  }
   const u = new URL("/auth/v1/verify", SUPABASE_URL);
   u.searchParams.set("token", tokenHash);
   u.searchParams.set("type", type);
@@ -124,16 +148,16 @@ Deno.serve(async (req) => {
       // token_hash to the new one. Without "secure email change" only the new address gets one.
       const jobs: Promise<void>[] = [];
       if (str(e.token_hash_new) && email) {
-        jobs.push(send(email, "email_change", { ...base, Token: str(e.token), ConfirmationURL: verifyUrl(str(e.token_hash_new), action.type, redirectTo) }));
+        jobs.push(send(email, "email_change", { ...base, Token: str(e.token), ConfirmationURL: verifyUrl(str(e.token_hash_new), action.type, redirectTo, str(e.site_url)) }));
       }
       const hash = str(e.token_hash);
       if (hash && (newEmail || email)) {
-        jobs.push(send(newEmail || email, "email_change", { ...base, Token: str(e.token_new) || str(e.token), ConfirmationURL: verifyUrl(hash, action.type, redirectTo) }));
+        jobs.push(send(newEmail || email, "email_change", { ...base, Token: str(e.token_new) || str(e.token), ConfirmationURL: verifyUrl(hash, action.type, redirectTo, str(e.site_url)) }));
       }
       await Promise.all(jobs);
     } else {
       if (!email) return fail(400, "No email address");
-      await send(email, action.template, { ...base, ConfirmationURL: verifyUrl(str(e.token_hash), action.type, redirectTo) });
+      await send(email, action.template, { ...base, ConfirmationURL: verifyUrl(str(e.token_hash), action.type, redirectTo, str(e.site_url)) });
     }
   } catch (err) {
     console.error("litma-send-email", err instanceof Error ? err.message : String(err));

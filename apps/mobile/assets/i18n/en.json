@@ -260,8 +260,7 @@
     "desktopApp": "desktop app",
     "desktopAuto": "Checks for updates every few hours and installs them when you say so.",
     "webAuto": "The website updates itself; you'll see a reload prompt when a new version is live.",
-    "check": "Check for updates",
-    "whatsNew": "What's new"
+    "check": "Check for updates"
   },
   "editor": {
     "insertPage": "Insert page",
@@ -917,9 +916,11 @@
       "inBook": "in this book",
       "missing": "(missing work)",
       "removed": "Removed from the book",
+      "exportWhole": "Whole book (PDF)",
+      "exportWholeHint": "Cover, pages and back cover in one file",
       "exportBook": "Book pages (PDF)",
       "exportCover": "Cover (PDF)",
-      "exportHint": "Printers usually ask for the pages and the cover as two files.",
+      "exportHint": "One file to read and share, or the two files printers usually ask for.",
       "preparing": "Getting the cover ready…",
       "export": "Export",
       "pageHeading": "Heading",

@@ -270,9 +270,8 @@ function buildMenu() {
       submenu: [
         ...(mac ? [] : [{ label: "Check for updates…", click: () => checkForUpdates(true) }, { type: "separator" as const }]),
         { label: `Litma ${app.getVersion()}`, enabled: false },
-        { label: "What's new", click: () => shell.openExternal("https://github.com/jayageetham-dotcom/Litma/blob/main/CHANGELOG.md") },
         { label: "Litma on the web", click: () => shell.openExternal(SITE) },
-        { label: "Report a problem", click: () => shell.openExternal("mailto:jagath.gj@gmail.com?subject=Litma%20desktop") },
+        { label: "Report a problem", click: () => shell.openExternal("mailto:support@getlitma.in?subject=Litma%20desktop") },
       ],
     },
   ];

@@ -6,13 +6,21 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 
 ## Open items
 
-- **Release needed** for the 2026-11-07 web changes (inbox Copy keeps the suggestion,
+- **Release needed** for the 2026-11-07 web changes (print view without the white strip on top,
+  no "What's new" changelog link, inbox Copy keeps the suggestion,
   selectable inbox text, Manglish word finishing when the cursor leaves it, empty line as a
   section break in novels and stories, Book details and cover labels in Malayalam, in-app
   confirm dialogs) and to publish the first Linux AppImage.
 - Installers are unsigned until the signing secrets exist (see cross-platform.md).
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
+
+## 2026-11-07: Help menu
+
+- `src/main.ts`: Help → "What's new" (opened `CHANGELOG.md` on GitHub) removed; "Report a problem"
+  now writes to support@getlitma.in instead of the owner's own address. The print view fix in
+  `web.md` reaches the app with the next Release. Not driven in Electron this time (same print
+  code as the website, checked there).
 
 ## 2026-11-07: Electron check (PR #6)
 

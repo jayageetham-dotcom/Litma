@@ -10,9 +10,23 @@ Reaches writers only through store builds. Cross-app summary and open items:
   `ci/phone-screens` branch (`git fetch origin ci/phone-screens`).
 - Try on a real iPhone and Android phone: everything from 2026-11-07 (inbox, keyboard strip,
   suggestion row, mid-line Manglish, desk keyboard, editor tools from #5, cover designer, book
-  PDFs, Book details, statistics reaching /admin/).
+  PDFs including the whole-book PDF, Book details, statistics reaching /admin/).
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
+
+## 2026-11-07: whole book in one PDF
+
+- `lib/features/books/book_screen.dart` export sheet: **Whole book (PDF)** first (front cover,
+  pages, back cover, each cover only if the book has it, like the web's print view), then the two
+  printer files. Strings `app.books.exportWhole`, `exportWholeHint`, new `exportHint`.
+- `lib/features/books/book_export.dart`: `captureCovers` (returns the two covers as pictures),
+  `buildCoverPdf` built on it, `buildWholeBookPdf`: the pages PDF from `Printing.convertHtml`,
+  rasterised at 240 dpi with `Printing.raster` and placed between the covers (the `pdf` package
+  can't join PDFs), so its text isn't selectable; the separate pages PDF keeps real text.
+- Unverified: written without the Flutter SDK; relies on CI's analyze/test and a real phone
+  (speed and file size for long books, memory on older phones).
+- No top white strip in the phone's PDFs (the pages HTML has `body { margin: 0 }` and the covers
+  are drawn edge to edge); checked by reading the code only.
 
 ## 2026-11-07: cover designer, book details, book PDFs, statistics (PR #6)
 

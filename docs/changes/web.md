@@ -9,6 +9,18 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-07: print view starts at the top of the page; no changelog links
+
+- `styles/editor.scss` `@media print`: the print view's wrapper kept its on-screen `py-8`, so
+  every sheet printed 32 px low (white strip above the cover, each sheet spilling: 7 sheets made 9
+  PDF pages). Print now zeroes the wrapper's padding and margins and drops the page break after the
+  last sheet (`.pp-doc`, added in `app/print/page.tsx`). Checked with Playwright's PDF in local
+  mode: cover at 0 px, 7 sheets = 7 pages.
+- `components/UpdateNotice.tsx`: removed the "What's new" link to `CHANGELOG.md` (owner's rule: no
+  change lists for writers); `update.whatsNew` string removed.
+- Owner's book നായകൻ had `www.jayageetham.com/litma` saved in its back-cover Website field (from an
+  old sample); changed to `getlitma.in` with SQL on his own row. Samples already use getlitma.in.
+
 ## 2026-11-07: email links verified on the site
 
 - `app/auth/callback/page.tsx`: `token_hash` + `type` → `verifyOtp` (any browser); `code` still

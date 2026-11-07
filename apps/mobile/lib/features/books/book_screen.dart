@@ -191,6 +191,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 4), child: Text(sheet.t('app.books.export'), style: Theme.of(sheet).textTheme.titleMedium)),
           Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: Text(sheet.t('app.books.exportHint'), style: Theme.of(sheet).textTheme.bodySmall)),
+          ListTile(leading: const Icon(LucideIcons.bookOpen), title: Text(sheet.t('app.books.exportWhole')), subtitle: Text(sheet.t('app.books.exportWholeHint')), onTap: () => Navigator.pop(sheet, 'whole')),
           ListTile(leading: const Icon(LucideIcons.bookOpenText), title: Text(sheet.t('app.books.exportBook')), onTap: () => Navigator.pop(sheet, 'pages')),
           ListTile(leading: const Icon(LucideIcons.bookImage), title: Text(sheet.t('app.books.exportCover')), onTap: () => Navigator.pop(sheet, 'cover')),
           const SizedBox(height: 8),
@@ -198,7 +199,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
       ),
     );
     if (choice == null || !mounted) return;
-    Analytics.track('export', {'format': 'pdf', 'from': choice == 'cover' ? 'cover' : 'book'});
+    Analytics.track('export', {'format': 'pdf', 'from': switch (choice) { 'cover' => 'cover', 'whole' => 'whole-book', _ => 'book' }});
     await _flush();
     if (!mounted) return;
     final b = _book!;
@@ -221,6 +222,23 @@ class _BookScreenState extends ConsumerState<BookScreen> {
     final format = bookPageFormat(b.settings);
     final html = await bookInteriorHtml(b, docs);
     if (!mounted) return;
+    if (choice == 'whole') {
+      // covers only where the book has them, like the web's print view
+      final hasFront = b.structure.any((i) => i['type'] == 'cover');
+      final hasBack = b.structure.any((i) => i['type'] == 'back-cover');
+      List<CoverImage>? covers;
+      if (hasFront || hasBack) {
+        covers = await captureCovers(context, b);
+        if (covers == null || !mounted) return;
+      }
+      await showBookPdf(
+        context,
+        title: b.title,
+        format: bookPageFormat(b.settings, margins: false),
+        build: () => buildWholeBookPdf(b, html, front: hasFront ? covers![0] : null, back: hasBack ? covers![1] : null),
+      );
+      return;
+    }
     // the phone's own web engine lays out the HTML, so Malayalam conjuncts shape correctly
     // ignore: deprecated_member_use
     await showBookPdf(context, title: b.title, format: format, build: () => Printing.convertHtml(format: format, html: html));

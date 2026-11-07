@@ -6,6 +6,7 @@ import { AuthShell, Field, GoogleButton, Notice } from "@/components/AuthShell";
 import { getSupabase } from "@/lib/supabase/client";
 import { authMessage, authRedirect, safeNext, useRedirectIfSignedIn } from "@/lib/auth";
 import { track } from "@/lib/analytics";
+import { useT } from "@/i18n/react";
 
 function strength(p: string) {
   let s = 0;
@@ -19,6 +20,7 @@ function strength(p: string) {
 const LABELS = ["Too short", "Weak", "Fair", "Good", "Strong"];
 
 function SignupForm() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
@@ -117,6 +119,16 @@ function SignupForm() {
       </div>
       <GoogleButton onClick={() => (track("sign_up", { method: "google" }), sb?.auth.signInWithOAuth({ provider: "google", options: { redirectTo: authRedirect(next) } }))} />
       <p className="text-xs leading-relaxed text-muted">Your writing stays private unless you share a link to it.</p>
+      <p className="text-xs leading-relaxed text-muted">
+        {t("legal.agree")}{" "}
+        <Link href="/terms/" className="font-medium text-accent underline underline-offset-2">
+          {t("legal.terms")}
+        </Link>
+        {" · "}
+        <Link href="/privacy/" className="font-medium text-accent underline underline-offset-2">
+          {t("legal.privacy")}
+        </Link>
+      </p>
     </form>
   );
 }

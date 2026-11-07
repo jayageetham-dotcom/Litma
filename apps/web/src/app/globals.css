@@ -597,3 +597,10 @@ html:has(.landing) {
   outline: 2px solid var(--accent);
   outline-offset: 0;
 }
+
+/* Privacy Policy and Terms */
+.legal > * + * { margin-top: 0.85rem; }
+.legal ul { list-style: disc; padding-left: 1.25rem; }
+.legal ul > li + li { margin-top: 0.35rem; }
+.legal a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.legal strong { font-weight: 650; }

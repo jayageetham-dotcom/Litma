@@ -70,6 +70,12 @@ export function LandingFooter() {
             <Link href="/login/" className="hover:text-lime">
               Sign in
             </Link>
+            <Link href="/privacy/" className="hover:text-lime">
+              Privacy
+            </Link>
+            <Link href="/terms/" className="hover:text-lime">
+              Terms
+            </Link>
           </nav>
         </div>
       </div>

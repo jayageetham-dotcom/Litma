@@ -7,6 +7,7 @@ import '../../core/manglish.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../widgets/brand.dart';
+import '../../widgets/legal.dart';
 import 'auth_screen.dart';
 
 /// First screen for visitors: the wordmark, what Litma is, and a live Manglish demo.
@@ -70,6 +71,8 @@ class WelcomeScreen extends StatelessWidget {
                                   child: Text(context.t('app.welcome.signIn')),
                                 ),
                               ),
+                              const SizedBox(height: 12),
+                              FadeSlideIn(index: 5, child: const LegalLinks(agree: true)),
                             ],
                           ),
                         ),

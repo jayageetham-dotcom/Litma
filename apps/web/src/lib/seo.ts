@@ -84,4 +84,6 @@ export const PUBLIC_PAGES: { path: string; priority: number; changeFrequency: "d
   { path: "/download/", priority: 0.7, changeFrequency: "weekly" },
   { path: "/signup/", priority: 0.5, changeFrequency: "yearly" },
   { path: "/login/", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/privacy/", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/terms/", priority: 0.3, changeFrequency: "yearly" },
 ];

@@ -176,6 +176,14 @@ export function AboutLitma() {
           </button>
         )}
       </div>
+      <p className="mt-3 flex gap-4 text-sm">
+        <a href={`${BASE}/privacy/`} className="font-medium text-accent hover:underline">
+          {t("legal.privacy")}
+        </a>
+        <a href={`${BASE}/terms/`} className="font-medium text-accent hover:underline">
+          {t("legal.terms")}
+        </a>
+      </p>
     </section>
   );
 }

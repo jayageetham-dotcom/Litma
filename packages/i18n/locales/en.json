@@ -1048,5 +1048,10 @@
       "castDone_other": "Added {count} names to the scene's cast",
       "castNone": "Everyone who speaks in this scene is already in its cast."
     }
+  },
+  "legal": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "agree": "By creating an account you agree to Litma's terms:"
   }
 }

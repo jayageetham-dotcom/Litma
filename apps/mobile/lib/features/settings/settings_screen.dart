@@ -12,6 +12,7 @@ import '../../widgets/brand.dart';
 import '../../widgets/avatar.dart';
 import 'ai_settings.dart';
 import '../../widgets/common.dart';
+import '../../widgets/legal.dart';
 import '../../data/analytics.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -154,6 +155,8 @@ class SettingsScreen extends ConsumerWidget {
               ]),
             ),
             ListTile(leading: const Icon(LucideIcons.globe), title: Text(context.t('app.settings.website')), subtitle: const Text('getlitma.in')),
+            ListTile(leading: const Icon(LucideIcons.shieldCheck), title: Text(context.t('legal.privacy')), trailing: const Icon(LucideIcons.externalLink, size: 16), onTap: () => openLegal('privacy')),
+            ListTile(leading: const Icon(LucideIcons.fileText), title: Text(context.t('legal.terms')), trailing: const Icon(LucideIcons.externalLink, size: 16), onTap: () => openLegal('terms')),
           ])),
           const SizedBox(height: 20),
           if (writer != null)

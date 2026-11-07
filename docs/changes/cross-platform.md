@@ -9,14 +9,14 @@ the code, and what is still unverified.
 
 ## Open items
 
-- **Paragraph indent on empty lines (novel, story).** Body paragraphs indent 1.6em like a printed
-  book, except the first after a heading. Pressing Enter several times gives indented empty
-  lines, which the owner found odd (reported 2026-11-07 from the phone app). Waiting for the
-  owner's choice: leave as is, don't indent empty lines, or treat an empty line as a section
-  break (next paragraph not indented). Rules: `apps/web/src/styles/editor.scss` (`.tpl-novel`,
-  `.tpl-story`), `apps/mobile/lib/editor/block_style.dart` (`indent`), and `renderDocHtml` for
-  reading and print.
 - Desktop app gets the 2026-11-07 changes only after Actions → **Release**.
+
+## 2026-11-07: Empty line is a section break (novel, story)
+
+- Owner's choice (option 3, with option 2): an empty line sits at the margin and so does the
+  paragraph after it, like after a chapter heading. Other paragraphs keep the 1.6em book indent.
+  Applies to the editor, reader, PDF/book output and Word export on web and desktop, and to the
+  phone app's editor and reader.
 
 ## 2026-11-07: Keyboard on the phone app's desk
 

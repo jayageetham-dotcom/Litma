@@ -230,9 +230,11 @@ BlockLook lookFor(TextBlock b, PageLook page, Counters n, {Block? previous, bool
   }
 
   // body paragraphs: novels and stories indent like a printed book, except the first paragraph
-  // of the work and the first after a heading
+  // of the work and the first after a heading. An empty line is a section break: it sits at the
+  // margin and so does the paragraph after it (same rule as the web's editor.scss and export.ts).
   final afterHeading = previous is TextBlock && previous.type != 'paragraph';
-  final indent = page.prose && !firstOfWork && !afterHeading && previous is! OpaqueBlock ? em * 1.6 : 0.0;
+  final afterBreak = previous is TextBlock && previous.type == 'paragraph' && previous.text.isEmpty;
+  final indent = page.prose && !firstOfWork && !afterHeading && !afterBreak && b.text.isNotEmpty && previous is! OpaqueBlock ? em * 1.6 : 0.0;
   final verseCentre = (page.kind == DocKind.poem || page.kind == DocKind.lyrics) && page.settings['verseAlign'] == 'center';
   return BlockLook(
     style: body,

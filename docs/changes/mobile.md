@@ -10,6 +10,12 @@ Reaches writers only through store builds. Cross-app summary and open items:
   selection, the inbox tool in the keyboard bar, the scrolling suggestion row, and a Manglish
   word typed mid-line converting when you tap elsewhere.
 
+## 2026-11-07: empty line is a section break
+
+- `lib/editor/block_style.dart` `lookFor`: no indent for an empty paragraph or the paragraph
+  after one (`afterBreak`). Used by the editor and the reader (`computeLooks`).
+- Test: `test/indent_test.dart`.
+
 ## 2026-11-07: keyboard on the desk
 
 - The keyboard opened on the desk for no reason after coming back from the editor: Flutter gave

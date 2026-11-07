@@ -104,8 +104,13 @@ export async function exportDocx(d: LitmaDoc) {
         }),
       ],
     });
-  for (const n of d.content.content ?? []) {
+  const blocks = d.content.content ?? [];
+  for (const [i, n] of blocks.entries()) {
     const align = ALIGN[n.attrs?.textAlign as string];
+    // novels and stories indent like the editor: not the first paragraph, not after a heading or
+    // a break, and an empty line is a section break (it and the paragraph after it sit at the margin)
+    const before = i > 0 ? blocks[i - 1] : undefined;
+    const indentHere = prose && !!n.content?.length && before?.type === "paragraph" && !!before.content?.length;
     switch (n.type) {
       case "heading":
         body.push(new Paragraph({ heading: [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3][(n.attrs?.level ?? 1) - 1], children: runs(n), alignment: align }));
@@ -200,7 +205,7 @@ export async function exportDocx(d: LitmaDoc) {
           new Paragraph({
             // ragged-right like the editor; justified only when the writer chose it
             alignment: align,
-            indent: prose ? { firstLine: 400 } : undefined,
+            indent: indentHere ? { firstLine: 400 } : undefined,
             spacing: { after: prose ? 40 : 140, line: Math.round(s.lineHeight * 240) },
             children: runs(n),
           })

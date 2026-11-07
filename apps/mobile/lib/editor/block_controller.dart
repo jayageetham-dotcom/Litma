@@ -334,6 +334,68 @@ class BlockController extends TextEditingController {
   /// Clear typing marks when the cursor moves somewhere else.
   void clearTypingMarks() => typingMarks = null;
 
+  /// Apply [change] to the marks of the selection, or to the marks of what will be typed next.
+  void _changeMarks(MarkSet Function(MarkSet m) change) {
+    final s = blockSelection;
+    if (s.isCollapsed) {
+      typingMarks = change(typingMarks ?? (s.start > 0 ? _inheritable(block.marks[s.start - 1]) : MarkSet.empty));
+    } else {
+      for (var i = s.start; i < s.end; i++) {
+        if (block.text[i] == atomChar && block.atoms.containsKey(i)) continue;
+        block.marks[i] = change(block.marks[i]);
+      }
+      notifyListeners();
+    }
+    onChanged(this, textChanged: !s.isCollapsed);
+  }
+
+  /// Set one textStyle attribute (color, fontSize…) for the selection or the next typed text;
+  /// null removes it (and the textStyle mark when nothing is left in it), like the web's tools.
+  void setStyleAttr(String attr, String? value) => _changeMarks((m) {
+        final attrs = <String, dynamic>{...((m.get('textStyle')?['attrs'] as Map?)?.cast<String, dynamic>() ?? const {})};
+        if (value == null) {
+          attrs.remove(attr);
+        } else {
+          attrs[attr] = value;
+        }
+        attrs.removeWhere((_, v) => v == null);
+        return attrs.isEmpty ? m.remove('textStyle') : m.add({'type': 'textStyle', 'attrs': attrs});
+      });
+
+  /// Highlight colour for the selection or the next typed text; null removes it.
+  void setHighlight(String? color) => _changeMarks((m) => color == null ? m.remove('highlight') : m.add({'type': 'highlight', 'attrs': {'color': color}}));
+
+  /// The textStyle [attr] at the cursor (or where the selection starts).
+  String? styleAt(String attr) {
+    final s = blockSelection;
+    if (s.isCollapsed && typingMarks != null) return typingMarks!.style(attr);
+    final i = s.isCollapsed ? s.start - 1 : s.start;
+    if (i < 0 || i >= block.marks.length) return null;
+    return block.marks[i].style(attr);
+  }
+
+  /// Highlight colour at the cursor, if any.
+  String? get highlightAt {
+    final s = blockSelection;
+    final m = s.isCollapsed ? (typingMarks ?? (s.start > 0 && s.start <= block.marks.length ? block.marks[s.start - 1] : MarkSet.empty)) : (s.start < block.marks.length ? block.marks[s.start] : MarkSet.empty);
+    return m.get('highlight')?['attrs']?['color'] as String?;
+  }
+
+  /// Put an inline piece (a footnote) at the cursor, replacing a selection.
+  void insertAtom(Json atom) {
+    _typedLatin = false;
+    final s = blockSelection;
+    _replace(s.start, s.end, atomChar, MarkSet.empty);
+    block.atoms[s.start] = atom;
+    super.value = TextEditingValue(text: '$sentinel${block.text}', selection: TextSelection.collapsed(offset: s.start + 2));
+    onChanged(this, textChanged: true);
+  }
+
+  /// Select [start, end) of the block's text (find in the work).
+  void select(int start, int end) {
+    super.value = value.copyWith(selection: TextSelection(baseOffset: start.clamp(0, block.text.length) + 1, extentOffset: end.clamp(0, block.text.length) + 1), composing: TextRange.empty);
+  }
+
   // ── drawing ──
 
   @override
@@ -376,8 +438,11 @@ class BlockController extends TextEditingController {
   /// [markerColor] is set by the editor from the theme.
   Color markerColor = const Color(0xFF5B3EF0);
 
+  /// A footnote's number in the work (set by the editor), so markers read 1, 2, 3 as on the web.
+  int? Function(Json atom)? footnoteNumber;
+
   TextSpan atomSpan(Json atom, TextStyle base) => TextSpan(
-        text: atom['type'] == 'footnote' ? '*' : '◆',
+        text: atom['type'] == 'footnote' ? '${footnoteNumber?.call(atom) ?? '*'}' : '◆',
         semanticsLabel: atom['type'] == 'footnote' ? 'Footnote' : '${atom['type']}',
         style: base.copyWith(color: markerColor, fontWeight: FontWeight.w700, fontFeatures: const [FontFeature.superscripts()]),
       );

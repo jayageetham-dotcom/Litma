@@ -22,6 +22,7 @@ import 'page_view.dart';
 import 'saver.dart';
 import 'session.dart';
 import 'tools.dart';
+import 'work_tools.dart';
 
 /// Opens a work: loads it (from the server or this phone), restores a newer journal, then edits.
 class EditorScreen extends ConsumerStatefulWidget {
@@ -125,12 +126,25 @@ class _EditorState extends ConsumerState<_Editor> {
     super.initState();
     s.addListener(_changed);
     s.spelling = (word) => _best[word];
+    s.reveal = _reveal;
+  }
+
+  /// Lines far down the page aren't built yet: scroll near the line first, then focus it.
+  void _reveal(TextBlock line) {
+    final i = s.topIndexOf(line);
+    if (i >= 0 && _scroll.hasClients) {
+      final max = _scroll.position.maxScrollExtent;
+      final n = s.document.blocks.length;
+      _scroll.jumpTo((max * i / (n > 1 ? n - 1 : 1)).clamp(0.0, max));
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => s.focusLine(line, at: s.controllerFor(line).blockSelection.extentOffset));
   }
 
   @override
   void dispose() {
     s.removeListener(_changed);
     s.spelling = null;
+    s.reveal = null;
     _suggestTimer?.cancel();
     _scroll.dispose();
     super.dispose();
@@ -301,7 +315,15 @@ class _Page extends StatelessWidget {
     final looks = computeLooks(session.document, page);
     final blocks = session.document.blocks;
     final pad = pagePadding(context);
-    Widget lineFor(TextBlock b) => EditableLine(session: session, block: b, look: looks[b]!, prompt: promptFor(b));
+    final notes = footnotesOf(session);
+    final numbers = Map<Json, int>.identity();
+    for (final (i, n) in notes.indexed) {
+      numbers[n] = i + 1;
+    }
+    Widget lineFor(TextBlock b) {
+      session.controllerFor(b).footnoteNumber = (atom) => numbers[atom];
+      return EditableLine(session: session, block: b, look: looks[b]!, prompt: promptFor(b));
+    }
 
     return PaperSheet(
       child: ListView.builder(
@@ -309,7 +331,7 @@ class _Page extends StatelessWidget {
         scrollCacheExtent: const ScrollCacheExtent.pixels(2400),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
         padding: EdgeInsets.fromLTRB(pad.left, 18, pad.right, 140),
-        itemCount: blocks.length,
+        itemCount: blocks.length + (notes.isEmpty ? 0 : 1),
         // keep each line's field (and its focus, so the keyboard stays up) when lines are added or
         // removed above it: find a line by its key, not by its position
         findChildIndexCallback: (key) {
@@ -318,6 +340,7 @@ class _Page extends StatelessWidget {
           return i < 0 ? null : i;
         },
         itemBuilder: (context, i) {
+          if (i >= blocks.length) return Endnotes(key: const ValueKey('endnotes'), notes: notes, style: page.body);
           final b = blocks[i];
           return switch (b) {
             TextBlock() => KeyedSubtree(key: ObjectKey(b), child: lineFor(b)),
@@ -429,6 +452,16 @@ class _KeyboardBarState extends State<_KeyboardBar> {
                 _Tool(icon: LucideIcons.italic, label: context.t('app.editor.italic'), active: s.markActive('italic'), onTap: () => s.toggleMark('italic')),
                 _Tool(icon: LucideIcons.underline, label: context.t('app.editor.underline'), active: s.markActive('underline'), onTap: () => s.toggleMark('underline')),
                 _Tool(icon: LucideIcons.strikethrough, label: context.t('app.editor.strike'), active: s.markActive('strike'), onTap: () => s.toggleMark('strike')),
+                // size, colour, highlight, lists: the full Format sheet (the web's "All formatting")
+                _Tool(
+                  icon: LucideIcons.palette,
+                  label: context.t('app.tools.format'),
+                  tint: c.tintViolet,
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    showFormatSheet(context, s);
+                  },
+                ),
                 const _Sep(),
                 _Tool(
                   icon: switch (s.align) { 'center' => LucideIcons.textAlignCenter, 'right' => LucideIcons.textAlignEnd, 'justify' => LucideIcons.textAlignJustify, _ => LucideIcons.textAlignStart },

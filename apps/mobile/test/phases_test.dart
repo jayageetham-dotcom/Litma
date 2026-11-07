@@ -143,10 +143,12 @@ void main() {
     o.dispose();
   });
 
-  test('Malayalam suggestions: the closest three, best first, no repeats', () async {
+  test('Malayalam suggestions: all of them, best first, no repeats', () async {
     final t = Transliterator(client: MockClient((req) async => http.Response(jsonEncode({'candidates': ['എന്ന്', 'എന്നു', 'എന്ന്', 'ഇന്ന്', 'ഇന്നു', 'എന്ന'], 'source': 'google'}), 200, headers: {'content-type': 'application/json; charset=utf-8'})));
     final list = await t.candidates('ennu');
-    expect(list, ['എന്ന്', 'എന്നു', 'ഇന്ന്']);
-    expect(Transliterator.maxCandidates, 3);
+    expect(list.take(5), ['എന്ന്', 'എന്നു', 'ഇന്ന്', 'ഇന്നു', 'എന്ന']);
+    expect(list.toSet().length, list.length);
+    expect(t.candidates('ennu', num: 3), completion(hasLength(3)));
+    expect(Transliterator.maxCandidates, 18);
   });
 }

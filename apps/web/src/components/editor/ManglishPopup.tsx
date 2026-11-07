@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import type { Transaction } from "@tiptap/pm/state";
 import { transliterate } from "@/lib/functions";
-import { manglishKey, topCandidates, pageOf, MAX_CANDIDATES, PAGE_SIZE, STRIP_SIZE, type ComposeState, type CommitInfo } from "@/extensions/manglish";
+import { manglishKey, topCandidates, pageOf, MAX_CANDIDATES, PAGE_SIZE, type ComposeState, type CommitInfo } from "@/extensions/manglish";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useT } from "@/i18n/react";
 
@@ -25,7 +25,7 @@ const keep = (e: React.SyntheticEvent) => e.preventDefault();
 
 /**
  * Malayalam spellings for the word being typed in Manglish mode, best first. Desktop: a list under
- * the word, PAGE_SIZE at a time with a pager for more. Phones: STRIP_SIZE in a strip.
+ * the word, PAGE_SIZE at a time with a pager for more. Phones: all of them in a strip that scrolls sideways.
  * `docked` (phones) shows them as a strip on top of the keyboard, like a phone keyboard's own
  * suggestions; otherwise a one-line bar sits under the word, so the page stays readable.
  */
@@ -36,6 +36,8 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastWord = useRef("");
   const bar = useRef<HTMLDivElement>(null);
+  const strip = useRef<HTMLDivElement>(null);
+  const stripWord = useRef("");
 
   useEffect(() => {
     const update = () => {
@@ -110,6 +112,18 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
     };
   }, [editor, docked]);
 
+  // phones: a new word starts the row at the beginning; arrow-key moves keep the chosen spelling in view
+  useEffect(() => {
+    const el = strip.current;
+    if (!el || !st) return;
+    if (stripWord.current !== st.word) {
+      stripWord.current = st.word;
+      el.scrollLeft = 0;
+      return;
+    }
+    el.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [st]);
+
   if (!st) {
     // phones: keep the row while Manglish is on, so the strip above it doesn't jump at every word
     return docked && editor.storage.manglish?.mode === "manglish" ? <div className="no-print h-11 border-t border-line bg-paper" aria-hidden /> : null;
@@ -120,9 +134,8 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
   const show = (index: number) => editor.view.dispatch(editor.state.tr.setMeta(manglishKey, { index }));
 
   if (docked) {
-    // Phones: the original word in quotes on the left (keeps English), the spellings beside it
-    const start = pageOf(st.index, STRIP_SIZE) * STRIP_SIZE;
-    const strip = all.slice(start, start + STRIP_SIZE);
+    // Phones: the original word in quotes on the left (keeps English), then every spelling in a row
+    // that scrolls sideways, like a phone keyboard's own suggestions
     return (
       <div className="no-print flex h-11 items-stretch gap-1 border-t border-line bg-paper px-1.5 py-1 text-ink" role="listbox" aria-label={t("manglish.suggestions")}>
         <button
@@ -135,8 +148,8 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
         >
           “{st.word}”
         </button>
-        {strip.map((c, k) => {
-          const i = start + k;
+        <div ref={strip} className="scrollbar-none flex min-w-0 flex-1 items-stretch gap-1 overflow-x-auto overscroll-x-contain">
+        {all.map((c, i) => {
           return (
             <button
               key={c + i}
@@ -146,13 +159,14 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
               onPointerDown={keep}
               onMouseDown={keep}
               onClick={() => pick(i)}
-              className={`min-w-0 flex-1 truncate rounded-[8px] px-2 text-[17px] ${i === st.index ? "bg-accent-soft font-medium text-accent" : "active:bg-subtle"}`}
+              className={`shrink-0 whitespace-nowrap rounded-[8px] px-3 text-[17px] ${i === st.index ? "bg-accent-soft font-medium text-accent" : "active:bg-subtle"}`}
               style={ML_FONT}
             >
               {c}
             </button>
           );
         })}
+        </div>
       </div>
     );
   }

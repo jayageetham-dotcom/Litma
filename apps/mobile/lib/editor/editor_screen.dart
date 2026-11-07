@@ -464,7 +464,8 @@ class _KeyboardBarState extends State<_KeyboardBar> {
 }
 
 /// Malayalam spellings for the word being typed, laid out like a phone keyboard's suggestion
-/// row: the word as typed in quotes (keeps English), then the closest three, best one marked.
+/// row: the word as typed in quotes (keeps English), then every spelling, best one marked, in a
+/// row that scrolls sideways. A new word starts the row at the beginning.
 class _Suggestions extends StatelessWidget {
   const _Suggestions({required this.session, required this.word, required this.candidates});
   final EditorSession session;
@@ -500,34 +501,35 @@ class _Suggestions extends StatelessWidget {
                   ),
                 ),
               ),
-              for (final (i, cand) in list.indexed)
-                Expanded(
-                  child: FadeSlideIn(
-                    key: ValueKey('$w/$cand'),
-                    index: i,
-                    offset: 4,
-                    duration: Motion.medium,
-                    child: Pressable(
-                      semanticLabel: cand,
-                      onTap: () => ctrl?.replaceWordAtCursor(w, cand),
-                      child: AnimatedContainer(
-                        duration: Motion.of(context, Motion.fast),
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: i == 0 ? c.accentSoft : Colors.transparent, borderRadius: BorderRadius.circular(9)),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Text(cand, maxLines: 1, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 17, fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w500, color: i == 0 ? c.optionSelectedInk : c.ink)),
-                          ),
+              Expanded(
+                child: ListView.builder(
+                  // a fresh list (scrolled to the start) for every new word
+                  key: ValueKey('strip/$w'),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: list.length,
+                  itemBuilder: (context, i) {
+                    final cand = list[i];
+                    return FadeSlideIn(
+                      key: ValueKey('$w/$cand'),
+                      index: i < 4 ? i : 4,
+                      offset: 4,
+                      duration: Motion.medium,
+                      child: Pressable(
+                        semanticLabel: cand,
+                        onTap: () => ctrl?.replaceWordAtCursor(w, cand),
+                        child: AnimatedContainer(
+                          duration: Motion.of(context, Motion.fast),
+                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(color: i == 0 ? c.accentSoft : Colors.transparent, borderRadius: BorderRadius.circular(9)),
+                          child: Text(cand, maxLines: 1, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 17, fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w500, color: i == 0 ? c.optionSelectedInk : c.ink)),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
-              // keep three slots so the row doesn't reflow while Google's answer arrives
-              for (var i = list.length; i < Transliterator.maxCandidates; i++) const Expanded(child: SizedBox()),
+              ),
             ]),
     );
   }

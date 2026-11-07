@@ -16,6 +16,8 @@ export interface ComposeState {
   index: number;
   /** true once smarter (Google) candidates have arrived for this word */
   fetched: boolean;
+  /** the word was typed just now (not old text the cursor happens to sit after) */
+  typed?: boolean;
 }
 
 export interface CommitInfo {
@@ -30,10 +32,9 @@ export const manglishKey = new PluginKey<ComposeState>("manglish");
 /**
  * Spellings offered for a Manglish word. Desktop and Electron show them a page at a time
  * (PAGE_SIZE rows, ↑↓ and Page Up/Down or the pager to see more, like Google Input Tools);
- * phones show STRIP_SIZE in the strip on top of the keyboard.
+ * phones show all of them in a strip on top of the keyboard that scrolls sideways.
  */
 export const PAGE_SIZE = 6;
-export const STRIP_SIZE = 3;
 /** How many spellings are fetched: three pages. */
 export const MAX_CANDIDATES = 18;
 
@@ -225,10 +226,35 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
             if (typeof meta?.index === "number") return { ...prev, index: meta.index };
             if (meta?.dismiss) return { ...prev, dismissed: true };
             if (!tr.docChanged && !tr.selectionSet) return prev;
-            return computeCompose(newState, prev, ext.storage.mode);
+            const next = computeCompose(newState, prev, ext.storage.mode);
+            next.typed = next.active && (tr.docChanged || (prev.active && prev.from === next.from && !!prev.typed));
+            return next;
           },
         },
+        // The cursor left a Manglish word that was just typed (a tap elsewhere, arrow keys): finish
+        // it as a space would. In the middle of a line the space after the word is already there,
+        // so without this the word stayed in English letters.
+        appendTransaction(trs, oldState, newState) {
+          if (trs.some((t) => t.docChanged || t.getMeta(manglishKey)) || !trs.some((t) => t.selectionSet)) return null;
+          const was = manglishKey.getState(oldState);
+          if (!was?.active || !was.typed || was.dismissed) return null;
+          const now = manglishKey.getState(newState);
+          if (now?.active && now.from === was.from) return null;
+          if (newState.doc.textBetween(was.from, was.to, undefined, "￼") !== was.word) return null;
+          const list = was.candidates.length ? was.candidates : [manglishWord(was.word)];
+          const choice = list[Math.min(was.index, list.length - 1)] ?? manglishWord(was.word);
+          const committed: CommitInfo = { from: was.from, text: choice, word: was.word, fetched: was.fetched || was.index > 0 };
+          return newState.tr.insertText(choice, was.from, was.to).setMeta(manglishKey, { reset: true, committed });
+        },
         props: {
+          handleDOMEvents: {
+            // leaving the editor (keyboard hidden, another field) finishes the word too
+            blur(view) {
+              const st = manglishKey.getState(view.state);
+              if (st?.active && st.typed && !st.dismissed) commit(view);
+              return false;
+            },
+          },
           decorations(state) {
             const st = manglishKey.getState(state);
             if (!st?.active || st.dismissed) return null;

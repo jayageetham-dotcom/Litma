@@ -112,14 +112,17 @@ final Json richDoc = {
 
 TextStyle _styler(MarkSet m, TextStyle b) => m.has('bold') ? b.copyWith(fontWeight: FontWeight.w700) : b;
 
-BlockController _controller(TextBlock b, {List<String>? log, InputMode mode = InputMode.manglish}) => BlockController(
+BlockController _controller(TextBlock b, {List<String>? log, InputMode mode = InputMode.manglish, Map<String, String>? spell}) => BlockController(
       block: b,
       styler: _styler,
       mode: mode,
+      spelling: spell == null ? null : (w) => spell[w],
       onSplit: (c, at) => log?.add('split@$at'),
       onMergeBack: (c) => log?.add('merge'),
       onChanged: (c, {required textChanged}) {},
     );
+
+const _spell = {'naadu': 'നാട്', 'nalla': 'നല്ല'};
 
 /// Type [s] one character at a time at the cursor, as a keyboard does.
 void type(BlockController c, String s) {
@@ -200,6 +203,47 @@ void main() {
       c.keepEnglish = 'Litma';
       type(c, ' ');
       expect(c.block.text, 'Litma ');
+    });
+    test('a word typed in the middle of a line converts when the cursor leaves it', () {
+      final c = _controller(TextBlock('paragraph', {}), spell: _spell);
+      type(c, 'ente  naadu ');
+      c.placeCursor('എന്റെ '.length);
+      type(c, 'nalla');
+      expect(c.block.text, 'എന്റെ nalla നാട് ');
+      // a tap at the end of the line
+      c.value = c.value.copyWith(selection: TextSelection.collapsed(offset: c.value.text.length));
+      expect(c.block.text, 'എന്റെ നല്ല നാട് ');
+      expect(c.blockSelection.extentOffset, c.block.text.length);
+    });
+    test('moving inside the word being typed does not convert it yet', () {
+      final c = _controller(TextBlock('paragraph', {}));
+      type(c, 'naadu');
+      c.value = c.value.copyWith(selection: const TextSelection.collapsed(offset: 3));
+      expect(c.block.text, 'naadu');
+    });
+    test('leaving the line finishes the word', () {
+      final c = _controller(TextBlock('paragraph', {}));
+      type(c, 'ente');
+      c.finishPendingWord();
+      expect(c.block.text, 'എന്റെ');
+      expect(c.blockSelection.extentOffset, c.block.text.length);
+    });
+    test('text typed in English mode is never converted later', () {
+      final c = _controller(TextBlock('paragraph', {}), mode: InputMode.english);
+      type(c, 'Litma');
+      c.mode = InputMode.manglish;
+      c.value = c.value.copyWith(selection: const TextSelection.collapsed(offset: 1));
+      c.finishPendingWord();
+      expect(c.block.text, 'Litma');
+    });
+    test('picking a suggestion mid-line steps over the space that is already there', () {
+      final c = _controller(TextBlock('paragraph', {}), spell: _spell);
+      type(c, 'ente  naadu ');
+      c.placeCursor('എന്റെ '.length);
+      type(c, 'nalla');
+      c.replaceWordAtCursor('nalla', 'നല്ല');
+      expect(c.block.text, 'എന്റെ നല്ല നാട് ');
+      expect(c.blockSelection.extentOffset, 'എന്റെ നല്ല '.length);
     });
     test('English mode never converts', () {
       final c = _controller(TextBlock('paragraph', {}), mode: InputMode.english);

@@ -486,7 +486,14 @@ $mm: 3.7795275591px;
   .ProseMirror > p:first-child,
   .ProseMirror > .sb + p,
   .ProseMirror > hr + p,
-  .ProseMirror > .page-spacer + p {
+  .ProseMirror > .page-spacer + p,
+  // an empty line is a section break, like a printed book: it sits at the margin and so does
+  // the paragraph after it (editor: Placeholder's .is-empty; reading, print and books: :empty).
+  // Same rule in the phone app (block_style.dart) and Word export (export.ts).
+  .ProseMirror > p.is-empty,
+  .ProseMirror > p:empty,
+  .ProseMirror > p.is-empty + p,
+  .ProseMirror > p:empty + p {
     text-indent: 0;
   }
   // drop cap after a chapter heading: a real span around the first akshara (FirstLetterColour in

@@ -9,7 +9,16 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   mode on a desktop-size window only; check it on a real phone browser (iOS Safari, Android
   Chrome), where the system keyboard may compose words differently.
 
-## 2026-11-07
+## 2026-11-07: empty line is a section break
+
+- `styles/editor.scss` `.tpl-novel, .tpl-story`: `p.is-empty` (Placeholder marks every empty
+  line in the editor) and `p:empty` (reader, print, books) and the paragraph after either get
+  `text-indent: 0`.
+- `lib/export.ts` (Word): first-line indent only for a non-empty paragraph that follows a
+  non-empty paragraph (was every prose paragraph, even after headings).
+- Checked with Playwright: one 0, two 1.6em, empty 0, three 0, four 1.6em, empty lines 0.
+
+## 2026-11-07: inbox, keyboard strip, Manglish
 
 - `components/editor/Panels.tsx` `InboxPanel`: Copy button (keeps the suggestion), "Copied" state,
   `select-text` on the content, strings from i18n.

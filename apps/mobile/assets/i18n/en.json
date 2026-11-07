@@ -216,7 +216,11 @@
     "escHint": "Esc keeps English",
     "keepEnglish": "Keep English",
     "keepEnglishAria": "Keep “{word}” in English",
-    "keysHint": "Space accepts · ↑↓ or 1–3 to pick · Esc keeps English"
+    "keysHint": "Space accepts · ↑↓ or 1–6 to pick · Page Up/Down for more · Esc keeps English",
+    "page": "{n}/{total}",
+    "prevPage": "Previous suggestions",
+    "nextPage": "More suggestions",
+    "pageHint": "Page Up / Page Down"
   },
   "saved": {
     "title": "Saved words",

@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   if (pre) return pre;
   const url = new URL(req.url);
   const text = (url.searchParams.get("text") ?? "").slice(0, 64);
-  const num = Math.min(Number(url.searchParams.get("num") ?? 6) || 6, 10);
+  const num = Math.min(Number(url.searchParams.get("num") ?? 6) || 6, 20);
   if (!text) return json({ candidates: [], source: "empty" });
   if (!/^[A-Za-z~_^]+$/.test(text)) return json({ candidates: [text], source: "passthrough" });
   const res = await googleCandidates(text, num);

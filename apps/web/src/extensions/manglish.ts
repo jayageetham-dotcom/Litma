@@ -27,19 +27,29 @@ export interface CommitInfo {
 
 export const manglishKey = new PluginKey<ComposeState>("manglish");
 
-/** How many spellings the writer is offered: the closest few, so the list never covers the page. */
-export const MAX_CANDIDATES = 3;
+/**
+ * Spellings offered for a Manglish word. Desktop and Electron show them a page at a time
+ * (PAGE_SIZE rows, ↑↓ and Page Up/Down or the pager to see more, like Google Input Tools);
+ * phones show STRIP_SIZE in the strip on top of the keyboard.
+ */
+export const PAGE_SIZE = 6;
+export const STRIP_SIZE = 3;
+/** How many spellings are fetched: three pages. */
+export const MAX_CANDIDATES = 18;
 
-/** Best first, no repeats, at most MAX_CANDIDATES. */
-export function topCandidates(list: string[]): string[] {
+/** Best first, no repeats, at most `max`. */
+export function topCandidates(list: string[], max = MAX_CANDIDATES): string[] {
   const out: string[] = [];
   for (const c of list) {
     const w = c?.trim();
     if (w && !out.includes(w)) out.push(w);
-    if (out.length === MAX_CANDIDATES) break;
+    if (out.length === max) break;
   }
   return out;
 }
+
+/** The page (0-based) that shows candidate `index`, for a page of `size`. */
+export const pageOf = (index: number, size = PAGE_SIZE) => Math.floor(index / size);
 
 const EMPTY: ComposeState = { active: false, dismissed: false, from: 0, to: 0, word: "", candidates: [], index: 0, fetched: false };
 
@@ -235,10 +245,19 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
               view.dispatch(view.state.tr.setMeta(manglishKey, { index: (st.index + d + list.length) % list.length }));
               return true;
             }
+            if ((event.key === "PageDown" || event.key === "PageUp") && list.length > PAGE_SIZE) {
+              // whole pages, like Google Input Tools: the first spelling of the next/previous page
+              const pages = Math.ceil(list.length / PAGE_SIZE);
+              const page = (pageOf(st.index) + (event.key === "PageDown" ? 1 : -1) + pages) % pages;
+              view.dispatch(view.state.tr.setMeta(manglishKey, { index: page * PAGE_SIZE }));
+              return true;
+            }
             if (/^[1-9]$/.test(event.key)) {
+              // numbers pick on the page that is showing
               const n = Number(event.key) - 1;
-              if (n < list.length) {
-                commit(view, n);
+              const i = pageOf(st.index) * PAGE_SIZE + n;
+              if (n < PAGE_SIZE && i < list.length) {
+                commit(view, i);
                 return true;
               }
               return false;

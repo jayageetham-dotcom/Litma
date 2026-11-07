@@ -214,7 +214,11 @@
     "escHint": "Esc: ഇംഗ്ലീഷിൽ നിലനിർത്തും",
     "keepEnglish": "ഇംഗ്ലീഷിൽ",
     "keepEnglishAria": "“{word}” ഇംഗ്ലീഷിൽ തന്നെ നിലനിർത്തുക",
-    "keysHint": "Space: സ്വീകരിക്കുക · ↑↓ അല്ലെങ്കിൽ 1–3: തിരഞ്ഞെടുക്കുക · Esc: ഇംഗ്ലീഷ്"
+    "keysHint": "Space: സ്വീകരിക്കുക · ↑↓ അല്ലെങ്കിൽ 1–6: തിരഞ്ഞെടുക്കുക · Page Up/Down: കൂടുതൽ · Esc: ഇംഗ്ലീഷ്",
+    "page": "{n}/{total}",
+    "prevPage": "മുമ്പത്തെ നിർദ്ദേശങ്ങൾ",
+    "nextPage": "കൂടുതൽ നിർദ്ദേശങ്ങൾ",
+    "pageHint": "Page Up / Page Down"
   },
   "saved": {
     "title": "സൂക്ഷിച്ച വാക്കുകൾ",

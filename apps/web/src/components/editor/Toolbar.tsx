@@ -32,7 +32,9 @@ import {
   Users,
   Minus,
   Plus,
+  Inbox,
 } from "lucide-react";
+import { useLayoutEffect, useRef } from "react";
 import { useT } from "@/i18n/react";
 import type { Template } from "@/lib/templates";
 import { FONTS } from "@/lib/templates";
@@ -440,6 +442,9 @@ export function Toolbar({
   );
 }
 
+/** scroll position of the phone keyboard strip, kept while the app is open */
+let stripScroll = 0;
+
 /**
  * Phone keyboard accessory: sits on top of the on-screen keyboard while writing,
  * like a native app's input accessory view. The most used actions only; "Aa" opens the full Format sheet.
@@ -453,6 +458,8 @@ export function MobileFormatStrip({
   onDone,
   onLookUp,
   onAskAI,
+  onInbox,
+  inboxCount = 0,
 }: {
   editor: Editor;
   template: Template;
@@ -464,10 +471,18 @@ export function MobileFormatStrip({
   onLookUp: () => void;
   /** open the AI companion on the selection */
   onAskAI: () => void;
+  /** open the Assistant inbox */
+  onInbox?: () => void;
+  inboxCount?: number;
 }) {
   const t = useT();
   const e = editor;
   const chain = () => e.chain().focus();
+  // the strip unmounts whenever the keyboard closes; keep where the writer scrolled it
+  const scroller = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (scroller.current) scroller.current.scrollLeft = stripScroll;
+  }, []);
   const parentName = e.state.selection.$from.parent.type.name;
   const usesDialogue = template.screenplay || template.dialogue;
   const next: Record<InputMode, InputMode> = { manglish: "malayalam", malayalam: "english", english: "manglish" };
@@ -499,7 +514,7 @@ export function MobileFormatStrip({
       >
         {label[mode]}
       </button>
-      <div className="scrollbar-none flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
+      <div ref={scroller} onScroll={(ev) => (stripScroll = ev.currentTarget.scrollLeft)} className="scrollbar-none flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
         <B t="Undo" on={() => chain().undo().run()} dis={!e.can().undo()}>
           <Undo2 size={18} />
         </B>
@@ -545,6 +560,18 @@ export function MobileFormatStrip({
       <B t={t("mobile.askAI")} on={onAskAI}>
         <Sparkles size={18} />
       </B>
+      {onInbox && (
+        <B t={t("mobile.inbox")} on={onInbox}>
+          <span className="relative">
+            <Inbox size={18} />
+            {inboxCount > 0 && (
+              <span className="absolute -right-2 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-highlight px-1 text-[10px] font-bold leading-none text-white" aria-hidden>
+                {inboxCount > 9 ? "9+" : inboxCount}
+              </span>
+            )}
+          </span>
+        </B>
+      )}
       <B t={t("mobile.allFormatting")} on={onMore}>
         <Type size={18} />
       </B>

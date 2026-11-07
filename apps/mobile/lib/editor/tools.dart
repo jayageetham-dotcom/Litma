@@ -402,6 +402,26 @@ class _Inbox extends ConsumerStatefulWidget {
 
 class _InboxState extends ConsumerState<_Inbox> {
   List<Map<String, dynamic>>? _list;
+  Object? _copied;
+  Timer? _copiedTimer;
+
+  @override
+  void dispose() {
+    _copiedTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Copy only copies: the suggestion stays until the writer applies or dismisses it.
+  Future<void> _copy(Map<String, dynamic> sug) async {
+    await Clipboard.setData(ClipboardData(text: '${sug['content'] ?? ''}'));
+    Haptics.confirm();
+    if (!mounted) return;
+    setState(() => _copied = sug['id']);
+    _copiedTimer?.cancel();
+    _copiedTimer = Timer(const Duration(milliseconds: 1600), () {
+      if (mounted) setState(() => _copied = null);
+    });
+  }
 
   @override
   void initState() {
@@ -420,7 +440,7 @@ class _InboxState extends ConsumerState<_Inbox> {
       final target = (sug['target_text'] as String?)?.trim();
       final content = '${sug['content'] ?? ''}';
       if (sug['kind'] == 'comment') {
-        await Clipboard.setData(ClipboardData(text: content));
+        return; // notes are only read or copied, never put into the work
       } else if (target != null && target.isNotEmpty) {
         if (!s.replaceInDocument(target, content)) s.insertText(content);
       } else {
@@ -430,6 +450,13 @@ class _InboxState extends ConsumerState<_Inbox> {
     }
     setState(() => _list = _list!.where((x) => x['id'] != sug['id']).toList());
     await ref.read(servicesProvider).store.setSuggestionStatus('${sug['id']}', accept ? 'accepted' : 'dismissed');
+  }
+
+  Widget _copyButton(BuildContext context, Map<String, dynamic> sug, {required bool filled}) {
+    final done = _copied == sug['id'];
+    final icon = Icon(done ? LucideIcons.check : LucideIcons.copy, size: 16);
+    final label = Text(context.t(done ? 'app.inbox.copied' : 'app.inbox.copy'));
+    return filled ? FilledButton.icon(onPressed: () => _copy(sug), icon: icon, label: label) : OutlinedButton.icon(onPressed: () => _copy(sug), icon: icon, label: label);
   }
 
   @override
@@ -462,7 +489,8 @@ class _InboxState extends ConsumerState<_Inbox> {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(LitmaRadius.md), border: Border.all(color: c.line)),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              // press and hold to select and copy just a part (one idea from a list, say)
+              child: SelectionArea(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Row(children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -480,12 +508,15 @@ class _InboxState extends ConsumerState<_Inbox> {
                 Padding(padding: const EdgeInsets.only(top: 8), child: Text('${sug['content']}', style: const TextStyle(fontFamily: LitmaFonts.serif, fontSize: 15.5, height: 1.6))),
                 if ((sug['note'] as String?)?.isNotEmpty ?? false) Padding(padding: const EdgeInsets.only(top: 8), child: Text('${sug['note']}', style: Theme.of(context).textTheme.bodySmall)),
                 const SizedBox(height: 10),
-                Row(children: [
-                  FilledButton.icon(onPressed: () => _decide(sug, true), icon: const Icon(LucideIcons.check, size: 16), label: Text(sug['kind'] == 'comment' ? context.t('app.ai.copy') : context.t('app.inbox.apply'))),
-                  const SizedBox(width: 8),
-                  TextButton(onPressed: () => _decide(sug, false), style: TextButton.styleFrom(foregroundColor: c.muted), child: Text(context.t('app.inbox.dismiss'))),
-                ]),
-              ]),
+                SelectionContainer.disabled(
+                  child: Wrap(spacing: 8, runSpacing: 6, children: [
+                    if (sug['kind'] != 'comment')
+                      FilledButton.icon(onPressed: () => _decide(sug, true), icon: const Icon(LucideIcons.check, size: 16), label: Text(context.t('app.inbox.apply'))),
+                    _copyButton(context, sug, filled: sug['kind'] == 'comment'),
+                    TextButton(onPressed: () => _decide(sug, false), style: TextButton.styleFrom(foregroundColor: c.muted), child: Text(context.t('app.inbox.dismiss'))),
+                  ]),
+                ),
+              ])),
             ),
           ),
       ]),

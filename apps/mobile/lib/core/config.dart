@@ -25,8 +25,9 @@ class Transliterator {
   final http.Client _client;
   final _cache = <String, List<String>>{};
 
-  /// How many spellings the writer is offered: the closest few, best first (same as the web).
-  static const maxCandidates = 3;
+  /// How many spellings the writer is offered, best first (same as the web's MAX_CANDIDATES).
+  /// The strip above the keyboard scrolls sideways to show them all.
+  static const maxCandidates = 18;
 
   /// Offline candidate, immediately.
   List<String> offline(String word) => [manglishWord(word)];

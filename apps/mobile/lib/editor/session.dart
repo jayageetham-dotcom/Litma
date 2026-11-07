@@ -72,6 +72,9 @@ class EditorSession extends ChangeNotifier {
           if (f.hasFocus && focused != b) {
             focused = b;
             notifyListeners();
+          } else if (!f.hasFocus) {
+            // left the line: a Manglish word still being typed is finished, as a space would
+            _controllers[b]?.finishPendingWord();
           }
         });
         return f;

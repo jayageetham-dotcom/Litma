@@ -227,7 +227,10 @@ class _EditorState extends ConsumerState<_Editor> {
               switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, a) => SizeTransition(sizeFactor: a, alignment: Alignment.topCenter, child: FadeTransition(opacity: a, child: child)),
               child: writing
-                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates, onLookUp: () => showLookUpSheet(context, s), onAi: () => showAiSheet(context, ref, s))
+                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates, onLookUp: () => showLookUpSheet(context, s), onAi: () => showAiSheet(context, ref, s), onInbox: () {
+                      FocusScope.of(context).unfocus();
+                      showInboxSheet(context, ref, s);
+                    })
                   : _Footer(key: const ValueKey('footer'), session: s),
             ),
           ],
@@ -369,19 +372,41 @@ class _ModeChip extends StatelessWidget {
   }
 }
 
+/// Where the writer last scrolled the tool row. The bar is rebuilt each time the keyboard
+/// opens, so without this it always jumped back to the start.
+double _barOffset = 0;
+
 /// The keyboard accessory: suggestions for the Manglish word, then the writing tools.
-class _KeyboardBar extends StatelessWidget {
-  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates, required this.onLookUp, required this.onAi});
+class _KeyboardBar extends StatefulWidget {
+  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates, required this.onLookUp, required this.onAi, required this.onInbox});
   final VoidCallback onLookUp;
   final VoidCallback onAi;
+  final VoidCallback onInbox;
   final EditorSession session;
   final String? word;
   final List<String> candidates;
 
   @override
+  State<_KeyboardBar> createState() => _KeyboardBarState();
+}
+
+class _KeyboardBarState extends State<_KeyboardBar> {
+  late final ScrollController _tools = ScrollController(initialScrollOffset: _barOffset)..addListener(_remember);
+
+  void _remember() => _barOffset = _tools.offset;
+
+  @override
+  void dispose() {
+    _tools.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.c;
-    final s = session;
+    final s = widget.session;
+    final word = widget.word;
+    final candidates = widget.candidates;
     final drama = s.kind == DocKind.drama || s.kind == DocKind.screenplay;
     return Material(
       color: c.surface,
@@ -391,6 +416,7 @@ class _KeyboardBar extends StatelessWidget {
           SizedBox(
             height: 50,
             child: ListView(
+              controller: _tools,
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 6),
               children: [
@@ -412,8 +438,9 @@ class _KeyboardBar extends StatelessWidget {
                       : null,
                 ),
                 if (drama) _Tool(icon: LucideIcons.messageSquareQuote, label: context.t('app.editor.dialogue'), tint: c.tintCoral, onTap: s.insertDialogue),
-                _Tool(icon: LucideIcons.bookA, label: context.t('mobile.lookUp'), tint: c.tintTangerine, onTap: onLookUp),
-                _Tool(icon: LucideIcons.sparkles, label: context.t('mobile.askAI'), tint: c.tintViolet, onTap: onAi),
+                _Tool(icon: LucideIcons.bookA, label: context.t('mobile.lookUp'), tint: c.tintTangerine, onTap: widget.onLookUp),
+                _Tool(icon: LucideIcons.sparkles, label: context.t('mobile.askAI'), tint: c.tintViolet, onTap: widget.onAi),
+                _Tool(icon: LucideIcons.inbox, label: context.t('mobile.inbox'), tint: c.tintViolet, onTap: widget.onInbox),
                 _Tool(icon: LucideIcons.languages, label: context.t('app.editor.typing'), tint: c.tintTangerine, onTap: () => showModeSheet(context, s)),
                 const _Sep(),
                 _Tool(icon: LucideIcons.keyboardOff, label: context.t('mobile.hideKeyboard'), onTap: () => FocusScope.of(context).unfocus()),
@@ -437,7 +464,8 @@ class _KeyboardBar extends StatelessWidget {
 }
 
 /// Malayalam spellings for the word being typed, laid out like a phone keyboard's suggestion
-/// row: the word as typed in quotes (keeps English), then the closest three, best one marked.
+/// row: the word as typed in quotes (keeps English), then every spelling, best one marked, in a
+/// row that scrolls sideways. A new word starts the row at the beginning.
 class _Suggestions extends StatelessWidget {
   const _Suggestions({required this.session, required this.word, required this.candidates});
   final EditorSession session;
@@ -473,34 +501,35 @@ class _Suggestions extends StatelessWidget {
                   ),
                 ),
               ),
-              for (final (i, cand) in list.indexed)
-                Expanded(
-                  child: FadeSlideIn(
-                    key: ValueKey('$w/$cand'),
-                    index: i,
-                    offset: 4,
-                    duration: Motion.medium,
-                    child: Pressable(
-                      semanticLabel: cand,
-                      onTap: () => ctrl?.replaceWordAtCursor(w, cand),
-                      child: AnimatedContainer(
-                        duration: Motion.of(context, Motion.fast),
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: i == 0 ? c.accentSoft : Colors.transparent, borderRadius: BorderRadius.circular(9)),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Text(cand, maxLines: 1, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 17, fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w500, color: i == 0 ? c.optionSelectedInk : c.ink)),
-                          ),
+              Expanded(
+                child: ListView.builder(
+                  // a fresh list (scrolled to the start) for every new word
+                  key: ValueKey('strip/$w'),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: list.length,
+                  itemBuilder: (context, i) {
+                    final cand = list[i];
+                    return FadeSlideIn(
+                      key: ValueKey('$w/$cand'),
+                      index: i < 4 ? i : 4,
+                      offset: 4,
+                      duration: Motion.medium,
+                      child: Pressable(
+                        semanticLabel: cand,
+                        onTap: () => ctrl?.replaceWordAtCursor(w, cand),
+                        child: AnimatedContainer(
+                          duration: Motion.of(context, Motion.fast),
+                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(color: i == 0 ? c.accentSoft : Colors.transparent, borderRadius: BorderRadius.circular(9)),
+                          child: Text(cand, maxLines: 1, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 17, fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w500, color: i == 0 ? c.optionSelectedInk : c.ink)),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
-              // keep three slots so the row doesn't reflow while Google's answer arrives
-              for (var i = list.length; i < Transliterator.maxCandidates; i++) const Expanded(child: SizedBox()),
+              ),
             ]),
     );
   }

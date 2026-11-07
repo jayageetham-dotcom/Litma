@@ -145,6 +145,7 @@
     "lookUp": "Look up",
     "askAI": "Ask AI",
     "allFormatting": "All formatting",
+    "inbox": "Assistant inbox",
     "keepSelection": "Your selection is kept while you use the tools."
   },
   "settings": {
@@ -903,6 +904,8 @@
       "hint": "Suggestions any AI assistant sent to this work through the Litma connector.",
       "empty": "No suggestions waiting.",
       "apply": "Apply",
+      "copy": "Copy",
+      "copied": "Copied",
       "dismiss": "Dismiss"
     },
     "history": {

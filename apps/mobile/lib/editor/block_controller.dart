@@ -54,6 +54,11 @@ class BlockController extends TextEditingController {
   /// Latin word typed just now that the writer chose to keep in English (no conversion).
   String? keepEnglish;
 
+  /// A Manglish word was typed and is still Latin. It is converted when the writer moves away
+  /// from it or leaves the line, not only when they type a space: in the middle of a line the
+  /// space after the word is already there.
+  bool _typedLatin = false;
+
   /// Base style of this block (from the page and the block type).
   TextStyle baseStyle = const TextStyle();
 
@@ -78,6 +83,7 @@ class BlockController extends TextEditingController {
 
   /// Reload from [block] after the editor changed it (split, merge, formatting, undo).
   void reload({int? cursor}) {
+    _typedLatin = false;
     final at = (cursor ?? blockSelection.extentOffset).clamp(0, block.text.length);
     super.value = TextEditingValue(text: '$sentinel${block.text}', selection: TextSelection.collapsed(offset: at + 1));
   }
@@ -108,6 +114,15 @@ class BlockController extends TextEditingController {
     if (oldBody == newBody) {
       // the cursor moved elsewhere: bold/italic switched on for typing no longer applies
       if (old.selection != v.selection) typingMarks = null;
+      // the cursor left a Manglish word that was just typed: finish it like a space would
+      if (_typedLatin && old.selection.isValid && old.selection.isCollapsed && v.selection.isValid) {
+        final converted = _finishWord(old.selection.extentOffset - 1, v.selection);
+        if (converted != null) {
+          super.value = v.copyWith(text: '$sentinel${block.text}', selection: converted, composing: TextRange.empty);
+          onChanged(this, textChanged: true);
+          return;
+        }
+      }
       super.value = v;
       onChanged(this, textChanged: false);
       return;
@@ -157,13 +172,58 @@ class BlockController extends TextEditingController {
       }
     }
 
+    final at = cursor.clamp(0, block.text.length);
+    _typedLatin = mode == InputMode.manglish && inserted.isNotEmpty && manglishTailRe.hasMatch(block.text.substring(0, at));
     super.value = TextEditingValue(
       text: '$sentinel${block.text}',
-      selection: TextSelection.collapsed(offset: cursor.clamp(0, block.text.length) + 1),
+      selection: TextSelection.collapsed(offset: at + 1),
       composing: composing ? v.composing : TextRange.empty,
     );
     onChanged(this, textChanged: true);
   }
+
+  /// Convert the just-typed Latin word ending at [end] (block position) unless [next] (a
+  /// controller selection, sentinel included) is still inside it. Returns [next] moved to match
+  /// the new text, or null when nothing was converted.
+  TextSelection? _finishWord(int end, TextSelection next) {
+    _typedLatin = false;
+    if (mode != InputMode.manglish || end < 0 || end > block.text.length) return null;
+    // the word must end here (the cursor was at its end, not inside it)
+    if (end < block.text.length && RegExp(r'[A-Za-z~_^]').hasMatch(block.text[end])) return null;
+    final m = manglishTailRe.firstMatch(block.text.substring(0, end));
+    if (m == null) return null;
+    final word = m[0]!;
+    final start = end - word.length;
+    final nb = next.baseOffset - 1, ne = next.extentOffset - 1;
+    // still on the word: keep waiting
+    if (next.isCollapsed && ne >= start && ne <= end) return null;
+    if (keepEnglish == word) {
+      keepEnglish = null;
+      return null;
+    }
+    final ml = spelling?.call(word) ?? manglishWord(word);
+    _replace(start, end, ml, block.marks.isEmpty ? MarkSet.empty : block.marks[start]);
+    final d = ml.length - word.length;
+    int moved(int x) => (x >= end ? x + d : x).clamp(0, block.text.length) + 1;
+    return TextSelection(baseOffset: moved(nb), extentOffset: moved(ne));
+  }
+
+  /// The writer left this line (another line focused, keyboard hidden): finish a Manglish word
+  /// that was still being typed.
+  void finishPendingWord() {
+    if (!_typedLatin || !selection.isValid || !selection.isCollapsed) {
+      _typedLatin = false;
+      return;
+    }
+    final end = blockSelection.extentOffset;
+    final before = block.text.length;
+    // a target outside the line, so the word always counts as left
+    if (_finishWord(end, const TextSelection.collapsed(offset: -1)) == null) return;
+    final after = end + block.text.length - before;
+    super.value = TextEditingValue(text: '$sentinel${block.text}', selection: TextSelection.collapsed(offset: after + 1));
+    onChanged(this, textChanged: true);
+  }
+
 
   static bool _isBoundary(String ch) => RegExp(r'[\s.,;:!?"“”‘’()\[\]{}\-–—/]').hasMatch(ch);
 
@@ -209,7 +269,11 @@ class BlockController extends TextEditingController {
     final start = at - word.length;
     if (start < 0 || block.text.substring(start, at) != word) return;
     final m = block.marks.isEmpty ? MarkSet.empty : block.marks[start];
-    _replace(start, at, replacement + (addSpace ? ' ' : ''), m);
+    _typedLatin = false;
+    // in the middle of a line the space is already there: step over it instead of adding one
+    final spaceAfter = at < block.text.length && RegExp(r'\s').hasMatch(block.text[at]);
+    final add = addSpace && !spaceAfter;
+    _replace(start, at, replacement + (add ? ' ' : ''), m);
     super.value = TextEditingValue(text: '$sentinel${block.text}', selection: TextSelection.collapsed(offset: start + replacement.length + (addSpace ? 1 : 0) + 1));
     onChanged(this, textChanged: true);
   }
@@ -217,6 +281,7 @@ class BlockController extends TextEditingController {
   /// Replace [start, end) of the block's text with [text] (AI results, inbox suggestions, a looked-up
   /// word), with the cursor after it. No Manglish conversion.
   void replaceRange(int start, int end, String text) {
+    _typedLatin = false;
     final s = start.clamp(0, block.text.length), e = end.clamp(s, block.text.length);
     final m = block.marks.isEmpty ? MarkSet.empty : _inheritable(block.marks[(s > 0 ? s - 1 : 0).clamp(0, block.marks.length - 1)]);
     _replace(s, e, text, m);

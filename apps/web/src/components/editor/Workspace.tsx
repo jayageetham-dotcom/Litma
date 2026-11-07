@@ -890,6 +890,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             onDone={hideKeyboard}
             onLookUp={() => openWithSelection("dict")}
             onAskAI={() => openWithSelection("ai")}
+            onInbox={store.isCloud() ? () => { hideKeyboard(); openPanel("inbox"); } : undefined}
+            inboxCount={inboxCount}
           />
           {/* right on top of the keyboard, where a phone keyboard shows its own suggestions */}
           <ManglishPopup editor={editor} docked />

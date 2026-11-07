@@ -9,6 +9,7 @@ import '../../core/theme.dart';
 import '../../data/forms.dart';
 import '../../data/story.dart';
 import '../../widgets/common.dart';
+import '../../core/keyboard.dart';
 
 /// Story World (കഥാലോകം) for one work: characters, places, objects, plot board, timeline, notes
 /// and a report, with the sections each writing type uses (the web's StoryWorld).
@@ -350,9 +351,9 @@ class _CardEditorState extends State<_CardEditor> {
               FilledButton(onPressed: () => Navigator.pop(context, _result()), child: Text(context.t('common.save'))),
             ]),
             const SizedBox(height: 12),
-            TextField(controller: _name, autofocus: widget.item['id'] == null, style: const TextStyle(fontFamily: LitmaFonts.display, fontSize: 20, fontWeight: FontWeight.w700), decoration: InputDecoration(labelText: context.t('app.story.name'))),
+            TextField(onTapOutside: dismissKeyboard, controller: _name, autofocus: widget.item['id'] == null, style: const TextStyle(fontFamily: LitmaFonts.display, fontSize: 20, fontWeight: FontWeight.w700), decoration: InputDecoration(labelText: context.t('app.story.name'))),
             const SizedBox(height: 12),
-            TextField(controller: _summary, maxLines: 3, minLines: 1, decoration: InputDecoration(labelText: widget.tab.summary ?? context.t('app.story.summary'))),
+            TextField(onTapOutside: dismissKeyboard, controller: _summary, maxLines: 3, minLines: 1, decoration: InputDecoration(labelText: widget.tab.summary ?? context.t('app.story.summary'))),
             for (final f in storyFields[kind]!)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
@@ -360,7 +361,7 @@ class _CardEditorState extends State<_CardEditor> {
                     ? _choice(context, f.label, widget.columns, _data['group'] as String? ?? widget.columns.first, (v) => setState(() => _data['group'] = v))
                     : f.options != null
                         ? _choice(context, f.label, f.options!, _data[f.key] as String?, (v) => setState(() => _data[f.key] = v))
-                        : TextField(controller: _fields[f.key], maxLines: f.multiline ? 5 : 1, minLines: 1, decoration: InputDecoration(labelText: f.label, hintText: f.placeholder)),
+                        : TextField(onTapOutside: dismissKeyboard, controller: _fields[f.key], maxLines: f.multiline ? 5 : 1, minLines: 1, decoration: InputDecoration(labelText: f.label, hintText: f.placeholder)),
               ),
           ]),
         ),

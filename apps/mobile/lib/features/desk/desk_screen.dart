@@ -21,6 +21,7 @@ import '../../widgets/common.dart';
 import '../books/book_screen.dart';
 import '../profile/profile_screen.dart';
 import 'type_picker.dart';
+import '../../core/keyboard.dart';
 
 enum DeskTab { works, books, trash }
 
@@ -333,6 +334,8 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
           backgroundColor: c.surface,
           onRefresh: _desk.refresh,
           child: CustomScrollView(
+            // scrolling the desk closes the search keyboard, like other iPhone apps
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             slivers: [
@@ -383,8 +386,10 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                    child: TextField(
+                    child: TextField(onTapOutside: dismissKeyboard, 
                       onChanged: (v) => setState(() => _query = v),
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => dismissKeyboard(),
                       decoration: InputDecoration(
                         hintText: context.t('desk.search'),
                         prefixIcon: Icon(LucideIcons.search, size: 18, color: c.muted),

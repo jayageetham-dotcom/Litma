@@ -10,6 +10,7 @@ import '../widgets/brand.dart';
 import 'home_shell.dart';
 import 'providers.dart';
 import 'update_check.dart';
+import '../core/keyboard.dart';
 
 class LitmaApp extends ConsumerWidget {
   const LitmaApp({super.key, this.home});
@@ -30,10 +31,14 @@ class LitmaApp extends ConsumerWidget {
       themeAnimationDuration: Motion.slow,
       themeAnimationCurve: Motion.standard,
       builder: (context, child) => I18n(strings: strings, child: child!),
+      navigatorObservers: [_keyboard],
       home: home ?? const AuthGate(),
     );
   }
 }
+
+/// One observer for the app's navigator (an observer can't be shared between navigators).
+final _keyboard = KeyboardRouteObserver();
 
 /// Signed out: the welcome screen. Signed in: the desk. Fades through between them.
 class AuthGate extends ConsumerWidget {

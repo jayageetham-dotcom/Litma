@@ -13,6 +13,7 @@ import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../data/dictionary.dart';
 import '../../widgets/common.dart';
+import '../../core/keyboard.dart';
 
 /// നാട്ടറിവ് categories (assets/data/nattarivu.json, from packages/shared/src/nattarivu.ts).
 class NattarivuCategory {
@@ -215,7 +216,7 @@ class LookupViewState extends ConsumerState<LookupView> {
       SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.fromLTRB(16, widget.compact ? 0 : 4, 16, 8),
-          child: TextField(
+          child: TextField(onTapOutside: dismissKeyboard, 
             controller: _q,
             focusNode: _focus,
             textInputAction: TextInputAction.search,
@@ -519,7 +520,7 @@ class _NattarivuViewState extends ConsumerState<_NattarivuView> {
       ]),
       Padding(
         padding: const EdgeInsets.fromLTRB(6, 6, 6, 4),
-        child: TextField(
+        child: TextField(onTapOutside: dismissKeyboard, 
           onChanged: (v) => setState(() => _filter = v),
           decoration: InputDecoration(hintText: context.t('nattarivu.filter'), prefixIcon: Icon(LucideIcons.listFilter, size: 18, color: c.muted), contentPadding: const EdgeInsets.symmetric(vertical: 12)),
         ),

@@ -10,7 +10,20 @@ Reaches writers only through store builds. Cross-app summary and open items:
   selection, the inbox tool in the keyboard bar, the scrolling suggestion row, and a Manglish
   word typed mid-line converting when you tap elsewhere.
 
-## 2026-11-07
+## 2026-11-07: keyboard on the desk
+
+- The keyboard opened on the desk for no reason after coming back from the editor: Flutter gave
+  focus back to the desk's search field. `lib/core/keyboard.dart` `KeyboardRouteObserver`
+  (registered in `app/app.dart`) unfocuses when a full screen is pushed or popped (sheets and
+  dialogs are left alone).
+- Tapping outside a text field now closes the keyboard (`onTapOutside: dismissKeyboard`) on the
+  desk search, dictionary, sign-in, profile, book details and Story World card fields. Not on
+  the editor's lines (its toolbar must keep the keyboard). The desk search's key is "Search"
+  and closes the keyboard; scrolling the desk closes it too.
+- Unverified on a device: check that leaving the editor no longer opens the keyboard on the
+  desk, and that a field that should autofocus (new Story World card) still does.
+
+## 2026-11-07: inbox, keyboard strip, Manglish
 
 - `lib/editor/tools.dart` `_Inbox`: `_copy` copies without removing (Copied state for 1.6 s);
   Apply only for insert/replace; card text wrapped in `SelectionArea`, buttons in

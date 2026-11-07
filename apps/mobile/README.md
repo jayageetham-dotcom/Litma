@@ -25,6 +25,27 @@ Design previews of every screen (light, dark, phone, tablet) as PNG files in `te
 SCREENSHOTS=1 flutter test test/screenshots --update-goldens
 ```
 
+## Your own iPhone with a free Apple ID (7 days)
+
+To test on your iPhone without the App Store or a paid developer account. The app then opens on its
+own, away from the Mac, for 7 days; run the script again to renew it (your works stay on the phone).
+
+1. On the Mac: Xcode (App Store) and Flutter (`brew install --cask flutter`), then `flutter doctor`.
+2. Xcode → Settings → Accounts: add your Apple ID.
+3. Open `ios/Runner.xcworkspace`, select **Runner** → Signing & Capabilities, tick *Automatically
+   manage signing* and pick *(Your name) (Personal Team)*. Xcode may show a red note about Sign in with
+   Apple: ignore it, the script below builds without it.
+4. Plug in the iPhone, unlock it and tap **Trust**. On iOS 16 and later turn on Settings → Privacy &
+   Security → **Developer Mode** (the phone restarts).
+5. From `apps/mobile`: `./scripts/ios-personal.sh` (a release build; a debug build only opens while the
+   Mac is attached).
+6. First launch only: Settings → General → VPN & Device Management → your Apple ID → **Trust**.
+
+Sign in with email or Google; Sign in with Apple needs the paid account, so that build leaves it out
+(`ios/Runner/Runner-personal.entitlements`). If Xcode says the bundle id `in.getlitma.litma` can't be
+registered, change it in Signing & Capabilities for this build only (for example
+`in.getlitma.litma.yourname`) and don't commit that change.
+
 ## One-time setup (owner)
 
 1. **Supabase → Authentication → URL Configuration → Redirect URLs:** add `in.getlitma.app://auth-callback`

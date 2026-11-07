@@ -27,7 +27,7 @@ const RELEASES_FEED = "https://github.com/jayageetham-dotcom/litma-releases/rele
 const CHECK_EVERY_MS = 4 * 60 * 60 * 1000;
 
 type FileInfo = { file: string; url?: string; sha256: string; size: number };
-type Latest = { version: string; notes?: string[]; desktop?: { version: string; minimumVersion?: string | null; mac?: FileInfo; win?: FileInfo } };
+type Latest = { version: string; notes?: string[]; desktop?: { version: string; minimumVersion?: string | null; mac?: FileInfo; win?: FileInfo; linux?: FileInfo } };
 
 export type UpdateState =
   | { status: "idle" | "checking" | "none"; current: string }
@@ -58,6 +58,8 @@ export const currentState = () => state;
 function platformFile(): FileInfo | undefined {
   if (PLATFORM === "darwin") return latest?.desktop?.mac;
   if (PLATFORM === "win32") return latest?.desktop?.win;
+  // Linux: only the AppImage can replace itself (APPIMAGE is set by its runtime)
+  if (PLATFORM === "linux" && (process.env.APPIMAGE || process.env.LITMA_UPDATE_PLATFORM)) return latest?.desktop?.linux;
   return undefined;
 }
 
@@ -196,6 +198,30 @@ fi
       { mode: 0o755 }
     );
     spawn("/bin/bash", [script, downloaded, bundle], { detached: true, stdio: "ignore" }).unref();
+    setTimeout(() => app.quit(), 300);
+    return true;
+  }
+  if (process.platform === "linux" && process.env.APPIMAGE) {
+    // swap the AppImage file in place once Litma has quit, then open the new one
+    const script = join(tmpdir(), "litma-update", "install-linux.sh");
+    writeFileSync(
+      script,
+      `#!/bin/bash
+PID=${process.pid}
+NEW="$1"; OLD="$2"
+while kill -0 $PID 2>/dev/null; do sleep 0.3; done
+chmod +x "$NEW"
+if cp -f "$NEW" "$OLD.new" && mv -f "$OLD.new" "$OLD"; then
+  chmod +x "$OLD"
+  nohup "$OLD" >/dev/null 2>&1 &
+else
+  # no permission to replace it: run the new file from where it was downloaded
+  nohup "$NEW" >/dev/null 2>&1 &
+fi
+`,
+      { mode: 0o755 }
+    );
+    spawn("/bin/bash", [script, downloaded, process.env.APPIMAGE], { detached: true, stdio: "ignore" }).unref();
     setTimeout(() => app.quit(), 300);
     return true;
   }

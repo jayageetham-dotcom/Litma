@@ -1,4 +1,5 @@
-# Litma desktop installers: a universal .dmg for macOS (Apple silicon + Intel) and an .exe installer for Windows.
+# Litma desktop installers: a universal .dmg for macOS (Apple silicon + Intel), an .exe installer for Windows
+# and an AppImage for Linux (x64; runs without installing, updates itself in place).
 # Signing is optional: set CSC_LINK / CSC_KEY_PASSWORD (and APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID
 # for notarization) as repository secrets; without them the builds are unsigned (see apps/desktop/README.md).
 appId: com.jayageetham.litma
@@ -38,6 +39,12 @@ nsis:
   shortcutName: Litma
 publish: null
 linux:
-  # not published; handy for testing on Linux (npx electron-builder --linux dir)
+  icon: build/icon.png
   executableName: litma
-  target: [dir]
+  category: Office
+  synopsis: Malayalam writing desk
+  maintainer: Jayageetham
+  target:
+    - target: AppImage
+      arch: [x64]
+  artifactName: Litma-linux.${ext}

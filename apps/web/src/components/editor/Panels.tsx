@@ -17,6 +17,7 @@ import { PAGE_SIZES, type PageSizeKey } from "@/extensions/pagination";
 import { collectCharacters } from "@/extensions/screenplay";
 import { manglish } from "@litma/shared/manglish";
 import { useT } from "@/i18n/react";
+import { useConfirm } from "@/components/ui/Confirm";
 
 const BILLING: Record<AIProvider, [string, string]> = {
   anthropic: ["Anthropic Console", "https://console.anthropic.com/settings/billing"],
@@ -624,6 +625,8 @@ export function NotesPanel({ editor, settings, onChange, kind }: { editor: Edito
 // ─── Version history ───────────────────────────────────────────────────
 
 export function HistoryPanel({ editor, doc, onSnapshot }: { editor: Editor; doc: LitmaDoc; onSnapshot: (label: string | null) => Promise<void> }) {
+  const t = useT();
+  const [confirmDialog, ask] = useConfirm();
   const [versions, setVersions] = useState<DocVersion[] | null>(null);
   const [label, setLabel] = useState("");
   const load = () => store.listVersions(doc.id).then(setVersions);
@@ -633,6 +636,8 @@ export function HistoryPanel({ editor, doc, onSnapshot }: { editor: Editor; doc:
   }, [doc.id]);
 
   return (
+    <>
+      {confirmDialog}
     <div>
       <form
         className="mb-4 flex gap-1.5"
@@ -666,7 +671,7 @@ export function HistoryPanel({ editor, doc, onSnapshot }: { editor: Editor; doc:
                 title="Restore this version"
                 aria-label="Restore this version"
                 onClick={async () => {
-                  if (!confirm("Restore this version? Your current text is saved as a version first.")) return;
+                  if (!(await ask({ title: t("app.history.restoreTitle"), body: t("app.history.restoreBody"), confirm: t("common.restore") }))) return;
                   await onSnapshot("Before restore");
                   editor.commands.setContent(v.content, true);
                   load();
@@ -682,6 +687,7 @@ export function HistoryPanel({ editor, doc, onSnapshot }: { editor: Editor; doc:
         <History size={12} /> {store.isCloud() ? "Stored in your Supabase project." : "Stored in this browser."}
       </p>
     </div>
+    </>
   );
 }
 

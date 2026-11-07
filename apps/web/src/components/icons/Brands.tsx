@@ -22,5 +22,7 @@ export const AppleLogo = (p: BrandIconProps) => <Logo file="apple" size={p.size}
 export const WindowsLogo = (p: BrandIconProps) => <Logo file="windows" size={p.size} className={p.className} />;
 /** Android logo. */
 export const AndroidLogo = (p: BrandIconProps) => <Logo file="android" size={p.size} className={p.className} />;
+/** Linux (Tux). */
+export const LinuxLogo = (p: BrandIconProps) => <Logo file="linux" size={p.size} className={p.className} />;
 /** Google Play logo. */
 export const GooglePlayLogo = (p: BrandIconProps) => <Logo file="google-play" size={p.size} className={p.className} />;

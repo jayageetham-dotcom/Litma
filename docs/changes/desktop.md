@@ -15,6 +15,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+## 2026-11-08: Manglish in search
+
+- Same as the web (shared code); reaches the desktop app with the next Release.
+
 ## 2026-11-07 (evening): Litma Help; publisher line
 
 - `src/main.ts`: Help menu has **Litma Help** (F1 on Windows/Linux) opening `${SITE}/help/` in the

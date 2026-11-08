@@ -35,7 +35,8 @@ Inside the editor you can also select a word and press <kbd>Ctrl</kbd> + <kbd>Sh
 
 1. Open the **Dictionary** and choose the **നാട്ടറിവ്** tab.
 2. Pick a topic card.
-3. Click any word to open its full dictionary entry. A chip at the top takes you back to the topic.
+3. To narrow a long topic, type in the filter box, in English, Malayalam or Manglish.
+4. Click any word to open its full dictionary entry. A chip at the top takes you back to the topic.
 
 ![A നാട്ടറിവ് topic](shots/nattarivu-cat.webp)
 

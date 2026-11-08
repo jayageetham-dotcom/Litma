@@ -1057,5 +1057,9 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Use",
     "agree": "By creating an account you agree to Litma's terms:"
+  },
+  "search": {
+    "inMalayalam": "In Malayalam",
+    "inMalayalamHint": "Words in this work that sound like what you typed. Tap one to find it."
   }
 }

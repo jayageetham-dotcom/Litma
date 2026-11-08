@@ -1,4 +1,5 @@
 "use client";
+import { matchesSearch } from "@litma/shared/search";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -104,7 +105,7 @@ function Desk() {
 
   const shown = useMemo(() => {
     const list = (docs ?? []).filter(
-      (d) => (filter === "all" || d.kind === filter) && (!q || d.title.toLowerCase().includes(q.toLowerCase()) || d.excerpt?.toLowerCase().includes(q.toLowerCase()))
+      (d) => (filter === "all" || d.kind === filter) && matchesSearch(`${d.title} ${d.excerpt ?? ""}`, q)
     );
     if (sort === "title") list.sort((a, b) => a.title.localeCompare(b.title, "ml"));
     if (sort === "words") list.sort((a, b) => b.word_count - a.word_count);

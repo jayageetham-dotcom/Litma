@@ -1,4 +1,5 @@
 "use client";
+import { matchesSearch } from "@litma/shared/search";
 import { useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -144,7 +145,7 @@ export function NattarivuCategoryView({ category, onBack, onWord, onOpen }: { ca
   const [filter, setFilter] = useState("");
   const words = useMemo(() => {
     const f = filter.trim().toLowerCase();
-    return f ? category.words.filter((w) => w.ml.includes(f) || w.en.toLowerCase().includes(f) || !!w.group?.ml.includes(f) || !!w.group?.en.toLowerCase().includes(f)) : category.words;
+    return f ? category.words.filter((w) => matchesSearch(`${w.ml} ${w.en} ${w.group?.ml ?? ""} ${w.group?.en ?? ""}`, f)) : category.words;
   }, [category, filter]);
   const i = NATTARIVU.findIndex((c) => c.id === category.id);
   const next = NATTARIVU[(i + 1) % NATTARIVU.length];

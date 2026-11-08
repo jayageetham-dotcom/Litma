@@ -8,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../app/providers.dart';
 import '../../core/i18n.dart';
+import '../../core/search.dart';
 import '../../core/manglish.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
@@ -491,7 +492,7 @@ class _NattarivuViewState extends ConsumerState<_NattarivuView> {
   Widget _words(NattarivuCategory cat) {
     final c = context.c;
     final q = _filter.trim().toLowerCase();
-    final words = cat.words.where((w) => q.isEmpty || w.ml.contains(q) || w.en.toLowerCase().contains(q)).toList();
+    final words = cat.words.where((w) => matchesSearch('${w.ml} ${w.en}', q)).toList();
     final rows = <Widget>[];
     String? group;
     for (final (i, w) in words.indexed) {

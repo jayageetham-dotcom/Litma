@@ -98,8 +98,9 @@ Open **Page & type** on the right-hand rail to set up the whole work.
 
 1. Press <kbd>Ctrl</kbd> + <kbd>F</kbd> (<kbd>⌘</kbd> + <kbd>F</kbd> on a Mac).
 2. Type what to look for. Every match is highlighted and the count shows (1/3).
-3. Use the arrows (or <kbd>Enter</kbd>) to go from one to the next. Tick **Aa** to match capital letters exactly.
-4. To replace, type the new text in **Replace with** and choose **Replace** (this one) or **All**.
+3. Typed it in Manglish? Under the box, **In Malayalam** lists the words in your work that sound like it (`kada` → കടൽ, കടവ്). Click one to find it.
+4. Use the arrows (or <kbd>Enter</kbd>) to go from one to the next. Tick **Aa** to match capital letters exactly.
+5. To replace, type the new text in **Replace with** and choose **Replace** (this one) or **All**.
 
 ![Find and replace](shots/find.webp)
 

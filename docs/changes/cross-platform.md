@@ -40,6 +40,18 @@ Known differences by design:
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
 
+## 2026-11-08: Manglish in search (web, desktop, phone)
+
+- New shared matcher `packages/shared/src/search.ts` (`romanise`, `soundKey`, `matchesSearch`,
+  `manglishMatches`; synced to `supabase/functions/_shared`) and its Dart port
+  `apps/mobile/lib/core/search.dart` with the same test cases (`test/search_test.dart`).
+  Malayalam is romanised and both sides folded to a sound key (aspirates, long vowels, doubles,
+  t/d merged; ന്റ = nt, റ്റ = tt), so `puthiya`, `pudiya` and `puth` all find പുതിയ.
+- Used in: desk search (works), saved words, the നാട്ടറിവ് filter, and Find in a work, which
+  lists the work's Malayalam words that sound like the typed Manglish as chips (`search.inMalayalam`).
+  The dictionary lookup already handled Manglish.
+- Needs: website deploy (push), desktop Release, phone build.
+
 ## 2026-11-08: Phone dictionary back arrow
 
 - Phone only: the ← beside a word in the Dictionary now steps back through every word looked up,

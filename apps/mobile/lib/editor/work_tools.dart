@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import '../app/providers.dart';
 import '../core/i18n.dart';
 import '../core/motion.dart';
+import '../core/search.dart';
 import '../core/theme.dart';
 import '../data/forms.dart';
 import 'document.dart';
@@ -269,6 +270,7 @@ class _FindSheetState extends State<_FindSheet> {
   }
 
   List<({TextBlock line, int at})> get _hits => widget.session.find(_term.text);
+  List<String> get _sounds => RegExp('[a-z]', caseSensitive: false).hasMatch(_term.text) ? manglishMatches(widget.session.lines.map((l) => l.text).join(' '), _term.text) : const [];
 
   void _show(int i) {
     final hits = _hits;
@@ -302,6 +304,25 @@ class _FindSheetState extends State<_FindSheet> {
           onSubmitted: (_) => _show(_at),
           decoration: InputDecoration(hintText: context.t('app.find.hint'), prefixIcon: Icon(LucideIcons.search, size: 18, color: c.muted)),
         ),
+        // Manglish typed in the box: the Malayalam words of this work that sound like it
+        if (_sounds.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+              Text('${context.t('search.inMalayalam')}:', style: TextStyle(color: c.muted, fontSize: 13)),
+              for (final w in _sounds)
+                ActionChip(
+                  label: Text(w, style: const TextStyle(fontFamily: LitmaFonts.display, fontSize: 15)),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => setState(() {
+                    _term.text = w;
+                    _term.selection = TextSelection.collapsed(offset: w.length);
+                    _at = 0;
+                    _note = null;
+                  }),
+                ),
+            ]),
+          ),
         const SizedBox(height: 10),
         Row(children: [
           Expanded(

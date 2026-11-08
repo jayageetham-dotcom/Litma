@@ -14,6 +14,13 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: Manglish in search
+
+- `lib/core/search.dart` (port of `shared/search.ts`, keep in step) + `test/search_test.dart`.
+  Desk search (`desk_screen.dart`), നാട്ടറിവ് filter (`dictionary_screen.dart`) use
+  `matchesSearch`; Find (`editor/work_tools.dart`) shows **In Malayalam** chips. Unverified on a
+  device (CI only).
+
 ## 2026-11-08: dictionary back arrow walks back word by word
 
 - `lib/features/dictionary/dictionary_screen.dart`: the ← beside a looked-up word called `search()`

@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../app/providers.dart';
 import '../core/i18n.dart';
 import '../core/manglish.dart';
 import '../core/metre.dart';
+import '../core/speech.dart';
 import '../core/theme.dart';
 import '../data/analytics.dart';
 import '../data/goals.dart';
@@ -366,7 +366,7 @@ class _ReadAloud extends ConsumerStatefulWidget {
 }
 
 class _ReadAloudState extends ConsumerState<_ReadAloud> {
-  final _tts = FlutterTts();
+  final _tts = Speech();
   bool? _hasVoice;
   late double _rate;
   int? _at;
@@ -385,11 +385,7 @@ class _ReadAloudState extends ConsumerState<_ReadAloud> {
 
   Future<void> _setup() async {
     try {
-      final ok = await _tts.isLanguageAvailable('ml-IN');
-      final voices = ((await _tts.getVoices) as List?) ?? const [];
-      final has = ok == true || voices.any((v) => v is Map && '${v['locale']}'.toLowerCase().startsWith('ml'));
-      if (has) await _tts.setLanguage('ml-IN');
-      await _tts.awaitSpeakCompletion(true);
+      final has = await _tts.hasVoice('ml');
       if (mounted) setState(() => _hasVoice = has);
     } catch (_) {
       if (mounted) setState(() => _hasVoice = false);
@@ -419,17 +415,13 @@ class _ReadAloudState extends ConsumerState<_ReadAloud> {
     return out;
   }
 
-  // Android's normal speed is 1.0, iOS's 0.5
-  double get _engineRate => Theme.of(context).platform == TargetPlatform.iOS ? _rate * 0.5 : _rate.clamp(0.1, 2.0);
-
   Future<void> _play(int from) async {
     _stopped = false;
     _paused = false;
-    await _tts.setSpeechRate(_engineRate);
     for (var i = from; i < _pieces.length; i++) {
       if (_stopped || _paused || !mounted) return;
       setState(() => _at = i);
-      await _tts.speak(_pieces[i]);
+      await _tts.speak(_pieces[i], language: 'ml-IN', rate: _rate);
     }
     if (mounted && !_paused) {
       setState(() {

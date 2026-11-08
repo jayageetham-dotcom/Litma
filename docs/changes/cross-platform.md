@@ -46,6 +46,10 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
+## 2026-11-08: Phone read aloud without a plugin (phone only)
+
+- The phone app reads aloud through its own small channel instead of flutter_tts, so iOS builds use Swift Package Manager only and no CocoaPods. Details and what to check on devices: `mobile.md`. Web and desktop unchanged.
+
 ## 2026-11-08: Editor tools grouped (phone app, website on phones)
 
 - The phone app's tools sheet was one flat 3-column grid of 17 tiles. It now has labelled groups in 4 columns: **Words** (Dictionary, Rhymes, Check, Saved words), **Plan and assist** (AI companion, Story World, Goals), **Page** (Format, Page setup, Contents, Pages, Insert page), **Review and share** (Listen, Version history, Share & export), then **For this work** (footnote, fill cast, scene tools, diary entry, only for their writing types).

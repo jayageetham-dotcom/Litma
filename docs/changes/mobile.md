@@ -21,9 +21,15 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - Find: new search `IconButton` before the tools button in `editor_screen.dart`. Inbox: `IconButton` in the AI sheet header (`_AiSheetState`), tile removed.
 - Unverified: `flutter analyze` and how the top bar fits with the timer chip on small phones; `phone-tools.webp` in help and the CI screenshots show the old grid.
 
+## 2026-11-08: Read aloud without flutter_tts (no CocoaPods on iOS)
+
+- flutter_tts (newest 4.2.5) has no Swift Package Manager support, so Flutter warned and pulled CocoaPods into the iOS project. Replaced by Litma's own channel `in.getlitma/speech`: `lib/core/speech.dart` (`hasVoice`, `speak` that completes when the sentence is read, `stop`; rate 1.0 is normal speed on both platforms), iOS `LitmaSpeech` in `ios/Runner/AppDelegate.swift` (AVSpeechSynthesizer, `.playback`/`.spokenAudio` audio session so it reads with the silent switch on), Android `android/app/src/main/kotlin/in/getlitma/litma/LitmaSpeech.kt` (TextToSpeech, registered in `MainActivity.kt`; the manifest's `TTS_SERVICE` query stays). `lib/editor/writing_aids.dart` `_ReadAloud` uses it; speed changes now apply from the next sentence.
+- flutter_tts removed from `pubspec.yaml`/`pubspec.lock`; `ios/Podfile`, `Podfile.lock` and the Pods lines in `Flutter/*.xcconfig`, `project.pbxproj` and the workspace removed (back to the pre-CocoaPods files).
+- Unverified: built only by reasoning (no Flutter/Xcode here). Check on the iPhone (`scripts/ios-personal.sh`: no Swift Package Manager warning, Listen speaks, pause/stop/speed) and an Android phone or CI.
+
 ## 2026-11-08: timezone constraint for notifications
 
-- `apps/mobile/pubspec.yaml`: `timezone` ^0.10.1 → ^0.11.2, because flutter_local_notifications ^22 needs timezone ^0.11 (pub get failed in `scripts/ios-personal.sh`). `lib/data/notifications.dart` only uses `tz.TZDateTime.from` and `tz.UTC`, unchanged in 0.11. `pubspec.lock` now lists flutter_local_notifications 22.3.3, timezone 0.11.2 and flutter_tts 4.2.5. The new plugins brought CocoaPods into the iOS project (`ios/Podfile`, `Podfile.lock`, Pods lines in `Flutter/*.xcconfig`, `project.pbxproj`, the workspace); `ios/Pods/` stays ignored. Built on the owner's Mac with `scripts/ios-personal.sh`; CI unverified.
+- `apps/mobile/pubspec.yaml`: `timezone` ^0.10.1 → ^0.11.2, because flutter_local_notifications ^22 needs timezone ^0.11 (pub get failed in `scripts/ios-personal.sh`). `lib/data/notifications.dart` only uses `tz.TZDateTime.from` and `tz.UTC`, unchanged in 0.11. `pubspec.lock` now lists flutter_local_notifications 22.3.3, timezone 0.11.2 and flutter_tts 4.2.5. flutter_tts brought CocoaPods into the iOS project; removed again by the entry above. Built on the owner's Mac with `scripts/ios-personal.sh`; CI unverified.
 
 ## 2026-11-08: Pinned work on the desk
 

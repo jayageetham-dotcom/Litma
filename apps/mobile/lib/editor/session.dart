@@ -633,8 +633,18 @@ class EditorSession extends ChangeNotifier {
     _afterChange();
   }
 
-  /// The + in the gap of an inserted page (phone editor): another blank page right after that
-  /// page break, like the web's "+ Insert page" between two sheets.
+  /// The + between two pages where the text ran on by itself: a blank page there, before the
+  /// top-level block [index] (page break, empty line, page break), like the web's insertPageAt.
+  void insertPageAt(int index) {
+    final i = index.clamp(0, document.blocks.length);
+    _beforeChange();
+    final blank = TextBlock('paragraph', {});
+    document.blocks.insertAll(i, [OpaqueBlock({'type': 'pageBreak'}), blank, OpaqueBlock({'type': 'pageBreak'})]);
+    focusLine(blank, at: 0);
+    _afterChange();
+  }
+
+  /// The + in the gap after an inserted page break: another blank page right after it.
   void insertPageAfter(OpaqueBlock pageBreak) {
     final i = document.blocks.indexWhere((b) => identical(b, pageBreak));
     if (i < 0) return insertPage();

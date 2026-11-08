@@ -83,7 +83,7 @@ To start a fresh page (for example before a new part):
 
 To remove an inserted page, put the cursor at the start of the page after it and press <kbd>Backspace</kbd>. On an empty inserted page, <kbd>Backspace</kbd> removes the whole page.
 
-> **Phone:** The phone app shows your writing on one long sheet, so pages don't show up as you type. Tap the tools button and choose **Insert page**. The new page starts after a gap with a **+** in it. Tap **+** to add another page there. To see every page as it will print, choose **Pages**.
+> **Phone:** The phone app shows your writing as pages too. Each holds about as much as a printed page, so the pages are tall, and when one is full your writing carries on to the next. To add a blank page between two pages, tap the small **+** in the gap between them, or choose **Insert page** in the tools to add one after the line you're on. To see the pages exactly as they will print, choose **Pages** in the tools.
 
 ## Page & type: paper, margins and fonts {#page-setup}
 

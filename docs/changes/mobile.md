@@ -15,10 +15,13 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
-## 2026-11-08: Inserted pages visible in the editor
+## 2026-11-08: Pages in the phone editor
 
-- Insert page worked (page breaks saved, shown in Pages, PDF, website) but the pageless phone editor showed only a 1.5-line gap, so it looked like nothing happened. `PageGap` (`lib/editor/page_view.dart`): a canvas-coloured band across the sheet with a + (44 pt target, "Insert page" label) that calls `EditorSession.insertPageAfter` (blank line + page break after that break). Used for top-level page breaks in `editor_screen.dart`; the reader keeps `OpaqueView`'s pause. Test in `test/tools_test.dart`. Help: `03-editor.md#pages`.
-- Unverified: CI only; look at it on a phone in light and dark.
+- Owner: a work starts as one page, writing that fills a page carries on to the next (Enter at the end of a page starts a new one), a small + between pages inserts a blank page; the earlier big + on each inserted break (`PageGap`, same day) was too distracting and the inserted page looked like one line.
+- `lib/editor/pages.dart`: `phonePageHeight` (a phone page holds about the text of a printed page of the work's paper size and margins: print area ÷ phone text width; text is at print size, 12 pt = 16 px), `flowPages` (pure, `test/pages_test.dart`), `PageEdge` (rest of the page, a 30 pt canvas gap with a 20 pt grey + in a 48 × 30 target, next page's top margin), `MeasureSize`.
+- `lib/editor/editor_screen.dart` `_Page` is now stateful: measures each top-level line after layout, estimates lines not built yet (replaced once measured; a page's filler absorbs changes inside it, so scrolling rarely jumps), keeps every line's field in a two-child Column so a page starting above it doesn't drop focus. Paper is drawn per item on the canvas; tablets keep a 760 pt sheet (no shadow now).
+- `EditorSession.insertPageAt(index)` for the + where the text ran on; `insertPageAfter` for the + after an inserted break. Tests in `test/tools_test.dart`.
+- Unverified: CI only. Check on a phone: typing at a page end moves the line to the next page without losing the keyboard, long works scroll smoothly, dark mode, tablets.
 
 ## 2026-11-08: Listen: voice picker, pitch, volume, word underline, save as audio
 

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/akshara.dart';
-import '../core/i18n.dart';
 import '../core/metre.dart';
 import '../core/motion.dart';
 import '../core/theme.dart';
@@ -319,63 +317,6 @@ class GroupRow extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-/// An inserted page in the editor: the gap between two sheets across the paper, with a + that
-/// inserts another page there (the web's "+ Insert page" between sheets). No line or label: the
-/// owner found visible break markers annoying. The reader keeps the small pause of [OpaqueView].
-class PageGap extends StatelessWidget {
-  const PageGap({super.key, required this.pad, required this.onInsert});
-
-  /// The paper's side padding, so the gap reaches both edges of the sheet.
-  final EdgeInsets pad;
-  final VoidCallback onInsert;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.c;
-    final label = context.t('editor.insertPage');
-    return LayoutBuilder(builder: (context, box) {
-      final w = box.maxWidth + pad.left + pad.right;
-      return SizedBox(
-        height: 64,
-        child: OverflowBox(
-          minWidth: w,
-          maxWidth: w,
-          child: Stack(alignment: Alignment.center, children: [
-            Container(
-              height: 26,
-              decoration: BoxDecoration(
-                color: c.canvas,
-                border: Border.symmetric(horizontal: BorderSide(color: c.line)),
-              ),
-            ),
-            Semantics(
-              button: true,
-              label: label,
-              excludeSemantics: true,
-              child: Tooltip(
-                message: label,
-                child: Material(
-                  color: c.surface,
-                  shape: CircleBorder(side: BorderSide(color: c.lineStrong)),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: onInsert,
-                    // 44 pt touch target around a 32 pt circle
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: SizedBox(width: 20, height: 20, child: Icon(LucideIcons.plus, size: 18, color: c.accent)),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ]),
-        ),
-      );
-    });
   }
 }
 

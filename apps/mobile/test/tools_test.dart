@@ -83,6 +83,10 @@ void main() {
     s.insertPageAfter(s.document.blocks[1] as OpaqueBlock);
     expect((s.document.toJson()['content'] as List).map((b) => b['type']), ['paragraph', 'pageBreak', 'paragraph', 'pageBreak', 'paragraph', 'pageBreak']);
     expect(identical(s.focused, s.document.blocks[2]), isTrue, reason: 'the new page gets the cursor');
+    // the + between two pages where the text ran on: a blank page before that line
+    s.insertPageAt(0);
+    expect((s.document.toJson()['content'] as List).map((b) => b['type']).take(4), ['pageBreak', 'paragraph', 'pageBreak', 'paragraph']);
+    expect(identical(s.focused, s.document.blocks[1]), isTrue);
     s.appendDiaryEntry('2026 നവംബർ 7, ശനി');
     s.appendDiaryEntry('2026 നവംബർ 7, ശനി');
     final dates = (s.document.toJson()['content'] as List).where((b) => b['attrs']?['variant'] == 'dateline');

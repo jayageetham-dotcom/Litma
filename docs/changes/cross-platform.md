@@ -46,9 +46,9 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
-## 2026-11-08: Phone editor shows inserted pages (phone only)
+## 2026-11-08: Pages in the phone app's editor (phone only)
 
-- An inserted page now shows in the phone app's editor as a gap between two sheets with a + to add another page. Web and desktop unchanged. Details in `mobile.md`.
+- The phone app's editor now shows pages as you write (about a printed page each, the next page when one fills, a small + between pages). The website on phones keeps its continuous sheet with the Pages switch; web and desktop unchanged. Details in `mobile.md`.
 
 ## 2026-11-08: Read aloud: voice, pitch, volume, word underline (all apps); save as audio (phone)
 

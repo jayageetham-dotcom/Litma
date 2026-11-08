@@ -19,6 +19,7 @@ import 'block_controller.dart';
 import 'block_style.dart';
 import 'document.dart';
 import 'page_view.dart';
+import 'pages.dart';
 import 'saver.dart';
 import 'session.dart';
 import 'tools.dart';
@@ -347,13 +348,53 @@ Color _kindDot(BuildContext context, DocKind k) {
 
 Color kindDot(BuildContext context, DocKind k) => _kindDot(context, k);
 
-class _Page extends StatelessWidget {
+/// The writing as pages (`pages.dart`): measured lines flow onto pages of the work's paper size,
+/// with a quiet gap and a small + between two pages.
+class _Page extends StatefulWidget {
   const _Page({required this.session, required this.controller});
   final EditorSession session;
   final ScrollController controller;
 
   @override
+  State<_Page> createState() => _PageState();
+}
+
+class _PageState extends State<_Page> {
+  /// Measured heights of lines on screen (by block; endnotes by [_notesKey]).
+  final _heights = Map<Object, double>.identity();
+  static const _notesKey = 'endnotes';
+  var _relayout = false;
+
+  void _measured(Object key, double h) {
+    final old = _heights[key];
+    if (old != null && (old - h).abs() < 0.5) return;
+    _heights[key] = h;
+    if (_relayout) return;
+    _relayout = true;
+    // pages move after the frame that measured the lines
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _relayout = false;
+      if (mounted) setState(() {});
+    });
+  }
+
+  /// A rough height for a line not built yet (far off screen); replaced once it is measured.
+  double _estimate(Block b, Map<TextBlock, BlockLook> looks, double width, double em) {
+    if (b is OpaqueBlock) return em * 3;
+    final look = b is TextBlock ? looks[b] : null;
+    final size = look?.style.fontSize ?? em;
+    final line = (look?.style.height ?? 1.75) * size;
+    final perLine = (width / (size * 0.62)).floor().clamp(8, 400);
+    var lines = 0;
+    for (final part in b.plainText.split('\n')) {
+      lines += (part.length / perLine).ceil().clamp(1, 100000);
+    }
+    return lines * line + size * 0.6;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final session = widget.session;
     final c = context.c;
     final page = PageLook(kind: session.kind, settings: session.settings, t: c);
     final looks = computeLooks(session.document, page);
@@ -369,39 +410,88 @@ class _Page extends StatelessWidget {
       return EditableLine(session: session, block: b, look: looks[b]!, prompt: promptFor(b));
     }
 
-    return PaperSheet(
-      // a tap on empty paper (below the last line, between lines, in the margins) puts the cursor
-      // on the nearest line, like the web's caretNear; taps on a line's text go to that line
-      child: GestureDetector(
-        onTapUp: (d) => tapPaper(session, d.globalPosition),
-        child: ListView.builder(
-        controller: controller,
-        scrollCacheExtent: const ScrollCacheExtent.pixels(2400),
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
-        padding: EdgeInsets.fromLTRB(pad.left, 18, pad.right, 140),
-        itemCount: blocks.length + (notes.isEmpty ? 0 : 1),
-        // keep each line's field (and its focus, so the keyboard stays up) when lines are added or
-        // removed above it: find a line by its key, not by its position
-        findChildIndexCallback: (key) {
-          if (key is! ObjectKey) return null;
-          final i = blocks.indexWhere((b) => identical(b, key.value));
-          return i < 0 ? null : i;
-        },
-        itemBuilder: (context, i) {
-          if (i >= blocks.length) return Endnotes(key: const ValueKey('endnotes'), notes: notes, style: page.body);
+    // forget lines that are gone
+    if (_heights.length > blocks.length + 64) {
+      final live = Set<Object>.identity()..addAll(blocks)..add(_notesKey);
+      _heights.removeWhere((k, _) => !live.contains(k));
+    }
+
+    final wide = MediaQuery.sizeOf(context).width >= 760;
+    Widget paper(Widget child) => ColoredBox(color: c.paper, child: Padding(padding: pad, child: child));
+
+    return ColoredBox(
+      color: c.canvas,
+      child: LayoutBuilder(builder: (context, box) {
+        final sheet = wide && box.maxWidth > 760 ? 760.0 : box.maxWidth;
+        final width = sheet - pad.horizontal;
+        final pageHeight = phonePageHeight(session.settings, width);
+        final items = blocks.length + (notes.isEmpty ? 0 : 1);
+        final heights = <double>[];
+        final breaks = <bool>[];
+        for (var i = 0; i < items; i++) {
+          if (i >= blocks.length) {
+            heights.add(_heights[_notesKey] ?? page.fontSize * 4);
+            breaks.add(false);
+            continue;
+          }
           final b = blocks[i];
-          return switch (b) {
-            TextBlock() => KeyedSubtree(key: ObjectKey(b), child: lineFor(b)),
-            GroupBlock() => KeyedSubtree(key: ObjectKey(b), child: GroupRow(group: b, kind: session.kind, lineFor: lineFor, em: page.fontSize)),
-            OpaqueBlock() => KeyedSubtree(
+          final isBreak = b is OpaqueBlock && b.type == 'pageBreak';
+          breaks.add(isBreak);
+          heights.add(isBreak ? 0 : _heights[b] ?? _estimate(b, looks, width, page.fontSize));
+        }
+        final flow = flowPages(heights, breaks, pageHeight);
+        Widget edge(int i, VoidCallback insert) => PageEdge(fill: flow.gapBefore[i] ?? 0.0, onInsert: insert);
+
+        final list = GestureDetector(
+          // a tap on empty paper (below the last line, between lines, in the margins) puts the cursor
+          // on the nearest line, like the web's caretNear; taps on a line's text go to that line
+          onTapUp: (d) => tapPaper(session, d.globalPosition),
+          child: ListView.builder(
+            controller: widget.controller,
+            scrollCacheExtent: const ScrollCacheExtent.pixels(2400),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
+            padding: EdgeInsets.only(top: wide ? 24 : 0, bottom: 140),
+            // the first page's top margin, the items, and the rest of the last page
+            itemCount: items + 2,
+            // keep each line's field (and its focus, so the keyboard stays up) when lines are added or
+            // removed above it: find a line by its key, not by its position
+            findChildIndexCallback: (key) {
+              if (key is! ObjectKey) return null;
+              final i = blocks.indexWhere((b) => identical(b, key.value));
+              return i < 0 ? null : i + 1;
+            },
+            itemBuilder: (context, j) {
+              if (j == 0) return ColoredBox(color: c.paper, child: const SizedBox(height: pageTop));
+              if (j == items + 1) return ColoredBox(color: c.paper, child: SizedBox(height: flow.lastFill + pageBottom));
+              final i = j - 1;
+              final starts = flow.gapBefore.containsKey(i);
+              if (i >= blocks.length) {
+                return Column(key: const ValueKey('endnotes'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  if (starts) edge(i, () => session.insertPageAt(blocks.length)) else const SizedBox.shrink(),
+                  MeasureSize(onHeight: (h) => _measured(_notesKey, h), child: paper(Endnotes(notes: notes, style: page.body))),
+                ]);
+              }
+              final b = blocks[i];
+              // an inserted page break is only the edge between two pages
+              if (b is OpaqueBlock && b.type == 'pageBreak') return KeyedSubtree(key: ObjectKey(b), child: edge(i, () => session.insertPageAfter(b)));
+              final content = switch (b) {
+                TextBlock() => lineFor(b),
+                GroupBlock() => GroupRow(group: b, kind: session.kind, lineFor: lineFor, em: page.fontSize),
+                OpaqueBlock() => OpaqueView(block: b, em: page.fontSize),
+              };
+              // always two children, so the line's field (and focus) stays when a page starts above it
+              return KeyedSubtree(
                 key: ObjectKey(b),
-                // an inserted page shows as the gap between two sheets, with a + for another page
-                child: b.type == 'pageBreak' ? PageGap(pad: pad, onInsert: () => session.insertPageAfter(b)) : OpaqueView(block: b, em: page.fontSize),
-              ),
-          };
-        },
-      ),
-      ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  if (starts) edge(i, () => session.insertPageAt(i)) else const SizedBox.shrink(),
+                  MeasureSize(onHeight: (h) => _measured(b, h), child: paper(content)),
+                ]),
+              );
+            },
+          ),
+        );
+        return wide ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 760), child: list)) : list;
+      }),
     );
   }
 }

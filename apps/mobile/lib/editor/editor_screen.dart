@@ -328,7 +328,11 @@ class _Page extends StatelessWidget {
     }
 
     return PaperSheet(
-      child: ListView.builder(
+      // a tap on empty paper (below the last line, between lines, in the margins) puts the cursor
+      // on the nearest line, like the web's caretNear; taps on a line's text go to that line
+      child: GestureDetector(
+        onTapUp: (d) => tapPaper(session, d.globalPosition),
+        child: ListView.builder(
         controller: controller,
         scrollCacheExtent: const ScrollCacheExtent.pixels(2400),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
@@ -350,6 +354,7 @@ class _Page extends StatelessWidget {
             OpaqueBlock() => KeyedSubtree(key: ObjectKey(b), child: OpaqueView(block: b, em: page.fontSize)),
           };
         },
+      ),
       ),
     );
   }
@@ -823,4 +828,26 @@ class _MoreMenu extends ConsumerWidget {
         height: 44,
         child: Row(children: [Icon(icon, size: 18, color: color), const SizedBox(width: 12), Text(label, style: TextStyle(color: color))]),
       );
+}
+
+/// Puts the cursor on the line nearest [global] (a tap on empty paper): the line under the tap, or
+/// the closest one above or below it. Only lines on screen count. Nothing happens if the tap was on
+/// a line's own text (the line handles it).
+void tapPaper(EditorSession session, Offset global) {
+  TextBlock? best;
+  var bestGap = double.infinity;
+  for (final b in session.lines) {
+    final ctx = session.focusFor(b).context;
+    final box = ctx?.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) continue;
+    final rect = box.localToGlobal(Offset.zero) & box.size;
+    if (rect.contains(global)) return;
+    final gap = global.dy < rect.top ? rect.top - global.dy : global.dy > rect.bottom ? global.dy - rect.bottom : 0.0;
+    // on equal distance prefer the later line (a tap below everything lands on the last one)
+    if (gap <= bestGap) {
+      bestGap = gap;
+      best = b;
+    }
+  }
+  if (best != null) session.focusLine(best);
 }

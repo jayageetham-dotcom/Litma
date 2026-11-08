@@ -4,7 +4,7 @@ import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { useT } from "@/i18n/react";
 import { setUsageStatsOn, usageStatsOn } from "@/lib/analytics";
-import { admin, isDemo } from "@/lib/admin";
+import { ADMIN_ON_THIS_APP, admin, isDemo } from "@/lib/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /** Settings: the writer's switch for usage statistics, and the admin dashboard link for admins. */
@@ -14,7 +14,7 @@ export function UsageSettings() {
   const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     setOn(usageStatsOn());
-    if (isSupabaseConfigured && !isDemo()) admin.check().then(setIsAdmin);
+    if (ADMIN_ON_THIS_APP && isSupabaseConfigured && !isDemo()) admin.check().then(setIsAdmin);
   }, []);
   return (
     <section>

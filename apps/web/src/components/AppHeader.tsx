@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookA, LifeBuoy, LogOut, Settings, User } from "lucide-react";
+import { BarChart3, BookA, LifeBuoy, LogOut, Settings, User } from "lucide-react";
+import { ADMIN_ON_THIS_APP, admin, isDemo } from "@/lib/admin";
 import { Logo } from "./Logo";
 import { AvatarArt, profileAvatar } from "./art/Avatars";
 import { DownloadNavLink } from "./landing/DesktopDownload";
@@ -31,6 +32,11 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
   const [profile, setProfile] = useState<(Profile & { email?: string }) | null>(null);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  // the owner's dashboard link: admins only, and only on the website (not in the desktop app)
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (ADMIN_ON_THIS_APP && store.isCloud() && !isDemo() && profile?.id) admin.checkCached(profile.id).then(setIsAdmin);
+  }, [profile?.id]);
 
   useEffect(() => {
     const load = () => store.getProfile().then(setProfile).catch(() => {});
@@ -82,6 +88,11 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
                   <Link role="menuitem" href="/settings/" className="mt-0.5 flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-sm hover:bg-subtle">
                     <Settings size={15} /> {t("nav.settings")}
                   </Link>
+                  {isAdmin && (
+                    <Link role="menuitem" href="/admin/" className="mt-0.5 flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-sm hover:bg-subtle">
+                      <BarChart3 size={15} /> {t("nav.admin")}
+                    </Link>
+                  )}
                   <a role="menuitem" href={helpHref} target="_blank" rel="noreferrer" data-track="Help and guide" className="mt-0.5 flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-sm hover:bg-subtle">
                     <LifeBuoy size={15} /> {t("settings.help")}
                   </a>

@@ -9,6 +9,13 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-08: Admin link in the avatar menu
+
+- `components/AppHeader.tsx`: **Admin dashboard** item for admins; `lib/admin.ts` `checkCached()`
+  (sessionStorage `litma:admin:<user id>`) and `ADMIN_ON_THIS_APP` (false in the desktop build);
+  `components/UsageSettings.tsx` uses it too. String `nav.admin`. Unverified with a real admin
+  account (cloud only).
+
 ## 2026-11-08: Manglish in search
 
 - `packages/shared/src/search.ts` (see cross-platform). `app/desk/page.tsx` filter,

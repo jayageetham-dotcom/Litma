@@ -14,6 +14,15 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: tap on empty paper; desk header
+
+- `lib/editor/editor_screen.dart`: `GestureDetector(onTapUp)` around the page's list; `tapPaper()`
+  finds the line nearest the tap among lines on screen (focus node contexts) and calls
+  `session.focusLine` (cursor at its end). A tap inside a line's box does nothing extra.
+- `lib/features/desk/desk_screen.dart`: the title/logo `AnimatedSwitcher` lays both out at the
+  left (`Stack(alignment: centerLeft)`), so the logo no longer slides back after scrolling up.
+- Unverified on a device (CI only).
+
 ## 2026-11-08: Manglish in search
 
 - `lib/core/search.dart` (port of `shared/search.ts`, keep in step) + `test/search_test.dart`.

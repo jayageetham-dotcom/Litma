@@ -22,7 +22,7 @@ Open any work from the desk and you are in the editor.
 - **Rail (right):** AI companion, Dictionary & thesaurus, Saved words, Assistant inbox, Story World, Version history, Malayalam keyboard, Page & type and Typewriter scrolling. Point at the rail to see the names.
 - **Status bar (bottom):** words, characters, pages, reading time, typing mode and zoom.
 
-> **Phone:** On the phone the writing fills the screen as one long sheet. While you type, a strip above the keyboard holds the formatting buttons; when the keyboard is closed, a tab bar gives you Format, Contents, Story, Dictionary and More.
+> **Phone:** On the phone the writing fills the screen as one long sheet. Tap anywhere on the page, even below the last line, to start typing on the nearest line. While you type, a strip above the keyboard holds the formatting buttons; when the keyboard is closed, a tab bar gives you Format, Contents, Story, Dictionary and More.
 
 ![The editor's tools on the phone](shots/phone-tools.webp)
 

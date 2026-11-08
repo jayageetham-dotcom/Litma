@@ -2,6 +2,9 @@
 
 Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js 15 **static export**, served at the domain root (empty basePath), React 19 + Tailwind v4 + SCSS + Tiptap 2), `apps/desktop` (Electron, macOS + Windows), `apps/mobile` (Flutter, iOS + Android), shared `packages/*`. Backend: Supabase project `jdexadomaxjtxlvgtldu`. Hosted on cPanel at **https://getlitma.in** (moved from https://www.jayageetham.com/litma, Nov 2026), deployed by `.github/workflows/deploy.yml` (FTPS to the getlitma.in FTP account: variable `LITMA_FTP_USERNAME`, secret `LITMA_FTP_PASSWORD`; the upload is skipped with a warning until both exist). The old address gets `deploy/legacy-litma/.htaccess` (301 to the same path on getlitma.in, 308 for `/mcp`) via Actions → **Redirect the old Litma address**, run once after getlitma.in is live. The desktop app, the MCP function and Supabase auth still accept the old address so apps from before the move keep working. The native phone app is being built in phases (see `apps/mobile/README.md`).
 
+## Setup guide
+- `docs/setup/google-and-supabase.md`: the owner's step-by-step for Google Cloud (consent screen, web client, Drive API), Supabase (providers, URL configuration, hooks, secrets, migrations, cron, admins) and the GitHub secrets/variables, with links. Keep it true when a scope, redirect URL, secret, function or migration changes.
+
 ## Change log for Claude sessions (owner's standing rule)
 - `docs/changes/` holds what was done and what is still open: `cross-platform.md` (summary and **Open items**, read first), `web.md`, `desktop.md` (Electron), `mobile.md` (Flutter).
 - Read all four at the start of every session. Before finishing, add your changes (newest first, with file paths and what is unverified) to each app's file and the cross-platform summary, and update Open items.

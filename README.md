@@ -85,6 +85,8 @@ Every push to `main` runs `.github/workflows/deploy.yml`, modelled on the main w
 
 ### One-time setup
 
+Step-by-step guide for every Google and Supabase setting (sign-in, redirect addresses, emails, Edge Function secrets, migrations, Drive backup), with links: [`docs/setup/google-and-supabase.md`](docs/setup/google-and-supabase.md).
+
 **Web host → FTP Accounts → Add FTP Account** for getlitma.in, with its Directory set to getlitma.in's web root (the folder the domain serves). Its home folder is then `/`.
 
 **GitHub → Settings → Secrets and variables → Actions**

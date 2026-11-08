@@ -15,6 +15,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: timezone constraint for notifications
+
+- `apps/mobile/pubspec.yaml`: `timezone` ^0.10.1 → ^0.11.2, because flutter_local_notifications ^22 needs timezone ^0.11 (pub get failed in `scripts/ios-personal.sh`). `lib/data/notifications.dart` only uses `tz.TZDateTime.from` and `tz.UTC`, unchanged in 0.11. Unverified: `pubspec.lock` is refreshed by the next `flutter pub get`; CI.
+
 ## 2026-11-08: Pinned work on the desk
 
 - `lib/features/desk/desk_screen.dart`: `pinnedWork(profile)`, pinned work first in Works, accent border and Pinned badge on `WorkCard(pinned:)`, Pin to the top / Unpin in the long-press sheet (saves `preferences.pinnedWork` through `updateProfile`, works offline through the outbox). Unverified: CI only.

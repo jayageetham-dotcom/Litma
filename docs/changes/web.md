@@ -9,6 +9,12 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-08: Space above the help topic chips
+
+- `components/help/HelpCenter.tsx` `TopicNav`: the phone/tablet chip row (`lg:hidden`) gets
+  `mt-6` so it no longer sits on the bottom edge of the gradient header. The wide-screen side
+  list is unchanged. Unverified on a device; desktop app gets it with the next Release.
+
 ## 2026-11-08: Admin link in the avatar menu
 
 - `components/AppHeader.tsx`: **Admin dashboard** item for admins; `lib/admin.ts` `checkCached()`

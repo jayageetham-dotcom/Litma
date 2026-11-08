@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/i18n.dart';
-import '../../core/manglish.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../widgets/brand.dart';
@@ -99,7 +98,13 @@ class _TypingDemo extends StatefulWidget {
 }
 
 class _TypingDemoState extends State<_TypingDemo> {
-  static const _lines = ['ente naadu', 'mazha peyyunnu', 'oru kadha parayaam'];
+  /// Manglish typed, and the spelling shown for each word. Fixed spellings, like the web's
+  /// TryManglish: the offline engine alone gives നാദു for naadu and പരയാം for parayaam.
+  static const _lines = [
+    [('ente', 'എന്റെ'), ('naadu', 'നാട്')],
+    [('mazha', 'മഴ'), ('peyyunnu', 'പെയ്യുന്നു')],
+    [('oru', 'ഒരു'), ('kadha', 'കഥ'), ('parayaam', 'പറയാം')],
+  ];
   int _line = 0;
   String _done = '';
   String _typing = '';
@@ -119,13 +124,13 @@ class _TypingDemoState extends State<_TypingDemo> {
     super.didChangeDependencies();
     if (Motion.reduced(context)) {
       _timer?.cancel();
-      _done = manglish(_lines.first);
+      _done = _lines.first.map((w) => w.$2).join(' ');
       _typing = '';
     }
   }
 
   void _next() {
-    final words = _lines[_line].split(' ');
+    final words = _lines[_line];
     var w = 0, ch = 0;
     _timer = Timer.periodic(const Duration(milliseconds: 95), (t) {
       if (!mounted) return t.cancel();
@@ -143,11 +148,11 @@ class _TypingDemoState extends State<_TypingDemo> {
           });
           return;
         }
-        final word = words[w];
+        final (word, malayalam) = words[w];
         if (ch < word.length) {
           _typing = word.substring(0, ++ch);
         } else {
-          _done = '$_done${manglishWord(word)} ';
+          _done = '$_done$malayalam ';
           _typing = '';
           w++;
           ch = 0;

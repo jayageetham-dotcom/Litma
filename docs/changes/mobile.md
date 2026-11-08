@@ -14,6 +14,13 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: Welcome demo spellings
+
+- `lib/features/auth/welcome_screen.dart` `_TypingDemo`: each Manglish word now carries its
+  Malayalam spelling (like the web's `TryManglish`), instead of going through the offline engine,
+  which showed നാദു for naadu and പരയാം for parayaam. Now എന്റെ നാട്, മഴ പെയ്യുന്നു, ഒരു കഥ പറയാം.
+  Unverified: no Flutter SDK in the sandbox, relies on CI (`flutter analyze`, tests, screenshots).
+
 ## 2026-11-08: tap on empty paper; desk header
 
 - `lib/editor/editor_screen.dart`: `GestureDetector(onTapUp)` around the page's list; `tapPaper()`

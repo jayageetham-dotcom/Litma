@@ -367,7 +367,7 @@ function TopicNav({ data, current }: { data: HelpData; current: string }) {
           ))}
         </ul>
       </nav>
-      <nav aria-label="Help topics" className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 lg:hidden">
+      <nav aria-label="Help topics" className="-mx-5 mb-6 mt-6 flex gap-2 overflow-x-auto px-5 pb-1 lg:hidden">
         {data.categories.map((c) => (
           <Link
             key={c.id}

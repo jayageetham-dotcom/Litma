@@ -40,6 +40,13 @@ Known differences by design:
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
 
+## 2026-11-08: Help chips spacing, phone welcome spellings
+
+- Web/desktop: margin above the help topic chips on phones (`HelpCenter.tsx`). Desktop needs a Release.
+- Phone: welcome screen demo shows correct Malayalam (`welcome_screen.dart`). Needs a store build.
+- The offline Dart Manglish engine still gives നാദു / പരയാം for naadu / parayaam; editor
+  suggestions may show the same until it learns ട്/റ for those spellings.
+
 ## 2026-11-08: Admin link; phone taps on the page; desk header
 
 - **Admin dashboard in the avatar menu (website only):** `AppHeader` shows it to admins

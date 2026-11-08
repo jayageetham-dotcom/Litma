@@ -75,7 +75,24 @@ export class AdminDenied extends Error {
   }
 }
 
+/** The admin dashboard is a website page; the desktop app never shows links to it. */
+export const ADMIN_ON_THIS_APP = process.env.NEXT_PUBLIC_DESKTOP !== "1";
+
 export const admin = {
+  /** Like check(), asked once per account and browser tab (the avatar menu and Settings both use it). */
+  async checkCached(userId: string | undefined): Promise<boolean> {
+    if (!userId) return false;
+    const key = `litma:admin:${userId}`;
+    try {
+      const v = sessionStorage.getItem(key);
+      if (v) return v === "1";
+    } catch {}
+    const ok = await admin.check();
+    try {
+      sessionStorage.setItem(key, ok ? "1" : "0");
+    } catch {}
+    return ok;
+  },
   async check(): Promise<boolean> {
     if (isDemo()) return true;
     try {

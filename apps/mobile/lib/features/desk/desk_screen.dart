@@ -349,6 +349,9 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                   valueListenable: _collapsed,
                   builder: (context, collapsed, _) => AnimatedSwitcher(
                     duration: Motion.of(context, Motion.medium),
+                    // both sit at the left edge while they cross-fade; the default centres them in
+                    // the wider one's box, so the logo jumped left when the fade finished
+                    layoutBuilder: (current, previous) => Stack(alignment: Alignment.centerLeft, children: [...previous, ?current]),
                     child: collapsed
                         ? Text(tab == DeskTab.trash ? context.t('trash.title') : (tab == DeskTab.books ? context.t('books.title') : context.t('desk.title')),
                             key: const ValueKey('t'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontFamily: LitmaFonts.display, fontWeight: FontWeight.w700))

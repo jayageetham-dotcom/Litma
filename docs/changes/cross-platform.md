@@ -40,6 +40,18 @@ Known differences by design:
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
 
+## 2026-11-08: Admin link; phone taps on the page; desk header
+
+- **Admin dashboard in the avatar menu (website only):** `AppHeader` shows it to admins
+  (`admin.checkCached`, once per account per tab). `ADMIN_ON_THIS_APP` in `lib/admin.ts` is false in
+  the desktop build, which now hides the Settings admin card too. The phone app has no admin link.
+- **Phone editor:** a tap on empty paper (below the last line, between lines, margins) puts the
+  cursor on the nearest line on screen (`tapPaper` in `editor/editor_screen.dart`), like the web's
+  `caretNear`. Before, only a tap on a line's own text focused it.
+- **Phone desk header:** the logo no longer jumps left after the title cross-fade
+  (`AnimatedSwitcher.layoutBuilder` aligned left in `desk_screen.dart`).
+- Needs: website deploy (push), desktop Release (Settings admin card hidden), phone build.
+
 ## 2026-11-08: Manglish in search (web, desktop, phone)
 
 - New shared matcher `packages/shared/src/search.ts` (`romanise`, `soundKey`, `matchesSearch`,

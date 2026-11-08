@@ -15,6 +15,11 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+## 2026-11-08: no admin links in the desktop app
+
+- The desktop build (`NEXT_PUBLIC_DESKTOP=1`) shows neither the avatar menu's Admin dashboard nor
+  the Settings admin card; the dashboard is a website page. Next Release.
+
 ## 2026-11-08: Manglish in search
 
 - Same as the web (shared code); reaches the desktop app with the next Release.

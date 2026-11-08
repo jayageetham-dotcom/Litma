@@ -393,7 +393,11 @@ class _Page extends StatelessWidget {
           return switch (b) {
             TextBlock() => KeyedSubtree(key: ObjectKey(b), child: lineFor(b)),
             GroupBlock() => KeyedSubtree(key: ObjectKey(b), child: GroupRow(group: b, kind: session.kind, lineFor: lineFor, em: page.fontSize)),
-            OpaqueBlock() => KeyedSubtree(key: ObjectKey(b), child: OpaqueView(block: b, em: page.fontSize)),
+            OpaqueBlock() => KeyedSubtree(
+                key: ObjectKey(b),
+                // an inserted page shows as the gap between two sheets, with a + for another page
+                child: b.type == 'pageBreak' ? PageGap(pad: pad, onInsert: () => session.insertPageAfter(b)) : OpaqueView(block: b, em: page.fontSize),
+              ),
           };
         },
       ),

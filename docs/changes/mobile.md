@@ -15,6 +15,11 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: Inserted pages visible in the editor
+
+- Insert page worked (page breaks saved, shown in Pages, PDF, website) but the pageless phone editor showed only a 1.5-line gap, so it looked like nothing happened. `PageGap` (`lib/editor/page_view.dart`): a canvas-coloured band across the sheet with a + (44 pt target, "Insert page" label) that calls `EditorSession.insertPageAfter` (blank line + page break after that break). Used for top-level page breaks in `editor_screen.dart`; the reader keeps `OpaqueView`'s pause. Test in `test/tools_test.dart`. Help: `03-editor.md#pages`.
+- Unverified: CI only; look at it on a phone in light and dark.
+
 ## 2026-11-08: Listen: voice picker, pitch, volume, word underline, save as audio
 
 - `lib/core/speech.dart`: `voices()`, `speak(voice:, rate:, pitch:, volume:)`, `words` stream (`SpokenWord` UTF-16 offsets), `synthesizeToFile()`, `stop()`, `dispose()` (only the newest `Speech` owns the channel). Native: iOS `LitmaSpeech` in `ios/Runner/AppDelegate.swift` (voices by quality, `pitchMultiplier`, `volume`, `willSpeakRangeOfSpeechString` → `word`, `AVSpeechSynthesizer.write` into a WAV through `AVAudioFile`); Android `LitmaSpeech.kt` (voices without `notInstalled`, offline first, `setVoice`/`setPitch`, `KEY_PARAM_VOLUME`, `onRangeStart` (Android 8+) → `word`, `synthesizeToFile`).

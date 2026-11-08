@@ -79,6 +79,10 @@ void main() {
     expect(inline.last, {'type': 'footnote', 'attrs': {'text': 'ഉറവിടം'}});
     s.insertPage();
     expect((s.document.toJson()['content'] as List).map((b) => b['type']), ['paragraph', 'pageBreak', 'paragraph', 'pageBreak']);
+    // the + in a page's gap adds another blank page after that break
+    s.insertPageAfter(s.document.blocks[1] as OpaqueBlock);
+    expect((s.document.toJson()['content'] as List).map((b) => b['type']), ['paragraph', 'pageBreak', 'paragraph', 'pageBreak', 'paragraph', 'pageBreak']);
+    expect(identical(s.focused, s.document.blocks[2]), isTrue, reason: 'the new page gets the cursor');
     s.appendDiaryEntry('2026 നവംബർ 7, ശനി');
     s.appendDiaryEntry('2026 നവംബർ 7, ശനി');
     final dates = (s.document.toJson()['content'] as List).where((b) => b['attrs']?['variant'] == 'dateline');

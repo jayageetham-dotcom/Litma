@@ -15,6 +15,12 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: Tools sheet in groups
+
+- `lib/editor/tools.dart` `showToolsSheet`: groups (`app.tools.groupWords/Plan/Page/Share/Work`), 4 columns, smaller tiles (38px icon box, labelSmall), empty groups dropped. Analytics keys unchanged.
+- Find: new search `IconButton` before the tools button in `editor_screen.dart`. Inbox: `IconButton` in the AI sheet header (`_AiSheetState`), tile removed.
+- Unverified: `flutter analyze` and how the top bar fits with the timer chip on small phones; `phone-tools.webp` in help and the CI screenshots show the old grid.
+
 ## 2026-11-08: timezone constraint for notifications
 
 - `apps/mobile/pubspec.yaml`: `timezone` ^0.10.1 → ^0.11.2, because flutter_local_notifications ^22 needs timezone ^0.11 (pub get failed in `scripts/ios-personal.sh`). `lib/data/notifications.dart` only uses `tz.TZDateTime.from` and `tz.UTC`, unchanged in 0.11. `pubspec.lock` now lists flutter_local_notifications 22.3.3, timezone 0.11.2 and flutter_tts 4.2.5. The new plugins brought CocoaPods into the iOS project (`ios/Podfile`, `Podfile.lock`, Pods lines in `Flutter/*.xcconfig`, `project.pbxproj`, the workspace); `ios/Pods/` stays ignored. Built on the owner's Mac with `scripts/ios-personal.sh`; CI unverified.

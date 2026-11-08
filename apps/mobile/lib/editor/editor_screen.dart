@@ -263,6 +263,14 @@ class _EditorState extends ConsumerState<_Editor> {
                 );
               },
             ),
+            IconButton(
+              tooltip: context.t('app.tools.find'),
+              onPressed: () {
+                Analytics.tap('app.tools.find');
+                showFindSheet(context, s);
+              },
+              icon: Icon(LucideIcons.search, size: 21, color: c.ink),
+            ),
             IconButton(tooltip: context.t('app.tools.title'), onPressed: () => showToolsSheet(context, ref, s), icon: Icon(LucideIcons.layoutGrid, size: 21, color: c.ink)),
             IconButton(tooltip: context.t('app.editor.read'), onPressed: _read, icon: const Icon(LucideIcons.bookOpen, size: 21)),
             _MoreMenu(session: s, onRename: _rename, onRead: _read),

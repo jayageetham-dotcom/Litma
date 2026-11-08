@@ -891,16 +891,35 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       )}
       {phone && phoneSheet === "more" && (
         <Sheet mode="sheet" bottomOffset={kb} title="More" onClose={() => setPhoneSheet(null)}>
-          <div className="grid grid-cols-4 gap-1.5">
-            {PANELS.filter((p) => !["story", "dict"].includes(p.id)).map((p) => (
-              <Tile key={p.id} icon={p.icon} label={p.short} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />
-            ))}
-            <Tile icon={Search} label="Find" onClick={() => { setPhoneSheet(null); setFindOpen(true); }} />
-            <Tile icon={TypewriterIcon} label="Typewriter" tint="text-tint-lime" active={typewriter} onClick={() => setTypewriter((t) => !t)} />
-            <Tile icon={Maximize2} label="Focus" onClick={() => { setPhoneSheet(null); setFocus(true); }} />
-            <Tile icon={Files} label={t("editor.pages.tile")} tint="text-tint-sky" active={phonePages} onClick={() => { togglePhonePages(); setPhoneSheet(null); }} />
-            {store.isCloud() && shareId && isPublic && <Tile icon={Eye} label="Reader" onClick={() => window.open(`${BASE}/read/?s=${shareId}`, "_blank")} />}
-          </div>
+          {/* grouped like the phone app's tools sheet: words, planning, the page, then review */}
+          {(() => {
+            const panel = (id: PanelId) => {
+              const p = PANELS.find((x) => x.id === id)!;
+              return <Tile key={p.id} icon={p.icon} label={p.short} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />;
+            };
+            const groups: [string, React.ReactNode[]][] = [
+              [t("app.tools.groupWords"), [panel("saved"), panel("rhyme"), panel("check"), panel("keys")]],
+              [t("app.tools.groupPlan"), [panel("ai"), panel("inbox"), panel("goals")]],
+              [t("app.tools.groupPage"), [
+                panel("page"),
+                <Tile key="pages" icon={Files} label={t("editor.pages.tile")} tint="text-tint-sky" active={phonePages} onClick={() => { togglePhonePages(); setPhoneSheet(null); }} />,
+                <Tile key="find" icon={Search} label="Find" tint="text-tint-tangerine" onClick={() => { setPhoneSheet(null); setFindOpen(true); }} />,
+                <Tile key="typewriter" icon={TypewriterIcon} label="Typewriter" tint="text-tint-lime" active={typewriter} onClick={() => setTypewriter((t) => !t)} />,
+                <Tile key="focus" icon={Maximize2} label="Focus" onClick={() => { setPhoneSheet(null); setFocus(true); }} />,
+              ]],
+              [t("app.tools.groupShare"), [
+                panel("read"),
+                panel("history"),
+                ...(store.isCloud() && shareId && isPublic ? [<Tile key="reader" icon={Eye} label="Reader" onClick={() => window.open(`${BASE}/read/?s=${shareId}`, "_blank")} />] : []),
+              ]],
+            ];
+            return groups.map(([label, tiles], i) => (
+              <div key={label}>
+                <h3 className={`mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted ${i ? "mt-4" : ""}`}>{label}</h3>
+                <div className="grid grid-cols-4 gap-1.5">{tiles}</div>
+              </div>
+            ));
+          })()}
           <h3 className="mb-1.5 mt-5 text-xs font-semibold uppercase tracking-wide text-muted">Export</h3>
           <div className="overflow-hidden rounded-xl border border-line bg-paper">
             {exportItems.filter((x) => x.label !== "Quick print").map((x) => (

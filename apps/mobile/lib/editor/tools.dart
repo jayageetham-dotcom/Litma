@@ -30,138 +30,114 @@ import 'work_tools.dart';
 import 'writing_aids.dart';
 import '../data/analytics.dart';
 
-/// The editor's tools, as tinted tiles (the web's phone "More" sheet: each tool keeps its own tint).
+/// One tile in the tools sheet: icon, label, tint and what it opens.
+typedef _Tool = (IconData, String, Color, VoidCallback);
+
+/// The editor's tools, grouped by what the writer is doing: words, planning, the page, then
+/// reviewing and sharing. Each tool keeps its own tint. Find sits in the top bar; the assistant
+/// inbox opens from the AI companion's header (and the keyboard bar).
 Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s) async {
   final c = context.c;
-  final tools = [
-    (LucideIcons.notebookPen, context.t('app.tools.story'), c.tintLime, () {
-      Analytics.tap('app.tools.story');
-      openStoryWorld(context, s);
-    }),
-    (LucideIcons.bookA, context.t('nav.dictionary'), c.tintTangerine, () {
-      Analytics.tap('nav.dictionary');
-      showLookUpSheet(context, s);
-    }),
-    (LucideIcons.sparkles, context.t('app.tools.ai'), c.tintViolet, () {
-      Analytics.tap('app.tools.ai');
-      showAiSheet(context, ref, s);
-    }),
-    (LucideIcons.inbox, context.t('app.tools.inbox'), c.tintViolet, () {
-      Analytics.tap('app.tools.inbox');
-      showInboxSheet(context, ref, s);
-    }),
-    (LucideIcons.history, context.t('app.tools.history'), c.tintSky, () {
-      Analytics.tap('app.tools.history');
-      showHistorySheet(context, ref, s);
-    }),
-    (LucideIcons.share2, context.t('app.tools.share'), c.tintCoral, () {
-      Analytics.tap('app.tools.share');
-      showShareSheet(context, ref, s);
-    }),
-    (LucideIcons.palette, context.t('app.tools.format'), c.tintViolet, () {
-      Analytics.tap('app.tools.format');
-      showFormatSheet(context, s);
-    }),
-    (LucideIcons.list, context.t('app.tools.outline'), c.tintSky, () {
-      Analytics.tap('app.tools.outline');
-      showOutlineSheet(context, s);
-    }),
-    (LucideIcons.search, context.t('app.tools.find'), c.tintTangerine, () {
-      Analytics.tap('app.tools.find');
-      showFindSheet(context, s);
-    }),
-    (LucideIcons.repeat2, context.t('app.tools.rhymes'), c.tintSky, () {
-      Analytics.tap('app.tools.rhymes');
-      showRhymeSheet(context, ref, s);
-    }),
-    (LucideIcons.spellCheck, context.t('app.tools.check'), c.tintCoral, () {
-      Analytics.tap('app.tools.check');
-      showCheckSheet(context, ref, s);
-    }),
-    (LucideIcons.volume2, context.t('app.tools.listen'), c.tintLime, () {
-      Analytics.tap('app.tools.listen');
-      showReadAloudSheet(context, ref, s);
-    }),
-    (LucideIcons.target, context.t('app.tools.goals'), c.tintTangerine, () {
-      Analytics.tap('app.tools.goals');
-      showGoalSheet(context, ref, s);
-    }),
-    (LucideIcons.bookmark, context.t('saved.title'), c.tintLime, () {
-      Analytics.tap('saved.title');
-      showSavedWordsSheet(context, ref, s);
-    }),
-    (LucideIcons.ruler, context.t('app.tools.page'), c.tintCoral, () {
-      Analytics.tap('app.tools.page');
-      showPageSetupSheet(context, s);
-    }),
-    (LucideIcons.fileText, context.t('editor.pages.tile'), c.tintSky, () {
-      Analytics.tap('editor.pages.tile');
-      showPagesPreview(context, s);
-    }),
-    (LucideIcons.plus, context.t('editor.insertPage'), c.tintLime, () {
-      Analytics.tap('editor.insertPage');
-      s.insertPage();
-    }),
+  _Tool tool(IconData icon, String key, Color tint, VoidCallback run) => (icon, context.t(key), tint, () {
+        Analytics.tap(key);
+        run();
+      });
+
+  final groups = <(String, List<_Tool>)>[
+    (context.t('app.tools.groupWords'), [
+      tool(LucideIcons.bookA, 'nav.dictionary', c.tintTangerine, () => showLookUpSheet(context, s)),
+      tool(LucideIcons.repeat2, 'app.tools.rhymes', c.tintSky, () => showRhymeSheet(context, ref, s)),
+      tool(LucideIcons.spellCheck, 'app.tools.check', c.tintCoral, () => showCheckSheet(context, ref, s)),
+      tool(LucideIcons.bookmark, 'saved.title', c.tintLime, () => showSavedWordsSheet(context, ref, s)),
+    ]),
+    (context.t('app.tools.groupPlan'), [
+      tool(LucideIcons.sparkles, 'app.tools.ai', c.tintViolet, () => showAiSheet(context, ref, s)),
+      tool(LucideIcons.notebookPen, 'app.tools.story', c.tintLime, () => openStoryWorld(context, s)),
+      tool(LucideIcons.target, 'app.tools.goals', c.tintTangerine, () => showGoalSheet(context, ref, s)),
+    ]),
+    (context.t('app.tools.groupPage'), [
+      tool(LucideIcons.palette, 'app.tools.format', c.tintViolet, () => showFormatSheet(context, s)),
+      tool(LucideIcons.ruler, 'app.tools.page', c.tintCoral, () => showPageSetupSheet(context, s)),
+      tool(LucideIcons.list, 'app.tools.outline', c.tintSky, () => showOutlineSheet(context, s)),
+      tool(LucideIcons.fileText, 'editor.pages.tile', c.tintSky, () => showPagesPreview(context, s)),
+      tool(LucideIcons.plus, 'editor.insertPage', c.tintLime, s.insertPage),
+    ]),
+    (context.t('app.tools.groupShare'), [
+      tool(LucideIcons.volume2, 'app.tools.listen', c.tintLime, () => showReadAloudSheet(context, ref, s)),
+      tool(LucideIcons.history, 'app.tools.history', c.tintSky, () => showHistorySheet(context, ref, s)),
+      tool(LucideIcons.share2, 'app.tools.share', c.tintCoral, () => showShareSheet(context, ref, s)),
+    ]),
     // each writing type's own tools, as on the web toolbar
-    if (s.kind == DocKind.essay || s.kind == DocKind.feature) (LucideIcons.superscript, context.t('editor.footnote.add'), c.tintViolet, () {
-      Analytics.tap('editor.footnote.add');
-      showFootnoteDialog(context, s);
-    }),
-    if (s.kind == DocKind.drama) (LucideIcons.users, context.t('editor.drama.fillCast'), c.tintCoral, () {
-      Analytics.tap('editor.drama.fillCast');
-      fillCastFromStory(context, ref, s);
-    }),
-    if (s.kind == DocKind.screenplay) (LucideIcons.drama, context.t('editor.scene.tools'), c.tintTangerine, () {
-      Analytics.tap('editor.scene.tools');
-      showSceneSheet(context, s);
-    }),
-    if (s.kind == DocKind.diary) (LucideIcons.calendarDays, context.t('editor.diary.newEntry'), c.tintSky, () {
-      Analytics.tap('editor.diary.newEntry');
-      s.appendDiaryEntry(todayLine(DateTime.now()));
-    }),
-  ];
+    (context.t('app.tools.groupWork'), [
+      if (s.kind == DocKind.essay || s.kind == DocKind.feature) tool(LucideIcons.superscript, 'editor.footnote.add', c.tintViolet, () => showFootnoteDialog(context, s)),
+      if (s.kind == DocKind.drama) tool(LucideIcons.users, 'editor.drama.fillCast', c.tintCoral, () => fillCastFromStory(context, ref, s)),
+      if (s.kind == DocKind.screenplay) tool(LucideIcons.drama, 'editor.scene.tools', c.tintTangerine, () => showSceneSheet(context, s)),
+      if (s.kind == DocKind.diary) tool(LucideIcons.calendarDays, 'editor.diary.newEntry', c.tintSky, () => s.appendDiaryEntry(todayLine(DateTime.now()))),
+    ]),
+  ].where((g) => g.$2.isNotEmpty).toList();
+
   await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    builder: (sheet) => SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheet).height * 0.8),
-        child: GridView.count(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          crossAxisCount: 3,
-          shrinkWrap: true,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 1.05,
-          children: [
-            for (final (i, (icon, label, tint, run)) in tools.indexed)
-              FadeSlideIn(
-                index: i,
-                step: const Duration(milliseconds: 30),
-                child: Pressable(
-                  onTap: () {
-                    Navigator.pop(sheet);
-                    run();
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(LitmaRadius.lg), border: Border.all(color: c.line)),
-                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(color: Color.alphaBlend(tint.withValues(alpha: 0.14), c.surface), borderRadius: BorderRadius.circular(14)),
-                        child: Icon(icon, color: tint, size: 21),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(label, textAlign: TextAlign.center, maxLines: 2, style: Theme.of(context).textTheme.labelMedium),
-                    ]),
-                  ),
+    builder: (sheet) {
+      var n = 0;
+      Widget tile(_Tool t) {
+        final (icon, label, tint, run) = t;
+        return FadeSlideIn(
+          index: n++,
+          step: const Duration(milliseconds: 25),
+          child: Pressable(
+            semanticLabel: label,
+            onTap: () {
+              Navigator.pop(sheet);
+              run();
+            },
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
+              decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(LitmaRadius.md), border: Border.all(color: c.line)),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(color: Color.alphaBlend(tint.withValues(alpha: 0.14), c.surface), borderRadius: BorderRadius.circular(12)),
+                  child: Icon(icon, color: tint, size: 19),
                 ),
-              ),
-          ],
+                const SizedBox(height: 8),
+                Text(label, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(sheet).textTheme.labelSmall?.copyWith(color: c.ink, height: 1.2)),
+              ]),
+            ),
+          ),
+        );
+      }
+
+      return SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheet).height * 0.85),
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            children: [
+              for (final (label, tools) in groups) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 6, 4, 8),
+                  child: Text(label, style: Theme.of(sheet).textTheme.labelLarge?.copyWith(color: c.muted)),
+                ),
+                GridView.count(
+                  crossAxisCount: 4,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 10),
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 0.78,
+                  children: [for (final t in tools) tile(t)],
+                ),
+              ],
+            ],
+          ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }
 
@@ -343,6 +319,16 @@ class _AiPanelState extends ConsumerState<_AiPanel> {
           Icon(LucideIcons.sparkles, color: c.tintViolet, size: 20),
           const SizedBox(width: 8),
           Expanded(child: Text(context.t('app.tools.ai'), style: Theme.of(context).textTheme.titleMedium)),
+          // the assistant inbox lives here now (it left the tools sheet)
+          IconButton(
+            tooltip: context.t('app.tools.inbox'),
+            icon: Icon(LucideIcons.inbox, size: 20, color: c.tintViolet),
+            onPressed: () {
+              Analytics.tap('app.tools.inbox');
+              Navigator.pop(context);
+              showInboxSheet(context, ref, s);
+            },
+          ),
           if ((_keyed?.length ?? 0) > 1)
             DropdownButton<String>(
               value: _provider,

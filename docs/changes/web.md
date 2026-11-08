@@ -9,6 +9,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-08: Phone More sheet in groups
+
+- `src/components/editor/Workspace.tsx` More sheet: tiles split under Words (Saved, Rhymes, Check, Keyboard), Plan and assist (AI, Inbox with badge, Goals), Page (Page, Pages, Find, Typewriter, Focus), Review and share (Listen, History, Reader), then Export and Share as before. `tsc` passes; not looked at in a browser.
+
 ## 2026-11-08: Pinned work on the desk
 
 - `lib/pin.ts` (`getPinned`, `setPinned`, `usePinned`, `PIN_EVENT`; profile `preferences.pinnedWork`, local `litma:pinned`). Desk: pinned first in Works, Pinned badge, accent border, Pin/Unpin button in each card's actions (`desk.pin.*` strings). Playwright: pin, move the pin, reload, unpin, phone layout.

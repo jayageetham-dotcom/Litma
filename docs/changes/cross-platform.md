@@ -46,6 +46,14 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
+## 2026-11-08: Editor tools grouped (phone app, website on phones)
+
+- The phone app's tools sheet was one flat 3-column grid of 17 tiles. It now has labelled groups in 4 columns: **Words** (Dictionary, Rhymes, Check, Saved words), **Plan and assist** (AI companion, Story World, Goals), **Page** (Format, Page setup, Contents, Pages, Insert page), **Review and share** (Listen, Version history, Share & export), then **For this work** (footnote, fill cast, scene tools, diary entry, only for their writing types).
+- Phone app: Find moved to its own top-bar button; the Assistant inbox tile left the sheet and opens from an inbox icon in the AI companion's header (the keyboard strip's Inbox stays). Insert page stays a tile because Pages is a PDF preview and can't insert.
+- Website on phones: the More sheet's tiles use the same group names (Inbox keeps its tile there for its count badge). Desktop and wide screens unchanged (the More sheet is phone-only).
+- Strings `app.tools.group*` in `packages/i18n` (en, ml), `npm run mobile:assets` run. Help: `03-editor.md`, `09-ai.md`.
+- Web typecheck passes; the web sheet and the phone code are unchecked in a browser or on a device (no Flutter SDK). Needs a phone store build; no desktop Release needed.
+
 ## 2026-11-08: Pin the work in progress (all apps, MCP)
 
 - One work can be pinned to the top of the desk (Pinned badge, accent border, first whatever the sort). Stored as `profiles.preferences.pinnedWork` (one id, so pinning another moves the pin; follows the writer to every device; local mode `litma:pinned`). No migration.

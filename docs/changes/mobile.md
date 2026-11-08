@@ -14,6 +14,13 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: dictionary back arrow walks back word by word
+
+- `lib/features/dictionary/dictionary_screen.dart`: the ← beside a looked-up word called `search()`
+  with the previous word, and `search()` pushed the word on screen onto `_history` again, so the
+  arrow toggled between the last two words. `search(word, back: true)` now skips the push; a lookup
+  of the word already shown (or the same word twice) adds nothing. Unverified on a device (CI only).
+
 ## 2026-11-07 (evening): publisher line; Help and guide
 
 - `lib/features/books/cover.dart`: `pubPart()` draws the publisher as its own part `publisher`

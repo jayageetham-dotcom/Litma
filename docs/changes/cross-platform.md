@@ -40,6 +40,12 @@ Known differences by design:
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
 
+## 2026-11-08: Phone dictionary back arrow
+
+- Phone only: the ← beside a word in the Dictionary now steps back through every word looked up,
+  instead of toggling between the last two. The website and desktop use the browser's own back
+  (`/dictionary/?w=`), which already worked. Needs a phone build.
+
 ## 2026-11-07 (evening): Publisher line on covers; help site
 
 - **Publisher line readable and independent (web, desktop, phone):** the front cover's publisher name

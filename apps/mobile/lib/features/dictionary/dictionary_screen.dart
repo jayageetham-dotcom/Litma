@@ -190,9 +190,12 @@ class LookupViewState extends ConsumerState<LookupView> {
     });
   }
 
-  Future<void> search(String word) async {
+  /// Looks [word] up. The word shown now goes on the back trail, except when going back
+  /// ([back]: true), so the arrow walks back word by word instead of toggling between two.
+  Future<void> search(String word, {bool back = false}) async {
     final w = word.trim();
     if (w.isEmpty) return;
+    final shown = (_result?.found ?? false) ? _result!.head! : null;
     _q.text = w;
     _focus.unfocus();
     setState(() {
@@ -201,7 +204,8 @@ class LookupViewState extends ConsumerState<LookupView> {
     });
     final r = await _dict.lookup(w);
     if (!mounted) return;
-    if (_result?.found ?? false) _history.add(_result!.head!);
+    // the same word again (a synonym that leads back to itself) adds nothing to the trail
+    if (!back && shown != null && shown != r.head && (_history.isEmpty || _history.last != shown)) _history.add(shown);
     setState(() {
       _result = r;
       _busy = false;
@@ -295,7 +299,7 @@ class LookupViewState extends ConsumerState<LookupView> {
           ),
         )
       else
-        SliverToBoxAdapter(child: _Entry(key: ValueKey(r.head), r: r, onWord: search, onInsert: widget.onInsert, history: _history.isEmpty ? null : () => search(_history.removeLast()))),
+        SliverToBoxAdapter(child: _Entry(key: ValueKey(r.head), r: r, onWord: search, onInsert: widget.onInsert, history: _history.isEmpty ? null : () => search(_history.removeLast(), back: true))),
     ]);
   }
 }

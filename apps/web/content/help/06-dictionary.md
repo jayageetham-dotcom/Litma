@@ -19,7 +19,9 @@ On the website and desktop app, open **Dictionary** at the top of any page (the 
 
 Inside the editor you can also select a word and press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd> to look it up. Click a synonym to put it in place of the selected word.
 
-> **Phone:** Tap **Dictionary** in the bottom tab bar. While writing, select a word and tap **Look up** in the bar that appears, or in the strip above the keyboard.
+> **Phone:** Tap **Dictionary** in the bottom tab bar. Tap a meaning or synonym to look that word up; the **←** beside the word takes you back one word at a time.
+>
+> While writing, select a word and tap **Look up** in the bar that appears, or in the strip above the keyboard.
 
 ![The dictionary on the phone](shots/phone-dictionary.webp)
 

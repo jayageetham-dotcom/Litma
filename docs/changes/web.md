@@ -9,6 +9,14 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-08: Manglish in search
+
+- `packages/shared/src/search.ts` (see cross-platform). `app/desk/page.tsx` filter,
+  `components/SavedWords.tsx`, `components/Nattarivu.tsx` filter use `matchesSearch`;
+  `FindBar` in `components/editor/Workspace.tsx` shows **In Malayalam** chips from
+  `manglishMatches` (click puts the word in the box). Checked in local mode: `mazha` on the desk,
+  `kada` → കടൽ chips and 3 matches. Help guides mention it.
+
 ## 2026-11-07 (evening): publisher line on covers; help site
 
 - `components/book/Cover.tsx`: `pub()` renders the publisher as its own `Movable id="publisher"` in

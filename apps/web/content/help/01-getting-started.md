@@ -73,7 +73,7 @@ The desk (എഴുത്തുമേശ) is the first page you see after signin
 
 - **Works, Books, Trash:** the three tabs. Works are your writings; Books collect works into a printable book; Trash holds deleted works.
 - **Word counts:** how many works and words you have, words written today, and your writing streak (days in a row you have written).
-- **Search titles and text:** finds a work by its title or by any words inside it.
+- **Search titles and text:** finds a work by its title or by any words inside it. Type in Malayalam or in Manglish: `puthiya` finds പുതിയ നോവൽ, even before you finish the word.
 - **Sort:** Last edited, Title, or Longest.
 - **Writing type chips:** show only novels, only poems and so on.
 - **New work** and **Import:** start writing, or bring in a text file.

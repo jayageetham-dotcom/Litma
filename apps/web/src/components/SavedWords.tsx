@@ -1,4 +1,5 @@
 "use client";
+import { matchesSearch } from "@litma/shared/search";
 import { useCallback, useEffect, useState } from "react";
 import { Bookmark, BookmarkCheck, Search, Trash2 } from "lucide-react";
 import { bookmarks } from "@/lib/store";
@@ -81,7 +82,7 @@ export function SavedWords({ onPick, onOpen, compact = false }: { onPick?: (w: s
         <p className="mt-1 text-xs leading-relaxed text-muted">{t("saved.emptyBody")}</p>
       </div>
     );
-  const shown = q ? items.filter((b) => b.word.includes(q) || b.meaning?.includes(q) || b.synonyms.some((s) => s.includes(q))) : items;
+  const shown = q ? items.filter((b) => matchesSearch(`${b.word} ${b.meaning ?? ""} ${b.synonyms.join(" ")}`, q)) : items;
   return (
     <div className="space-y-3">
       {items.length > 6 && (

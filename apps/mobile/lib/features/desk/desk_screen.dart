@@ -8,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../app/providers.dart';
 import '../../core/i18n.dart';
+import '../../core/search.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../data/forms.dart';
@@ -323,7 +324,7 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     final profile = ref.watch(profileProvider).value;
     final wide = MediaQuery.sizeOf(context).width >= 700;
     final list = docs.value
-        ?.where((d) => _query.isEmpty || d.title.toLowerCase().contains(_query.toLowerCase()) || d.excerpt.toLowerCase().contains(_query.toLowerCase()))
+        ?.where((d) => matchesSearch('${d.title} ${d.excerpt}', _query))
         .toList();
     if (docs.hasValue && !docs.isLoading) WidgetsBinding.instance.addPostFrameCallback((_) => _firstLoad = false);
 

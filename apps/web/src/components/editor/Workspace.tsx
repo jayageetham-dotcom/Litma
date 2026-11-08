@@ -46,6 +46,7 @@ import { fillCastList } from "@/extensions/drama";
 import { FootnoteDialog } from "./FootnoteDialog";
 import type { DocSettings, LitmaDoc } from "@/lib/types";
 import { countWords, readingMinutes, aksharas } from "@litma/shared/manglish";
+import { manglishMatches } from "@litma/shared/search";
 import { MM, PAGE_GAP_PX, PAGE_SIZES, geometryFor, paginationKey, remeasurePages } from "@/extensions/pagination";
 import { metreKey, searchKey } from "@/extensions/tools";
 import type { InputMode } from "@/extensions/manglish";
@@ -1079,6 +1080,7 @@ function MenuItem({ onClick, icon, label, hint }: { onClick: () => void; icon: R
 }
 
 function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
+  const t = useT();
   const [term, setTerm] = useState("");
   const [rep, setRep] = useState("");
   const [cs, setCs] = useState(false);
@@ -1088,6 +1090,8 @@ function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
   }, [term, cs, editor]);
   useEffect(() => () => void editor.commands.setSearch(""), [editor]);
   const n = st?.results.length ?? 0;
+  // Manglish typed in the box: offer the Malayalam words of this work that sound like it
+  const sounds = useMemo(() => (/[a-z]/i.test(term) ? manglishMatches(editor.state.doc.textBetween(0, editor.state.doc.content.size, " ", " "), term) : []), [term, editor]);
   return (
     <div className="no-print sticky top-0 z-30 mx-auto mb-4 flex w-fit max-w-full flex-wrap items-center gap-1.5 rounded-xl border border-line bg-paper p-2 shadow-lg" role="search">
       <input
@@ -1121,6 +1125,16 @@ function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
       <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label="Close find">
         <X size={15} />
       </button>
+      {sounds.length > 0 && (
+        <div className="flex w-full flex-wrap items-center gap-1.5 px-1 pt-1 text-xs text-muted" title={t("search.inMalayalamHint")}>
+          {t("search.inMalayalam")}:
+          {sounds.map((w) => (
+            <button key={w} type="button" data-private className="rounded-[6px] border border-line-strong bg-surface px-2 py-0.5 text-sm text-ink hover:border-accent hover:text-accent" style={{ fontFamily: "'Anek Malayalam'" }} onClick={() => setTerm(w)}>
+              {w}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

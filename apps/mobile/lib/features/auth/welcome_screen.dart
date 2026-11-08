@@ -98,8 +98,8 @@ class _TypingDemo extends StatefulWidget {
 }
 
 class _TypingDemoState extends State<_TypingDemo> {
-  /// Manglish typed, and the spelling shown for each word. Fixed spellings, like the web's
-  /// TryManglish: the offline engine alone gives നാദു for naadu and പരയാം for parayaam.
+  /// Manglish typed, and the spelling shown for each word (fixed, like the web's TryManglish,
+  /// so the demo never depends on the engine).
   static const _lines = [
     [('ente', 'എന്റെ'), ('naadu', 'നാട്')],
     [('mazha', 'മഴ'), ('peyyunnu', 'പെയ്യുന്നു')],

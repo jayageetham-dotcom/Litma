@@ -185,7 +185,7 @@ void main() {
     test('Manglish words turn into Malayalam at the space', () {
       final c = _controller(TextBlock('paragraph', {}));
       type(c, 'ente naadu ');
-      expect(c.block.text, 'എന്റെ നാദു ');
+      expect(c.block.text, 'എന്റെ നാട് ');
       expect(c.blockSelection.extentOffset, c.block.text.length);
     });
     test('the space takes the spelling the suggestion strip shows first', () {

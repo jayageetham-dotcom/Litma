@@ -4,11 +4,13 @@ import type { Editor } from "@tiptap/react";
 import { Pause, Play, Square, Volume2 } from "lucide-react";
 import { useT } from "@/i18n/react";
 import { Select } from "@/components/ui/Select";
-import { onVoices, platform, readAloud, speechSupported, type Platform, type Reading } from "@/lib/speech";
+import { onVoices, platform, readAloud, speechSupported, type Platform, type Reading, type VoiceSettings } from "@/lib/speech";
 import { track } from "@/lib/analytics";
 
 const LS_RATE = "litma:read-rate";
 const LS_VOICE = "litma:read-voice";
+const LS_PITCH = "litma:read-pitch";
+const LS_VOLUME = "litma:read-volume";
 
 const get = (k: string) => {
   try {
@@ -25,12 +27,25 @@ const set = (k: string, v: string) => {
   }
 };
 
-/** Read the work aloud with a Malayalam voice on this device, sentence by sentence, from the cursor or the start. */
+/** A stored number, or the fallback when missing or out of range. */
+const num = (k: string, fallback: number, min: number, max: number) => {
+  const raw = get(k);
+  const v = raw === null ? NaN : Number(raw);
+  return Number.isFinite(v) && v >= min && v <= max ? v : fallback;
+};
+
+/**
+ * Read the work aloud with a Malayalam voice on this device, sentence by sentence, from the cursor
+ * or the start. Voice, speed, pitch and volume apply from the next sentence when changed while
+ * reading; the word being spoken is underlined when the voice reports words.
+ */
 export function ReadAloudPanel({ editor }: { editor: Editor }) {
   const t = useT();
   const [voices, setVoices] = useState<SpeechSynthesisVoice[] | null>(null);
   const [voice, setVoice] = useState<string>(() => get(LS_VOICE) ?? "");
-  const [rate, setRate] = useState(() => Number(get(LS_RATE)) || 1);
+  const [rate, setRate] = useState(() => num(LS_RATE, 1, 0.6, 1.6));
+  const [pitch, setPitch] = useState(() => num(LS_PITCH, 1, 0.5, 1.5));
+  const [volume, setVolume] = useState(() => num(LS_VOLUME, 1, 0.1, 1));
   const [state, setState] = useState<{ index: number; total: number; paused: boolean } | null>(null);
   const reading = useRef<Reading | null>(null);
 
@@ -38,14 +53,17 @@ export function ReadAloudPanel({ editor }: { editor: Editor }) {
   useEffect(() => () => reading.current?.stop(), []);
 
   const chosen = voices?.find((v) => v.voiceURI === voice) ?? voices?.[0];
+  const live = useRef<VoiceSettings>({ voice: chosen, rate, pitch, volume });
+  useEffect(() => {
+    live.current = { voice: chosen, rate, pitch, volume };
+  }, [chosen, rate, pitch, volume]);
   const start = (fromStart: boolean) => {
     reading.current?.stop();
     const from = fromStart ? 0 : editor.state.selection.from;
     track("read_aloud");
     reading.current = readAloud(editor, {
       from,
-      voice: chosen,
-      rate,
+      settings: () => live.current,
       onState: setState,
       onEnd: () => {
         reading.current = null;
@@ -83,24 +101,9 @@ export function ReadAloudPanel({ editor }: { editor: Editor }) {
           preventFocusSteal
         />
       )}
-      <label className="block">
-        <span className="mb-1 flex justify-between text-xs text-muted">
-          <span>{t("read.speed")}</span> <span>{rate.toFixed(1)}×</span>
-        </span>
-        <input
-          type="range"
-          min={0.6}
-          max={1.6}
-          step={0.1}
-          value={rate}
-          onChange={(e) => {
-            const r = Number(e.target.value);
-            setRate(r);
-            set(LS_RATE, String(r));
-          }}
-          className="w-full accent-[var(--accent)]"
-        />
-      </label>
+      <Slider label={t("read.speed")} shown={`${rate.toFixed(1)}×`} min={0.6} max={1.6} step={0.1} value={rate} onChange={(v) => { setRate(v); set(LS_RATE, String(v)); }} />
+      <Slider label={t("read.pitch")} shown={pitch.toFixed(1)} min={0.5} max={1.5} step={0.1} value={pitch} onChange={(v) => { setPitch(v); set(LS_PITCH, String(v)); }} />
+      <Slider label={t("read.volume")} shown={`${Math.round(volume * 100)}%`} min={0.1} max={1} step={0.1} value={volume} onChange={(v) => { setVolume(v); set(LS_VOLUME, String(v)); }} />
 
       {state ? (
         <div className="rounded-xl border border-line bg-paper p-4">
@@ -132,5 +135,24 @@ export function ReadAloudPanel({ editor }: { editor: Editor }) {
       )}
       <p className="text-xs text-muted">{t("read.hint")}</p>
     </div>
+  );
+}
+
+function Slider({ label, shown, min, max, step, value, onChange }: { label: string; shown: string; min: number; max: number; step: number; value: number; onChange: (v: number) => void }) {
+  return (
+    <label className="block">
+      <span className="mb-1 flex justify-between text-xs text-muted">
+        <span>{label}</span> <span>{shown}</span>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-[var(--accent)]"
+      />
+    </label>
   );
 }

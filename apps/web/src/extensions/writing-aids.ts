@@ -8,7 +8,7 @@ import type { SpellIssue } from "@litma/shared/spell";
  * Writing aids drawn over the text, never saved in it:
  * - spelling marks (`spellKey`): each text block is checked in the background by `check` (set from
  *   the Check panel), a block again only when it changes;
- * - read aloud (`readKey`): the sentence being read.
+ * - read aloud (`readKey`): the sentence being read, and the word when the voice reports words.
  */
 
 export interface DocIssue extends SpellIssue {
@@ -62,8 +62,15 @@ export function recheckSpelling(editor: Editor) {
   editor.view.dispatch(editor.state.tr.setMeta(spellKey, { reset: true }).setMeta("addToHistory", false));
 }
 
-/** Show the sentence being read (null clears it). */
-export function setReading(editor: Editor, range: { from: number; to: number } | null) {
+export interface ReadingRange {
+  from: number;
+  to: number;
+  /** the word being spoken, when the voice sends word boundaries */
+  word?: { from: number; to: number };
+}
+
+/** Show the sentence (and word) being read (null clears it). */
+export function setReading(editor: Editor, range: ReadingRange | null) {
   editor.view.dispatch(editor.state.tr.setMeta(readKey, range).setMeta("addToHistory", false));
 }
 
@@ -162,9 +169,15 @@ export const WritingAids = Extension.create<object, WritingAidsStorage>({
       state: {
         init: () => DecorationSet.empty,
         apply(tr, prev) {
-          const meta = tr.getMeta(readKey) as { from: number; to: number } | null | undefined;
+          const meta = tr.getMeta(readKey) as ReadingRange | null | undefined;
           if (meta === null) return DecorationSet.empty;
-          if (meta) return DecorationSet.create(tr.doc, [Decoration.inline(meta.from, meta.to, { class: "reading-now" })]);
+          if (meta) {
+            const size = tr.doc.content.size;
+            const ok = (a: number, b: number) => a >= 0 && b <= size && a < b;
+            const decos = ok(meta.from, meta.to) ? [Decoration.inline(meta.from, meta.to, { class: "reading-now" })] : [];
+            if (meta.word && ok(meta.word.from, meta.word.to)) decos.push(Decoration.inline(meta.word.from, meta.word.to, { class: "reading-word" }));
+            return DecorationSet.create(tr.doc, decos);
+          }
           return prev.map(tr.mapping, tr.doc);
         },
       },

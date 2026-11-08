@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../app/providers.dart';
 import '../core/i18n.dart';
@@ -10,6 +13,7 @@ import '../core/manglish.dart';
 import '../core/metre.dart';
 import '../core/speech.dart';
 import '../core/theme.dart';
+import '../core/wav.dart';
 import '../data/analytics.dart';
 import '../data/goals.dart';
 import '../data/rhyme.dart';
@@ -367,26 +371,58 @@ class _ReadAloud extends ConsumerStatefulWidget {
 
 class _ReadAloudState extends ConsumerState<_ReadAloud> {
   final _tts = Speech();
+  StreamSubscription<SpokenWord>? _wordSub;
   bool? _hasVoice;
+  List<SpeechVoice> _voices = const [];
+  String? _voice;
   late double _rate;
+  late double _pitch;
+  late double _volume;
   int? _at;
+  SpokenWord? _word;
   var _paused = false;
   var _stopped = true;
   List<String> _pieces = const [];
 
+  /// While saving an audio file: pieces made so far and in all.
+  (int, int)? _saving;
+  var _saveCancelled = false;
+  String? _saveError;
+
   static const _rateKey = 'litma:read-rate';
+  static const _pitchKey = 'litma:read-pitch';
+  static const _volumeKey = 'litma:read-volume';
+  static const _voiceKey = 'litma:read-voice';
+  static const _language = 'ml-IN';
+
+  double _pref(String key, double fallback, double min, double max) {
+    final v = ref.read(servicesProvider).prefs.getDouble(key);
+    return v != null && v >= min && v <= max ? v : fallback;
+  }
 
   @override
   void initState() {
     super.initState();
-    _rate = ref.read(servicesProvider).prefs.getDouble(_rateKey) ?? 1;
+    _rate = _pref(_rateKey, 1, 0.6, 1.6);
+    _pitch = _pref(_pitchKey, 1, 0.5, 1.5);
+    _volume = _pref(_volumeKey, 1, 0.1, 1);
+    _voice = ref.read(servicesProvider).prefs.getString(_voiceKey);
+    _wordSub = _tts.words.listen((w) {
+      if (mounted && _at != null) setState(() => _word = w);
+    });
     _setup();
   }
 
   Future<void> _setup() async {
     try {
-      final has = await _tts.hasVoice('ml');
-      if (mounted) setState(() => _hasVoice = has);
+      final voices = await _tts.voices('ml');
+      final has = voices.isNotEmpty || await _tts.hasVoice('ml');
+      if (!mounted) return;
+      setState(() {
+        _voices = voices;
+        if (!voices.any((v) => v.id == _voice)) _voice = voices.isEmpty ? null : voices.first.id;
+        _hasVoice = has;
+      });
     } catch (_) {
       if (mounted) setState(() => _hasVoice = false);
     }
@@ -395,7 +431,9 @@ class _ReadAloudState extends ConsumerState<_ReadAloud> {
   @override
   void dispose() {
     _stopped = true;
-    _tts.stop();
+    _saveCancelled = true;
+    _wordSub?.cancel();
+    _tts.dispose();
     super.dispose();
   }
 
@@ -407,7 +445,7 @@ class _ReadAloudState extends ConsumerState<_ReadAloud> {
     final start = fromStart || f == null ? 0 : all.indexWhere((l) => identical(l, f)).clamp(0, all.length);
     final out = <String>[];
     for (final l in all.skip(start)) {
-      for (final m in RegExp(r'[^.!?।\n]+[.!?।]*').allMatches(l.plainText)) {
+      for (final m in RegExp(r'[^.!?।\n]+[.!?।]*').allMatches(l.plainText.replaceAll('￼', ' '))) {
         final t = m.group(0)!.trim();
         if (t.isNotEmpty) out.add(t);
       }
@@ -420,12 +458,17 @@ class _ReadAloudState extends ConsumerState<_ReadAloud> {
     _paused = false;
     for (var i = from; i < _pieces.length; i++) {
       if (_stopped || _paused || !mounted) return;
-      setState(() => _at = i);
-      await _tts.speak(_pieces[i], language: 'ml-IN', rate: _rate);
+      setState(() {
+        _at = i;
+        _word = null;
+      });
+      // voice, speed, pitch and volume changed while reading apply from the next sentence
+      await _tts.speak(_pieces[i], language: _language, voice: _voice, rate: _rate, pitch: _pitch, volume: _volume);
     }
     if (mounted && !_paused) {
       setState(() {
         _at = null;
+        _word = null;
         _stopped = true;
       });
     }
@@ -435,6 +478,115 @@ class _ReadAloudState extends ConsumerState<_ReadAloud> {
     Analytics.track('read_aloud');
     _pieces = _split(fromStart: fromStart);
     _play(0);
+  }
+
+  /// The whole work as one WAV file, made piece by piece (engines take a few thousand characters
+  /// at a time) and joined, then shared.
+  Future<void> _saveAudio() async {
+    final sentences = _split(fromStart: true);
+    if (sentences.isEmpty) return;
+    final chunks = <String>[];
+    var buf = StringBuffer();
+    for (final s in sentences) {
+      for (var i = 0; i < s.length; i += 3000) {
+        final part = s.substring(i, (i + 3000).clamp(0, s.length));
+        if (buf.length + part.length > 3000 && buf.isNotEmpty) {
+          chunks.add(buf.toString());
+          buf = StringBuffer();
+        }
+        if (buf.isNotEmpty) buf.write('\n');
+        buf.write(part);
+      }
+    }
+    if (buf.isNotEmpty) chunks.add(buf.toString());
+
+    Analytics.track('read_aloud_save');
+    setState(() {
+      _saving = (0, chunks.length);
+      _saveCancelled = false;
+      _saveError = null;
+    });
+    final dir = await getTemporaryDirectory();
+    final stamp = DateTime.now().millisecondsSinceEpoch;
+    final parts = <String>[];
+    var ok = true;
+    try {
+      for (var i = 0; i < chunks.length; i++) {
+        if (_saveCancelled || !mounted) return;
+        final path = '${dir.path}/litma-read-$stamp-$i.wav';
+        parts.add(path);
+        if (!await _tts.synthesizeToFile(chunks[i], path, language: _language, voice: _voice, rate: _rate, pitch: _pitch) || !File(path).existsSync()) {
+          ok = false;
+          break;
+        }
+        if (mounted) setState(() => _saving = (i + 1, chunks.length));
+      }
+      if (_saveCancelled || !mounted) return;
+      final safe = widget.session.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').trim();
+      final out = '${dir.path}/${safe.isEmpty ? 'Litma' : safe}.wav';
+      if (ok) ok = await joinWav(parts, out);
+      if (!mounted) return;
+      setState(() => _saving = null);
+      if (!ok) {
+        setState(() => _saveError = context.t('read.saveFailed'));
+        return;
+      }
+      await SharePlus.instance.share(ShareParams(files: [XFile(out, mimeType: 'audio/wav')], subject: widget.session.title));
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = null;
+          _saveError = context.t('read.saveFailed');
+        });
+      }
+    } finally {
+      for (final p in parts) {
+        try {
+          File(p).deleteSync();
+        } catch (_) {
+          // already gone
+        }
+      }
+      if (mounted && _saving != null) setState(() => _saving = null);
+    }
+  }
+
+  String _voiceLabel(BuildContext context, SpeechVoice v, int index) {
+    // Android names voices with codes (ml-in-x-mlf-local); iOS gives real names
+    final coded = RegExp(r'^[a-z]{2,3}[-_][a-z]{2}', caseSensitive: false).hasMatch(v.name);
+    final name = coded ? context.t('read.voiceN', {'n': index + 1}) : v.name;
+    return v.network ? '$name (${context.t('read.needsInternet')})' : name;
+  }
+
+  Widget _slider(BuildContext context, {required String label, required String shown, required double min, required double max, required int divisions, required double value, required ValueChanged<double> onChanged, required String prefKey}) {
+    final c = context.c;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Row(children: [Text(label), const Spacer(), Text(shown, style: TextStyle(color: c.muted))]),
+      Slider.adaptive(
+        min: min,
+        max: max,
+        divisions: divisions,
+        value: value.clamp(min, max),
+        onChanged: onChanged,
+        onChangeEnd: (v) => ref.read(servicesProvider).prefs.setDouble(prefKey, v),
+      ),
+    ]);
+  }
+
+  /// The sentence being read, with the spoken word marked when the voice reports words.
+  Widget _current(BuildContext context, String text) {
+    final c = context.c;
+    final w = _word;
+    final base = _ml.copyWith(fontSize: 16, color: c.ink);
+    if (w == null || w.start < 0 || w.end > text.length || w.start >= w.end) return Text(text, style: base);
+    return Text.rich(TextSpan(style: base, children: [
+      TextSpan(text: text.substring(0, w.start)),
+      TextSpan(
+        text: text.substring(w.start, w.end),
+        style: TextStyle(decoration: TextDecoration.underline, decorationColor: c.highlight, decorationThickness: 2.5),
+      ),
+      TextSpan(text: text.substring(w.end)),
+    ]));
   }
 
   @override
@@ -451,22 +603,34 @@ class _ReadAloudState extends ConsumerState<_ReadAloud> {
       ]);
     }
     final reading = _at != null;
+    final saving = _saving;
     return ListView(shrinkWrap: true, padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
       _title(context, context.t('app.tools.listen')),
-      Row(children: [Text(context.t('read.speed')), const Spacer(), Text('${_rate.toStringAsFixed(1)}×', style: TextStyle(color: c.muted))]),
-      Slider.adaptive(
-        min: 0.6,
-        max: 1.6,
-        divisions: 10,
-        value: _rate,
-        onChanged: (v) => setState(() => _rate = v),
-        onChangeEnd: (v) => ref.read(servicesProvider).prefs.setDouble(_rateKey, v),
-      ),
+      if (_voices.length > 1) ...[
+        Text(context.t('read.voice')),
+        const SizedBox(height: 8),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          for (final (i, v) in _voices.indexed)
+            ChoiceChip(
+              selected: v.id == _voice,
+              label: Text(_voiceLabel(context, v, i)),
+              onSelected: (_) {
+                setState(() => _voice = v.id);
+                ref.read(servicesProvider).prefs.setString(_voiceKey, v.id);
+              },
+            ),
+        ]),
+        const SizedBox(height: 14),
+      ],
+      _slider(context, label: context.t('read.speed'), shown: '${_rate.toStringAsFixed(1)}×', min: 0.6, max: 1.6, divisions: 10, value: _rate, onChanged: (v) => setState(() => _rate = v), prefKey: _rateKey),
+      _slider(context, label: context.t('read.pitch'), shown: _pitch.toStringAsFixed(1), min: 0.5, max: 1.5, divisions: 10, value: _pitch, onChanged: (v) => setState(() => _pitch = v), prefKey: _pitchKey),
+      _slider(context, label: context.t('read.volume'), shown: '${(_volume * 100).round()}%', min: 0.1, max: 1, divisions: 9, value: _volume, onChanged: (v) => setState(() => _volume = v), prefKey: _volumeKey),
+      const SizedBox(height: 6),
       if (reading) ...[
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(color: c.highlightSoft, borderRadius: BorderRadius.circular(LitmaRadius.md)),
-          child: Text(_pieces[_at!], style: _ml.copyWith(fontSize: 16)),
+          child: _current(context, _pieces[_at!]),
         ),
         const SizedBox(height: 6),
         Text(context.t('read.progress', {'n': _at! + 1, 'total': _pieces.length}), style: TextStyle(color: c.muted, fontSize: 12)),
@@ -479,7 +643,10 @@ class _ReadAloudState extends ConsumerState<_ReadAloud> {
               icon: const Icon(LucideIcons.pause, size: 16),
               label: Text(context.t('read.pause')),
               onPressed: () {
-                setState(() => _paused = true);
+                setState(() {
+                  _paused = true;
+                  _word = null;
+                });
                 _tts.stop();
               },
             ),
@@ -490,14 +657,44 @@ class _ReadAloudState extends ConsumerState<_ReadAloud> {
             onPressed: () {
               _stopped = true;
               _tts.stop();
-              setState(() => _at = null);
+              setState(() {
+                _at = null;
+                _word = null;
+              });
             },
           ),
         ]),
+      ] else if (saving != null) ...[
+        Text(context.t('read.saving', {'n': saving.$1, 'total': saving.$2}), style: TextStyle(color: c.muted)),
+        const SizedBox(height: 8),
+        LinearProgressIndicator(value: saving.$2 == 0 ? null : saving.$1 / saving.$2),
+        const SizedBox(height: 10),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            icon: const Icon(LucideIcons.square, size: 14),
+            label: Text(context.t('read.stop')),
+            onPressed: () {
+              setState(() {
+                _saveCancelled = true;
+                _saving = null;
+              });
+              _tts.stop();
+            },
+          ),
+        ),
       ] else ...[
         FilledButton.icon(icon: const Icon(LucideIcons.play, size: 16), label: Text(context.t('read.fromCursor')), onPressed: () => _start(false)),
         const SizedBox(height: 8),
         OutlinedButton(onPressed: () => _start(true), child: Text(context.t('read.fromStart'))),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(icon: const Icon(LucideIcons.download, size: 16), label: Text(context.t('read.saveAudio')), onPressed: _saveAudio),
+        const SizedBox(height: 6),
+        Text(context.t('read.saveHint'), style: TextStyle(color: c.muted, fontSize: 12.5)),
+        if (_saveError != null) ...[
+          const SizedBox(height: 6),
+          Text(_saveError!, style: TextStyle(color: c.danger, fontSize: 12.5)),
+        ],
       ],
       const SizedBox(height: 12),
       Text(context.t('read.hint'), style: TextStyle(color: c.muted, fontSize: 12.5)),

@@ -15,6 +15,13 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: Listen: voice picker, pitch, volume, word underline, save as audio
+
+- `lib/core/speech.dart`: `voices()`, `speak(voice:, rate:, pitch:, volume:)`, `words` stream (`SpokenWord` UTF-16 offsets), `synthesizeToFile()`, `stop()`, `dispose()` (only the newest `Speech` owns the channel). Native: iOS `LitmaSpeech` in `ios/Runner/AppDelegate.swift` (voices by quality, `pitchMultiplier`, `volume`, `willSpeakRangeOfSpeechString` → `word`, `AVSpeechSynthesizer.write` into a WAV through `AVAudioFile`); Android `LitmaSpeech.kt` (voices without `notInstalled`, offline first, `setVoice`/`setPitch`, `KEY_PARAM_VOLUME`, `onRangeStart` (Android 8+) → `word`, `synthesizeToFile`).
+- `lib/core/wav.dart` + `test/wav_test.dart`: joins the per-piece WAV files (engines take ~4,000 characters) into one; refuses parts of different formats.
+- `lib/editor/writing_aids.dart` `_ReadAloud`: voice chips (with two or more voices; Android's coded names shown as "Voice n", online ones marked), Speed, Pitch, Volume sliders (prefs `litma:read-*`, same keys as the web), the spoken word underlined in the sentence box, **Save as an audio file** (whole work in pieces of ≤ 3,000 characters, progress and Stop, then the share sheet; temp parts deleted).
+- Unverified: built only by reasoning here. Needs `flutter analyze`, `flutter test`, the iPhone build (`scripts/ios-personal.sh`) and an Android phone with Google's Malayalam voice: word underline, voice switch, pitch/volume, saved WAV plays and has the whole work. iPhones have no Malayalam voice yet, so iOS shows the "no voice" help.
+
 ## 2026-11-08: Tools sheet in groups
 
 - `lib/editor/tools.dart` `showToolsSheet`: groups (`app.tools.groupWords/Plan/Page/Share/Work`), 4 columns, smaller tiles (38px icon box, labelSmall), empty groups dropped. Analytics keys unchanged.

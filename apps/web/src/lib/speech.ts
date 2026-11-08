@@ -3,6 +3,8 @@
  * Read aloud with the device's own voices (Web Speech API): free, no account, works offline where
  * the voice is installed on the device. Malayalam voices: Google's on Android, Microsoft's online
  * voices in Edge; most Macs, iPhones and Windows apps have none yet (the panel says so).
+ * Voice, speed, pitch and volume are the writer's; the word being spoken is marked when the voice
+ * sends word boundaries (many local voices do, Chrome's online Google voices don't).
  */
 import type { Editor } from "@tiptap/core";
 import { blockText, setReading } from "@/extensions/writing-aids";
@@ -61,13 +63,15 @@ export function pieces(editor: Editor): Piece[] {
     const re = /[^.!?।\n]+[.!?।]*\s*|\n/g;
     for (const m of text.matchAll(re)) {
       const raw = m[0];
-      const clean = raw.replace(/￼/g, "").trim();
-      if (!clean) continue;
+      // inline leaves (footnotes, breaks) stay in as one character each so positions line up;
+      // they are spoken as a space
+      const clean = raw.trim();
+      if (!clean.replace(/￼/g, "").trim()) continue;
       const start = (m.index ?? 0) + (raw.length - raw.trimStart().length);
       const chunks = clean.length > 220 ? clean.match(/.{1,200}(\s|$)|.{1,200}/g) ?? [clean] : [clean];
       let at = start;
       for (const c of chunks) {
-        out.push({ from: pos + 1 + at, to: pos + 1 + at + c.length, text: c.replace(/￼/g, "") });
+        out.push({ from: pos + 1 + at, to: pos + 1 + at + c.length, text: c.replace(/￼/g, " ") });
         at += c.length;
       }
     }
@@ -82,10 +86,28 @@ export interface Reading {
   resume: () => void;
 }
 
-/** Read the work from a position. Calls onState as it goes; onEnd when it finishes or stops. */
+export interface VoiceSettings {
+  voice?: SpeechSynthesisVoice;
+  /** 1 is the voice's normal speed */
+  rate: number;
+  /** 1 is the voice's normal pitch */
+  pitch: number;
+  /** 0 to 1 */
+  volume: number;
+}
+
+/** Length of the word starting at `at` (for voices that send a boundary without its length). */
+export function wordLength(text: string, at: number): number {
+  return /^[^\s.,!?;:।"'“”‘’()[\]{}]+/u.exec(text.slice(at))?.[0].length ?? 0;
+}
+
+/**
+ * Read the work from a position. `settings` is read before each sentence, so changes made while
+ * reading apply from the next one. Calls onState as it goes; onEnd when it finishes or stops.
+ */
 export function readAloud(
   editor: Editor,
-  opts: { from: number; voice?: SpeechSynthesisVoice; rate: number; onState: (s: { index: number; total: number; paused: boolean }) => void; onEnd: () => void }
+  opts: { from: number; settings: () => VoiceSettings; onState: (s: { index: number; total: number; paused: boolean }) => void; onEnd: () => void }
 ): Reading {
   const list = pieces(editor).filter((p) => p.to > opts.from);
   let i = 0;
@@ -109,10 +131,20 @@ export function readAloud(
     } catch {
       /* position gone */
     }
+    const s = opts.settings();
     const u = new SpeechSynthesisUtterance(p.text);
-    u.lang = opts.voice?.lang ?? "ml-IN";
-    if (opts.voice) u.voice = opts.voice;
-    u.rate = opts.rate;
+    u.lang = s.voice?.lang ?? "ml-IN";
+    if (s.voice) u.voice = s.voice;
+    u.rate = s.rate;
+    u.pitch = s.pitch;
+    u.volume = s.volume;
+    u.onboundary = (e) => {
+      if (stopped || (e.name && e.name !== "word")) return;
+      const at = e.charIndex;
+      const len = Math.min(e.charLength || wordLength(p.text, at), p.text.length - at);
+      if (at < 0 || len <= 0 || !p.text.slice(at, at + len).trim()) return;
+      setReading(editor, { from: p.from, to: p.to, word: { from: p.from + at, to: p.from + at + len } });
+    };
     u.onend = () => {
       i++;
       if (!paused) next();

@@ -9,6 +9,14 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-08: Read aloud: pitch, volume, word underline
+
+- `src/lib/speech.ts`: `readAloud` takes `settings()` (voice, rate, pitch, volume) read before each sentence, so changes while reading apply from the next one; `onboundary` word events underline the spoken word (`wordLength` when the voice sends no length). Inline leaves now stay in the spoken text as a space, so sentence and word positions line up after a footnote or line break (they were shifted by one per leaf before).
+- `src/extensions/writing-aids.ts`: `setReading` takes `ReadingRange` with an optional `word`; decoration `.reading-word` (underline in `--highlight`, `styles/editor.scss`).
+- `components/editor/ReadAloudPanel.tsx`: Pitch (0.5–1.5) and Volume (10–100%) sliders beside Speed, kept per device (`litma:read-pitch`, `litma:read-volume`); stored values out of range fall back to the default. The voice picker was already there (shown with two or more voices).
+- Strings `read.pitch`, `read.volume` (+ phone-only `read.voiceN`, `read.needsInternet`, `read.save*`), new `read.hint`; help guide `content/help/03-editor.md#read-aloud`.
+- Checked: typecheck, local-mode build, Playwright with a stand-in Malayalam voice (word underline with and without boundary lengths, sentence-only voice, pitch/volume/speed reach the utterance, speed change mid-read, pause, go on, stop clears marks, no page errors). Unverified with real voices (Edge's Microsoft Malayalam voices, Android Chrome).
+
 ## 2026-11-08: Phone More sheet in groups
 
 - `src/components/editor/Workspace.tsx` More sheet: tiles split under Words (Saved, Rhymes, Check, Keyboard), Plan and assist (AI, Inbox with badge, Goals), Page (Page, Pages, Find, Typewriter, Focus), Review and share (Listen, History, Reader), then Export and Share as before. `tsc` passes; not looked at in a browser.

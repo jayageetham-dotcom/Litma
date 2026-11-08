@@ -121,8 +121,9 @@ Choose **Check grammar with AI**. The AI companion reads your selection, or the 
 Hear your work read in Malayalam, sentence by sentence and line by line, to catch what the eye misses.
 
 1. Choose **Read aloud** on the right-hand rail.
-2. Choose **Read from the cursor** or **Read from the start**. The sentence being read is highlighted.
-3. Change the **Speed**, or **Pause** and **Go on** when you like.
+2. Choose **Read from the cursor** or **Read from the start**. The sentence being read is highlighted, and the word being spoken is underlined when the voice tells Litma where it is (many voices do, some don't).
+3. Change the **Speed**, **Pitch** or **Volume**, or **Pause** and **Go on** when you like. Changes made while it reads start from the next sentence.
+4. If your device has more than one Malayalam voice, pick one under **Voice**. Litma remembers it, along with the speed, pitch and volume, on this device.
 
 Litma uses the Malayalam voice of your device, so it costs nothing and your text isn't sent anywhere. Not every device has one:
 
@@ -130,7 +131,7 @@ Litma uses the Malayalam voice of your device, so it costs nothing and your text
 - **Computers:** Microsoft Edge has Microsoft's Malayalam voices; open Litma's website in Edge.
 - **Mac, iPhone, iPad and the desktop app** don't have a Malayalam voice yet. Use the website in Edge, or an Android phone.
 
-> **Phone:** Tap the tools button and choose **Listen**.
+> **Phone:** Tap the tools button and choose **Listen**. The phone app can also make the whole work into one audio file: choose **Save as an audio file**, wait while it is made, then share it or keep it in Files. The file is made on the phone with the voice and settings you chose.
 
 ## Find and replace {#find}
 

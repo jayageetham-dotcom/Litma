@@ -56,7 +56,7 @@ dependencies:
   # the daily writing reminder and the writing timer (scheduled on the phone, no server)
   flutter_local_notifications: ^22.0.0
   timezone: ^0.11.2
-  # read aloud with the phone's own Malayalam voice
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

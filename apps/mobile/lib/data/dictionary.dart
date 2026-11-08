@@ -75,7 +75,7 @@ class Dictionary {
 
   final _texts = <String, Future<String?>>{};
 
-  /// A text file under /dict (the spelling word lists, words/<shard>.txt), kept on the phone once used.
+  /// A text file under /dict (the spelling word lists, `words/<shard>.txt`), kept on the phone once used.
   Future<String?> text(String path) => _texts.putIfAbsent(path, () async {
         try {
           final r = await _client.get(Uri.parse('${AppConfig.site}/dict/$path.txt')).timeout(const Duration(seconds: 12));

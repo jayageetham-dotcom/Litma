@@ -43,7 +43,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
 
   Future<void> _save(Profile p, {int? daily, GoalPrefs? goals}) async {
     final prefs = {...p.preferences, if (goals != null) 'goals': goals.toJson()};
-    await ref.read(servicesProvider).store.updateProfile(p.id, {if (daily != null) 'daily_goal': daily, 'preferences': prefs});
+    await ref.read(servicesProvider).store.updateProfile(p.id, {'daily_goal': ?daily, 'preferences': prefs});
     ref.invalidate(profileProvider);
     if (!mounted) return;
     unawaited(rescheduleReminders(ref, context));

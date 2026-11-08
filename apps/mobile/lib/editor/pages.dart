@@ -125,7 +125,7 @@ class MeasureSize extends SingleChildRenderObjectWidget {
   RenderObject createRenderObject(BuildContext context) => _RenderMeasure(onHeight);
 
   @override
-  void updateRenderObject(BuildContext context, covariant _RenderMeasure renderObject) => renderObject.onHeight = onHeight;
+  void updateRenderObject(BuildContext context, RenderObject renderObject) => (renderObject as _RenderMeasure).onHeight = onHeight;
 }
 
 class _RenderMeasure extends RenderProxyBox {

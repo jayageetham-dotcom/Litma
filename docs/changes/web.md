@@ -9,6 +9,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-08: Pinned work on the desk
+
+- `lib/pin.ts` (`getPinned`, `setPinned`, `usePinned`, `PIN_EVENT`; profile `preferences.pinnedWork`, local `litma:pinned`). Desk: pinned first in Works, Pinned badge, accent border, Pin/Unpin button in each card's actions (`desk.pin.*` strings). Playwright: pin, move the pin, reload, unpin, phone layout.
+
 ## 2026-11-08: Rhymes, spelling, read aloud, goals and timer, reminders, statistics, backup
 
 - Shared (synced to `_shared`): `rhyme.ts`, `spell.ts`, `goals.ts`; `dict.ts` exports `mlShardName`; `forms.ts` `DocSettings.deadline`; `ai-prompts.ts` `grammar` action.

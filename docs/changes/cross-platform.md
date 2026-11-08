@@ -46,6 +46,12 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
+## 2026-11-08: Pin the work in progress (all apps, MCP)
+
+- One work can be pinned to the top of the desk (Pinned badge, accent border, first whatever the sort). Stored as `profiles.preferences.pinnedWork` (one id, so pinning another moves the pin; follows the writer to every device; local mode `litma:pinned`). No migration.
+- Web/desktop: `apps/web/src/lib/pin.ts`, pin button on each desk card (`app/desk/page.tsx`). Phone: long-press action and badge (`desk_screen.dart`, `pinnedWork()`). MCP: `pin_document`, `list_documents` lists the pinned work first as PINNED.
+- Help `01-getting-started.md#pin`, README, CLAUDE.md. Checked on the web in local mode (pin, move, reload, unpin, phone width). Needs a desktop Release and a phone build; the phone part is unverified (no Flutter SDK).
+
 ## 2026-11-08: Free writing aids: rhymes, spelling, read aloud, goals and reminders, backup (all apps)
 
 Owner asked for the features that cost nothing (no paid voice, no server-held Google access).

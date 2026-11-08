@@ -72,7 +72,14 @@
       "body": "You can restore it from the Trash tab any time.",
       "confirm": "Move to trash"
     },
-    "moveToTrash": "Move to trash"
+    "moveToTrash": "Move to trash",
+    "pin": {
+      "pin": "Pin to the top",
+      "unpin": "Unpin",
+      "pinned": "Pinned",
+      "done": "Pinned to the top of the desk.",
+      "removed": "Unpinned."
+    }
   },
   "books": {
     "title": "പുസ്തകങ്ങൾ",

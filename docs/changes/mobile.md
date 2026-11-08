@@ -15,6 +15,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: Pinned work on the desk
+
+- `lib/features/desk/desk_screen.dart`: `pinnedWork(profile)`, pinned work first in Works, accent border and Pinned badge on `WorkCard(pinned:)`, Pin to the top / Unpin in the long-press sheet (saves `preferences.pinnedWork` through `updateProfile`, works offline through the outbox). Unverified: CI only.
+
 ## 2026-11-08: Rhymes, spelling, read aloud, goals and timer, reminders, statistics, backup
 
 - New: `lib/data/rhyme.dart`, `spell.dart`, `goals.dart`, `notifications.dart`, `backup.dart`; `lib/core/zip.dart`; `lib/editor/writing_aids.dart` (Rhymes, Check, Listen, Goals sheets), `writing_timer.dart` (chip in the editor bar, snack bar at the end); `lib/features/goals/goals_screen.dart` (from Settings and the profile). Tests `test/goals_test.dart`, `test/spell_test.dart`.

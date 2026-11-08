@@ -47,6 +47,13 @@ const rhymes = createRhymes((path) => siteFile(`${path}.json`, "json"));
 const speller = createSpeller((path) => siteFile(`${path}.txt`, "text") as Promise<string | null>, () => dict.index(), mlShardName);
 
 type Json = Record<string, unknown>;
+
+/** The work pinned to the top of the writer's desk (profiles.preferences.pinnedWork), if any. */
+async function pinnedWork(u: string): Promise<string | null> {
+  const { data } = await db.from("profiles").select("preferences").eq("id", u).maybeSingle();
+  const id = (data?.preferences as Record<string, unknown> | null)?.pinnedWork;
+  return typeof id === "string" && id ? id : null;
+}
 type Args = Record<string, any>; // deno-lint-ignore no-explicit-any
 const formName = (k: string) => FORM_NAMES[k as DocKind] ?? FORM_NAMES.blank;
 const words = (t: string) => (t.match(/\S+/g) ?? []).length;
@@ -93,7 +100,7 @@ const TOOLS: Tool[] = [
   {
     name: "list_documents",
     title: "List documents",
-    description: "List the writer's works (novels, stories, poems, screenplays, features…) with id, title, writing type (സാഹിത്യരൂപം), words and last edit. Set trash=true for deleted works.",
+    description: "List the writer's works (novels, stories, poems, screenplays, features…) with id, title, writing type (സാഹിത്യരൂപം), words and last edit. The work the writer pinned to the top of the desk (the work in progress) comes first, marked PINNED. Set trash=true for deleted works.",
     inputSchema: { type: "object", properties: { kind: S("string", "Only this writing type", { enum: KINDS }), trash: S("boolean", "List the trash instead"), limit: S("number", "Max results (default 50)") } },
     annotations: RO,
     async run(a, u) {
@@ -102,7 +109,9 @@ const TOOLS: Tool[] = [
       const { data, error } = await q;
       if (error) return out(error.message, true);
       if (!data?.length) return out(a.trash ? "The trash is empty." : "No documents yet.");
-      return out(data.map((d) => `- ${d.title} [${formName(d.kind).en}] — ${d.word_count} words — updated ${d.updated_at} — id: ${d.id}`).join("\n"));
+      const pinned = a.trash ? null : await pinnedWork(u);
+      const rows = [...data].sort((x, y) => Number(y.id === pinned) - Number(x.id === pinned));
+      return out(rows.map((d) => `- ${d.id === pinned ? "PINNED: " : ""}${d.title} [${formName(d.kind).en}] — ${d.word_count} words — updated ${d.updated_at} — id: ${d.id}`).join("\n"));
     },
   },
   {
@@ -246,6 +255,26 @@ const TOOLS: Tool[] = [
       if (a.title) patch.title = String(a.title);
       const { error } = await db.from("documents").update(patch).eq("id", String(d.id));
       return error ? out(error.message, true) : out("Updated.");
+    },
+  },
+  {
+    name: "pin_document",
+    title: "Pin to the top of the desk",
+    description:
+      "Pin one work to the top of the writer's desk, so the work in progress is easy to find in every Litma app. Only one work can be pinned: pinning another moves the pin. Set unpin=true (without an id) to remove the pin.",
+    inputSchema: { type: "object", properties: { id: S("string", "Document id to pin"), unpin: S("boolean", "Remove the pin") } },
+    async run(a, u) {
+      const { data: prof } = await db.from("profiles").select("preferences").eq("id", u).maybeSingle();
+      const prefs = (prof?.preferences ?? {}) as Record<string, unknown>;
+      if (a.unpin) {
+        await db.from("profiles").upsert({ id: u, preferences: { ...prefs, pinnedWork: null } });
+        return out("No work is pinned now.");
+      }
+      const d = await ownDoc(u, a.id, "id,title,archived");
+      if (!d) return out("Document not found.", true);
+      if (d.archived) return out("That work is in the trash. Restore it first.", true);
+      await db.from("profiles").upsert({ id: u, preferences: { ...prefs, pinnedWork: String(d.id) } });
+      return out(`Pinned “${d.title}” to the top of the desk.`);
     },
   },
   {

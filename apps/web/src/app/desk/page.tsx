@@ -3,7 +3,7 @@ import { matchesSearch } from "@litma/shared/search";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { BookPlus, Copy, FileUp, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { BookPlus, Copy, FileUp, Pin, PinOff, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import { CoverFront, presetPatch } from "@/components/book/Cover";
 import { DEFAULT_STRUCTURE } from "@/lib/book-structure";
 import { AppHeader } from "@/components/AppHeader";
@@ -14,6 +14,7 @@ import { TemplatePreview } from "@/components/TemplatePreview";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { useWriting } from "@/lib/goals";
+import { usePinned } from "@/lib/pin";
 import { TEMPLATES, templateFor } from "@/lib/templates";
 import type { Book, DocKind, LitmaDoc } from "@/lib/types";
 import { useT } from "@/i18n/react";
@@ -49,6 +50,8 @@ function Desk() {
   const [importing, setImporting] = useState<File | null>(null);
   const [creating, setCreating] = useState<DocKind | null>(null);
   const writing = useWriting();
+  // one work kept at the top of the desk (the work in progress)
+  const [pinned, setPinned] = usePinned();
   const today = writing.goals ? { words: writing.today, streak: writing.streak.current } : null;
   const fileRef = useRef<HTMLInputElement>(null);
   const [confirmDialog, ask] = useConfirm();
@@ -98,8 +101,11 @@ function Desk() {
     );
     if (sort === "title") list.sort((a, b) => a.title.localeCompare(b.title, "ml"));
     if (sort === "words") list.sort((a, b) => b.word_count - a.word_count);
+    // the pinned work always comes first (not in the trash)
+    const at = view === "works" && pinned ? list.findIndex((d) => d.id === pinned) : -1;
+    if (at > 0) list.unshift(...list.splice(at, 1));
     return list;
-  }, [docs, q, filter, sort]);
+  }, [docs, q, filter, sort, pinned, view]);
   const totalWords = (docs ?? []).reduce((n, d) => n + (d.word_count || 0), 0);
   const kindsUsed = Array.from(new Set((docs ?? []).map((d) => d.kind)));
   async function newBook() {
@@ -298,11 +304,17 @@ function Desk() {
         <ul className="mt-8 grid grid-cols-2 gap-x-3 gap-y-7 sm:mt-10 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-x-6 sm:gap-y-10">
           {shown.map((d) => {
             const tpl = templateFor(d.kind);
+            const isPinned = view === "works" && d.id === pinned;
             const card = (
               <>
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-highlight">
                   <span aria-hidden className={`size-1.5 shrink-0 rounded-full ${kindDot(d.kind)}`} />
                   {tpl.ml}
+                  {isPinned && (
+                    <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">
+                      <Pin size={11} aria-hidden /> {t("desk.pin.pinned")}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-snug sm:mt-2 sm:text-lg">{d.title}</div>
                 <p className="mt-2 line-clamp-4 text-[13px] leading-relaxed text-muted sm:mt-3 sm:line-clamp-5 sm:text-sm" style={{ fontFamily: "'Noto Serif Malayalam'" }}>
@@ -313,7 +325,7 @@ function Desk() {
             return (
               <li key={d.id} className="group">
                 {view === "works" ? (
-                  <Link href={`/write/?id=${d.id}`} className="block overflow-hidden rounded-2xl border border-line bg-surface p-3.5 transition-[box-shadow,transform,border-color] hover:-translate-y-0.5 hover:border-transparent hover:shadow-[var(--pop-shadow)] sm:p-5" style={{ aspectRatio: "210 / 200" }}>
+                  <Link href={`/write/?id=${d.id}`} className={`block overflow-hidden rounded-2xl border bg-surface p-3.5 transition-[box-shadow,transform,border-color] hover:-translate-y-0.5 hover:border-transparent hover:shadow-[var(--pop-shadow)] sm:p-5 ${isPinned ? "border-accent/60 shadow-[0_0_0_1px_var(--accent-soft)]" : "border-line"}`} style={{ aspectRatio: "210 / 200" }}>
                     {card}
                   </Link>
                 ) : (
@@ -328,6 +340,16 @@ function Desk() {
                   <span className={`flex gap-1 ${view === "works" ? "transition-opacity focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0" : ""}`}>
                     {view === "works" ? (
                       <>
+                        <button
+                          className={`rounded p-1 hover:bg-subtle ${isPinned ? "text-accent" : ""}`}
+                          title={isPinned ? t("desk.pin.unpin") : t("desk.pin.pin")}
+                          aria-label={`${isPinned ? t("desk.pin.unpin") : t("desk.pin.pin")}: ${d.title}`}
+                          aria-pressed={isPinned}
+                          data-track={isPinned ? "Unpin" : "Pin to the top"}
+                          onClick={() => setPinned(isPinned ? null : d.id)}
+                        >
+                          {isPinned ? <PinOff size={14} /> : <Pin size={14} />}
+                        </button>
                         <button
                           className="rounded p-1 hover:bg-subtle"
                           title={t("common.duplicate")}

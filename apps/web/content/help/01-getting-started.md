@@ -78,11 +78,23 @@ The desk (എഴുത്തുമേശ) is the first page you see after signin
 - **Writing type chips:** show only novels, only poems and so on.
 - **New work** and **Import:** start writing, or bring in a text file.
 
-Each card shows the writing type with its coloured dot, the title, the first lines and the word count. Click a card to open the work. Point at a card to see more actions, such as **Duplicate** and **Move to trash**.
+Each card shows the writing type with its coloured dot, the title, the first lines and the word count. Click a card to open the work. Point at a card to see more actions, such as **Pin to the top**, **Duplicate** and **Move to trash**.
 
 > **Phone:** On the phone the desk has a round **+** button at the bottom for a new work, and a tab bar with Desk, Dictionary and Me.
 
 ![The desk on the phone app](shots/phone-desk.webp)
+
+### Pin the work you are writing {#pin}
+
+Pin the work you are busy with and it stays first on the desk, with a **Pinned** badge, whatever the sort order. It is the first thing you see on every device: the website, the desktop app and the phone.
+
+1. Point at the work's card and click the pin (**Pin to the top**).
+2. To move the pin, pin another work. Only one work can be pinned at a time, so the pin simply moves.
+3. To remove it, click the pin on the pinned card again (**Unpin**).
+
+> **Phone:** Press and hold the work's card and choose **Pin to the top** (or **Unpin**).
+
+> **Good to know:** A pinned work you move to the trash leaves the top of the desk. Restore it and it is pinned again. An AI assistant connected to Litma can also pin a work for you.
 
 ## Start your first work {#first-work}
 

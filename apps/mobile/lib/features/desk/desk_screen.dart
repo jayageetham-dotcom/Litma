@@ -12,6 +12,7 @@ import '../../core/search.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../data/forms.dart';
+import '../../data/analytics.dart';
 import '../../data/backup.dart';
 import '../../data/goals.dart';
 import '../goals/goals_screen.dart' show rescheduleReminders;
@@ -75,6 +76,12 @@ final todayProvider = FutureProvider<({int today, int streak})>((ref) async {
   final s = streak(days, restDays: g.restDays, remembered: g.bestStreak);
   return (today: wordsOn(days, localDay()), streak: s.current);
 });
+
+/// The work pinned to the top of the desk (profile preferences.pinnedWork, as the web's lib/pin.ts).
+String? pinnedWork(Profile? p) {
+  final id = p?.preferences['pinnedWork'];
+  return id is String && id.isNotEmpty ? id : null;
+}
 
 class DeskScreen extends ConsumerStatefulWidget {
   const DeskScreen({super.key});
@@ -214,8 +221,20 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     Navigator.of(context).push(ReaderScreen.route(title: full.title, kind: full.kind, settings: full.settings, document: EditorDocument.fromJson(full.content)));
   }
 
+  /// Pin a work to the top of the desk (only one: pinning another moves the pin), or unpin it.
+  Future<void> _pin(LitmaDoc d, bool on) async {
+    final w = ref.read(writerProvider).value;
+    final p = ref.read(profileProvider).value;
+    if (w == null) return;
+    Analytics.tap(on ? 'desk.pin.pin' : 'desk.pin.unpin');
+    await ref.read(servicesProvider).store.updateProfile(w.id, {'preferences': {...?p?.preferences, 'pinnedWork': on ? d.id : null}});
+    ref.invalidate(profileProvider);
+    if (mounted) _toast(context.t(on ? 'desk.pin.done' : 'desk.pin.removed'));
+  }
+
   void _actions(LitmaDoc d) {
     final c = context.c;
+    final isPinned = pinnedWork(ref.read(profileProvider).value) == d.id;
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(
@@ -227,6 +246,7 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
               child: Text(d.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontFamily: LitmaFonts.display)),
             ),
             for (final (i, (icon, label, color, run)) in [
+              (isPinned ? LucideIcons.pinOff : LucideIcons.pin, context.t(isPinned ? 'desk.pin.unpin' : 'desk.pin.pin'), c.accent, () => _pin(d, !isPinned)),
               (LucideIcons.bookOpen, context.t('app.desk.read'), c.ink, () => _read(d)),
               (LucideIcons.copy, context.t('common.duplicate'), c.ink, () => _duplicate(d)),
               (LucideIcons.trash2, context.t('desk.moveToTrash'), c.danger, () => _trash(d)),
@@ -338,9 +358,13 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     final writer = ref.watch(writerProvider).value;
     final profile = ref.watch(profileProvider).value;
     final wide = MediaQuery.sizeOf(context).width >= 700;
+    final pinned = tab == DeskTab.works ? pinnedWork(profile) : null;
     final list = docs.value
         ?.where((d) => matchesSearch('${d.title} ${d.excerpt}', _query))
         .toList();
+    // the pinned work always comes first
+    final at = pinned == null ? -1 : (list?.indexWhere((d) => d.id == pinned) ?? -1);
+    if (at > 0) list!.insert(0, list.removeAt(at));
     if (docs.hasValue && !docs.isLoading) WidgetsBinding.instance.addPostFrameCallback((_) => _firstLoad = false);
 
     return Scaffold(
@@ -458,6 +482,7 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                           ? _OpenableCard(
                               key: ValueKey(d.id),
                               doc: d,
+                              pinned: d.id == pinned,
                               onClosed: _after,
                               onLongPress: () => _actions(d),
                               onSwipe: () => _trash(d),
@@ -605,8 +630,9 @@ class _Tabs extends StatelessWidget {
 
 /// A work on the desk. Tapping grows the card into the editor (container transform).
 class _OpenableCard extends StatelessWidget {
-  const _OpenableCard({super.key, required this.doc, required this.onClosed, required this.onLongPress, required this.onSwipe});
+  const _OpenableCard({super.key, required this.doc, required this.onClosed, required this.onLongPress, required this.onSwipe, this.pinned = false});
   final LitmaDoc doc;
+  final bool pinned;
   final ValueChanged<Object?> onClosed;
   final VoidCallback onLongPress;
   final VoidCallback onSwipe;
@@ -636,14 +662,14 @@ class _OpenableCard extends StatelessWidget {
         closedColor: c.surface,
         openColor: c.paper,
         middleColor: c.paper,
-        closedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(LitmaRadius.lg), side: BorderSide(color: c.line)),
+        closedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(LitmaRadius.lg), side: BorderSide(color: pinned ? c.accent.withValues(alpha: 0.6) : c.line, width: pinned ? 1.5 : 1)),
         onClosed: onClosed,
         openBuilder: (context, _) => EditorScreen(docId: doc.id),
         closedBuilder: (context, open) => Pressable(
           onTap: open,
           onLongPress: onLongPress,
           scale: 0.985,
-          child: WorkCard(doc: doc),
+          child: WorkCard(doc: doc, pinned: pinned),
         ),
       ),
     );
@@ -652,9 +678,12 @@ class _OpenableCard extends StatelessWidget {
 
 /// The card face: writing type, title, opening lines, words and when it was last edited.
 class WorkCard extends StatelessWidget {
-  const WorkCard({super.key, required this.doc, this.footer});
+  const WorkCard({super.key, required this.doc, this.footer, this.pinned = false});
   final LitmaDoc doc;
   final Widget? footer;
+
+  /// pinned to the top of the desk: a small "Pinned" badge
+  final bool pinned;
 
   @override
   Widget build(BuildContext context) {
@@ -669,7 +698,18 @@ class WorkCard extends StatelessWidget {
           const SizedBox(width: 7),
           Text(kindNames[doc.kind]!.ml, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 12.5, fontWeight: FontWeight.w600, color: c.highlight)),
           const Spacer(),
-          if (doc.pristine) Icon(LucideIcons.sparkle, size: 14, color: c.muted),
+          if (pinned)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(color: c.accentSoft, borderRadius: BorderRadius.circular(99)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(LucideIcons.pin, size: 11, color: c.accent),
+                const SizedBox(width: 4),
+                Text(context.t('desk.pin.pinned'), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: c.accent)),
+              ]),
+            )
+          else if (doc.pristine)
+            Icon(LucideIcons.sparkle, size: 14, color: c.muted),
         ]),
         const SizedBox(height: 8),
         Text(doc.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 19, fontWeight: FontWeight.w700, color: c.ink, height: 1.25)),

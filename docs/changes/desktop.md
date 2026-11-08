@@ -16,6 +16,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+## 2026-11-08: Pinned work on the desk
+
+- Web change only (shared code); reaches the desktop app with the next Release.
+
 ## 2026-11-08: reminders, notifications and the daily folder backup
 
 - `src/reminders.ts`: the reminder lives in the main process (`litma:reminder:set` from the web app's `Reminders`, checked every minute, once a day, only while today's goal isn't met), so it rings with every window closed on macOS. `litma:notify` shows system notifications (writing timer). `app.setAppUserModelId` on Windows so notifications show.

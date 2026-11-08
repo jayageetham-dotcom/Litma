@@ -101,6 +101,35 @@ class FakeBackend implements Backend {
       } else {
         _t('writing_days').add({'day': day, 'words': args['n']});
       }
+    } else if (fn == 'log_writing') {
+      // like the log_writing() SQL function: words and minutes on the writer's day, per hour and work
+      final w = ((args['n'] as num?) ?? 0).toInt().clamp(0, 1 << 30);
+      final m = ((args['mins'] as num?) ?? 0).toInt().clamp(0, 240);
+      if (w == 0 && m == 0) return;
+      final day = (args['d'] as String?) ?? DateTime.now().toIso8601String().substring(0, 10);
+      var r = _t('writing_days').where((r) => r['day'] == day).firstOrNull;
+      if (r == null) {
+        r = {'day': day, 'words': 0, 'minutes': 0, 'hours': List<int>.filled(24, 0)};
+        _t('writing_days').add(r);
+      }
+      r['words'] = ((r['words'] as num?) ?? 0) + w;
+      r['minutes'] = ((r['minutes'] as num?) ?? 0) + m;
+      final h = args['h'];
+      if (h is int && h >= 0 && h < 24 && w > 0) {
+        final hours = [...((r['hours'] as List?)?.cast<num>() ?? List<num>.filled(24, 0))];
+        hours[h] += w;
+        r['hours'] = hours;
+      }
+      final doc = args['doc'];
+      if (doc is String) {
+        final wd = _t('work_days').where((x) => x['day'] == day && x['document_id'] == doc).firstOrNull;
+        if (wd == null) {
+          _t('work_days').add({'day': day, 'document_id': doc, 'words': w, 'minutes': m});
+        } else {
+          wd['words'] = ((wd['words'] as num?) ?? 0) + w;
+          wd['minutes'] = ((wd['minutes'] as num?) ?? 0) + m;
+        }
+      }
     }
   }
 }

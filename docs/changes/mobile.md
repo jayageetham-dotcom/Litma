@@ -15,6 +15,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: Test fake understands log_writing
+
+- `lib/data/fake.dart` `FakeBackend.rpc` now handles `log_writing` like the SQL function (words, minutes, hours, work_days); since the goals work the app sends `log_writing`, so `offline_test.dart` "words written offline are added up into one change" failed against the fake. App code unchanged.
+
 ## 2026-11-08: Pages in the phone editor
 
 - Owner: a work starts as one page, writing that fills a page carries on to the next (Enter at the end of a page starts a new one), a small + between pages inserts a blank page; the earlier big + on each inserted break (`PageGap`, same day) was too distracting and the inserted page looked like one line.

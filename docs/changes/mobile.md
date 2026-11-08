@@ -14,6 +14,14 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-08: Manglish engine port
+
+- `lib/core/manglish.dart`: same natural rules, `manglishCommon`, `manglishCandidates()` as the
+  web. Offline suggestions use the list (`core/config.dart` `offline()` and fallbacks,
+  `editor/editor_screen.dart` first list).
+- `test/manglish_candidates.json` (new, from `npm run mobile:assets`) + `editor_test.dart` check the
+  Dart lists match the web's. Not run locally (no Flutter SDK); relies on CI.
+
 ## 2026-11-08: Welcome demo spellings
 
 - `lib/features/auth/welcome_screen.dart` `_TypingDemo`: each Manglish word now carries its

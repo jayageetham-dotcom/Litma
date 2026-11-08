@@ -40,6 +40,15 @@ Known differences by design:
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
 
+## 2026-11-08: Manglish engine accuracy (web, desktop, phone, MCP)
+
+- Shared engine now types like writers do: നാട്, നമ്മുടെ, കടൽ, ഉണ്ട്, മനസ്സ്, ചന്ദ്രൻ, plus fixed
+  spellings for common words (ആണ്, ഞാൻ, അവൾ, കഥ, പറയാം). Offline suggestion lists on web and
+  phone. The MCP `transliterate` fallback gets it through `_shared`.
+- Desktop needs a Release; phone needs a store build. Rules can't settle every word (ര/റ, ല/ള,
+  ന/ണ, short/long e and o are lexical); those rely on the suggestion list or Google when online.
+  A word list ranking candidates would be the next step.
+
 ## 2026-11-08: Help chips spacing, phone welcome spellings
 
 - Web/desktop: margin above the help topic chips on phones (`HelpCenter.tsx`). Desktop needs a Release.

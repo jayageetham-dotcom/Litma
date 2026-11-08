@@ -1,6 +1,6 @@
 # Litma · ലിറ്റ്മ
 
-A Malayalam writing desk for novels, short stories, poems, screenplays, features, essays, plays, lyrics and diaries — on real A4 pages, typed in **Manglish** or **Malayalam**.
+A Malayalam writing desk for novels, short stories, poems, screenplays, features, essays, plays, lyrics and diaries, on real A4 pages, typed in **Manglish**, **Malayalam** or English, even offline. On the web, as a desktop app for macOS, Windows and Linux, and as a phone app for iPhone and Android (store release pending).
 
 **Live:** https://getlitma.in · **MCP:** https://getlitma.in/mcp
 
@@ -10,25 +10,30 @@ A Malayalam writing desk for novels, short stories, poems, screenplays, features
 
 ```
 apps/web           Next.js static site (served at the root of getlitma.in)
-apps/desktop       Electron app for macOS and Windows (bundles apps/web)
-apps/mobile        Flutter app for iOS and Android (planned; see its README)
+apps/desktop       Electron app for macOS, Windows and Linux (bundles apps/web)
+apps/mobile        Flutter app for iOS and Android (native, offline; see its README)
 packages/shared    dependency-free TypeScript shared with the Edge Functions (writing types, Manglish, dictionary, serializers)
 packages/i18n      UI strings: locales/en.json, locales/ml.json (+ more languages), plain JSON for every app
 packages/keyboards Malayalam keyboard layouts (Enhanced InScript) as JSON
 packages/tokens    design tokens exported from the web theme for the native apps
 supabase           migrations, Edge Functions (functions/_shared is synced from packages/shared)
-scripts            dictionary builder, shared-code sync, token export, auth email templates
+scripts            dictionary builder, shared-code sync, token export, phone assets, auth email templates
+docs/changes       what changed in each app and what is still open (for maintainers)
 ```
 
 ## How it's put together
 
 | Piece | Where it runs |
 |---|---|
-| Web app — Next.js 15 static export, React 19, Tiptap 2, Tailwind v4 + SCSS | cPanel, getlitma.in's web root (FTPS from GitHub Actions) |
-| Accounts, documents, versions, AI inbox, writing stats, profile pictures | Supabase project `jdexadomaxjtxlvgtldu` (Postgres + RLS, Auth, Storage `avatars`, Realtime) |
-| Manglish predictions (Google Input Tools) | Edge Function `litma-transliterate` |
-| AI companion (Claude / GPT, streamed) | Edge Function `litma-ai` (signed-in users only) |
+| Web app: Next.js 15 static export, React 19, Tiptap 2, Tailwind v4 + SCSS | cPanel, getlitma.in's web root (FTPS from GitHub Actions) |
+| Desktop app: Electron, serving its own copy of the web build | the writer's Mac, Windows or Linux computer (installers on `litma-releases`) |
+| Phone app: Flutter, native editor, SQLite copy for offline | iPhone and Android (App Store / Google Play, once the store accounts are set up) |
+| Accounts, documents, versions, AI inbox, writing stats | Supabase project `jdexadomaxjtxlvgtldu` (Postgres + RLS, Auth, Storage, Realtime) |
+| Manglish: offline engine first, Google Input Tools predictions on top | `packages/shared/src/manglish.ts` (Dart port in `apps/mobile/lib/core/manglish.dart`) + Edge Function `litma-transliterate` |
+| AI companion (Claude / GPT / Gemini, streamed, writer's own key) | Edge Function `litma-ai` (signed-in users only) |
 | MCP server | Edge Function `litma-mcp`, exposed at `getlitma.in/mcp` by `apps/web/public/mcp.php` (a relay with no secrets) |
+| Usage statistics and the admin dashboard | Edge Functions `litma-track`, `litma-admin` |
+| Sign-in emails through the getlitma.in mailbox | Edge Function `litma-send-email` (Supabase Send Email hook) |
 
 The site is static, so there are no server secrets on cPanel. Service keys stay inside Supabase.
 
@@ -40,7 +45,7 @@ Litma has **one version number** for the website, the desktop app and the mobile
 
 1. bumps the version everywhere, writes the changelog from the commit summaries since the last release, commits `Release vX.Y.Z` to `main` and tags it `vX.Y.Z`
 2. deploys the website from the tag
-3. builds the Mac and Windows apps and publishes the installers on the public `litma-releases` repository's GitHub Releases (the web host's quota is too small for them), with `downloads/latest.json` on the website pointing to them (setup: `apps/desktop/README.md` → Publishing)
+3. builds the Mac, Windows and Linux apps and publishes the installers on the public `litma-releases` repository's GitHub Releases (the web host's quota is too small for them), with `downloads/latest.json` on the website pointing to them (setup: `apps/desktop/README.md` → Publishing)
 
 Locally, `npm run release:dry -- minor` previews the next version and notes without changing anything.
 
@@ -50,7 +55,7 @@ Locally, `npm run release:dry -- minor` previews the next version and notes with
 |---|---|
 | Website | Every push to `main` deploys. Open tabs poll `version.json`; when a newer build is live they offer a reload (writing is journalled on the device, so nothing is lost). |
 | Desktop | The app checks `downloads/latest.json` after launch and every 4 hours (and from **Check for Updates…** in the menu). A card offers **Update**; it downloads the installer, verifies its SHA-256 and installs on restart: silent installer on Windows, in-place app swap on macOS. Works without code-signing. A release can set a minimum desktop version to make the update required. The desktop app bundles the web app, so web changes reach it with the next release. |
-| Mobile (planned) | Store updates, plus an in-app prompt and an optional forced minimum version from the same `latest.json` (see `apps/mobile/README.md`). |
+| Phone | Store updates (`mobile-release.yml`, run by Release once the store secrets exist), plus an in-app prompt and an optional forced minimum version from the same `latest.json` (see `apps/mobile/README.md`). |
 
 Pushing a tag yourself (`git tag v1.2.3 && git push --tags`) also builds and publishes the desktop apps, without bumping files.
 
@@ -76,7 +81,7 @@ Every push to `main` runs `.github/workflows/deploy.yml`, modelled on the main w
 
 1. installs, type-checks and builds the static export (`apps/web/out/`)
 2. uploads `apps/web/out/` to **getlitma.in's web root** over FTPS with `lftp mirror` — parallel, retries and reconnects on cPanel's connection resets, skips files that haven't changed, and never deletes anything on the server (a guard step fails the build if a delete flag is added)
-3. if `SUPABASE_ACCESS_TOKEN` is set: deploys the three Edge Functions, and with `SUPABASE_DB_PASSWORD` also runs `supabase db push`
+3. if `SUPABASE_ACCESS_TOKEN` is set: deploys the Edge Functions, and with `SUPABASE_DB_PASSWORD` also runs `supabase db push`
 
 ### One-time setup
 
@@ -131,18 +136,39 @@ Optional: Authentication → Providers → Google (for "Continue with Google"). 
 
 ## Features
 
-- **Typing:** Manglish → Malayalam with Google predictions, an offline engine and in-place late correction; your own Malayalam keyboard; English. `Ctrl/⌘+M` switches. On-screen akshara palette.
+- **Typing:** Manglish → Malayalam with an offline engine that follows how people really type (see [Manglish typing](#manglish-typing)), Google predictions on top when online, and in-place late correction; a built-in Enhanced InScript keyboard or your own Malayalam keyboard; English. `Ctrl/⌘+M` switches. On-screen akshara palette.
+- **Works offline** on the web, desktop and phone: a copy of your works stays on the device and changes are sent when the connection returns.
 - **A4 pages** by default (A5, Letter, Legal), page numbers, running heads, true-size PDF export.
 - **Nine സാഹിത്യരൂപങ്ങൾ (writing types)**, each with its own template and toolbar — including the Kerala **screenplay** layout (Scene: N, location, time, cast on the right, action left, two-column dialogue) and **poems/lyrics** with akshara counts and laghu/guru metre marks.
-- **Accounts:** sign up, sign in (password, email link, Google), forgot/reset password, **profile** with picture upload, pen name, bio, daily goal, default typing mode, writing heatmap and streaks.
+- **Accounts:** sign up, sign in (password, email link, Google), forgot/reset password, **profile** with avatar pictures (photo uploads are paused for now), pen name, bio, daily goal, default typing mode, writing heatmap and streaks.
 - **Never lose a line:** every change is journaled on the device immediately and saved to the cloud within ~1 s (at least every 5 s while typing), with retry/back-off when offline and automatic recovery on reopen. Version history, trash with restore. **Empty new files are discarded** when you close them without writing.
 - **Story World (കഥാലോകം)** for every writing type: characters (role, arc, voice, relationships, picture), locations, props/objects, a drag-and-drop beat/plot board, timeline, research notes, and reports (scene list, dialogue counts per character, locations; chapter word counts and name mentions; verse line/akshara spread). Character-name autocomplete in screenplay cues.
 - **Dictionary (നിഘണ്ടു):** Malayalam→Malayalam (Datuk), English→Malayalam (Olam), Malayalam→English, synonyms (E.K. Kurup thesaurus) and opposites (Datamuse, mapped to Malayalam). In the editor (Ctrl/⌘+Shift+L, looks up the selection) and at `/dictionary/`.
 - **Books:** collect works as chapters, add parts, preface/introduction/acknowledgements/about-the-author pages, dedication, epigraph, title, half-title and copyright pages, an automatic contents page with page numbers, and designed front/back covers. Export as one print-ready PDF (A4, A5 or Letter, mirrored margins, running heads, roman/arabic folios). Single documents export the same way.
 - Outline, find & replace, focus and typewriter modes, night desk, zoom, notes & character bank, import `.txt`/`.md`, export PDF/Word/Markdown/text/HTML, public read-only links, keyboard shortcuts (`Ctrl/⌘+/`).
-- **AI:** Claude/GPT companion in the editor, and an **MCP server** so any MCP-capable AI assistant (Claude, ChatGPT, Cursor, VS Code…) can read your works and send suggestions to the editor's live inbox.
+- **AI:** Claude/GPT/Gemini companion in the editor, and an **MCP server** so any MCP-capable AI assistant (Claude, ChatGPT, Cursor, VS Code…) can read your works and send suggestions to the editor's live inbox.
 
-## AI — every writer brings their own
+## Manglish typing
+
+Type Malayalam the way you would in a chat message. Each word turns into Malayalam when you press space; the list under the word (a strip above the keyboard on phones) offers other spellings, and "Aa" keeps it in English.
+
+The offline engine (`packages/shared/src/manglish.ts`, ported to Dart for the phone) gives the first spelling. When online, Google Input Tools' predictions are added on top. On its own it follows common Manglish:
+
+| You type | You get | Rule |
+|---|---|---|
+| `ente naadu`, `nammude`, `kadal` | എന്റെ നാട്, നമ്മുടെ, കടൽ | d between vowels is ട; at the start of a word or before y, r, v it is ദ (`daivam` ദൈവം, `vidya` വിദ്യ) |
+| `veedu`, `undu`, `manassu` | വീട്, ഉണ്ട്, മനസ്സ് | a final u after ട, ണ്ട or സ്സ is the half-u ് |
+| `chandran` | ചന്ദ്രൻ | nd before r is ന്ദ |
+| `aanu`, `njan`, `aval`, `kadha`, `parayaam` | ആണ്, ഞാൻ, അവൾ, കഥ, പറയാം | everyday words that no rule settles have fixed spellings (`COMMON`) |
+| `avan`, `maram`, `mazha` | അവൻ, മരം, മഴ | final n, l, r, m become chillu letters; zh is ഴ |
+
+The suggestion list also offers റ for r, ള for l, ണ for n, long ഏ/ഓ, ദ for d and ു for a half-u, so the right spelling is one tap away even offline.
+
+For exact control, capitals and marks spell letter by letter: `T` ട, `D` ഡ, `N` ണ, `L` ള, `R` റ, `S` ശ, `E` ഏ, `O` ഓ, `A` ആ; `_` breaks a cluster and keeps d as ദ between vowels (`u_dayam` ഉദയം), `~` adds a chandrakkala (`naad~` നാട്).
+
+The website's and phone's engines must agree: `npm run mobile:assets` writes the web engine's answers to `apps/mobile/test/manglish_vectors.json` and `manglish_candidates.json`, and `flutter test` checks the Dart port against them.
+
+## AI: every writer brings their own
 
 **In the editor:** the ✦ panel streams Claude, GPT or Gemini (continue, rewrite, polish, proofread, synonyms, പ്രാസം rhymes, dialogue, description, titles, summary, translation, editor's notes, or ask anything). Each writer adds **their own API key** in **Settings → Your AI keys**; it is AES-GCM encrypted by the `litma-ai` Edge Function and stored in `ai_keys`, a table browsers cannot read. Only the last four characters are ever shown again. No shared server key is needed.
 
@@ -178,8 +204,9 @@ The project URL is public anyway (it ships in the app bundle with the publishabl
 apps/web/src/app/         pages (desk, write, book, print, dictionary, read, login, signup, profile, settings…)
 apps/web/src/components/  UI; editor/ holds the Tiptap workspace, toolbar, panels
 apps/web/src/extensions/  Tiptap extensions (manglish, pagination, screenplay, blocks, tools, keep-selection)
+apps/mobile/lib/          phone app: core (tokens, Manglish), data (store, offline), editor, features
 packages/shared/src/      dependency-free code shared with Edge Functions (import as @litma/shared/<file>)
-supabase/functions/ litma-transliterate · litma-ai · litma-mcp (+ _shared, synced from packages/shared/src)
+supabase/functions/ litma-transliterate · litma-ai · litma-mcp · litma-track · litma-admin · litma-send-email (+ _shared, synced from packages/shared/src)
 supabase/migrations schema, RLS, storage policies
 scripts/build-dictionary.mjs   Olam datasets → apps/web/public/dict shards (run by CI; `npm run dict` locally)
 apps/web/public/mcp.php   /mcp relay   ·   apps/web/public/.htaccess  routing & caching

@@ -1,17 +1,17 @@
 "use client";
 import { FUNCTIONS_URL, anonHeaders } from "./config";
 import { getSupabase } from "./supabase/client";
-import { manglishWord } from "@litma/shared/manglish";
+import { manglishCandidates } from "@litma/shared/manglish";
 
 /** Malayalam candidates for a Manglish word. Falls back to the offline engine. */
 export async function transliterate(word: string, num = 6): Promise<{ candidates: string[]; source: string }> {
-  if (!FUNCTIONS_URL) return { candidates: [manglishWord(word)], source: "offline" };
+  if (!FUNCTIONS_URL) return { candidates: manglishCandidates(word, num), source: "offline" };
   try {
     const r = await fetch(`${FUNCTIONS_URL}/litma-transliterate?text=${encodeURIComponent(word)}&num=${num}`, { headers: anonHeaders() });
     if (!r.ok) throw new Error(String(r.status));
     return await r.json();
   } catch {
-    return { candidates: [manglishWord(word)], source: "offline" };
+    return { candidates: manglishCandidates(word, num), source: "offline" };
   }
 }
 

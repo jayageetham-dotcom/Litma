@@ -147,6 +147,10 @@ void main() {
       test(e.key, () => expect(manglishWord(e.key), e.value));
     }
     test('phrase', () => expect(manglish('ente naadu, nammude kadha!'), vectors['__phrase__']));
+    final cands = (jsonDecode(File('test/manglish_candidates.json').readAsStringSync()) as Map).cast<String, List<dynamic>>();
+    for (final e in cands.entries) {
+      test('candidates ${e.key}', () => expect(manglishCandidates(e.key), e.value.cast<String>()));
+    }
   });
 
   group('documents survive a round trip unchanged', () {

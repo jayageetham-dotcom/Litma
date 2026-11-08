@@ -164,7 +164,7 @@ class _EditorState extends ConsumerState<_Editor> {
         _candidates = const [];
       } else {
         final known = _best[word];
-        _candidates = [known ?? manglishWord(word)];
+        _candidates = known != null ? [known] : manglishCandidates(word);
         _suggestTimer = Timer(const Duration(milliseconds: 140), () async {
           final list = await ref.read(servicesProvider).transliterator.candidates(word);
           if (list.isNotEmpty) {

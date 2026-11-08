@@ -1,7 +1,7 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey, EditorState } from "@tiptap/pm/state";
 import { Decoration, DecorationSet, EditorView } from "@tiptap/pm/view";
-import { manglish, manglishWord, MANGLISH_WORD_RE } from "@litma/shared/manglish";
+import { manglish, manglishCandidates, manglishWord, MANGLISH_WORD_RE } from "@litma/shared/manglish";
 import { LAYOUTS, keyToText, readLayout, storeLayout, type MalayalamLayout } from "@litma/keyboards";
 
 export type InputMode = "manglish" | "malayalam" | "english";
@@ -90,7 +90,7 @@ function computeCompose(state: EditorState, prev: ComposeState, mode: InputMode)
     from,
     to: $from.pos,
     word,
-    candidates: sameWord && prev.word === word ? prev.candidates : [manglishWord(word)],
+    candidates: sameWord && prev.word === word ? prev.candidates : manglishCandidates(word),
     index: sameWord && prev.word === word ? prev.index : 0,
     fetched: sameWord && prev.word === word ? prev.fetched : false,
   };

@@ -9,6 +9,20 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-08: Manglish engine follows how writers type
+
+- `packages/shared/src/manglish.ts` (synced to `supabase/functions/_shared`): lowercase words now
+  use natural rules on top of the Mozhi scheme. d between vowels → ട (`_d` keeps ദ), nd before r
+  → ന്ദ, final u after ട / ണ്ട / സ്സ → ്, `dd` → ദ്ദ, and `COMMON` (about 45 everyday words:
+  ആണ്, ഞാൻ, അവൾ, കഥ, പറയാം…). Capitals still spell strictly. `manglishWord(w, { natural, halfU })`.
+- New `manglishCandidates(word)`: offline suggestion list (റ, ള, ണ, ഏ/ഓ, ദ, ു, strict). Used as
+  the editor's first list (`extensions/manglish.ts`) and the offline answer in `lib/functions.ts`.
+- Checked: typecheck, local-mode build, Playwright typing `ente naadu nammude kadha veedu undu
+  manassu kadal` gives എന്റെ നാട് നമ്മുടെ കഥ വീട് ഉണ്ട് മനസ്സ് കടൽ; offline list for `parayu`.
+- Trade-off: Sanskrit words with ദ between vowels (udayam, vedana, hridayam) now come second in
+  the list; names typed in ScriptField follow the same rules.
+- Help guide `02-typing.md` and README updated (new "Manglish typing" section).
+
 ## 2026-11-08: Space above the help topic chips
 
 - `components/help/HelpCenter.tsx` `TopicNav`: the phone/tablet chip row (`lg:hidden`) gets

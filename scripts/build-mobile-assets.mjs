@@ -111,12 +111,15 @@ try {
 }
 
 // Manglish: what the web's engine gives for a set of words (test/editor_test.dart checks the Dart port)
-const words = ["ente","kadha","nammude","naadu","avan","maram","kavitha","malayaalam","chErththu","kaarththika","thiruvananthapuram","kozhikkOD","pazham","njaan","ninakku","sneham","amma","umma","ammachchi","ikka","chETTan","pakshe","ksheeram","x","rr","mazha","vellam","kaaRRu","naaTTil","aaNu","ezhuthth","thiraKKadha","sundaram","prEmam","kRshNan","R^shi","rhshi","ka~","ka_ha","eeNam","ouShadham","aiSwaryam","oaNam","OrmmayilE","Mh","manushyan","kaLLam","paLLi","Dhaanyam","bhaaratham","dharmmam","jnaanam","Th","thh","nchu","mpi","nkal","ngal","mutt","athraym","aval.","hello123"];
+const words = ["ente","kadha","nammude","naadu","avan","maram","kavitha","malayaalam","chErththu","kaarththika","thiruvananthapuram","kozhikkOD","pazham","njaan","ninakku","sneham","amma","umma","ammachchi","ikka","chETTan","pakshe","ksheeram","x","rr","mazha","vellam","kaaRRu","naaTTil","aaNu","ezhuthth","thiraKKadha","sundaram","prEmam","kRshNan","R^shi","rhshi","ka~","ka_ha","eeNam","ouShadham","aiSwaryam","oaNam","OrmmayilE","Mh","manushyan","kaLLam","paLLi","Dhaanyam","bhaaratham","dharmmam","jnaanam","Th","thh","nchu","mpi","nkal","ngal","mutt","athraym","aval.","hello123","veedu","kadal","padam","undu","randu","manassu","daivam","vidya","aadyam","vedana","ve_dana","uddeshyam","chandran","kandu","idam","kooduthal","naad~","parayaam","aanu","avalude","peyyunnu","oru","Devi","nadi","sadya"];
 try {
   const m = await import(join(root, "packages/shared/src/manglish.ts"));
   const out = Object.fromEntries(words.map((w) => [w, m.manglishWord(w)]));
   out.__phrase__ = m.manglish("ente naadu, nammude kadha!");
   writeFileSync(join(mobile, "test/manglish_vectors.json"), JSON.stringify(out) + "\n");
+  // offline suggestion lists (manglishCandidates), checked the same way
+  const cands = Object.fromEntries(words.map((w) => [w, m.manglishCandidates(w)]));
+  writeFileSync(join(mobile, "test/manglish_candidates.json"), JSON.stringify(cands) + "\n");
 } catch (e) {
   console.warn(`mobile: Manglish examples not refreshed (this Node can't load TypeScript: ${e.message})`);
 }

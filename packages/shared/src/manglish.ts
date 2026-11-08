@@ -8,6 +8,15 @@
  * Case matters, Mozhi-style:  t=ട  T=ട  th=ത  d=ദ  D=ഡ  n=ന  N=ണ  l=ല  L=ള
  * r=ര  R=റ  s=സ  S=ശ  sh=ഷ  zh=ഴ  aa/A=ആ  ee/ii/I=ഈ  oo/uu/U=ഊ  E=ഏ  O=ഓ
  * Use "~" to force a chandrakkala (്) and "_" to break a cluster.
+ *
+ * On top of the scheme, lowercase words follow the way writers usually type Manglish:
+ * - d between vowels is ട (naadu → നാട്, nammude → നമ്മുടെ, kadal → കടൽ). Word-initial d and d
+ *   after a consonant or before y, r, v stay ദ (daivam, vidya); "_d" forces ദ (u_dayam → ഉദയം).
+ * - nd before r is ന്ദ (chandran → ചന്ദ്രൻ).
+ * - a final u after ട, ണ്ട or സ്സ is the half-u ് (veedu → വീട്, undu → ഉണ്ട്, manassu → മനസ്സ്).
+ * - very common words that no letter rule settles have a fixed spelling (COMMON).
+ * manglishCandidates() lists the other likely spellings (റ, ള, ണ, long vowels, ദ, ു) for the
+ * suggestion list when Google's are not available.
  */
 
 const VOWELS: Record<string, [string, string]> = {
@@ -53,6 +62,7 @@ const CONSONANTS: Record<string, string> = {
   thth: "ത്ത",
   tt: "ട്ട",
   TT: "ട്ട",
+  dd: "ദ്ദ",
   rr: "റ",
   // plain consonants
   kh: "ഖ",
@@ -120,8 +130,71 @@ function match(word: string, i: number, keys: string[]): string | null {
   return null;
 }
 
+/**
+ * Everyday words whose spelling no letter rule gets right (ṇ, ḷ, ṟ, long e/o, half-u), typed
+ * the way most writers type them. Lowercase only: capitals still spell letter by letter.
+ */
+export const COMMON: Record<string, string> = {
+  aanu: "ആണ്",
+  athu: "അത്",
+  ithu: "ഇത്",
+  enthu: "എന്ത്",
+  onnu: "ഒന്ന്",
+  ennu: "എന്ന്",
+  njan: "ഞാൻ",
+  njaan: "ഞാൻ",
+  aval: "അവൾ",
+  avalude: "അവളുടെ",
+  ival: "ഇവൾ",
+  ivalude: "ഇവളുടെ",
+  ningal: "നിങ്ങൾ",
+  ningalude: "നിങ്ങളുടെ",
+  njangal: "ഞങ്ങൾ",
+  njangalude: "ഞങ്ങളുടെ",
+  avar: "അവർ",
+  venam: "വേണം",
+  venda: "വേണ്ട",
+  pole: "പോലെ",
+  mele: "മേലെ",
+  keralam: "കേരളം",
+  malayalam: "മലയാളം",
+  kadha: "കഥ",
+  katha: "കഥ",
+  kadhakal: "കഥകൾ",
+  kathakal: "കഥകൾ",
+  kaattu: "കാറ്റ്",
+  paranju: "പറഞ്ഞു",
+  parayaam: "പറയാം",
+  parayam: "പറയാം",
+  parayu: "പറയൂ",
+  parayunnu: "പറയുന്നു",
+  parayuka: "പറയുക",
+  kure: "കുറെ",
+  kurachu: "കുറച്ച്",
+  maram: "മരം",
+  puram: "പുറം",
+  ponnu: "പൊന്ന്",
+  manassu: "മനസ്സ്",
+  sheri: "ശരി",
+  shari: "ശരി",
+  nanni: "നന്ദി",
+  nandi: "നന്ദി",
+};
+
+const VOWEL_LATIN = /[aeiouAEIOU]/;
+
+interface Options {
+  /** writers' usual Manglish (default); false spells strictly letter by letter */
+  natural?: boolean;
+  /** a final u after ട, ണ്ട or സ്സ becomes ് (natural only) */
+  halfU?: boolean;
+}
+
 /** Transliterate a single romanised word. Non-latin characters pass through. */
-export function manglishWord(word: string): string {
+export function manglishWord(word: string, opts: Options = {}): string {
+  const natural = opts.natural ?? true;
+  const halfU = natural && (opts.halfU ?? true);
+  if (natural && halfU && Object.prototype.hasOwnProperty.call(COMMON, word)) return COMMON[word];
   let out = "";
   let i = 0;
   while (i < word.length) {
@@ -137,8 +210,13 @@ export function manglishWord(word: string): string {
     }
     const ck = match(word, i, consKeys);
     if (ck) {
-      const base = CONSONANTS[ck];
+      const start = i;
+      let base = CONSONANTS[ck];
       i += ck.length;
+      // d between vowels (or after a vowel at the end) is ട: naadu, nammude, kadal
+      if (natural && ck === "d" && start > 0 && VOWEL_LATIN.test(word[start - 1]) && /^([aeiouAEIOU~]|[^A-Za-z]|$)/.test(word.slice(i))) base = "ട";
+      // nd before r is ന്ദ്ര: chandran, indran
+      if (natural && ck === "nd" && word[i] === "r") base = "ന്ദ";
       if (word[i] === "~") {
         out += base + VIRAMA;
         i++;
@@ -146,7 +224,9 @@ export function manglishWord(word: string): string {
       }
       const vk = match(word, i, vowelKeys);
       if (vk) {
-        out += base + VOWELS[vk][1];
+        const last = i + vk.length >= word.length || !/[A-Za-z]/.test(word[i + vk.length]);
+        const half = halfU && vk === "u" && last && (base === "ട" && ck === "d" || ck === "nd" || (ck === "s" && word[start - 1] === "s"));
+        out += base + (half ? VIRAMA : VOWELS[vk][1]);
         i += vk.length;
         continue;
       }
@@ -181,6 +261,38 @@ export function manglishWord(word: string): string {
 /** Transliterate a whole phrase, word by word (punctuation and spaces preserved). */
 export function manglish(text: string): string {
   return text.replace(/[A-Za-z~_^]+/g, (w) => manglishWord(w));
+}
+
+/**
+ * Likely spellings of a word, best first: the usual reading, then the same word with റ for r,
+ * ള for l, ണ for n, long ഏ/ഓ, ദ for d, ു for a half-u, and the strict letter-by-letter reading.
+ * Offline suggestions; Google's take over when the network answers.
+ */
+export function manglishCandidates(word: string, max = 6): string[] {
+  const out: string[] = [];
+  const add = (s: string) => {
+    if (s && !out.includes(s)) out.push(s);
+  };
+  add(manglishWord(word));
+  if (!/[a-z]/.test(word)) return out;
+  const V = "[aeiou]";
+  const swaps: [RegExp, string][] = [
+    [new RegExp(`(?<=${V})r(?=${V})`, "g"), "R"], // പറയുക, കുറെ
+    [new RegExp(`(?<=${V})l(?=${V}|$)`, "g"), "L"], // അവൾ, വെള്ളം
+    [new RegExp(`(?<=${V})ll(?=${V})`, "g"), "LL"],
+    [new RegExp(`(?<=${V})n(?=${V}|$)`, "g"), "N"], // ആണ്, വേണം
+    [new RegExp(`(?<![aeiou])e(?![eia])`), "E"], // പോലെ-type long vowels, first one only
+    [new RegExp(`(?<![aeiou])o(?![oa])`), "O"],
+    [new RegExp(`(?<=${V})d(?=${V}|$)`, "g"), "_d"], // വേദന
+    [/dh/g, "thh"], // കഥ
+  ];
+  for (const [re, to] of swaps) {
+    const v = word.replace(re, to);
+    if (v !== word) add(manglishWord(v));
+  }
+  add(manglishWord(word, { halfU: false }));
+  add(manglishWord(word, { natural: false }));
+  return out.slice(0, max);
 }
 
 /** Characters that may appear inside a Manglish word while composing. */

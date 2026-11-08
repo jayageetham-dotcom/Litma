@@ -29,8 +29,8 @@ class Transliterator {
   /// The strip above the keyboard scrolls sideways to show them all.
   static const maxCandidates = 18;
 
-  /// Offline candidate, immediately.
-  List<String> offline(String word) => [manglishWord(word)];
+  /// Offline candidates (the engine's likely spellings), immediately.
+  List<String> offline(String word) => manglishCandidates(word);
 
   Future<List<String>> candidates(String word, {int num = maxCandidates}) async {
     final hit = _cache['$num/$word'];
@@ -40,7 +40,7 @@ class Transliterator {
       final r = await _client
           .get(Uri.parse('${AppConfig.functionsUrl}/litma-transliterate?text=${Uri.encodeQueryComponent(word)}&num=$num'), headers: {'apikey': AppConfig.supabaseAnonKey})
           .timeout(const Duration(seconds: 3));
-      if (r.statusCode != 200) return [local];
+      if (r.statusCode != 200) return manglishCandidates(word);
       final j = jsonDecode(r.body) as Map<String, dynamic>;
       final list = ((j['candidates'] as List?) ?? const []).cast<String>();
       // Google's ranking first; the offline guess only fills a gap, never more than [num]
@@ -48,7 +48,7 @@ class Transliterator {
       if (_cache.length > 400) _cache.clear();
       return _cache['$num/$word'] = out;
     } catch (_) {
-      return [local];
+      return manglishCandidates(word);
     }
   }
 }

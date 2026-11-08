@@ -11,7 +11,7 @@ You don't need a Malayalam keyboard to write in Litma. Type the way you would in
 
 ## Type in Manglish {#manglish}
 
-Manglish means writing Malayalam words in English letters: `mazha` for മഴ, `ezhuthu` for എഴുത്ത്. Litma turns each word into Malayalam as you finish it.
+Manglish means writing Malayalam words in English letters: `mazha` for മഴ, `ente naadu` for എന്റെ നാട്. Litma turns each word into Malayalam as you finish it.
 
 ![Suggestions under a Manglish word](shots/manglish.webp "Type a word; Litma offers the Malayalam spellings, best first.")
 
@@ -30,7 +30,9 @@ Manglish means writing Malayalam words in English letters: `mazha` for മഴ, `
 
 If you go back and type a word between other words, it turns into Malayalam when you move the cursor away from it or click somewhere else. You don't have to type a space after it.
 
-> **Tip:** Spell the way it sounds. Double letters make long or doubled sounds: `kaalam` → കാലം, `amma` → അമ്മ. Capitals mark the harder sounds: `Ta` → ട, `La` → ള, `Na` → ണ.
+> **Tip:** Spell the way it sounds. Double letters make long or doubled sounds: `kaalam` → കാലം, `amma` → അമ്മ. Common spellings work as you'd expect: `nammude` → നമ്മുടെ, `veedu` → വീട്, `aanu` → ആണ്. Capitals mark the harder sounds when you want to be exact: `Ta` → ട, `La` → ള, `Na` → ണ, `Ra` → റ.
+
+> **Offline:** Without a connection Litma still turns Manglish into Malayalam, and the list offers the other likely spellings (for example പറ beside പര) so you can pick the right one.
 
 > **Phone:** On the phone the spellings sit in a strip above the keyboard that you can scroll sideways. A space takes the first one; tap any other to use it. The first item in quotes keeps the English word.
 

@@ -50,6 +50,8 @@ When you choose **New work**, Litma shows ten writing types with a preview of th
 
 Choose **വൃത്തം** on the toolbar, or press <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd>. Litma shows how many aksharas each line has and marks every syllable as laghu (short) or guru (long), so you can check the metre as you write. The marks never print. Choose it again to hide them.
 
+For words that rhyme, with the same laghu and guru, use the [rhyme finder](#rhymes).
+
 ## Screenplays {#screenplay}
 
 ![A screenplay](shots/screenplay.webp)

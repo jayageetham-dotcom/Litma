@@ -2,7 +2,7 @@
 id: dictionary
 title: Dictionary
 ml: നിഘണ്ടു
-summary: Look up meanings and synonyms, browse നാട്ടറിവ് and keep the words you like.
+summary: Look up meanings and synonyms, find rhymes (പ്രാസം), browse നാട്ടറിവ് and keep the words you like.
 icon: book-a
 tint: violet
 ---
@@ -26,6 +26,27 @@ Inside the editor you can also select a word and press <kbd>Ctrl</kbd> + <kbd>Sh
 ![The dictionary on the phone](shots/phone-dictionary.webp)
 
 > **Good to know:** The dictionary works offline once you have used it, on the website and in the desktop app.
+
+## Find rhymes (പ്രാസം) {#rhymes}
+
+The rhyme finder suggests words from the dictionary that rhyme with a word or a line, with the laghu and guru of each word, so they fit the metre too.
+
+![The rhyme finder beside a poem](shots/rhymes.webp "Rhymes for the line being written, with each word's laghu (∪) and guru (–).")
+
+1. Inside a work, choose **Rhymes (പ്രാസം)** on the right-hand rail. Or open **Dictionary** and the **പ്രാസം** tab.
+2. Pick the kind of rhyme:
+   - **ദ്വിതീയാക്ഷരം**: the second akshara has the same consonant (കാലം, നീലം, ജാലം). Words whose first akshara has the same weight come first, as the classical rule asks.
+   - **അന്ത്യപ്രാസം**: words that end in the same akshara (മഴയിൽ, പുഴയിൽ).
+   - **ആദിപ്രാസം**: words that start with the same letter.
+3. Click a word to put it in your text. In the Dictionary, click it to see its meaning.
+
+In the editor the finder follows the line you are on. When that line is still empty it uses the line above, so the next line can rhyme with it. You can also type any word, in Malayalam or Manglish.
+
+Tick **Same number of aksharas** or **Same laghu–guru pattern** to see only words that fit the same place in the line.
+
+> **Phone:** In a work, tap the tools button and choose **Rhymes**. Tap a word to put it at the cursor.
+
+> **Good to know:** The rhyme finder works offline once you have used it, like the dictionary.
 
 ## നാട്ടറിവ്: words of Kerala {#nattarivu}
 

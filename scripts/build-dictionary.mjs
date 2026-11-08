@@ -309,6 +309,9 @@ async function main() {
     ],
   };
   writeFileSync(join(OUT, "index.json"), JSON.stringify(index, null, 1));
+  // rhyme finder (പ്രാസം) files from the same headwords
+  const { buildRhymes } = await import("./build-rhymes.mjs");
+  buildRhymes(OUT);
   console.log(`wrote ${index.counts.enShards} English + ${index.counts.mlShards} Malayalam shards to ${OUT} in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }
 

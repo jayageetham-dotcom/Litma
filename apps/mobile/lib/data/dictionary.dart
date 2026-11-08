@@ -70,6 +70,31 @@ class Dictionary {
 
   Future<Json?> index() async => (await _get('index') as Map?)?.cast<String, dynamic>();
 
+  /// Any JSON file under /dict (the rhyme finder's files), kept on the phone once used.
+  Future<Object?> file(String path) => _get(path);
+
+  final _texts = <String, Future<String?>>{};
+
+  /// A text file under /dict (the spelling word lists, words/<shard>.txt), kept on the phone once used.
+  Future<String?> text(String path) => _texts.putIfAbsent(path, () async {
+        try {
+          final r = await _client.get(Uri.parse('${AppConfig.site}/dict/$path.txt')).timeout(const Duration(seconds: 12));
+          if (r.statusCode == 200) {
+            final t = utf8.decode(r.bodyBytes);
+            unawaited(offline.put('dict', 'txt:$path', {'v': t}).catchError((_) {}));
+            return t;
+          }
+        } catch (_) {
+          /* offline: the copy on the phone */
+        }
+        final kept = await offline.get('dict', 'txt:$path').catchError((_) => null);
+        if (kept == null) _texts.remove(path);
+        return kept?['v'] as String?;
+      });
+
+  /// The shard a Malayalam headword lives in (same name under ml/ and words/), as shared/dict.ts mlShardName.
+  Future<String> mlShardName(String k) async => (await _mlShard(k)).substring(3);
+
   String _hex(String ch) => ch.runes.first.toRadixString(16);
 
   Future<String> _enShard(String k) async {

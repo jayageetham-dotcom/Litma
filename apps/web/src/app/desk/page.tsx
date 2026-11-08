@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/Select";
 import { TemplatePreview } from "@/components/TemplatePreview";
 import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
+import { useWriting } from "@/lib/goals";
 import { TEMPLATES, templateFor } from "@/lib/templates";
 import type { Book, DocKind, LitmaDoc } from "@/lib/types";
 import { useT } from "@/i18n/react";
@@ -47,7 +48,8 @@ function Desk() {
   const [choosing, setChoosing] = useState(false);
   const [importing, setImporting] = useState<File | null>(null);
   const [creating, setCreating] = useState<DocKind | null>(null);
-  const [today, setToday] = useState<{ words: number; streak: number } | null>(null);
+  const writing = useWriting();
+  const today = writing.goals ? { words: writing.today, streak: writing.streak.current } : null;
   const fileRef = useRef<HTMLInputElement>(null);
   const [confirmDialog, ask] = useConfirm();
 
@@ -60,19 +62,6 @@ function Desk() {
         return;
       }
       setDocs(await store.listDocs({ trash: view === "trash" }));
-      const days = await store.wordsByDay();
-      if (days.length) {
-        const key = (d: Date) => d.toISOString().slice(0, 10);
-        const map = new Map(days.map((x) => [x.day, x.words]));
-        const d = new Date();
-        if (!map.get(key(d))) d.setDate(d.getDate() - 1);
-        let streak = 0;
-        while ((map.get(key(d)) ?? 0) > 0) {
-          streak++;
-          d.setDate(d.getDate() - 1);
-        }
-        setToday({ words: map.get(key(new Date())) ?? 0, streak });
-      }
     } catch (e) {
       setError(e instanceof Error ? e.message : t("desk.loadError"));
       setDocs([]);
@@ -148,9 +137,9 @@ function Desk() {
                       </Tooltip>
                     )}
                     {today && today.streak > 1 && (
-                      <Tooltip label={t("desk.streakHint", { n: today.streak })} className="rounded-full bg-highlight-soft px-2.5 py-1 text-xs font-medium text-highlight">
+                      <Link href="/goals/" title={t("desk.streakHint", { n: today.streak })} className="rounded-full bg-highlight-soft px-2.5 py-1 text-xs font-medium text-highlight hover:underline">
                         {t("desk.streak", { n: today.streak })}
-                      </Tooltip>
+                      </Link>
                     )}
                   </>
                 ) : (

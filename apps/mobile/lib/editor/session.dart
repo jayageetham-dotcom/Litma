@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../core/manglish.dart';
 import '../data/models.dart';
 import '../data/store.dart';
+import 'writing_timer.dart';
 import 'block_controller.dart';
 import 'document.dart';
 import 'saver.dart';
@@ -42,6 +43,9 @@ class EditorSession extends ChangeNotifier {
   bool pristine = false;
   int words = 0;
   int _lastSavedWords = 0;
+
+  /// minutes (ms since epoch / 60 000) in which the text changed since the last save
+  Set<int> _activeMinutes = {};
   DateTime _lastSnapshot = DateTime.now();
 
   final _controllers = <TextBlock, BlockController>{};
@@ -304,6 +308,8 @@ class EditorSession extends ChangeNotifier {
   void _afterChange() {
     if (pristine) pristine = false;
     words = countWords(document.plainText);
+    _activeMinutes.add(DateTime.now().millisecondsSinceEpoch ~/ 60000);
+    WritingTimer.instance.words(_doc.id, words);
     saver.touch();
     _scheduleHistory();
     notifyListeners();
@@ -758,6 +764,15 @@ class EditorSession extends ChangeNotifier {
     return false;
   }
 
+  /// Replace part of one line (a spelling fix).
+  void replaceInLine(TextBlock line, int from, int to, String text) {
+    if (from < 0 || to > line.text.length || from > to) return;
+    focused = line;
+    _beforeChange();
+    controllerFor(line).replaceRange(from, to, text);
+    _afterChange();
+  }
+
   /// Save work settings (plot board columns, typing mode…).
   void updateSettings(Json patch) {
     _doc = _doc.copyWith(settings: {..._doc.settings, ...patch});
@@ -849,7 +864,9 @@ class EditorSession extends ChangeNotifier {
     _doc = _doc.copyWith(content: snap, wordCount: words);
     final delta = words - _lastSavedWords;
     _lastSavedWords = words;
-    if (delta > 0) unawaited(store.addWordsToday(delta).catchError((_) {}));
+    final minutes = _activeMinutes.length;
+    _activeMinutes = {};
+    if (delta > 0 || minutes > 0) unawaited(store.logWriting(words: delta > 0 ? delta : 0, minutes: minutes, docId: _doc.id).catchError((_) {}));
     if (DateTime.now().difference(_lastSnapshot) > const Duration(minutes: 10)) {
       _lastSnapshot = DateTime.now();
       unawaited(store.saveVersion(_doc.id, snap, words, null).catchError((_) {}));

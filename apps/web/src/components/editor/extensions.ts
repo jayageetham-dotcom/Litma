@@ -1,3 +1,4 @@
+import { WritingAids } from "@/extensions/writing-aids";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextStyle from "@tiptap/extension-text-style";
@@ -133,5 +134,6 @@ export function buildExtensions(kind: DocKind, settings: DocSettings, inputMode:
     Metre,
     Search,
     Typewriter,
+    WritingAids,
   ];
 }

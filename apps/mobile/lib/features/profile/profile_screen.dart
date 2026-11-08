@@ -7,14 +7,18 @@ import '../../core/i18n.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../data/forms.dart';
+import '../../data/goals.dart' hide streak;
+import '../../data/goals.dart' as goals_ show streak;
 import '../../data/models.dart';
 import '../../widgets/avatar.dart';
 import '../settings/settings_screen.dart';
 import 'edit_profile_screen.dart';
+import '../goals/goals_screen.dart';
 
 /// Works and words-per-day for the profile's statistics.
-final profileStatsProvider = FutureProvider.autoDispose<({List<LitmaDoc> docs, List<({String day, int words})> days})>((ref) async {
+final profileStatsProvider = FutureProvider.autoDispose<({List<LitmaDoc> docs, List<WritingDay> days})>((ref) async {
   ref.watch(profileProvider);
+  ref.watch(writingProvider);
   final store = ref.read(servicesProvider).store;
   final docs = await store.listDocs().catchError((_) => <LitmaDoc>[]);
   final days = await store.wordsByDay();
@@ -84,9 +88,17 @@ class ProfileScreen extends ConsumerWidget {
             ])),
             if (stats != null) ...[
               item(_Heading(context.t('app.profile.writing'))),
-              item(_Stats(docs: stats.docs, days: stats.days, goal: p?.dailyGoal ?? 0)),
+              item(_Stats(docs: stats.docs, days: stats.days, goal: p?.dailyGoal ?? 0, goals: GoalPrefs.from(p?.preferences['goals']))),
               item(_Heading(context.t('app.profile.lastWeeks'))),
               item(_Card(children: [Padding(padding: const EdgeInsets.all(16), child: _Heatmap(days: stats.days))])),
+              item(Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: OutlinedButton.icon(
+                  icon: const Icon(LucideIcons.target, size: 17),
+                  label: Text(context.t('goals.open')),
+                  onPressed: () => Navigator.of(context).push(GoalsScreen.route()),
+                ),
+              )),
               if (stats.docs.isNotEmpty) ...[
                 item(_Heading(context.t('app.profile.byType'))),
                 item(_ByKind(docs: stats.docs)),
@@ -158,24 +170,17 @@ class _Detail extends StatelessWidget {
 }
 
 class _Stats extends StatelessWidget {
-  const _Stats({required this.docs, required this.days, required this.goal});
+  const _Stats({required this.docs, required this.days, required this.goal, this.goals = const GoalPrefs()});
   final List<LitmaDoc> docs;
-  final List<({String day, int words})> days;
+  final List<WritingDay> days;
   final int goal;
+  final GoalPrefs goals;
 
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    final map = {for (final d in days) d.day: d.words};
-    String key(DateTime d) => d.toIso8601String().substring(0, 10);
-    final today = map[key(DateTime.now())] ?? 0;
-    var d = DateTime.now();
-    if ((map[key(d)] ?? 0) == 0) d = d.subtract(const Duration(days: 1));
-    var streak = 0;
-    while ((map[key(d)] ?? 0) > 0) {
-      streak++;
-      d = d.subtract(const Duration(days: 1));
-    }
+    final today = wordsOn(days, localDay());
+    final streak = goals_.streak(days, restDays: goals.restDays, remembered: goals.bestStreak).current;
     final best = days.fold<int>(0, (a, x) => x.words > a ? x.words : a);
     final words = docs.fold<int>(0, (a, x) => a + x.wordCount);
     Widget tile(String label, String value, IconData icon, Color tint) => Expanded(
@@ -230,21 +235,21 @@ class _Stats extends StatelessWidget {
   }
 }
 
-/// Words per day for the last 20 weeks (the web's heatmap), in accent shades.
+/// Words per day for the last 13 weeks (the server keeps 90 days), in accent shades.
 class _Heatmap extends StatelessWidget {
   const _Heatmap({required this.days});
-  final List<({String day, int words})> days;
+  final List<WritingDay> days;
 
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    const weeks = 20;
+    const weeks = 13;
     final map = {for (final d in days) d.day: d.words};
     final end = DateTime.now();
     final start = end.subtract(Duration(days: weeks * 7 - 1 + end.weekday % 7));
     final cells = <({String date, int words})>[];
     for (var d = start; !d.isAfter(end); d = d.add(const Duration(days: 1))) {
-      final k = d.toIso8601String().substring(0, 10);
+      final k = localDay(d);
       cells.add((date: k, words: map[k] ?? 0));
     }
     final max = cells.fold<int>(1, (a, x) => x.words > a ? x.words : a);

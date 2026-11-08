@@ -61,7 +61,7 @@ Pushing a tag yourself (`git tag v1.2.3 && git push --tags`) also builds and pub
 
 ## Dictionary data
 
-`npm run dict` downloads Olam's open datasets (Datuk — ODbL, EnMl — ODbL, E.K. Kurup — CC BY-SA 4.0) and writes sharded JSON to `apps/web/public/dict/` (git-ignored). CI does this on every deploy (cached), so the dictionary is served from `/dict/`.
+`npm run dict` downloads Olam's open datasets (Datuk — ODbL, EnMl — ODbL, E.K. Kurup — CC BY-SA 4.0) and writes sharded JSON to `apps/web/public/dict/` (git-ignored). CI does this on every deploy (cached), so the dictionary is served from `/dict/`. At the end it runs `scripts/build-rhymes.mjs`, which writes the rhyme finder's files (`dict/rhyme/<s|e|f>-<hex>.json`, about 2,400 small files) and the spelling word lists (`dict/words/<shard>.txt`) from the same headwords. Entries that describe a caste or community, or abuse, are never suggested as rhymes.
 
 ## Local development
 
@@ -126,7 +126,7 @@ One-time setup, after the migration has run (push to `main` with `SUPABASE_ACCES
 insert into public.app_admins (user_id) select id from auth.users where email = 'you@example.com';
 ```
 
-The Edge Functions `litma-track` and `litma-admin` deploy with the others. Events are kept until you delete them (`delete from analytics_events where created_at < now() - interval '13 months'`).
+The Edge Functions `litma-track` and `litma-admin` deploy with the others. Statistics are kept for **90 days**: the migration `writing_stats_retention` switches on pg_cron and schedules `prune_statistics()` every night, which deletes older rows from `analytics_events`, `writing_days` and `work_days`, so the database stays small. The dashboard's ranges are 7, 30 and 90 days.
 
 ### Search and sharing
 
@@ -134,16 +134,30 @@ Every page has a title, description and canonical URL (`src/lib/seo.ts`, `pageMe
 
 Optional: Authentication → Providers → Google (for "Continue with Google"). No AI keys are needed on the server — writers add their own.
 
+### Google Drive backup (optional)
+
+The website's **Settings → Backup → Save to Google Drive** uses Google's own sign-in popup in the browser with the `drive.file` permission (Litma sees only the files it makes). It costs nothing. To turn it on:
+
+1. Google Cloud console, the project of Litma's Google sign-in: **APIs & Services → Library → Google Drive API → Enable**.
+2. **Credentials**: use the existing Web OAuth client (or make one) and add `https://getlitma.in` to **Authorised JavaScript origins**.
+3. **OAuth consent screen → Data access**: add the scope `.../auth/drive.file` (non-sensitive, so only the usual app verification, no security assessment). The Privacy Policy already describes it.
+4. GitHub → Settings → Secrets and variables → Actions → **Variables**: `GOOGLE_CLIENT_ID` = that client id. The next deploy shows the button. Without it the button is hidden; download and the desktop folder backup work anyway.
+
 ## Features
 
 - **Typing:** Manglish → Malayalam with an offline engine that follows how people really type (see [Manglish typing](#manglish-typing)), Google predictions on top when online, and in-place late correction; a built-in Enhanced InScript keyboard or your own Malayalam keyboard; English. `Ctrl/⌘+M` switches. On-screen akshara palette.
 - **Works offline** on the web, desktop and phone: a copy of your works stays on the device and changes are sent when the connection returns.
 - **A4 pages** by default (A5, Letter, Legal), page numbers, running heads, true-size PDF export.
 - **Nine സാഹിത്യരൂപങ്ങൾ (writing types)**, each with its own template and toolbar — including the Kerala **screenplay** layout (Scene: N, location, time, cast on the right, action left, two-column dialogue) and **poems/lyrics** with akshara counts and laghu/guru metre marks.
-- **Accounts:** sign up, sign in (password, email link, Google), forgot/reset password, **profile** with avatar pictures (photo uploads are paused for now), pen name, bio, daily goal, default typing mode, writing heatmap and streaks.
+- **Accounts:** sign up, sign in (password, email link, Google), forgot/reset password, **profile** with avatar pictures (photo uploads are paused for now), pen name, bio, default typing mode, writing heatmap.
+- **Goals and statistics (`/goals/`):** daily and weekly word goals, streaks with rest days, a goal and finish date per work, a writing timer (sprint) with a chime and notification, a daily reminder (browser tab, desktop app main process, or the phone's own scheduled notification), and 7/30/90-day statistics (words, minutes, writing days, hours of the day, by writing type and work). Kept for 90 days.
+- **Rhymes (പ്രാസം):** ദ്വിതീയാക്ഷര, അന്ത്യ and ആദി പ്രാസം from the dictionary's headwords with laghu–guru patterns (files built by `scripts/build-rhymes.mjs`), in the editor, the Dictionary's പ്രാസം tab, the phone and MCP (`find_rhymes`).
+- **Spelling and grammar:** broken Unicode letters, common misspellings and (optionally) words the dictionary doesn't have, marked in the text (`packages/shared/src/spell.ts`, word lists in `dict/words/`); grammar through the AI companion. MCP `check_spelling`.
+- **Read aloud** with the device's own Malayalam voice (Web Speech API; `flutter_tts` on the phone), sentence by sentence with the line highlighted.
+- **Backup:** everything as one zip (Word files + a restorable JSON), downloaded, saved to Google Drive, written daily into a folder by the desktop app, or shared from the phone; restore on the website or desktop app.
 - **Never lose a line:** every change is journaled on the device immediately and saved to the cloud within ~1 s (at least every 5 s while typing), with retry/back-off when offline and automatic recovery on reopen. Version history, trash with restore. **Empty new files are discarded** when you close them without writing.
 - **Story World (കഥാലോകം)** for every writing type: characters (role, arc, voice, relationships, picture), locations, props/objects, a drag-and-drop beat/plot board, timeline, research notes, and reports (scene list, dialogue counts per character, locations; chapter word counts and name mentions; verse line/akshara spread). Character-name autocomplete in screenplay cues.
-- **Dictionary (നിഘണ്ടു):** Malayalam→Malayalam (Datuk), English→Malayalam (Olam), Malayalam→English, synonyms (E.K. Kurup thesaurus) and opposites (Datamuse, mapped to Malayalam). In the editor (Ctrl/⌘+Shift+L, looks up the selection) and at `/dictionary/`.
+- **Dictionary (നിഘണ്ടു):** Malayalam→Malayalam (Datuk), English→Malayalam (Olam), Malayalam→English, synonyms (E.K. Kurup thesaurus), opposites (Datamuse, mapped to Malayalam) and rhymes (പ്രാസം). In the editor (Ctrl/⌘+Shift+L, looks up the selection) and at `/dictionary/`.
 - **Books:** collect works as chapters, add parts, preface/introduction/acknowledgements/about-the-author pages, dedication, epigraph, title, half-title and copyright pages, an automatic contents page with page numbers, and designed front/back covers. Export as one print-ready PDF (A4, A5 or Letter, mirrored margins, running heads, roman/arabic folios). Single documents export the same way.
 - Outline, find & replace, focus and typewriter modes, night desk, zoom, notes & character bank, import `.txt`/`.md`, export PDF/Word/Markdown/text/HTML, public read-only links, keyboard shortcuts (`Ctrl/⌘+/`).
 - **AI:** Claude/GPT/Gemini companion in the editor, and an **MCP server** so any MCP-capable AI assistant (Claude, ChatGPT, Cursor, VS Code…) can read your works and send suggestions to the editor's live inbox.

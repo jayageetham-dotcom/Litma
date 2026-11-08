@@ -40,6 +40,24 @@ Known differences by design:
 
 - Desktop app gets all 2026-11-07 changes only after Actions → **Release**.
 
+From the 2026-11-08 writing aids (owner actions, free):
+- **Push**, then check the Supabase job ran migration `20261108100000_writing_stats_retention` (it turns on pg_cron and schedules `prune_statistics`). Until then the apps fall back to `add_words_today` and the Goals page shows no minutes or hours.
+- **Google Drive backup on the website:** enable the Drive API, add `getlitma.in` as a JavaScript origin of the Web OAuth client, add the `drive.file` scope to the consent screen, set the repo variable `GOOGLE_CLIENT_ID` (README → Google Drive backup). Without it the button stays hidden.
+- **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
+- Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
+
+## 2026-11-08: Free writing aids: rhymes, spelling, read aloud, goals and reminders, backup (all apps)
+
+Owner asked for the features that cost nothing (no paid voice, no server-held Google access).
+- **Rhymes (പ്രാസം):** `shared/rhyme.ts` + `scripts/build-rhymes.mjs` (188k headwords in 2,402 files under `dict/rhyme/`); editor panel, Dictionary പ്രാസം tab, phone tools sheet (`lib/data/rhyme.dart`), MCP `find_rhymes`.
+- **Spelling and grammar:** `shared/spell.ts` + `dict/words/*.txt` (256k words); editor marks (`extensions/writing-aids.ts`) and Check panel; phone Check sheet (`lib/data/spell.dart`, a list); grammar via the AI `grammar` action (web, phone, Claude hand-over); MCP `check_spelling`.
+- **Read aloud:** device voices only (Web Speech API; `flutter_tts`). Platform help when there is no Malayalam voice.
+- **Goals, timer, reminders, statistics:** `shared/goals.ts` (Dart port `lib/data/goals.dart`), `/goals/` page, editor Goal and timer panel + timer chip, reminders (web tab, desktop main process `reminders.ts`, phone scheduled notifications), per-work goal with finish date (`settings.deadline`). New RPC `log_writing` and table `work_days`; `writing_days` gets `minutes` and `hours`.
+- **Statistics kept 90 days** (owner): nightly pg_cron `prune_statistics()` on `analytics_events`, `writing_days`, `work_days`; admin ranges 7/30/90; best streak remembered in `preferences.goals.bestStreak`.
+- **Backup:** zip with Word files + restorable JSON; download, Google Drive (website, `drive.file`), daily folder backup (desktop), share sheet + daily copy (phone); restore on web/desktop.
+- Help: new topic `12-goals.md`, guides `#rhymes`, `#spelling`, `#read-aloud`, `#backup`, `#restore`; pictures `rhymes.webp`, `spelling.webp`, `goals.webp`. Privacy Policy dated 8 Nov 2026 (writing statistics, 90 days, Drive, voices). README, CLAUDE.md, mobile README.
+- Checked (web, local mode, Playwright): rhymes in the panel and the Dictionary tab, spelling marks and fixes, read aloud with a stand-in Malayalam voice, timer end card, reminder card, backup download and restore, Goals page with sample data, phone layout. `npm run typecheck`, `npm run build`. Not checked: cloud mode against the real database (migration not applied from here), Drive upload, the desktop app, the phone app.
+
 ## 2026-11-08: Manglish engine accuracy (web, desktop, phone, MCP)
 
 - Shared engine now types like writers do: നാട്, നമ്മുടെ, കടൽ, ഉണ്ട്, മനസ്സ്, ചന്ദ്രൻ, plus fixed

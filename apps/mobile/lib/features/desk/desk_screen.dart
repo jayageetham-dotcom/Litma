@@ -12,6 +12,9 @@ import '../../core/search.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../data/forms.dart';
+import '../../data/backup.dart';
+import '../../data/goals.dart';
+import '../goals/goals_screen.dart' show rescheduleReminders;
 import '../../data/models.dart';
 import '../../editor/document.dart';
 import '../../editor/editor_screen.dart';
@@ -63,21 +66,14 @@ final booksProvider = FutureProvider.autoDispose<List<Book>>((ref) async {
   return ref.read(servicesProvider).store.listBooks();
 });
 
-/// Words written today and the streak of days in a row.
+/// Words written today and the streak (with the writer's rest days), from the shared goals rules.
 final todayProvider = FutureProvider<({int today, int streak})>((ref) async {
   ref.watch(deskProvider);
+  ref.watch(writingProvider);
   final days = await ref.read(servicesProvider).store.wordsByDay();
-  final map = {for (final d in days) d.day: d.words};
-  String key(DateTime d) => d.toIso8601String().substring(0, 10);
-  var d = DateTime.now();
-  final today = map[key(d)] ?? 0;
-  if (today == 0) d = d.subtract(const Duration(days: 1));
-  var streak = 0;
-  while ((map[key(d)] ?? 0) > 0) {
-    streak++;
-    d = d.subtract(const Duration(days: 1));
-  }
-  return (today: today, streak: streak);
+  final g = GoalPrefs.from(ref.read(profileProvider).value?.preferences['goals']);
+  final s = streak(days, restDays: g.restDays, remembered: g.bestStreak);
+  return (today: wordsOn(days, localDay()), streak: s.current);
 });
 
 class DeskScreen extends ConsumerStatefulWidget {
@@ -103,10 +99,29 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
       if (dir == ScrollDirection.forward) _fabExtended.value = true;
       _collapsed.value = _scroll.offset > 64;
     });
+    // once the desk is up: the daily reminder for the next days, and today's backup copy if it is on
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      unawaited(rescheduleReminders(ref, context));
+      final sv = ref.read(servicesProvider);
+      if (Backup.due(sv.prefs)) unawaited(Backup.make(sv.store, sv.prefs).then((_) {}, onError: (_) {}));
+    });
+    // after writing (words counted), today's reminder is dropped once the goal is met
+    _writing = ref.listenManual(writingProvider, (_, _) {
+      _later?.cancel();
+      _later = Timer(const Duration(seconds: 30), () {
+        if (mounted) unawaited(rescheduleReminders(ref, context));
+      });
+    });
   }
+
+  ProviderSubscription<int>? _writing;
+  Timer? _later;
 
   @override
   void dispose() {
+    _writing?.close();
+    _later?.cancel();
     _scroll.dispose();
     super.dispose();
   }

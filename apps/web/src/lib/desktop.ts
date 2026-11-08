@@ -13,6 +13,17 @@ export interface LitmaDesktop {
   downloadUpdate?: () => Promise<DesktopUpdateState>;
   installUpdate?: () => Promise<boolean>;
   onUpdate?: (cb: (s: DesktopUpdateState) => void) => () => void;
+  /** newer desktop builds: daily reminder kept by the main process, so it rings with the window closed */
+  setReminder?: (s: { on: boolean; time: string; days: number[]; day: string; done: boolean; title: string; body: string }) => Promise<void>;
+  reminderRang?: (day: string) => Promise<void>;
+  /** a system notification (writing timer) */
+  notify?: (title: string, body: string) => Promise<void>;
+  /** daily backups into a folder the writer picks (apps/desktop/src/backup.ts) */
+  backupFolder?: () => Promise<string | null>;
+  chooseBackupFolder?: () => Promise<string | null>;
+  forgetBackupFolder?: () => Promise<void>;
+  openBackupFolder?: () => Promise<void>;
+  writeBackup?: (name: string, bytes: ArrayBuffer) => Promise<string>;
 }
 
 declare global {

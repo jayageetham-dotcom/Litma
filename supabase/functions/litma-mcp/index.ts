@@ -14,7 +14,11 @@ import { recordUsage } from "../_shared/usage.ts";
 import { textToNodes, toMarkdown, toPlainText, type JSONContent } from "../_shared/serialize.ts";
 import { WRITING_GUIDES } from "../_shared/guides.ts";
 import { FORM_NAMES, KINDS, newSettings, starterContent, withAuthor, type DocKind } from "../_shared/forms.ts";
-import { createDictionary } from "../_shared/dict.ts";
+import { createDictionary, mlShardName } from "../_shared/dict.ts";
+import { RHYME_KINDS, createRhymes, rhymeKey, type RhymeKind } from "../_shared/rhyme.ts";
+import { createSpeller } from "../_shared/spell.ts";
+import { localDay, streak as streakOf, summarise, wordsThisWeek, type GoalPrefs } from "../_shared/goals.ts";
+import { metrePattern } from "../_shared/manglish.ts";
 import { transliteratePhrase } from "../_shared/google.ts";
 
 const PROTOCOL = "2025-06-18";
@@ -33,6 +37,14 @@ const dict = createDictionary((path) =>
         .catch(() => null)
     )
 );
+
+/** Rhyme files and spelling word lists live beside the dictionary on the website. */
+const siteFile = (path: string, as: "json" | "text") =>
+  fetch(`${SITE}/dict/${path}`)
+    .then((r) => (r.ok ? (as === "json" ? r.json() : r.text()) : Promise.reject()))
+    .catch(() => null);
+const rhymes = createRhymes((path) => siteFile(`${path}.json`, "json"));
+const speller = createSpeller((path) => siteFile(`${path}.txt`, "text") as Promise<string | null>, () => dict.index(), mlShardName);
 
 type Json = Record<string, unknown>;
 type Args = Record<string, any>; // deno-lint-ignore no-explicit-any
@@ -422,6 +434,45 @@ const TOOLS: Tool[] = [
     },
   },
   {
+    name: "find_rhymes",
+    title: "Rhymes (പ്രാസം)",
+    description:
+      "Malayalam words from the dictionary that rhyme with a word: ദ്വിതീയാക്ഷര പ്രാസം (kind 'second': same consonant in the second akshara), അന്ത്യപ്രാസം ('end': same last akshara) or ആദിപ്രാസം ('first': same first letter). Each word comes with its laghu (∪) / guru (–) pattern; best-known words first.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        word: S("string", "A Malayalam word (script, not Manglish)"),
+        kind: S("string", "Kind of rhyme (default second)", { enum: RHYME_KINDS }),
+        same_metre: S("boolean", "Only words with the same laghu–guru pattern"),
+        max: S("number", "How many (default 40, at most 100)"),
+      },
+      required: ["word"],
+    },
+    annotations: RO,
+    async run(a) {
+      const word = String(a.word ?? "").trim();
+      const kind = (RHYME_KINDS.includes(a.kind) ? a.kind : "second") as RhymeKind;
+      if (!/[ഀ-ൿ]/.test(word)) return out("Give the word in Malayalam script (use transliterate for Manglish).", true);
+      const key = rhymeKey(word, kind);
+      if (!key) return out("This kind of rhyme needs a word of two aksharas or more.", true);
+      const list = await rhymes.find(word, kind, { max: Math.min(100, Math.max(1, Number(a.max) || 40)), sameMetre: !!a.same_metre });
+      return outJson({ word, metre: metrePattern(word), kind, key, rhymes: list.map((r) => ({ word: r.word, metre: r.metre })) });
+    },
+  },
+  {
+    name: "check_spelling",
+    title: "Check Malayalam spelling",
+    description:
+      "Find letters typed in an old or broken way (ന്‍ for ൻ, a colon for ഃ, split vowel signs) and common misspellings in Malayalam text, with fixes. Optionally list words the dictionary doesn't know: these are questions, not errors (dialect and community words are often missing from dictionaries). For grammar, read the text yourself.",
+    inputSchema: { type: "object", properties: { text: S("string", "Malayalam text"), unknown: S("boolean", "Also list words not in the dictionary (default false)") }, required: ["text"] },
+    annotations: RO,
+    async run(a) {
+      const text = String(a.text ?? "").slice(0, 20000);
+      const issues = await speller.check(text, { unknown: !!a.unknown });
+      return outJson({ issues: issues.map(({ text: t, kind, fix, from }) => ({ text: t, kind, fix, at: from })) });
+    },
+  },
+  {
     name: "transliterate",
     title: "Manglish → Malayalam",
     description: "Convert Manglish (romanised Malayalam, e.g. 'ente naadu') into Malayalam script using Google Input Tools, with an offline fallback.",
@@ -626,28 +677,38 @@ const TOOLS: Tool[] = [
   {
     name: "writing_stats",
     title: "Writing stats",
-    description: "Words written per day (last 60 days), current streak, totals per writing type.",
+    description:
+      "The writer's goals and writing statistics: words today and this week against their goals, streak (with their rest days), words and minutes per day for the last 90 days (Litma keeps no more), the hour they write most, and totals per writing type.",
     inputSchema: { type: "object", properties: {} },
     annotations: RO,
     async run(_a, u) {
-      const { data: days } = await db.from("writing_days").select("day,words").eq("user_id", u).order("day", { ascending: false }).limit(60);
+      const { data: days } = await db.from("writing_days").select("day,words,minutes,hours").eq("user_id", u).order("day", { ascending: false }).limit(95);
       const { data: docs } = await db.from("documents").select("kind,word_count").eq("user_id", u).eq("archived", false);
-      const map = new Map((days ?? []).map((d) => [d.day as string, d.words as number]));
-      const d = new Date();
-      const key = (x: Date) => x.toISOString().slice(0, 10);
-      if (!map.get(key(d))) d.setDate(d.getDate() - 1);
-      let streak = 0;
-      while ((map.get(key(d)) ?? 0) > 0) {
-        streak++;
-        d.setDate(d.getDate() - 1);
-      }
+      const { data: prof } = await db.from("profiles").select("daily_goal,preferences").eq("id", u).maybeSingle();
+      const rows = (days ?? []) as { day: string; words: number; minutes?: number; hours?: number[] }[];
+      const goals = ((prof?.preferences as Record<string, unknown> | null)?.goals ?? {}) as GoalPrefs;
+      // days are the writer's own calendar days; the server's may be behind theirs
+      const today = rows[0] && rows[0].day > localDay() ? rows[0].day : localDay();
+      const s = streakOf(rows, today, goals.restDays ?? 0, goals.bestStreak ?? 0);
       const perWritingType: Record<string, { works: number; words: number }> = {};
       for (const x of docs ?? []) {
         const f = (perWritingType[x.kind] ??= { works: 0, words: 0 });
         f.works++;
         f.words += x.word_count;
       }
-      return outJson({ streak, today: map.get(key(new Date())) ?? 0, days: days ?? [], perWritingType });
+      const sum = summarise(rows, 90, today);
+      return outJson({
+        today: rows.find((d) => d.day === today)?.words ?? 0,
+        dailyGoal: prof?.daily_goal ?? 0,
+        thisWeek: wordsThisWeek(rows, today),
+        weeklyGoal: goals.weekly ?? 0,
+        streak: s.current,
+        bestStreak: s.best,
+        restDaysPerWeek: goals.restDays ?? 0,
+        last90Days: { words: sum.words, minutes: sum.minutes, writingDays: sum.writingDays, wordsPerWritingDay: sum.perWritingDay, mostWordsAtHour: sum.bestHour },
+        days: rows.map(({ day, words, minutes }) => ({ day, words, minutes: minutes ?? 0 })),
+        perWritingType,
+      });
     },
   },
 ];

@@ -23,7 +23,7 @@ new guides.
   ```
 
   `icon` is one of: rocket, keyboard, pen-line, layout-template, map, book-a, book-open, share-2,
-  sparkles, monitor-smartphone, settings (add more in `ICONS` in `components/help/HelpCenter.tsx`).
+  sparkles, monitor-smartphone, settings, target (add more in `ICONS` in `components/help/HelpCenter.tsx`).
   `tint` is one of: violet, coral, sky, lime, tangerine (the home page's colours).
 - Text before the first `##` is the topic's introduction (shown on the topic page).
 - Each `## Title {#article-id}` starts a guide. The id goes in the address (`/help/?a=article-id`) and

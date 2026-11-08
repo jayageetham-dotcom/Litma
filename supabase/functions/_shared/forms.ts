@@ -21,6 +21,8 @@ export interface DocSettings {
   lineHeight: number;
   showMetre?: boolean;
   goal?: number;
+  /** "YYYY-MM-DD": finish the work's word goal by this day (goals panel shows words a day) */
+  deadline?: string;
   notes?: string;
   /** Beat board columns (acts, chapters…) in order; undefined = the writing type's defaults. */
   beatColumns?: string[];

@@ -10,6 +10,8 @@
  */
 import { app, BrowserWindow, ipcMain, Menu, nativeTheme, net, protocol, shell, type MenuItemConstructorOptions } from "electron";
 import { checkForUpdates, currentState, downloadUpdate, installUpdate, startUpdateChecks } from "./updater";
+import { markRang, setReminder, showNotification, startReminders, type ReminderState } from "./reminders";
+import { registerBackup } from "./backup";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
@@ -282,6 +284,9 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
+// Windows shows notifications only for an app with an id (the installer's appId)
+if (process.platform === "win32") app.setAppUserModelId("com.jayageetham.litma");
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
@@ -298,6 +303,12 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle("litma:update:state", () => currentState());
     ipcMain.handle("litma:update:download", () => downloadUpdate());
     ipcMain.handle("litma:update:install", () => installUpdate());
+    // writing reminders and timer alerts (see reminders.ts)
+    ipcMain.handle("litma:reminder:set", (_e, s: ReminderState) => setReminder(s));
+    ipcMain.handle("litma:reminder:rang", (_e, day: string) => markRang(String(day)));
+    ipcMain.handle("litma:notify", (_e, title: string, body: string) => showNotification(String(title), String(body), () => createWindow()));
+    startReminders(() => createWindow());
+    registerBackup();
     buildMenu();
     startUpdateChecks();
     createWindow();

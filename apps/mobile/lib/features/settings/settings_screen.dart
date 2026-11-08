@@ -13,6 +13,9 @@ import '../../core/theme.dart';
 import '../../widgets/brand.dart';
 import '../../widgets/avatar.dart';
 import 'ai_settings.dart';
+import '../goals/goals_screen.dart';
+import '../../data/backup.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../widgets/common.dart';
 import '../../widgets/legal.dart';
 import '../../data/analytics.dart';
@@ -137,6 +140,20 @@ class SettingsScreen extends ConsumerWidget {
             ])),
           ],
           if (writer != null) ...[
+            item(_Section(context.t('goals.title'))),
+            item(_Card(children: [
+              ListTile(
+                leading: Icon(LucideIcons.target, color: c.tintTangerine),
+                title: Text(context.t('goals.open')),
+                subtitle: Text(context.t('goals.settingsIntro')),
+                trailing: const Icon(LucideIcons.chevronRight, size: 18),
+                onTap: () => Navigator.of(context).push(GoalsScreen.route()),
+              ),
+            ])),
+            item(_Section(context.t('backup.title'))),
+            item(const _BackupCard()),
+          ],
+          if (writer != null) ...[
             item(_Section(context.t('app.settings2.ai'))),
             item(const AiSettings()),
           ],
@@ -243,4 +260,81 @@ class _UsageSwitchState extends State<_UsageSwitch> {
           Analytics.setEnabled(widget.prefs, v);
         },
       );
+}
+
+/// Settings → Backup: save everything as one file to Google Drive, Files or any app (the share
+/// sheet), and keep a daily copy on the phone. Restoring is on the website or the desktop app.
+class _BackupCard extends ConsumerStatefulWidget {
+  const _BackupCard();
+
+  @override
+  ConsumerState<_BackupCard> createState() => _BackupCardState();
+}
+
+class _BackupCardState extends ConsumerState<_BackupCard> {
+  var _busy = false;
+  String? _msg;
+
+  Future<void> _now() async {
+    setState(() {
+      _busy = true;
+      _msg = null;
+    });
+    final sv = ref.read(servicesProvider);
+    try {
+      var version = '';
+      try {
+        version = (await PackageInfo.fromPlatform()).version;
+      } catch (_) {
+        /* not available in tests */
+      }
+      final r = await Backup.make(sv.store, sv.prefs, appVersion: version);
+      if (!mounted) return;
+      setState(() => _msg = context.t('app.backup.ready', {'count': r.works}));
+      await SharePlus.instance.share(ShareParams(files: [XFile(r.file.path, mimeType: 'application/zip')], subject: Backup.name()));
+    } catch (_) {
+      if (mounted) setState(() => _msg = context.t('backup.error.any'));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final prefs = ref.read(servicesProvider).prefs;
+    final last = Backup.last(prefs);
+    return _Card(children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+        child: Text(context.t('backup.intro'), style: Theme.of(context).textTheme.bodySmall),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+        child: Text(last == null ? context.t('backup.never') : context.t('backup.last', {'when': MaterialLocalizations.of(context).formatMediumDate(last)}), style: TextStyle(color: c.muted, fontSize: 12.5)),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        child: FilledButton.icon(
+          icon: _busy ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(LucideIcons.cloudUpload, size: 17),
+          label: Text(_busy ? context.t('backup.working') : context.t('app.backup.share')),
+          onPressed: _busy ? null : _now,
+        ),
+      ),
+      if (_msg != null) Padding(padding: const EdgeInsets.fromLTRB(16, 4, 16, 0), child: Text(_msg!, style: TextStyle(color: c.muted, fontSize: 12.5))),
+      SwitchListTile(
+        value: prefs.getBool(Backup.dailyKey) ?? false,
+        title: Text(context.t('app.backup.daily')),
+        subtitle: Text(context.t('app.backup.dailyHint')),
+        onChanged: (v) async {
+          await prefs.setBool(Backup.dailyKey, v);
+          setState(() {});
+        },
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        child: Text(context.t('app.backup.restoreWhere'), style: TextStyle(color: c.muted, fontSize: 12)),
+      ),
+    ]);
+  }
 }

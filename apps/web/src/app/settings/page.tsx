@@ -1,4 +1,5 @@
 "use client";
+import { BackupSettings, GoalsCard } from "@/components/settings/BackupSettings";
 import { useEffect, useState } from "react";
 import { Copy, KeyRound, Trash2 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
@@ -57,6 +58,8 @@ function Settings() {
 
         <LanguagePicker />
         <HelpCard />
+        <GoalsCard />
+        <BackupSettings />
 
         <AIKeys />
 

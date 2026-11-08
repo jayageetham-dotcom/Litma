@@ -3,7 +3,7 @@
  * who is listed in app_admins; everyone else gets 403.
  *
  *   { op: "check" }                                  → { admin: true }
- *   { op: "dashboard", days?: 7..365, includeAdmins? } → overview, audience and behaviour numbers
+ *   { op: "dashboard", days?: 7..90, includeAdmins? } → overview, audience and behaviour numbers
  *   { op: "users", includeAdmins? }                  → every account with usage counts (no writing)
  *   { op: "user", id }                               → one person's devices, daily activity and latest events
  */
@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
   if (op === "check") return json({ admin: true });
   if (op === "dashboard") {
-    const days = Math.min(365, Math.max(1, Math.round(Number(b.days) || 30)));
+    const days = Math.min(90, Math.max(1, Math.round(Number(b.days) || 30)));
     const { data, error } = await db.rpc("admin_dashboard", { p_days: days, p_exclude_admins: exclude });
     return error ? json({ error: error.message }, 500) : json(data);
   }

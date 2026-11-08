@@ -16,6 +16,7 @@ import type { Book, DocKind, DocVersion, LitmaDoc, Profile, Suggestion, WordBook
 import type { StoryItem, StoryKind } from "./story";
 import { textToNodes } from "@litma/shared/serialize";
 import { countWords } from "@litma/shared/manglish";
+import { KEEP_DAYS, addDays, localDay, type WritingDay } from "@litma/shared/goals";
 import { OfflineError, cache, enqueue, isNetworkError, currentUser, markServer, remote, syncFirst, type Op } from "./offline";
 
 const LS_DOCS = "litma:docs";
@@ -23,6 +24,16 @@ const LS_VERSIONS = "litma:versions";
 const LS_STORY = "litma:story";
 const LS_BOOKS = "litma:books";
 const LS_BOOKMARKS = "litma:bookmarks";
+const LS_DAYS = "litma:days";
+const LS_WORK_DAYS = "litma:work-days";
+/** Fired after words or minutes are counted, so open goal widgets refresh. */
+export const WRITING_EVENT = "litma:writing";
+export interface WorkDay {
+  day: string;
+  document_id: string;
+  words: number;
+  minutes: number;
+}
 
 function lsGet<T>(key: string, fallback: T): T {
   try {
@@ -569,23 +580,94 @@ export const store = {
   },
 
   async addWordsToday(n: number) {
-    const sb = getSupabase();
-    if (!sb || n <= 0) return;
-    await cloudWrite({ kind: "rpc", fn: "add_words_today", args: { n } }, () => remote(sb.rpc("add_words_today", { n })));
+    await this.logWriting({ words: n });
   },
 
-  async wordsByDay(): Promise<{ day: string; words: number }[]> {
+  /**
+   * Words added and minutes spent writing, counted on the writer's own calendar day (per work when
+   * docId is given). Shown at once from the device copy; sent now or when back online.
+   */
+  async logWriting({ words, minutes = 0, docId }: { words: number; minutes?: number; docId?: string }) {
+    const w = Math.max(0, Math.round(words));
+    const m = Math.max(0, Math.round(minutes));
+    if (!w && !m) return;
+    const now = new Date();
+    const d = localDay(now);
+    const h = now.getHours();
+    const bump = (rows: WritingDay[]) => {
+      const out = rows.map((r) => ({ ...r }));
+      let row = out.find((r) => r.day === d);
+      if (!row) out.unshift((row = { day: d, words: 0, minutes: 0, hours: Array.from({ length: 24 }, () => 0) }));
+      row.words += w;
+      row.minutes = (row.minutes ?? 0) + m;
+      const hours = row.hours?.length === 24 ? [...row.hours] : Array.from({ length: 24 }, () => 0);
+      hours[h] += w;
+      row.hours = hours;
+      return out.sort((a, b) => (a.day < b.day ? 1 : -1)).filter((r) => r.day >= addDays(d, -KEEP_DAYS));
+    };
+    const bumpWork = (rows: WorkDay[]) => {
+      if (!docId) return rows;
+      const out = rows.map((r) => ({ ...r }));
+      const row = out.find((r) => r.day === d && r.document_id === docId);
+      if (row) {
+        row.words += w;
+        row.minutes += m;
+      } else out.unshift({ day: d, document_id: docId, words: w, minutes: m });
+      return out.filter((r) => r.day >= addDays(d, -KEEP_DAYS));
+    };
     const sb = getSupabase();
-    if (!sb) return [];
-    type Day = { day: string; words: number };
+    if (!sb) {
+      lsSet(LS_DAYS, bump(lsGet<WritingDay[]>(LS_DAYS, [])));
+      lsSet(LS_WORK_DAYS, bumpWork(lsGet<WorkDay[]>(LS_WORK_DAYS, [])));
+      window.dispatchEvent(new Event(WRITING_EVENT));
+      return;
+    }
+    const me = (await sessionUser())?.id ?? "me";
+    await cache.put("days", me, bump((await cache.get<WritingDay[]>("days", me)) ?? [])).catch(() => {});
+    if (docId) await cache.put("workDays", me, bumpWork((await cache.get<WorkDay[]>("workDays", me)) ?? [])).catch(() => {});
+    window.dispatchEvent(new Event(WRITING_EVENT));
+    const args = { n: w, mins: m, d, doc: docId ?? null, h };
+    await cloudWrite({ kind: "rpc", fn: "log_writing", args }, () =>
+      remote(sb.rpc("log_writing", args)).catch(async (e: unknown) => {
+        // the server hasn't had the writing statistics migration yet: count the words the old way
+        const code = (e as { code?: string } | null)?.code;
+        if (code === "PGRST202" || code === "42883") {
+          if (w) await remote(sb.rpc("add_words_today", { n: w }));
+          return;
+        }
+        throw e;
+      })
+    );
+  },
+
+  /** The writer's writing days, newest first (up to 90 days: the server keeps no more). */
+  async wordsByDay(): Promise<WritingDay[]> {
+    const sb = getSupabase();
+    if (!sb) return lsGet<WritingDay[]>(LS_DAYS, []);
     const me = (await sessionUser())?.id ?? "me";
     return cloudRead(
       async () => {
-        const rows = ((await remote(sb.from("writing_days").select("day,words").order("day", { ascending: false }).limit(140))) ?? []) as Day[];
-        await cache.put("days", me, rows);
+        const rows = ((await remote(sb.from("writing_days").select("*").order("day", { ascending: false }).limit(KEEP_DAYS + 5))) ?? []) as (WritingDay & { user_id?: string })[];
+        const clean = rows.map(({ day, words, minutes, hours }) => ({ day, words, minutes: minutes ?? 0, hours }));
+        await cache.put("days", me, clean);
+        return clean;
+      },
+      async () => (await cache.get<WritingDay[]>("days", me)) ?? []
+    ).catch(() => []);
+  },
+
+  /** Words and minutes per work per day (last 90 days). */
+  async workDays(): Promise<WorkDay[]> {
+    const sb = getSupabase();
+    if (!sb) return lsGet<WorkDay[]>(LS_WORK_DAYS, []);
+    const me = (await sessionUser())?.id ?? "me";
+    return cloudRead(
+      async () => {
+        const rows = ((await remote(sb.from("work_days").select("day,document_id,words,minutes").order("day", { ascending: false }).limit(3000))) ?? []) as WorkDay[];
+        await cache.put("workDays", me, rows);
         return rows;
       },
-      async () => (await cache.get<Day[]>("days", me)) ?? []
+      async () => (await cache.get<WorkDay[]>("workDays", me)) ?? []
     ).catch(() => []);
   },
 

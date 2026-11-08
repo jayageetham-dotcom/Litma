@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalPage, type LegalSection } from "@/components/legal/LegalPage";
 
-const UPDATED = "7 November 2026";
+const UPDATED = "8 November 2026";
 
 const sections: LegalSection[] = [
   {
@@ -28,7 +28,10 @@ const sections: LegalSection[] = [
             Google or Apple account.
           </li>
           <li>
-            <strong>Your profile:</strong> what you choose to add, such as a pen name, username, bio, place, website, the avatar you pick and your daily writing goal.
+            <strong>Your profile:</strong> what you choose to add, such as a pen name, username, bio, place, website, the avatar you pick, and your writing goals and reminder time.
+          </li>
+          <li>
+            <strong>Your writing statistics:</strong> how many words you add and how many minutes you write each day, per work and by hour of the day, for your goals, streak and statistics. They are kept for 90 days.
           </li>
           <li>
             <strong>Your writing:</strong> your works, books and covers, Story World notes, saved versions, saved words and settings, so you can reach them on every device.
@@ -52,7 +55,12 @@ const sections: LegalSection[] = [
       <>
         <p>
           When you choose <strong>Continue with Google</strong>, Google asks you to share your basic profile (name), your email address and an OpenID sign-in id with Litma. We use them only to create your Litma account, sign you in, show your name in the
-          app and send you emails about your account (for example a sign-in or password link). We do not ask for access to Gmail, Google Drive, Contacts, Calendar or any other Google service.
+          app and send you emails about your account (for example a sign-in or password link). Signing in does not give Litma access to Gmail, Google Drive, Contacts, Calendar or any other Google service.
+        </p>
+        <p>
+          <strong>Backup to Google Drive (optional).</strong> If you choose <strong>Save to Google Drive</strong> in Settings, Backup, Google asks you separately to let Litma create files in your Drive (the <code>drive.file</code> permission). With it Litma
+          can see and change only the files it makes itself, a &ldquo;Litma backup&rdquo; folder and the backups in it, never anything else in your Drive. This happens in your browser: the access stays on your device for that session and is not stored
+          on Litma&apos;s server. The phone app saves backups through your phone&apos;s share sheet instead, and the desktop app into a folder you choose.
         </p>
         <p>
           Litma&apos;s use and transfer of information received from Google APIs adheres to the{" "}
@@ -77,7 +85,8 @@ const sections: LegalSection[] = [
     body: (
       <ul>
         <li>To run Litma: sign you in, save and sync your writing, and keep a copy on your device so you can write offline.</li>
-        <li>To do what you ask: share a work by link, make PDFs and Word files, look up words, and send a passage to the AI provider you chose.</li>
+        <li>To do what you ask: share a work by link, make PDFs, Word files and backups, look up words, and send a passage to the AI provider you chose.</li>
+        <li>To show your goals, streak and writing statistics, and to remind you to write if you turn the reminder on. Reminders and the writing timer are shown by your own device or browser; no message service is used.</li>
         <li>To send emails about your account: sign-in links, password resets and email changes. We do not send marketing emails.</li>
         <li>To understand which parts of Litma are used, so we can improve them (usage statistics, if you leave them on).</li>
         <li>To keep Litma safe and fix problems.</li>
@@ -119,6 +128,13 @@ const sections: LegalSection[] = [
             <strong>Anthropic, OpenAI or Google Gemini</strong> receive the text you send to the AI companion, only when you ask it something and only with your own key. Their own privacy policies apply to that request.
           </li>
           <li>
+            <strong>Google Drive</strong> receives your backup, only when you choose to save one there.
+          </li>
+          <li>
+            <strong>Your device&apos;s voice</strong> reads your work aloud when you choose Read aloud. Litma uses the voices on your device or in your browser; some browsers (for example Microsoft Edge&apos;s online voices) send the sentence being read to
+            their own speech service.
+          </li>
+          <li>
             <strong>App Store and Google Play</strong> deliver the phone app.
           </li>
         </ul>
@@ -144,7 +160,7 @@ const sections: LegalSection[] = [
         <p>
           We keep your account and writing for as long as you have a Litma account. Works you move to Trash can be deleted for good from there. To delete your whole account and everything in it, email{" "}
           <a href="mailto:support@getlitma.in?subject=Delete%20my%20Litma%20account">support@getlitma.in</a> from the email address of your account. We delete it within 30 days and confirm by email. Backups that may still hold it are replaced within a further
-          30 days. Usage statistics are kept for up to 13 months.
+          30 days. Usage statistics and your writing statistics are kept for 90 days and then deleted automatically.
         </p>
       </>
     ),

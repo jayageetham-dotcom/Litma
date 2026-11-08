@@ -23,6 +23,8 @@ import 'saver.dart';
 import 'session.dart';
 import 'tools.dart';
 import 'work_tools.dart';
+import 'writing_aids.dart';
+import 'writing_timer.dart';
 import '../data/analytics.dart';
 
 /// Opens a work: loads it (from the server or this phone), restores a newer journal, then edits.
@@ -129,6 +131,17 @@ class _EditorState extends ConsumerState<_Editor> {
     s.addListener(_changed);
     s.spelling = (word) => _best[word];
     s.reveal = _reveal;
+    WritingTimer.instance.onDone = _timerDone;
+  }
+
+  /// The writing timer ended while the work is open: a card with the words written.
+  void _timerDone(int words, int minutes) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('${context.t('goals.timer.doneTitle')}. ${context.t('goals.timer.doneBody', {'count': words, 'minutes': minutes})}'),
+      duration: const Duration(seconds: 8),
+      action: SnackBarAction(label: context.t('goals.timer.again', {'minutes': minutes}), onPressed: () => WritingTimer.instance.start(minutes, s.doc.id, s.words, title: context.t('goals.timer.doneTitle'), body: context.t('goals.timer.notifyBody', {'minutes': minutes}))),
+    ));
   }
 
   /// Lines far down the page aren't built yet: scroll near the line first, then focus it.
@@ -147,6 +160,7 @@ class _EditorState extends ConsumerState<_Editor> {
     s.removeListener(_changed);
     s.spelling = null;
     s.reveal = null;
+    if (WritingTimer.instance.onDone == _timerDone) WritingTimer.instance.onDone = null;
     _suggestTimer?.cancel();
     _scroll.dispose();
     super.dispose();
@@ -229,6 +243,26 @@ class _EditorState extends ConsumerState<_Editor> {
             ),
           ),
           actions: [
+            // the writing timer's time left; opens Goal and timer
+            ListenableBuilder(
+              listenable: WritingTimer.instance,
+              builder: (context, _) {
+                final t = WritingTimer.instance;
+                if (!t.active) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(right: 2),
+                  child: ActionChip(
+                    avatar: Icon(LucideIcons.timer, size: 14, color: t.running ? c.accent : c.muted),
+                    label: Text(t.clock, style: TextStyle(fontFeatures: const [FontFeature.tabularFigures()], color: t.running ? c.accent : c.muted, fontWeight: FontWeight.w600, fontSize: 12.5)),
+                    visualDensity: VisualDensity.compact,
+                    side: BorderSide.none,
+                    backgroundColor: t.running ? c.accentSoft : c.subtle,
+                    tooltip: context.t('goals.timer.chip', {'time': t.clock}),
+                    onPressed: () => showGoalSheet(context, ref, s),
+                  ),
+                );
+              },
+            ),
             IconButton(tooltip: context.t('app.tools.title'), onPressed: () => showToolsSheet(context, ref, s), icon: Icon(LucideIcons.layoutGrid, size: 21, color: c.ink)),
             IconButton(tooltip: context.t('app.editor.read'), onPressed: _read, icon: const Icon(LucideIcons.bookOpen, size: 21)),
             _MoreMenu(session: s, onRename: _rename, onRead: _read),

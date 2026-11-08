@@ -3,6 +3,7 @@ export const AI_ACTIONS = {
   rewrite: { label: "Rewrite", ml: "മാറ്റിയെഴുതുക", needsSelection: true },
   polish: { label: "Polish language", ml: "ഭാഷ മിനുക്കുക", needsSelection: true },
   proofread: { label: "Proofread", ml: "തെറ്റുതിരുത്തുക", needsSelection: true },
+  grammar: { label: "Check spelling and grammar", ml: "അക്ഷരത്തെറ്റും വ്യാകരണവും", needsSelection: false },
   synonyms: { label: "Synonyms", ml: "പര്യായങ്ങൾ", needsSelection: true },
   rhymes: { label: "Rhymes (പ്രാസം)", ml: "പ്രാസം", needsSelection: true },
   dialogue: { label: "Dialogue ideas", ml: "സംഭാഷണം", needsSelection: false },
@@ -53,6 +54,8 @@ export function userPrompt(action: AIAction, opts: { selection?: string; context
       return `Polish the selected passage: fix grammar, sandhi, spelling and flow without changing the voice. Return only the corrected passage.${S}`;
     case "proofread":
       return `Proofread the selected Malayalam passage. List each error as "തെറ്റ് → ശരി — short reason", then give the corrected passage.${S}`;
+    case "grammar":
+      return `Check the spelling, grammar, sandhi and punctuation of the ${sel ? "selected passage" : "text"}. List each error as "തെറ്റ് → ശരി — short reason in Malayalam", in order, then stop. Don't rewrite for style. Don't mark dialect, regional or community words, or dialogue written the way people speak: those are the writer's choice. If there are no errors, say so in one Malayalam sentence.${S || C}`;
     case "synonyms":
       return `Give 8–12 Malayalam synonyms or near-synonyms for the selected word or phrase, each with a 3–6 word note on its shade of meaning, as a list.${S}`;
     case "rhymes":

@@ -28,7 +28,19 @@ import {
   Type,
   Bookmark,
   Files,
+  Repeat2,
+  SpellCheck,
+  Target,
+  Volume2,
 } from "lucide-react";
+import { RhymePanel } from "./RhymePanel";
+import { GoalPanel } from "./GoalPanel";
+import { TimerChip } from "./TimerChip";
+import { CheckPanel } from "./CheckPanel";
+import { ReadAloudPanel } from "./ReadAloudPanel";
+import { recheckSpelling } from "@/extensions/writing-aids";
+import { SPELL_EVENT, blockChecker, spellPrefs } from "@/lib/spell";
+import { timerWords } from "@/lib/timer";
 import { buildExtensions } from "./extensions";
 import { MobileFormatStrip, MobileSelectionBar, Toolbar } from "./Toolbar";
 import { keepSelectionNow } from "@/extensions/keep-selection";
@@ -62,12 +74,16 @@ import { CueSuggest } from "./CueSuggest";
 import { StoryWorld } from "@/components/story/StoryWorld";
 import { TypewriterIcon } from "@/components/icons/Typewriter";
 
-type PanelId = "ai" | "dict" | "saved" | "inbox" | "story" | "history" | "keys" | "page";
+type PanelId = "ai" | "dict" | "saved" | "rhyme" | "check" | "read" | "goals" | "inbox" | "story" | "history" | "keys" | "page";
 /** `tint`: the soft home-page colour of each tool's icon in the rail (icons only; labels stay neutral). */
 const PANELS: { id: PanelId; label: string; short: string; icon: React.ComponentType<{ size?: number }>; tint: string }[] = [
   { id: "ai", short: "AI", label: "AI companion", icon: Sparkles, tint: "text-tint-violet" },
   { id: "dict", short: "Dictionary", label: "Dictionary & thesaurus", icon: BookA, tint: "text-tint-tangerine" },
   { id: "saved", short: "Saved", label: "Saved words", icon: Bookmark, tint: "text-tint-coral" },
+  { id: "rhyme", short: "Rhymes", label: "Rhymes (പ്രാസം)", icon: Repeat2, tint: "text-tint-sky" },
+  { id: "check", short: "Check", label: "Spelling and grammar", icon: SpellCheck, tint: "text-tint-coral" },
+  { id: "read", short: "Listen", label: "Read aloud", icon: Volume2, tint: "text-tint-lime" },
+  { id: "goals", short: "Goals", label: "Goal and timer", icon: Target, tint: "text-tint-tangerine" },
   { id: "inbox", short: "Inbox", label: "Assistant inbox (MCP)", icon: Inbox, tint: "text-tint-violet" },
   { id: "story", short: "Story", label: "Story World", icon: NotebookPen, tint: "text-tint-lime" },
   { id: "history", short: "History", label: "Version history", icon: HistoryIcon, tint: "text-tint-sky" },
@@ -87,6 +103,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const [save, setSave] = useState<SaveState>("saved");
   const [mode, setMode] = useState<InputMode>(initial.settings.inputMode ?? "manglish");
   const [panel, setPanel] = useState<PanelId | null>(null);
+  /** the AI action to run when the AI panel opens (the Check panel's grammar check) */
+  const [aiStart, setAiStart] = useState<"grammar" | null>(null);
   const [outline, setOutline] = useState(true);
   const screen = useScreen();
   const phone = screen === "phone";
@@ -106,6 +124,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const [shareId, setShareId] = useState(initial.share_id ?? null);
   const [menu, setMenu] = useState<"export" | "share" | null>(null);
   const [stats, setStats] = useState({ words: initial.word_count, chars: 0, aksharas: 0, pages: 1 });
+  // the writing timer counts the words written while it runs
+  useEffect(() => timerWords(initial.id, stats.words), [initial.id, stats.words]);
   // Phones show the writing at full size on one continuous sheet; "Pages" (More) brings the printed pages back.
   const [phonePages, setPhonePages] = useState(false);
   useEffect(() => {
@@ -148,6 +168,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const docRef = useRef<LitmaDoc>(initial);
   const titleRef = useRef(initial.title);
   const lastSavedWords = useRef(initial.word_count);
+  /** minutes (Date.now() / 60 000) in which the writer changed the text since the last save */
+  const activeMinutes = useRef(new Set<number>());
   const lastSnapshot = useRef(Date.now());
 
   // Crash recovery: a local journal newer than the cloud copy wins (the writer can switch back).
@@ -180,6 +202,19 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   });
   useToolbarRefresh(editor);
 
+  // spelling marks: on or off per device (Check panel), redone when the writer keeps a word
+  useEffect(() => {
+    if (!editor) return;
+    const apply = () => {
+      const storage = (editor.storage as unknown as { writingAids: { check: ((t: string) => Promise<unknown[]>) | null } }).writingAids;
+      storage.check = spellPrefs().on ? blockChecker() : null;
+      recheckSpelling(editor);
+    };
+    apply();
+    window.addEventListener(SPELL_EVENT, apply);
+    return () => window.removeEventListener(SPELL_EVENT, apply);
+  }, [editor]);
+
   // ── persistence ──
   const persist = useCallback(async (patch: Partial<LitmaDoc>) => {
     const queued = await store.updateDoc(docRef.current.id, patch);
@@ -197,7 +232,9 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       const queued = await persist(patch);
       const delta = words - lastSavedWords.current;
       lastSavedWords.current = words;
-      if (delta > 0) store.addWordsToday(delta).catch(() => {});
+      const minutes = activeMinutes.current.size;
+      activeMinutes.current = new Set();
+      if (delta > 0 || minutes > 0) store.logWriting({ words: Math.max(0, delta), minutes, docId: docRef.current.id }).catch(() => {});
       if (snapshotLabel !== undefined || Date.now() - lastSnapshot.current > 10 * 60 * 1000) {
         lastSnapshot.current = Date.now();
         await store.saveVersion(docRef.current.id, content, words, snapshotLabel ?? null).catch(() => {});
@@ -272,6 +309,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         setSettings((prev) => ({ ...prev, pristine: false }));
       }
       saver.current?.touch();
+      activeMinutes.current.add(Math.floor(Date.now() / 60000));
       clearTimeout(statTimer);
       statTimer = setTimeout(computeStats, 250);
     };
@@ -569,7 +607,11 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const panelBody = (id: PanelId) =>
     editor && (
       <>
-        {id === "ai" && <AIPanel editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} />}
+        {id === "ai" && <AIPanel key={aiStart ?? "ai"} editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} start={aiStart ?? undefined} onStarted={() => setAiStart(null)} />}
+        {id === "rhyme" && <RhymePanel editor={editor} />}
+        {id === "check" && <CheckPanel editor={editor} onGrammar={() => { setAiStart("grammar"); openPanel("ai"); }} />}
+        {id === "read" && <ReadAloudPanel editor={editor} />}
+        {id === "goals" && <GoalPanel docId={initial.id} words={stats.words} settings={settings} onChange={updateSettings} />}
         {id === "inbox" && <InboxPanel editor={editor} docId={initial.id} onCount={setInboxCount} />}
         {id === "dict" && <DictionaryPanel editor={editor} onSaved={() => openPanel("saved")} />}
         {id === "saved" && <SavedWordsPanel editor={editor} />}
@@ -646,6 +688,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             </div>
           </div>
 
+          <TimerChip onOpen={() => openPanel("goals")} />
           {phone ? (
             <button className={`btn btn-ghost !p-2 ${panel === "ai" ? "text-accent" : ""}`} onClick={() => openPanel(panel === "ai" ? null : "ai")} aria-label="AI companion">
               <Sparkles size={20} />

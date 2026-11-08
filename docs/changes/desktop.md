@@ -12,8 +12,17 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   section break in novels and stories, Book details and cover labels in Malayalam, in-app
   confirm dialogs) and to publish the first Linux AppImage.
 - Installers are unsigned until the signing secrets exist (see cross-platform.md).
+- **Release needed** for the 2026-11-08 writing aids (reminders in the main process, notifications, folder backup, and the web features). Try on a Mac and Windows: notification permission, reminder with the window closed, choosing a Google Drive for desktop folder.
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
+
+## 2026-11-08: reminders, notifications and the daily folder backup
+
+- `src/reminders.ts`: the reminder lives in the main process (`litma:reminder:set` from the web app's `Reminders`, checked every minute, once a day, only while today's goal isn't met), so it rings with every window closed on macOS. `litma:notify` shows system notifications (writing timer). `app.setAppUserModelId` on Windows so notifications show.
+- `src/backup.ts`: `litma:backup:*` IPC; a folder chosen with the system dialog (kept in `userData/backup.json`), backups written there daily by the web app's `BackupNudge` a minute after start, newest 14 kept.
+- Preload adds `setReminder`, `reminderRang`, `notify`, `backupFolder`, `chooseBackupFolder`, `forgetBackupFolder`, `openBackupFolder`, `writeBackup` (typed in `apps/web/src/lib/desktop.ts`). Google Drive's popup is hidden in the desktop app; pick the Drive for desktop folder instead.
+- Read aloud uses the system voices (none for Malayalam on macOS or Windows yet; the panel says so).
+- Needs a **Release**. Unverified: not run in Electron in this session (typecheck only).
 
 ## 2026-11-08: no admin links in the desktop app
 

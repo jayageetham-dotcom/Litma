@@ -8,16 +8,18 @@ import { DictionaryView } from "@/components/DictionaryView";
 import { HomeNav } from "@/components/HomeActions";
 import { MobileNav } from "@/components/MobileNav";
 import { SavedWords, useBookmarks } from "@/components/SavedWords";
+import { RhymeFinder } from "@/components/RhymeFinder";
 import { NattarivuCategories, NattarivuCategoryView } from "@/components/Nattarivu";
 import { nattarivuCategory } from "@litma/shared/nattarivu";
 import { useT } from "@/i18n/react";
 
-type View = "lookup" | "nattarivu" | "saved";
+type View = "lookup" | "nattarivu" | "rhyme" | "saved";
 
 /**
  * State lives in the URL so the back button and shared links work (static export: query params only):
  *   /dictionary/?w=word[&from=category]   look a word up (from = the നാട്ടറിവ് category it came from)
  *   /dictionary/?view=nattarivu[&c=id]     നാട്ടറിവ് categories, or one category
+ *   /dictionary/?view=rhyme[&r=word]       rhyme finder (പ്രാസം)
  *   /dictionary/?view=saved                saved words (phones and tablets; wide screens show them beside)
  */
 function Dictionary() {
@@ -25,7 +27,8 @@ function Dictionary() {
   const router = useRouter();
   const params = useSearchParams();
   const items = useBookmarks();
-  const view: View = params.get("view") === "nattarivu" ? "nattarivu" : params.get("view") === "saved" ? "saved" : "lookup";
+  const v = params.get("view");
+  const view: View = v === "nattarivu" || v === "saved" || v === "rhyme" ? v : "lookup";
   const word = params.get("w") ?? undefined;
   const from = nattarivuCategory(params.get("from"));
   const category = nattarivuCategory(params.get("c"));
@@ -39,6 +42,7 @@ function Dictionary() {
   const tabs: { v: View; label: string; wideToo: boolean }[] = [
     { v: "lookup", label: t("saved.lookupTab"), wideToo: true },
     { v: "nattarivu", label: t("nattarivu.title"), wideToo: true },
+    { v: "rhyme", label: t("rhyme.tab"), wideToo: true },
     { v: "saved", label: t("saved.tab", { n: items?.length ?? 0 }), wideToo: false },
   ];
 
@@ -67,7 +71,7 @@ function Dictionary() {
               aria-selected={view === v}
               onClick={() => go(v === "lookup" ? (word ? { w: word } : {}) : { view: v }, false)}
               className={`shrink-0 rounded-full px-4 py-1.5 transition-colors ${wideToo ? "" : "lg:hidden"} ${view === v ? "bg-switch font-semibold text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12)]" : "text-muted hover:text-ink"}`}
-              style={v === "nattarivu" ? { fontFamily: "'Anek Malayalam'", fontSize: "15px" } : undefined}
+              style={v === "nattarivu" || v === "rhyme" ? { fontFamily: "'Anek Malayalam'", fontSize: "15px" } : undefined}
             >
               {label}
             </button>
@@ -76,7 +80,9 @@ function Dictionary() {
 
         <div className="mt-6 grid gap-12 lg:mt-8 lg:grid-cols-[minmax(0,1fr)_20rem] xl:gap-16">
           <section className={view === "saved" ? "max-lg:hidden" : ""}>
-            {view === "nattarivu" ? (
+            {view === "rhyme" ? (
+              <RhymeFinder word={params.get("r") ?? undefined} onPick={(w) => openWord(w)} pickHint={t("rhyme.openHint")} />
+            ) : view === "nattarivu" ? (
               category ? (
                 <NattarivuCategoryView key={category.id} category={category} onBack={() => go({ view: "nattarivu" })} onOpen={(id) => go({ view: "nattarivu", c: id })} onWord={(w) => openWord(w, category.id)} />
               ) : (

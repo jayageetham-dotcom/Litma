@@ -141,10 +141,16 @@ class OfflineLayer {
       // made offline and never sent: nothing to delete on the server
       if (mine.any((q) => q.op['kind'] == 'insert')) return _queued();
     } else if (kind == 'rpc') {
-      final same = list.firstWhereOrNull((q) => q.op['kind'] == 'rpc' && q.op['fn'] == op['fn']);
+      // counts (n words, mins minutes) add up; the other arguments (day, work, hour) must match
+      const sum = {'n', 'mins'};
+      final opArgs = (op['args'] as Map).cast<String, dynamic>();
+      final same = list.firstWhereOrNull((q) =>
+          q.op['kind'] == 'rpc' &&
+          q.op['fn'] == op['fn'] &&
+          opArgs.keys.every((k) => sum.contains(k) || (q.op['args'] as Map)[k] == opArgs[k]));
       if (same != null) {
         final args = Map<String, dynamic>.from(same.op['args'] as Map);
-        (op['args'] as Map).forEach((k, v) => args[k as String] = ((args[k] as num?) ?? 0) + (v as num));
+        opArgs.forEach((k, v) => args[k] = sum.contains(k) ? ((args[k] as num?) ?? 0) + ((v as num?) ?? 0) : v);
         await db.putOp(same.key, {...same.op, 'args': args});
         return _queued();
       }
@@ -260,7 +266,14 @@ class OfflineLayer {
       case 'delete':
         await remote((b) => b.delete(table!, id: id, match: (op['match'] as Map?)?.cast<String, Object>()), probe: true);
       case 'rpc':
-        await remote((b) => b.rpc(op['fn'] as String, Map<String, dynamic>.from(op['args'] as Map)), probe: true);
+        try {
+          await remote((b) => b.rpc(op['fn'] as String, Map<String, dynamic>.from(op['args'] as Map)), probe: true);
+        } on ServerException catch (e) {
+          // writing statistics queued before the server had log_writing: count the words the old way
+          if (op['fn'] != 'log_writing' || (e.code != 'PGRST202' && e.code != '42883')) rethrow;
+          final n = ((op['args'] as Map)['n'] as num?)?.toInt() ?? 0;
+          if (n > 0) await remote((b) => b.rpc('add_words_today', {'n': n}), probe: true);
+        }
     }
   }
 

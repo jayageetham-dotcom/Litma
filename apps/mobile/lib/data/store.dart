@@ -3,11 +3,12 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
-
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:uuid/uuid.dart';
 
 import 'backend.dart';
 import 'forms.dart';
+import 'goals.dart';
 import 'models.dart';
 import 'offline.dart';
 import 'analytics.dart';
@@ -195,23 +196,94 @@ class Store {
         () => offline.remote((b) => b.insert('document_versions', row, columns: 'id')));
   }
 
-  Future<void> addWordsToday(int n) async {
-    if (n <= 0) return;
-    await _write({'kind': 'rpc', 'fn': 'add_words_today', 'args': {'n': n}}, () => offline.remote((b) => b.rpc('add_words_today', {'n': n})));
+  Future<void> addWordsToday(int n) => logWriting(words: n);
+
+  /// Words added and minutes spent writing, on the writer's own calendar day (per work when [docId]
+  /// is given), as logWriting in the web's store.ts. Counted on the phone at once, sent now or later.
+  Future<void> logWriting({required int words, int minutes = 0, String? docId}) async {
+    final w = words < 0 ? 0 : words;
+    final m = minutes < 0 ? 0 : minutes;
+    if (w == 0 && m == 0) return;
+    final now = DateTime.now();
+    final d = localDay(now);
+    final h = now.hour;
+    final me = offline.uid() ?? 'me';
+    // the copy on the phone first, so goals and the streak show the new words at once
+    final days = await _keptDays(me);
+    final i = days.indexWhere((x) => x.day == d);
+    final old = i >= 0 ? days[i] : WritingDay(d, 0, hours: List<int>.filled(24, 0));
+    final hours = [...(old.hours?.length == 24 ? old.hours! : List<int>.filled(24, 0))];
+    hours[h] += w;
+    final row = WritingDay(d, old.words + w, minutes: old.minutes + m, hours: hours);
+    if (i >= 0) {
+      days[i] = row;
+    } else {
+      days.insert(0, row);
+    }
+    final from = addDays(d, -keepDays);
+    await offline.put('days', me, {'rows': [for (final x in days) if (x.day.compareTo(from) >= 0) x.toRow()]}).catchError((_) {});
+    if (docId != null) {
+      final work = await workDays();
+      final j = work.indexWhere((x) => x.day == d && x.docId == docId);
+      if (j >= 0) {
+        work[j] = (day: d, docId: docId, words: work[j].words + w, minutes: work[j].minutes + m);
+      } else {
+        work.insert(0, (day: d, docId: docId, words: w, minutes: m));
+      }
+      await offline.put('workDays', me, {'rows': [for (final x in work) if (x.day.compareTo(from) >= 0) {'day': x.day, 'document_id': x.docId, 'words': x.words, 'minutes': x.minutes}]}).catchError((_) {});
+    }
+    writingChanged.value++;
+    final args = {'n': w, 'mins': m, 'd': d, 'doc': docId, 'h': h};
+    await _write({'kind': 'rpc', 'fn': 'log_writing', 'args': args}, () async {
+      try {
+        await offline.remote((b) => b.rpc('log_writing', args));
+      } on ServerException catch (e) {
+        // the server hasn't had the writing statistics migration yet: count the words the old way
+        if (e.code != 'PGRST202' && e.code != '42883') rethrow;
+        if (w > 0) await offline.remote((b) => b.rpc('add_words_today', {'n': w}));
+      }
+    });
   }
 
-  Future<List<({String day, int words})>> wordsByDay() async {
+  /// Bumped whenever words or minutes are counted, so goal widgets refresh.
+  static final writingChanged = ValueNotifier<int>(0);
+
+  Future<List<WritingDay>> _keptDays(String me) async =>
+      [for (final r in (((await offline.get('days', me).catchError((_) => null))?['rows'] as List?) ?? const [])) WritingDay.fromRow((r as Map).cast<String, dynamic>())];
+
+  /// The writer's writing days, newest first (up to 90 days: the server keeps no more).
+  Future<List<WritingDay>> wordsByDay() async {
     final me = offline.uid() ?? 'me';
     try {
       final rows = await _read<List<Json>>(
         () async {
-          final r = await offline.remote((b) => b.select('writing_days', columns: 'day,words', order: 'day', limit: 140));
+          final r = await offline.remote((b) => b.select('writing_days', order: 'day', limit: keepDays + 5));
           await offline.put('days', me, {'rows': r});
           return r;
         },
-        () async => ((await offline.get('days', me))?['rows'] as List?)?.cast<Json>(),
+        () async => ((await offline.get('days', me))?['rows'] as List?)?.map((e) => (e as Map).cast<String, dynamic>()).toList(),
       );
-      return [for (final r in rows) (day: '${r['day']}', words: (r['words'] as num).toInt())];
+      return [for (final r in rows) WritingDay.fromRow(r)];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Words and minutes per work per day (last 90 days).
+  Future<List<({String day, String docId, int words, int minutes})>> workDays() async {
+    final me = offline.uid() ?? 'me';
+    try {
+      final rows = await _read<List<Json>>(
+        () async {
+          final r = await offline.remote((b) => b.select('work_days', columns: 'day,document_id,words,minutes', order: 'day', limit: 3000));
+          await offline.put('workDays', me, {'rows': r});
+          return r;
+        },
+        () async => ((await offline.get('workDays', me))?['rows'] as List?)?.map((e) => (e as Map).cast<String, dynamic>()).toList(),
+      );
+      return [
+        for (final r in rows) (day: '${r['day']}', docId: '${r['document_id']}', words: (r['words'] as num?)?.toInt() ?? 0, minutes: (r['minutes'] as num?)?.toInt() ?? 0)
+      ];
     } catch (_) {
       return [];
     }

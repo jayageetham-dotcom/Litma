@@ -21,6 +21,7 @@ import {
   LayoutTemplate,
   Map as MapIcon,
   X,
+  Target,
   type LucideIcon,
 } from "lucide-react";
 import { ColourField, LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
@@ -38,6 +39,7 @@ const ICONS: Record<string, LucideIcon> = {
   sparkles: Sparkles,
   "monitor-smartphone": MonitorSmartphone,
   settings: Settings,
+  target: Target,
 };
 
 /** Fill and text colours for each tint, from the home page's palette. */

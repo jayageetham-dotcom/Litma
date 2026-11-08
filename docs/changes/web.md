@@ -9,6 +9,18 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-08: Rhymes, spelling, read aloud, goals and timer, reminders, statistics, backup
+
+- Shared (synced to `_shared`): `rhyme.ts`, `spell.ts`, `goals.ts`; `dict.ts` exports `mlShardName`; `forms.ts` `DocSettings.deadline`; `ai-prompts.ts` `grammar` action.
+- Build: `scripts/build-rhymes.mjs` (called by `build-dictionary.mjs`) writes `dict/rhyme/*` and `dict/words/*`.
+- Editor (`Workspace.tsx`): panels Rhymes (`RhymePanel`), Spelling and grammar (`CheckPanel`, starts the AI panel with `grammar` via `AIPanel start`), Read aloud (`ReadAloudPanel`, `lib/speech.ts`), Goal and timer (`GoalPanel`, `TimerChip`); `extensions/writing-aids.ts` (spell decorations per block, read-aloud highlight); minutes per work logged on save (`activeMinutes`, `store.logWriting`). The work's word goal moved from Page & type to Goal and timer.
+- Pages: `/goals/` (new, noindex, robots), Dictionary `?view=rhyme`, Settings Goals card + Backup (`components/settings/BackupSettings.tsx`), profile heatmap 13 weeks (local days), desk streak uses rest days and links to Goals; avatar menu "Goals and statistics".
+- Root layout: `Reminders` (reminder card + notification, timer end chime), `BackupNudge` (daily Drive card; desktop folder backup).
+- Data: `store.logWriting`, `wordsByDay` (minutes, hours), `workDays`; local mode keeps days in localStorage; outbox merges `log_writing` per day/work/hour and falls back to `add_words_today` before the migration.
+- Backup: `lib/backup.ts` (dynamic import, keeps docx out of the first load), `lib/backup-state.ts`, `lib/zip.ts`, `lib/drive.ts` (`NEXT_PUBLIC_GOOGLE_CLIENT_ID`, deploy.yml passes `vars.GOOGLE_CLIENT_ID`).
+- Admin: ranges 7/30/90 (`AdminDashboard.tsx`, `litma-admin` clamps to 90).
+- Unverified: cloud mode against the migrated database; Drive upload (needs the client id); notification permission flows in real browsers; Edge's Malayalam voices.
+
 ## 2026-11-08: Manglish engine follows how writers type
 
 - `packages/shared/src/manglish.ts` (synced to `supabase/functions/_shared`): lowercase words now

@@ -58,6 +58,14 @@ const EN_STEMS: [RegExp, string][] = [
 ];
 const ML_SUFFIXES = ["ുടെ", "ിന്റെ", "ിൻ്റെ", "ന്റെ", "യുടെ", "ിൽ", "ത്തിൽ", "ത്തിന്റെ", "ക്ക്", "ിന്", "ോട്", "ുകൾ", "ങ്ങൾ", "കൾ", "ും", "ോ", "േ", "ാണ്", "ായി", "മായ", "ുന്നു", "ുന്ന", "ിച്ചു", "ി"];
 
+/** The shard a Malayalam headword lives in (same name under ml/ and words/). */
+export function mlShardName(k: string, mlSplit: string[]): string {
+  const chars = [...k];
+  const f = chars[0] ? hex(chars[0]) : "_";
+  if (!mlSplit.includes(f)) return f;
+  return `${f}-${chars[1] ? hex(chars[1]) : "_"}`;
+}
+
 export function createDictionary(fetchJson: DictFetch) {
   const cache = new Map<string, Promise<unknown | null>>();
   const get = (path: string) => {
@@ -79,10 +87,7 @@ export function createDictionary(fetchJson: DictFetch) {
   }
   async function mlShard(k: string) {
     const idx = await index();
-    const chars = [...k];
-    const f = chars[0] ? hex(chars[0]) : "_";
-    if (!idx?.mlSplit?.includes(f)) return `ml/${f}`;
-    return `ml/${f}-${chars[1] ? hex(chars[1]) : "_"}`;
+    return `ml/${mlShardName(k, idx?.mlSplit ?? [])}`;
   }
 
   async function getEn(word: string): Promise<EnEntry | null> {

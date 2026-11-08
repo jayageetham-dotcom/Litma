@@ -87,6 +87,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://jdexadomaxjtxlvgtldu.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XH6LhcIvUP_ENNbZFrmj7g_Z-YjUzP4' }}
           NEXT_PUBLIC_SITE_URL: https://getlitma.in
+          # Google Drive backup (Settings → Backup): a Google Cloud OAuth web client id; empty hides the button
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID || '' }}
           NEXT_PUBLIC_BASE_PATH: ""
 
       # lftp instead of FTP-Deploy-Action: cPanel's FTPS server resets connections

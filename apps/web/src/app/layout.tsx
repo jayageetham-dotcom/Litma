@@ -5,6 +5,8 @@ import { I18nProvider } from "@/i18n/react";
 import { UpdateNotice } from "@/components/UpdateNotice";
 import { Analytics } from "@/components/Analytics";
 import { OfflineStatus } from "@/components/OfflineStatus";
+import { Reminders } from "@/components/Reminders";
+import { BackupNudge } from "@/components/BackupNudge";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, KEYWORDS, SHARE_IMAGE, SITE, SITE_NAME } from "@/lib/seo";
 
@@ -100,6 +102,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <UpdateNotice />
           <OfflineStatus />
+          <Reminders />
+          <BackupNudge />
           <ServiceWorker />
           <Analytics />
         </I18nProvider>

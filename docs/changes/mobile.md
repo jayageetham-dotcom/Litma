@@ -11,8 +11,16 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - Try on a real iPhone and Android phone: everything from 2026-11-07 (inbox, keyboard strip,
   suggestion row, mid-line Manglish, desk keyboard, editor tools from #5, cover designer, book
   PDFs including the whole-book PDF, Book details, statistics reaching /admin/).
+- Writing aids (2026-11-08) need a CI run and a device check (see that entry). Still to do on the phone: spelling marks inside the text, restore from a backup, Drive backup without the share sheet.
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
+
+## 2026-11-08: Rhymes, spelling, read aloud, goals and timer, reminders, statistics, backup
+
+- New: `lib/data/rhyme.dart`, `spell.dart`, `goals.dart`, `notifications.dart`, `backup.dart`; `lib/core/zip.dart`; `lib/editor/writing_aids.dart` (Rhymes, Check, Listen, Goals sheets), `writing_timer.dart` (chip in the editor bar, snack bar at the end); `lib/features/goals/goals_screen.dart` (from Settings and the profile). Tests `test/goals_test.dart`, `test/spell_test.dart`.
+- Changed: tools sheet tiles, `Dictionary.file/text/mlShardName`, `Store.logWriting` (+ `writingChanged`, `wordsByDay` as `WritingDay`, `workDays`), offline outbox merging and `log_writing` fallback, session minutes and `replaceInLine`, AI sheet `start:` and the `grammar` action, desk streak with rest days and reminder scheduling, profile heatmap 13 weeks, Settings Goals + Backup.
+- pubspec: flutter_local_notifications ^22, timezone ^0.10.1, flutter_tts ^4.2.3. Android: core library desugaring, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, the plugin's receivers, the TTS `queries` entry.
+- Unverified: written without the Flutter SDK. CI must pass `flutter pub get`, `flutter analyze` and `flutter test`; if the plugin versions need a newer Flutter or compileSdk, pin them lower. On devices: notification permission (Android 13+, iOS), reminders after a reboot, Google's Malayalam voice, the share sheet with a zip.
 
 ## 2026-11-08: Manglish engine port
 

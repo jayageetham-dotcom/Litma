@@ -12,6 +12,8 @@ import { PHOTO_UPLOADS } from "@/lib/config";
 import { useT } from "@/i18n/react";
 import type { MessageKey } from "@litma/i18n";
 import { store } from "@/lib/store";
+import Link from "next/link";
+import { localDay, streak, type GoalPrefs } from "@litma/shared/goals";
 import { getSupabase } from "@/lib/supabase/client";
 import { templateFor } from "@/lib/templates";
 import type { LitmaDoc, Profile } from "@/lib/types";
@@ -31,14 +33,15 @@ async function squareWebp(file: File, size = 512): Promise<Blob> {
 type Days = { day: string; words: number }[];
 
 function Heatmap({ days }: { days: Days }) {
-  const weeks = 20;
+  // the server keeps 90 days of writing statistics
+  const weeks = 13;
   const map = new Map(days.map((d) => [d.day, d.words]));
   const end = new Date();
   const start = new Date(end);
   start.setDate(end.getDate() - (weeks * 7 - 1) - end.getDay());
   const cells: { date: string; words: number }[] = [];
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const k = d.toISOString().slice(0, 10);
+    const k = localDay(d);
     cells.push({ date: k, words: map.get(k) ?? 0 });
   }
   const max = Math.max(1, ...cells.map((c) => c.words));
@@ -77,18 +80,11 @@ function ProfileView() {
     const words = docs.reduce((n, d) => n + d.word_count, 0);
     const byKind = new Map<string, number>();
     docs.forEach((d) => byKind.set(d.kind, (byKind.get(d.kind) ?? 0) + 1));
-    const key = (d: Date) => d.toISOString().slice(0, 10);
-    const map = new Map(days.map((x) => [x.day, x.words]));
-    const d = new Date();
-    if (!map.get(key(d))) d.setDate(d.getDate() - 1);
-    let streak = 0;
-    while ((map.get(key(d)) ?? 0) > 0) {
-      streak++;
-      d.setDate(d.getDate() - 1);
-    }
+    const s = streak(days, localDay(), (p?.preferences?.goals as GoalPrefs | undefined)?.restDays ?? 0, (p?.preferences?.goals as GoalPrefs | undefined)?.bestStreak ?? 0);
     const best = Math.max(0, ...days.map((x) => x.words));
-    return { words, byKind: [...byKind.entries()].sort((a, b) => b[1] - a[1]), streak, best, today: map.get(key(new Date())) ?? 0 };
-  }, [docs, days]);
+    const today = days.find((x) => x.day === localDay())?.words ?? 0;
+    return { words, byKind: [...byKind.entries()].sort((a, b) => b[1] - a[1]), streak: s.current, best, today };
+  }, [docs, days, p]);
 
   if (!p)
     return (
@@ -330,8 +326,11 @@ function ProfileView() {
             )}
           </div>
           <div className="rounded-xl bg-paper p-5" style={{ boxShadow: "var(--sheet-shadow)" }}>
-            <h2 className="mb-3 font-semibold">Last 20 weeks</h2>
+            <h2 className="mb-3 font-semibold">Last 13 weeks</h2>
             <Heatmap days={days} />
+            <Link href="/goals/" className="btn btn-outline mt-4 w-full !py-1.5 text-sm">
+              {t("goals.title")}
+            </Link>
           </div>
           {stats.byKind.length > 0 && (
             <div className="rounded-xl bg-paper p-5" style={{ boxShadow: "var(--sheet-shadow)" }}>

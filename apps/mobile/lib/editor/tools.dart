@@ -27,6 +27,7 @@ import 'export.dart';
 import 'pdf_fonts.dart';
 import 'session.dart';
 import 'work_tools.dart';
+import 'writing_aids.dart';
 import '../data/analytics.dart';
 
 /// The editor's tools, as tinted tiles (the web's phone "More" sheet: each tool keeps its own tint).
@@ -68,6 +69,22 @@ Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s
     (LucideIcons.search, context.t('app.tools.find'), c.tintTangerine, () {
       Analytics.tap('app.tools.find');
       showFindSheet(context, s);
+    }),
+    (LucideIcons.repeat2, context.t('app.tools.rhymes'), c.tintSky, () {
+      Analytics.tap('app.tools.rhymes');
+      showRhymeSheet(context, ref, s);
+    }),
+    (LucideIcons.spellCheck, context.t('app.tools.check'), c.tintCoral, () {
+      Analytics.tap('app.tools.check');
+      showCheckSheet(context, ref, s);
+    }),
+    (LucideIcons.volume2, context.t('app.tools.listen'), c.tintLime, () {
+      Analytics.tap('app.tools.listen');
+      showReadAloudSheet(context, ref, s);
+    }),
+    (LucideIcons.target, context.t('app.tools.goals'), c.tintTangerine, () {
+      Analytics.tap('app.tools.goals');
+      showGoalSheet(context, ref, s);
     }),
     (LucideIcons.bookmark, context.t('saved.title'), c.tintLime, () {
       Analytics.tap('saved.title');
@@ -189,16 +206,18 @@ String? _wordAtCursor(EditorSession s) {
 
 // ── AI companion ──
 
-Future<void> showAiSheet(BuildContext context, WidgetRef ref, EditorSession s) => showModalBottomSheet<void>(
+/// [start]: an action to run once the panel is ready (the Check sheet's grammar check).
+Future<void> showAiSheet(BuildContext context, WidgetRef ref, EditorSession s, {String? start}) => showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => _AiPanel(session: s),
+      builder: (_) => _AiPanel(session: s, start: start),
     );
 
 class _AiPanel extends ConsumerStatefulWidget {
-  const _AiPanel({required this.session});
+  const _AiPanel({required this.session, this.start});
   final EditorSession session;
+  final String? start;
 
   @override
   ConsumerState<_AiPanel> createState() => _AiPanelState();
@@ -227,8 +246,11 @@ class _AiPanelState extends ConsumerState<_AiPanel> {
         _keyed = [for (final x in k) x.provider];
         if (_keyed!.isNotEmpty && !_keyed!.contains(_provider)) _provider = _keyed!.first;
       });
+      if (widget.start != null) _run(widget.start!);
     }).catchError((_) {
-      if (mounted) setState(() => _keyed = []);
+      if (!mounted) return;
+      setState(() => _keyed = []);
+      if (widget.start != null) _run(widget.start!);
     });
     sv.store.listTokens().then((t) {
       if (mounted) setState(() => _connected = t.any((x) => x['last_used_at'] != null));

@@ -101,6 +101,14 @@ final profileProvider = FutureProvider<Profile?>((ref) async {
   return ref.read(servicesProvider).store.getProfile(w.id, email: w.email);
 });
 
+/// Changes whenever words or minutes are counted (Store.logWriting), so goals and streaks refresh.
+final writingProvider = Provider<int>((ref) {
+  void bump() => ref.invalidateSelf();
+  Store.writingChanged.addListener(bump);
+  ref.onDispose(() => Store.writingChanged.removeListener(bump));
+  return Store.writingChanged.value;
+});
+
 /// Offline / sync state for the status pill and the editor.
 final syncStateProvider = StreamProvider<SyncState>((ref) {
   final n = ref.watch(servicesProvider).offline.state;

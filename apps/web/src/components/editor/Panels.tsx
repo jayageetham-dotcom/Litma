@@ -156,7 +156,24 @@ function classifyAIError(raw: string): Why | null {
   return null;
 }
 
-export function AIPanel({ editor, kind, docId, title, onOpenInbox }: { editor: Editor; kind: string; docId: string; title: string; onOpenInbox?: () => void }) {
+export function AIPanel({
+  editor,
+  kind,
+  docId,
+  title,
+  onOpenInbox,
+  start,
+  onStarted,
+}: {
+  editor: Editor;
+  kind: string;
+  docId: string;
+  title: string;
+  onOpenInbox?: () => void;
+  /** run this action as soon as the panel is ready (the Check panel's grammar check) */
+  start?: AIAction;
+  onStarted?: () => void;
+}) {
   const prefs = useMemo(getAIPrefs, []);
   const cloud = store.isCloud();
   const [provider, setProvider] = useState<AIProvider>(prefs.provider && prefs.provider !== "claude-app" ? prefs.provider : "anthropic");
@@ -201,6 +218,16 @@ export function AIPanel({ editor, kind, docId, title, onOpenInbox }: { editor: E
     window.open(`https://claude.ai/new?q=${encodeURIComponent(handoff.prompt)}`, "_blank", "noopener");
     setHandoff({ ...handoff, opened: true });
   }
+
+  // started from elsewhere (Check → grammar): run once the writer's keys are known
+  const started = useRef(false);
+  useEffect(() => {
+    if (!start || started.current || keyed === null) return;
+    started.current = true;
+    run(start);
+    onStarted?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [start, keyed]);
 
   async function run(action: AIAction) {
     const { from, to, empty } = editor.state.selection;
@@ -819,10 +846,6 @@ export function PagePanel({ kind, settings, onChange, showMetreOption }: { kind:
       <label className="block">
         <span className="mb-1 block text-xs text-muted">Running header</span>
         <input className="field !py-1.5" placeholder="Shown at the top of pages 2 onwards" value={settings.header ?? ""} onChange={(e) => onChange({ header: e.target.value })} />
-      </label>
-      <label className="block">
-        <span className="mb-1 block text-xs text-muted">Word goal for this work</span>
-        <input type="number" min={0} step={100} className="field !py-1.5" value={settings.goal ?? 0} onChange={(e) => onChange({ goal: Number(e.target.value) || 0 })} />
       </label>
       {showMetreOption && (
         <label className="flex items-center gap-2">

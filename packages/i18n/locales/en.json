@@ -29,7 +29,8 @@
     "settings": "Settings & AI",
     "signOut": "Sign out",
     "writer": "Writer",
-    "admin": "Admin dashboard"
+    "admin": "Admin dashboard",
+    "goals": "Goals and statistics"
   },
   "desk": {
     "title": "എഴുത്തുമേശ",
@@ -956,7 +957,11 @@
       "outline": "Contents",
       "find": "Find",
       "page": "Page setup",
-      "metre": "Metre marks (വൃത്തം)"
+      "metre": "Metre marks (വൃത്തം)",
+      "rhymes": "Rhymes",
+      "check": "Check",
+      "listen": "Listen",
+      "goals": "Goals"
     },
     "ai": {
       "whole": "For the whole work",
@@ -1052,6 +1057,18 @@
       "castDone_one": "Added {count} name to the scene's cast",
       "castDone_other": "Added {count} names to the scene's cast",
       "castNone": "Everyone who speaks in this scene is already in its cast."
+    },
+    "goals": {
+      "blocked": "Notifications are off for Litma. Turn them on in the phone's settings to get reminders.",
+      "whereApp": "The phone reminds you even when Litma is closed, only on days your goal isn't met yet."
+    },
+    "backup": {
+      "share": "Back up now",
+      "ready_one": "Backup of {count} work ready. Choose Google Drive, Files or any app.",
+      "ready_other": "Backup of {count} works ready. Choose Google Drive, Files or any app.",
+      "daily": "Keep a daily copy on this phone",
+      "dailyHint": "Once a day, when you open Litma, a backup is kept in the app (the last 14).",
+      "restoreWhere": "To bring works back from a backup, use Settings, Backup on the website or the desktop app."
     }
   },
   "legal": {
@@ -1062,5 +1079,226 @@
   "search": {
     "inMalayalam": "In Malayalam",
     "inMalayalamHint": "Words in this work that sound like what you typed. Tap one to find it."
+  },
+  "rhyme": {
+    "tab": "പ്രാസം",
+    "placeholder": "A word or a line, in Malayalam or Manglish",
+    "kindLabel": "Kind of rhyme",
+    "kind": {
+      "second": {
+        "ml": "ദ്വിതീയാക്ഷരം",
+        "en": "Second letter",
+        "hint": "Words whose second akshara has the same consonant (കാലം, നീലം, ജാലം). Words with the same first-akshara weight come first, as the classical rule asks."
+      },
+      "end": {
+        "ml": "അന്ത്യപ്രാസം",
+        "en": "End rhyme",
+        "hint": "Words that end in the same akshara (മഴയിൽ, പുഴയിൽ)."
+      },
+      "first": {
+        "ml": "ആദിപ്രാസം",
+        "en": "First letter",
+        "hint": "Words that start with the same letter."
+      }
+    },
+    "sameLength": "Same number of aksharas",
+    "sameMetre": "Same laghu–guru pattern",
+    "for": "Rhymes for",
+    "metreTitle": "Laghu (∪) and guru (–) of the word",
+    "empty": "Type a word, or put the cursor on a line of your poem.",
+    "tooShort": "This kind of rhyme needs a word of two aksharas or more.",
+    "none": "No rhymes in the dictionary for this one. Try another kind of rhyme.",
+    "pickHint": "Tap a word to put it in your text. Without a selection the finder follows the line you are on, or the line above when that one is empty.",
+    "openHint": "Tap a word to see its meaning.",
+    "source": "Words from Olam's open dictionaries, best known first."
+  },
+  "check": {
+    "spelling": "Spelling",
+    "markOn": "Mark spelling in the text",
+    "unknown": "Also mark words the dictionary doesn't have",
+    "unknownHint": "Malayalam joins words freely and every region has its own words, so these are only questions, never errors. Keep a word and it isn't marked again on this device.",
+    "none": "Nothing to fix.",
+    "count_one": "{count} thing to look at",
+    "count_other": "{count} things to look at",
+    "fixAll_one": "Fix {count} broken letter",
+    "fixAll_other": "Fix {count} broken letters",
+    "keep": "Keep",
+    "offHint": "Marks letters typed in an old or broken way (ന്‍ for ൻ, a colon for ഃ) and common misspellings, with the fix.",
+    "kind": {
+      "unicode": "Broken letter",
+      "mistake": "Misspelling",
+      "unknown": "Not in the dictionary"
+    },
+    "grammar": "Grammar",
+    "grammarHint": "The AI companion reads your selection, or the text before the cursor, and lists each error with the fix. It leaves dialect, regional words and dialogue as you wrote them.",
+    "grammarButton": "Check grammar with AI"
+  },
+  "read": {
+    "voice": "Voice",
+    "speed": "Speed",
+    "fromCursor": "Read from the cursor",
+    "fromStart": "Read from the start",
+    "pause": "Pause",
+    "resume": "Go on",
+    "stop": "Stop",
+    "progress": "Reading {n} of {total}",
+    "hint": "Litma reads with the Malayalam voice on this device, sentence by sentence and line by line, and shows the line it is reading.",
+    "loading": "Looking for voices…",
+    "noVoice": "No Malayalam voice on this device",
+    "help": {
+      "android": "Install Google's Malayalam voice: Settings, then Text-to-speech output (under Accessibility or Language), Speech Services by Google, Install voice data, Malayalam. Then open this panel again.",
+      "ios": "iPhones and iPads don't have a Malayalam voice yet. Litma on an Android phone, or the website in Microsoft Edge on a computer, can read aloud.",
+      "mac": "Macs don't have a Malayalam voice yet. Open Litma's website in Microsoft Edge, which has Microsoft's Malayalam voices.",
+      "windows": "This browser has no Malayalam voice. Open Litma's website in Microsoft Edge, which has Microsoft's Malayalam voices.",
+      "linux": "This browser has no Malayalam voice. Open Litma's website in Microsoft Edge, or use an Android phone.",
+      "other": "This browser has no Malayalam voice. Try Microsoft Edge on a computer, or Chrome on an Android phone.",
+      "desktop_mac": "The desktop app uses the Mac's own voices, and Macs don't have a Malayalam one yet. Open Litma's website in Microsoft Edge to listen.",
+      "desktop_windows": "The desktop app uses Windows' own voices, which don't include Malayalam. Open Litma's website in Microsoft Edge to listen."
+    },
+    "helpFree": "Read aloud uses your device's voices, so it costs nothing and nothing is sent anywhere."
+  },
+  "goals": {
+    "title": "Goals and statistics",
+    "intro": "Set a daily goal, keep a streak, get a gentle reminder and see how your writing goes. Litma keeps your writing statistics for 90 days.",
+    "settingsIntro": "Daily and weekly word goals, rest days, the writing timer, a daily reminder and your writing statistics.",
+    "open": "Open goals and statistics",
+    "words": "words",
+    "todayLabel": "Words today",
+    "ofGoal": "of {n}",
+    "streak": "Streak",
+    "streakDays_one": "{count} day",
+    "streakDays_other": "{count} days",
+    "best_one": "Best: {count} day",
+    "best_other": "Best: {count} days",
+    "thisWeek": "This week",
+    "met": "Today's goal is done. Well written!",
+    "set": "Your goals",
+    "daily": "Words a day",
+    "weekly": "Words a week",
+    "restDays": "Rest days that keep the streak",
+    "restN_one": "{count} a week",
+    "restN_other": "{count} a week",
+    "restHint": "Days without writing that still keep your streak going, up to this many in any seven days.",
+    "timerDefault": "Writing timer",
+    "panel": {
+      "timer": "Writing timer",
+      "today": "Today",
+      "work": "This work",
+      "more": "Goals, reminders and statistics"
+    },
+    "work": {
+      "goal": "Word goal",
+      "deadline": "Finish by",
+      "progress": "{words} of {goal} words",
+      "pace_one": "Write {n} words today to finish on time ({count} day left).",
+      "pace_other": "Write {n} words a day to finish on time ({count} days left).",
+      "passed": "The finish date has passed. {n} words to go.",
+      "reached": "Word goal reached."
+    },
+    "timer": {
+      "min": "{n} min",
+      "length": "How long",
+      "start": "Start {n} minutes",
+      "pause": "Pause",
+      "resume": "Go on",
+      "stop": "Stop",
+      "written_one": "{count} word so far",
+      "written_other": "{count} words so far",
+      "hint": "Write without stopping until the chime. The time shows at the top of the editor.",
+      "chip": "Writing timer, {time} left",
+      "doneTitle": "Time's up",
+      "doneBody_one": "You wrote {count} word in {minutes} minutes.",
+      "doneBody_other": "You wrote {count} words in {minutes} minutes.",
+      "again": "Another {minutes} minutes",
+      "finish": "Done",
+      "notifyBody": "Your {minutes} minutes are up. See how many words came."
+    },
+    "reminder": {
+      "heading": "Daily reminder",
+      "on": "Remind me to write",
+      "time": "At",
+      "days": "On these days",
+      "title": "Time to write",
+      "body": "A few lines today keep your streak going.",
+      "bodyLeft": "{n} words to go for today's goal.",
+      "write": "Start writing",
+      "later": "Later",
+      "allow": "Allow notifications on this device",
+      "deviceOn": "Notifications are on for this device.",
+      "deviceOff": "Turn off here",
+      "blocked": "Notifications are blocked for Litma in this browser. Allow them in the browser's site settings to get reminders outside the tab.",
+      "whereWeb": "In a browser the reminder comes while Litma is open in a tab. The desktop and phone apps remind you even when they are closed or in the background.",
+      "whereDesktop": "The desktop app reminds you while it is running, even with its window closed on a Mac. The reminder comes only on days your goal isn't met yet."
+    },
+    "dow": {
+      "0": "S",
+      "1": "M",
+      "2": "T",
+      "3": "W",
+      "4": "T",
+      "5": "F",
+      "6": "S"
+    },
+    "stats": {
+      "title": "Statistics",
+      "days": "{n} days",
+      "words": "Words written",
+      "time": "Time writing",
+      "hm": "{h} h {m} min",
+      "m": "{m} min",
+      "writingDays": "Writing days",
+      "perDay": "Words on a writing day",
+      "bestDay": "Best day: {n}",
+      "perDayChart": "Words each day",
+      "when": "When you write",
+      "noHours": "Times of day show here once you have written with this version of Litma.",
+      "bestHour": "You write most around {h}.",
+      "byKind": "By writing type",
+      "byWork": "By work",
+      "untitled": "Untitled",
+      "deleted": "A deleted work",
+      "other": "Others",
+      "kept": "Litma keeps your writing statistics for the last {n} days. Your works themselves are kept for good."
+    }
+  },
+  "backup": {
+    "title": "Backup",
+    "intro": "Your works are safe in Litma, and a copy of your own never hurts. A backup holds every work as a Word file plus one file that can bring everything back into Litma.",
+    "last": "Last backup on this device: {when}",
+    "never": "No backup made on this device yet.",
+    "download": "Download a backup",
+    "drive": "Save to Google Drive",
+    "folderNow": "Back up to the folder now",
+    "progress": "Reading works: {n} of {total}",
+    "done": {
+      "download_one": "Backup of {count} work downloaded.",
+      "download_other": "Backup of {count} works downloaded.",
+      "drive_one": "Backup of {count} work saved to the Litma backup folder in your Google Drive.",
+      "drive_other": "Backup of {count} works saved to the Litma backup folder in your Google Drive.",
+      "folder_one": "Backup of {count} work saved to your backup folder.",
+      "folder_other": "Backup of {count} works saved to your backup folder."
+    },
+    "error": {
+      "google": "Google Drive wasn't allowed. Try again and choose your account.",
+      "offline": "Couldn't reach Google Drive. Check your connection and try again.",
+      "notBackup": "That file isn't a Litma backup.",
+      "any": "The backup didn't finish. Try again."
+    },
+    "folder": "Backup folder",
+    "folderHint": "Litma saves a backup here every day and keeps the last 14. Pick the folder of Google Drive, iCloud Drive, OneDrive or Dropbox on this computer and the backups go to that cloud too.",
+    "folderChoose": "Choose a folder",
+    "folderChange": "Change folder",
+    "daily": "Back up every day",
+    "dailyDrive": "Once a day Litma offers to save a backup to Google Drive with one click. It keeps the last 14 there.",
+    "dailyFolder": "A minute after Litma opens, once a day, a backup goes into the folder by itself.",
+    "restore": "Restore from a backup",
+    "restoreHint": "Works that are no longer in Litma come back with their Story World. Works still here are left as they are.",
+    "restoreButton": "Restore from a backup file",
+    "restored_one": "{count} work restored ({skipped} already here).",
+    "restored_other": "{count} works restored ({skipped} already here).",
+    "nudgeTitle": "Daily backup",
+    "nudgeBody": "Save today's backup to Google Drive?",
+    "nudgeNow": "Back up now",
+    "working": "Backing up…"
   }
 }

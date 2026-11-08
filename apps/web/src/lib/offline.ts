@@ -250,7 +250,7 @@ export type Op =
   | { kind: "update"; table: string; id: string; patch: Record<string, unknown>; base?: string | null }
   | { kind: "upsert"; table: string; id: string; row: Record<string, unknown>; onConflict?: string }
   | { kind: "delete"; table: string; id?: string; match?: Record<string, string> }
-  | { kind: "rpc"; fn: string; args: Record<string, number> };
+  | { kind: "rpc"; fn: string; args: Record<string, number | string | null> };
 
 type Queued = Op & { key?: number; uid: string; at: string; tries?: number };
 
@@ -288,10 +288,14 @@ export async function enqueue(op: Op) {
     // created while offline and never sent: nothing to delete on the server
     if (mine.some((o) => o.kind === "insert")) return notify();
   } else if (op.kind === "rpc") {
-    const same = list.find((o) => o.kind === "rpc" && o.fn === op.fn);
+    // counts (n words, mins minutes) add up; the other arguments (day, work, hour) must match
+    const SUM = ["n", "mins"];
+    const same = list.find(
+      (o) => o.kind === "rpc" && o.fn === op.fn && Object.keys(op.args).every((k) => SUM.includes(k) || o.args[k] === op.args[k])
+    );
     if (same && same.kind === "rpc") {
       const args = { ...same.args };
-      for (const [k, v] of Object.entries(op.args)) args[k] = (args[k] ?? 0) + v;
+      for (const [k, v] of Object.entries(op.args)) args[k] = SUM.includes(k) ? (Number(args[k]) || 0) + (Number(v) || 0) : v;
       await save({ ...same, args });
       return notify();
     }
@@ -375,7 +379,14 @@ async function send(sb: SupabaseClient, op: Queued) {
       else if (op.match) await remote(sb.from(op.table).delete().match(op.match), P);
       return;
     case "rpc":
-      await remote(sb.rpc(op.fn, op.args), P);
+      try {
+        await remote(sb.rpc(op.fn, op.args), P);
+      } catch (e) {
+        // writing statistics queued before the server had log_writing: count the words the old way
+        const code = (e as { code?: string } | null)?.code;
+        if (op.fn !== "log_writing" || (code !== "PGRST202" && code !== "42883")) throw e;
+        if (Number(op.args.n) > 0) await remote(sb.rpc("add_words_today", { n: Number(op.args.n) }), P);
+      }
       return;
   }
 }

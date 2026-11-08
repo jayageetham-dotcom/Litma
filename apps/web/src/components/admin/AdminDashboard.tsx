@@ -13,7 +13,8 @@ import { UserDetail } from "./UserDetail";
 
 type View = "overview" | "audience" | "behaviour" | "writers";
 const VIEWS: View[] = ["overview", "audience", "behaviour", "writers"];
-const RANGES = [7, 30, 90, 365] as const;
+/** Statistics are kept for 90 days (prune_statistics in the writing_stats_retention migration). */
+const RANGES = [7, 30, 90] as const;
 
 const countryName = (() => {
   const dn = typeof Intl !== "undefined" && "DisplayNames" in Intl ? new Intl.DisplayNames(["en"], { type: "region" }) : null;

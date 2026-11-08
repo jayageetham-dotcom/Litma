@@ -456,6 +456,29 @@ $mm: 3.7795275591px;
     border-radius: 2px;
   }
 
+  // spelling check (extensions/writing-aids.ts): a broken letter or a common misspelling gets a
+  // wavy line; a word the dictionary doesn't know only a faint dotted one (it may well be right)
+  .spell-mistake,
+  .spell-unicode {
+    text-decoration: underline wavy var(--danger);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-skip-ink: none;
+  }
+  .spell-unicode {
+    text-decoration-color: var(--accent);
+  }
+  .spell-unknown {
+    text-decoration: underline dotted var(--muted);
+    text-underline-offset: 4px;
+  }
+  // read aloud: the sentence being read
+  .reading-now {
+    background: var(--highlight-soft);
+    border-radius: 2px;
+    box-shadow: 0 0 0 2px var(--highlight-soft);
+  }
+
   // Manglish composition & search
   .manglish-composing {
     background: var(--highlight-soft);

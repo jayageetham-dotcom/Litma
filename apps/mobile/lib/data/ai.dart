@@ -13,6 +13,7 @@ const aiActions = <String, ({String label, String ml, bool needsSelection})>{
   'rewrite': (label: 'Rewrite', ml: 'മാറ്റിയെഴുതുക', needsSelection: true),
   'polish': (label: 'Polish language', ml: 'ഭാഷ മിനുക്കുക', needsSelection: true),
   'proofread': (label: 'Proofread', ml: 'തെറ്റുതിരുത്തുക', needsSelection: true),
+  'grammar': (label: 'Check spelling and grammar', ml: 'അക്ഷരത്തെറ്റും വ്യാകരണവും', needsSelection: false),
   'synonyms': (label: 'Synonyms', ml: 'പര്യായങ്ങൾ', needsSelection: true),
   'rhymes': (label: 'Rhymes (പ്രാസം)', ml: 'പ്രാസം', needsSelection: true),
   'dialogue': (label: 'Dialogue ideas', ml: 'സംഭാഷണം', needsSelection: false),

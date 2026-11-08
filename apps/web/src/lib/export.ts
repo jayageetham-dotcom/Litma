@@ -7,7 +7,7 @@ import { PAGE_SIZES } from "@/extensions/pagination";
 import { renderDocHtml } from "./doc-html";
 import { docClasses } from "./templates";
 
-function download(name: string, blob: Blob) {
+export function download(name: string, blob: Blob) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = name;
@@ -17,7 +17,7 @@ function download(name: string, blob: Blob) {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
-const safe = (t: string) => t.replace(/[\\/:*?"<>|]+/g, " ").trim() || "litma";
+export const safe = (t: string) => t.replace(/[\\/:*?"<>|]+/g, " ").trim() || "litma";
 
 import { toMarkdown, toPlainText } from "@litma/shared/serialize";
 export { toMarkdown, toPlainText };
@@ -68,6 +68,11 @@ const NONE = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 
 export async function exportDocx(d: LitmaDoc) {
   track("export", { format: "docx", kind: d.kind });
+  download(`${safe(d.title)}.docx`, await docxBlob(d));
+}
+
+/** A work as a Word file (used by Export and by the backup). */
+export async function docxBlob(d: LitmaDoc): Promise<Blob> {
   const s = d.settings;
   const pt = (v: number) => Math.round(v * 2); // half-points
   const body: (Paragraph | Table)[] = [];
@@ -232,7 +237,7 @@ export async function exportDocx(d: LitmaDoc) {
       },
     ],
   });
-  download(`${safe(d.title)}.docx`, await Packer.toBlob(docx));
+  return Packer.toBlob(docx);
 }
 
 export function exportText(d: LitmaDoc) {

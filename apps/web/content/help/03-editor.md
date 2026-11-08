@@ -94,6 +94,42 @@ Open **Page & type** on the right-hand rail to set up the whole work.
 - **Word goal for this work:** a target you can see in the status bar.
 - Choices for the writing type, like **Number the chapters**, numbered scene labels in Malayalam or English (രംഗം 1 or Scene 1), or centred poem lines.
 
+## Spelling and grammar {#spelling}
+
+Litma can mark spelling in your text and ask the AI companion to check grammar.
+
+![The Check panel](shots/spelling.webp "Broken letters and common misspellings, each with its fix.")
+
+1. Choose **Spelling and grammar** on the right-hand rail.
+2. Tick **Mark spelling in the text**. Litma underlines:
+   - **Broken letters**: Malayalam typed in an old or broken way that looks right but searches and sorts wrongly, like ന്‍ for ൻ or a colon for ഃ (ദു:ഖം for ദുഃഖം). **Fix all** puts every one right at once.
+   - **Misspellings**: words often written wrongly (ഉൽഘാടനം for ഉദ്ഘാടനം), with the standard spelling.
+3. Click a fix to use it, or **Keep** to leave the word as it is. A kept word isn't marked again on this device.
+
+Tick **Also mark words the dictionary doesn't have** to see words Litma can't find, with a faint dotted line. Malayalam joins words freely and every region and community has its own words, so these are only questions, never mistakes.
+
+### Grammar
+
+Choose **Check grammar with AI**. The AI companion reads your selection, or the text before the cursor, and lists each error with its fix. It leaves dialect, regional words and dialogue as you wrote them. It uses your own AI key, or your Claude plan ([use your Claude plan instead of a key](#open-claude)).
+
+> **Phone:** Tap the tools button and choose **Check**. The phone lists what it finds with the fixes; the marks inside the text are on the website and desktop app.
+
+## Read aloud {#read-aloud}
+
+Hear your work read in Malayalam, sentence by sentence and line by line, to catch what the eye misses.
+
+1. Choose **Read aloud** on the right-hand rail.
+2. Choose **Read from the cursor** or **Read from the start**. The sentence being read is highlighted.
+3. Change the **Speed**, or **Pause** and **Go on** when you like.
+
+Litma uses the Malayalam voice of your device, so it costs nothing and your text isn't sent anywhere. Not every device has one:
+
+- **Android phones:** Google's Malayalam voice. If Litma says there is none, open the phone's **Settings**, find **Text-to-speech output** (under Accessibility or Language), choose **Speech Services by Google**, **Install voice data** and **Malayalam**.
+- **Computers:** Microsoft Edge has Microsoft's Malayalam voices; open Litma's website in Edge.
+- **Mac, iPhone, iPad and the desktop app** don't have a Malayalam voice yet. Use the website in Edge, or an Android phone.
+
+> **Phone:** Tap the tools button and choose **Listen**.
+
 ## Find and replace {#find}
 
 1. Press <kbd>Ctrl</kbd> + <kbd>F</kbd> (<kbd>⌘</kbd> + <kbd>F</kbd> on a Mac).

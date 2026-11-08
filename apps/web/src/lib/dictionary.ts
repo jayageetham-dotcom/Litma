@@ -2,6 +2,7 @@
 /** Browser wrapper around the shared dictionary core: data is served from /dict/. */
 import { BASE } from "./config";
 import { createDictionary, isMalayalam, type DictIndex, type LookupResult } from "@litma/shared/dict";
+import { createRhymes } from "@litma/shared/rhyme";
 import { manglishWord } from "@litma/shared/manglish";
 import { transliterate } from "./functions";
 
@@ -26,3 +27,10 @@ export async function manglishCandidates(q: string): Promise<string[]> {
   const r = await transliterate(q.trim(), 4);
   return [...new Set([...(r.candidates ?? []), manglishWord(q.trim())])].slice(0, 5);
 }
+
+/** Rhyme finder (പ്രാസം): files built from the dictionary by scripts/build-rhymes.mjs. */
+export const rhymes = createRhymes((path) =>
+  fetch(`${BASE}/dict/${path}.json`)
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null)
+);

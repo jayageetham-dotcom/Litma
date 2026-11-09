@@ -409,7 +409,7 @@ function CategoryView({ data, category: c, go }: { data: HelpData; category: Hel
       <PageTop data={data} go={go}>
         <Crumbs items={[{ href: "/help/", label: "Help" }, { label: c.title }]} />
       </PageTop>
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-5 pb-20 pt-8 md:pt-12 md:px-10 lg:grid-cols-[250px_minmax(0,1fr)]">
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-5 pt-8 md:px-10 md:pt-12 lg:grid-cols-[250px_minmax(0,1fr)]">
         <div className="min-w-0 lg:sticky lg:top-28 lg:self-start">
           <TopicNav data={data} current={c.id} />
         </div>
@@ -479,7 +479,7 @@ function ArticleView({ data, category: c, article: a, go }: { data: HelpData; ca
       <PageTop data={data} go={go}>
         <Crumbs items={[{ href: "/help/", label: "Help" }, { href: `/help/?c=${c.id}`, label: c.title }, { label: a.title }]} />
       </PageTop>
-      <div className={`mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-5 pb-20 pt-8 md:pt-12 md:px-10 lg:grid-cols-[250px_minmax(0,1fr)] ${a.toc.length > 1 ? "xl:grid-cols-[250px_minmax(0,1fr)_210px]" : ""}`}>
+      <div className={`mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-5 pt-8 md:px-10 md:pt-12 lg:grid-cols-[250px_minmax(0,1fr)] ${a.toc.length > 1 ? "xl:grid-cols-[250px_minmax(0,1fr)_210px]" : ""}`}>
         <aside className="min-w-0 lg:sticky lg:top-28 lg:self-start">
           <TopicNav data={data} current={c.id} />
           <div className="hidden lg:block">
@@ -568,7 +568,7 @@ function ArticleView({ data, category: c, article: a, go }: { data: HelpData; ca
 
 function StillStuck() {
   return (
-    <section className="mx-auto max-w-7xl px-5 pb-24 md:px-10">
+    <section className="mx-auto max-w-7xl px-5 py-16 md:px-10 md:py-24">
       <div className="on-night relative flex flex-wrap items-center justify-between gap-6 overflow-hidden rounded-[2rem] bg-night px-6 py-8 sm:px-10">
         <div aria-hidden className="dot-grid absolute inset-0 text-night-ink/[0.06]" />
         <div className="relative flex items-center gap-4">

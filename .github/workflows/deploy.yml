@@ -128,9 +128,23 @@ jobs:
           LOGIN="set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set ftp:passive-mode true; set net:timeout 30; set net:max-retries 3"
 
           # Where are we? List the account's top folder once (also checks the login).
+          # First: does the server answer at all? (A firewall that blocks GitHub looks like a timeout.)
+          if ! timeout 20 bash -c "exec 3<>/dev/tcp/$FTP_HOST/21" 2>/dev/null; then
+            echo "::error::$FTP_HOST does not answer on port 21 from GitHub. The password is not the problem: the host's firewall may be blocking GitHub's servers (cPanel → cPHulk Brute Force Protection or the host's firewall; ask the host to allow FTP from GitHub Actions), or FTP is down."
+            exit 1
+          fi
           if ! TOP=$(lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" -e "$LOGIN; cls -1a /; bye" 2>&1); then
             echo "$TOP" | tail -5
-            echo "::error::Could not sign in to $FTP_HOST as $FTP_USER. Check the password (cPanel → FTP Accounts → Change Password, then update the LITMA_FTP_PASSWORD secret)."
+            # Run once more with the conversation shown, to tell a refused login from a broken connection.
+            DBG=$(lftp -d -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set ftp:passive-mode true; set net:timeout 20; set net:max-retries 1; cls -1 /; bye" 2>&1 | sed -E 's/^(---> PASS ).*/\1****/')
+            echo "What the server said:"; echo "$DBG" | grep -E '^(<---|\*\*\*\*)|SSL|TLS|refused|timed out|Login' | grep -v PASS | tail -15
+            if echo "$DBG" | grep -qE '^<--- 530'; then
+              echo "::error::$FTP_HOST refused the login for $FTP_USER (530). Either the password is wrong (cPanel → FTP Accounts → Change Password, then update the LITMA_FTP_PASSWORD secret) or the username is not the full FTP account name (e.g. litma@getlitma.in, in LITMA_FTP_USERNAME). After many failed tries cPHulk may block GitHub for a while too."
+            elif echo "$DBG" | grep -qiE 'ssl|tls|certificate|AUTH TLS'; then
+              echo "::error::$FTP_HOST answered but the secure (FTPS) connection failed. Check that FTP over TLS is on for this account in cPanel."
+            else
+              echo "::error::Could not sign in to $FTP_HOST as $FTP_USER. The server answered on port 21 but the session broke off (see what the server said above). cPHulk or the host's firewall may be cutting GitHub off; check cPanel → cPHulk."
+            fi
             exit 1
           fi
           echo "The account's top folder holds:"; echo "$TOP" | head -30

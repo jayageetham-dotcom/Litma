@@ -9,6 +9,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: getlitma.in upload says why it can't sign in
+
+- `.github/workflows/deploy.yml`: before signing in, checks that ftp.getlitma.in answers on port 21 from GitHub (else: firewall/cPHulk, not the password). When sign-in fails, runs lftp once with `-d` and prints the server's replies (password masked), then says which it is: 530 refused login (password or full username like litma@getlitma.in), FTPS/TLS failure, or a session cut off (cPHulk/firewall). Unverified until the next deploy run; the sandbox can't reach getlitma.in.
+
 ## 2026-11-08: Read aloud: pitch, volume, word underline
 
 - `src/lib/speech.ts`: `readAloud` takes `settings()` (voice, rate, pitch, volume) read before each sentence, so changes while reading apply from the next one; `onboundary` word events underline the spoken word (`wordLength` when the voice sends no length). Inline leaves now stay in the spoken text as a space, so sentence and word positions line up after a footnote or line break (they were shifted by one per leaf before).

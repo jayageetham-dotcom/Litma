@@ -49,6 +49,10 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
+## 2026-11-09: Clearer FTP sign-in errors in the website deploy
+
+- CI only (`deploy.yml`): port-21 check and the server's own replies when the getlitma.in sign-in fails. A deploy failed with "max-retries exceeded"; cause not yet known (password, username or the host blocking GitHub). Details in `web.md`.
+
 ## 2026-11-09: Desktop build retries and caches Electron
 
 - CI only (`.github/workflows/desktop.yml`): Electron download cached, electron-builder retried 3 times after a GitHub 504 failed a Mac build. Details in `desktop.md`.

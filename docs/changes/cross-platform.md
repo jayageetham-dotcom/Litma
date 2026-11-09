@@ -11,6 +11,9 @@ the code, and what is still unverified.
 
 ### Still open (after the 2026-11-07 work)
 
+Reels (2026-11-09): post them with a track from Instagram's music picker; on the Mac, run the one-time setup in `docs/marketing/reels.md` (Whisper and yt-dlp could not reach their downloads from the cloud sandbox).
+
+
 Only the owner can do these (accounts, secrets, dashboards):
 - **Phone app in the stores:** App Store Connect and Google Play Console accounts, then the store
   secrets listed at the top of `.github/workflows/mobile-release.yml`; until then the web's store
@@ -45,6 +48,12 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Google Drive backup on the website:** enable the Drive API, add `getlitma.in` as a JavaScript origin of the Web OAuth client, add the `drive.file` scope to the consent screen, set the repo variable `GOOGLE_CLIENT_ID` (README → Google Drive backup). Without it the button stays hidden.
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
+
+## 2026-11-09: Instagram reels (marketing only, no app change)
+
+- Two 9:16 reels made from real footage of the app: `marketing/reels/reel-manglish` (HyperFrames: a short story typed in Manglish becomes Malayalam) and `marketing/reels/reel-types` (Remotion: the nine writing types land on the desk). Footage comes from `marketing/reels/capture` (Playwright screen recording of a local-mode build at 1080 x 1920, Google Fonts served from Fontsource). Workflow, rules and prompts: `docs/marketing/reels.md`; Claude skill `litma-reels`.
+- No change to web, desktop or phone code: no Release or store build needed.
+- Unverified: the reels are silent (music is meant to be added in Instagram); captures were made in a cloud sandbox, so check them once on the Mac with `npm run all` before re-rendering.
 
 ## 2026-11-08: Pages in the phone app's editor (phone only)
 

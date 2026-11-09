@@ -1,0 +1,81 @@
+<template>
+  <style>
+    @font-face { font-family: "Anek Malayalam"; font-weight: 100 800; font-stretch: 75% 125%;
+      src: url("assets/fonts/anek-malayalam-malayalam-standard-normal.woff2") format("woff2");
+      unicode-range: U+0307, U+0323, U+0951-0952, U+0964-0965, U+0D00-0D7F, U+1CDA, U+1CF2, U+200C-200D, U+20B9, U+25CC, U+A830-A832; }
+    @font-face { font-family: "Anek Malayalam"; font-weight: 100 800; font-stretch: 75% 125%;
+      src: url("assets/fonts/anek-malayalam-latin-standard-normal.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+2000-206F, U+2122, U+2212; }
+    /* hidden until their moment; the timeline shows them */
+    #l1-ml, #l2-ml, #marker, #dot, #lockup, #url { opacity: 0; }
+    #root { position: absolute; inset: 0; background: #f4f2fb; font-family: "Anek Malayalam", sans-serif; color: #111113; }
+    .line { position: absolute; left: 90px; right: 90px; height: 240px; }
+    #l1 { top: 470px; }
+    #l2 { top: 700px; }
+    .word { position: absolute; left: 0; bottom: 0; white-space: nowrap; line-height: 1; }
+    .ml { font-weight: 800; font-size: 160px; letter-spacing: -0.02em; }
+    #l2-ml { color: #5b3ef0; font-size: 118px; }
+    #l2-text { position: relative; z-index: 1; }
+    /* the editor's own look for a Manglish word still being typed */
+    .latin { font-weight: 600; font-size: 120px; bottom: 30px; background: #fdf1e4;
+      border-bottom: 8px dotted #e0892b; padding: 0 10px; border-radius: 6px; }
+    .latin:empty { padding: 0; border: 0; }
+    #marker { position: absolute; left: -12px; right: -12px; bottom: 4px; height: 46px; background: #d5f567;
+      border-radius: 14px; z-index: 0; transform-origin: left center; }
+    #l2-ml { z-index: 1; }
+    .latin { z-index: 1; }
+    #dot { position: absolute; right: -50px; bottom: 22px; width: 34px; height: 34px; border-radius: 50%; background: #ff5e7e; }
+    #lockup { position: absolute; left: 90px; top: 1000px; display: flex; align-items: center; gap: 30px; }
+    #icon { width: 132px; height: 132px; border-radius: 30px; }
+    #wordmark { font-weight: 800; font-size: 84px; line-height: 1; }
+    #wordmark b { color: #6b4eff; }
+    #url { position: absolute; left: 90px; top: 1180px; display: flex; gap: 20px; align-items: center; }
+    #url-pill { background: #111113; color: #ffffff; font-weight: 600; font-size: 50px; border-radius: 999px; padding: 18px 40px 12px; }
+    #free { font-weight: 600; font-size: 44px; color: #4a4760; }
+  </style>
+  <div id="root" data-composition-id="endcard" data-width="1080" data-height="1920">
+    <div id="l1" class="line">
+      <span id="l1-latin" class="word latin"></span>
+      <span id="l1-ml" class="word ml" data-var-text="line1">എഴുതൂ,</span>
+    </div>
+    <div id="l2" class="line" data-layout-allow-overlap>
+      <span id="l2-latin" class="word latin"></span>
+      <span id="l2-ml" class="word ml"><span id="marker"></span><span id="l2-text" data-var-text="line2">മലയാളത്തിൽ</span><span id="dot"></span></span>
+    </div>
+    <div id="lockup">
+      <img id="icon" src="assets/icon.png" alt="Litma" />
+      <div id="wordmark">ലിറ്റ്മ<b>.</b></div>
+    </div>
+    <div id="url">
+      <span id="url-pill" data-var-text="url">getlitma.in</span>
+      <span id="free" data-var-text="free">Free to use</span>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // type a Manglish word key by key (seek-safe: text is a function of tween progress)
+    const type = (sel, word, at, perKey) => {
+      const el = document.querySelector(sel);
+      const p = { n: 0 };
+      tl.fromTo(p, { n: 0 }, { n: word.length, duration: word.length * perKey, ease: "none",
+        onUpdate: () => { el.textContent = word.slice(0, Math.round(p.n)); } }, at);
+    };
+    type("#l1-latin", "ezhuthoo,", 0.1, 0.075);
+    // space: the word turns into Malayalam
+    tl.set("#l1-latin", { opacity: 0 }, 0.95);
+    tl.set("#l1-ml", { opacity: 1 }, 0.95);
+    type("#l2-latin", "malayaaLaththil", 1.15, 0.05);
+    tl.set("#l2-latin", { opacity: 0 }, 2.0);
+    tl.set("#l2-ml", { opacity: 1 }, 2.0);
+    tl.set("#marker", { opacity: 1 }, 2.1);
+    tl.fromTo("#marker", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power2.out" }, 2.1);
+    tl.set("#dot", { opacity: 1 }, 2.4);
+    tl.fromTo("#dot", { scale: 0 }, { scale: 1, duration: 0.18, ease: "back.out(3)" }, 2.4);
+    tl.set("#lockup", { opacity: 1 }, 2.45);
+    tl.fromTo("#icon", { scale: 0.7 }, { scale: 1, duration: 0.2, ease: "back.out(2)" }, 2.45);
+    tl.fromTo("#wordmark", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.3, ease: "power2.out" }, 2.55);
+    tl.set("#url", { opacity: 1 }, 2.7);
+    tl.fromTo("#url-pill", { scale: 0.86 }, { scale: 1, duration: 0.14, ease: "back.out(2)" }, 2.7);
+    window.__timelines["endcard"] = tl;
+  </script>
+</template>

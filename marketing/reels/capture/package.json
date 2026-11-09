@@ -1,0 +1,24 @@
+{
+  "name": "litma-reels-capture",
+  "private": true,
+  "description": "Records real Litma footage at phone size (1080x1920) for the reels in ../reel-*",
+  "scripts": {
+    "fonts": "node make-fonts-css.cjs",
+    "story": "node rec-story.cjs",
+    "picker": "node rec-picker.cjs",
+    "pages": "node rec-pages.cjs",
+    "all": "npm run fonts && npm run story && npm run picker && npm run pages"
+  },
+  "dependencies": {
+    "playwright": "1.63.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource-variable/anek-malayalam": "^5.3.0",
+    "@fontsource-variable/noto-sans-malayalam": "^5.3.0",
+    "@fontsource/noto-serif-malayalam": "^5.3.0",
+    "@fontsource/manjari": "^5.3.0",
+    "@fontsource/gayathri": "^5.3.0",
+    "@fontsource/chilanka": "^5.3.0",
+    "@fontsource/baloo-chettan-2": "^5.3.0"
+  }
+}

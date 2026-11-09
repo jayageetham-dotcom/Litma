@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ml">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      :root {
+        --canvas: #f5f4f9;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--canvas); }
+      #root { width: 100%; height: 100%; background: var(--canvas); }
+      /* Each shot: the real screen recording in an untimed wrapper that frames it (a hard zoom cut). */
+      .shot { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+      .shot video { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; }
+      /* title punch-in: the title (y 312 in the recording) at x1.38, landed at y 420 (the save line goes under Instagram's top bar) */
+      #frame-title { transform-origin: 540px 312px; transform: translate(0px, 108px) scale(1.38); }
+      /* body: whole width of the page, the typed lines (y 370) landed at y 700 */
+      #frame-body { transform-origin: 540px 370px; transform: translate(0px, 330px) scale(1.12); }
+      #frame-flow { transform-origin: 540px 395px; transform: translate(0px, 285px) scale(1.12); }
+      /* tap marker like iOS "show touches", for the real tap in the recording */
+      #touch { position: absolute; left: 975px; top: 1710px; width: 80px; height: 80px; border-radius: 50%;
+               background: rgba(17, 17, 19, 0.22); border: 3px solid rgba(255, 255, 255, 0.85); z-index: 6; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="16" data-width="1080" data-height="1920">
+      <div class="shot" id="frame-title" data-layout-allow-overflow>
+        <video id="v-title" class="clip" src="assets/story.mp4" muted playsinline
+               data-start="0" data-duration="3" data-media-start="2.2" data-track-index="0"></video>
+      </div>
+      <div class="shot" id="frame-body" data-layout-allow-overflow>
+        <video id="v-body" class="clip" src="assets/story.mp4" muted playsinline
+               data-start="3" data-duration="3" data-media-start="7.0" data-playback-rate="1.85" data-track-index="0"></video>
+      </div>
+      <div class="shot" id="frame-flow" data-layout-allow-overflow>
+        <video id="v-flow" class="clip" src="assets/story.mp4" muted playsinline
+               data-start="6" data-duration="2.6" data-media-start="12.55" data-playback-rate="2.8" data-track-index="0"></video>
+      </div>
+      <div class="shot" id="frame-page" data-layout-allow-overflow>
+        <video id="v-page" class="clip" src="assets/story.mp4" muted playsinline
+               data-start="8.6" data-duration="2.6" data-media-start="19.55" data-playback-rate="0.42" data-track-index="0"></video>
+      </div>
+      <div id="touch-host" class="clip" data-start="9.85" data-duration="0.5" data-track-index="2" data-layout-ignore>
+        <div id="touch"></div>
+      </div>
+
+      <div id="captions" data-composition-id="captions" data-composition-src="compositions/captions.html"
+           data-start="0" data-duration="11.2" data-track-index="3" data-track-kind="captions"
+           data-width="1080" data-height="1920"></div>
+      <div id="endcard" data-composition-id="endcard" data-composition-src="compositions/endcard.html"
+           data-start="11.2" data-duration="4.8" data-track-index="4" data-track-kind="graphics"
+           data-width="1080" data-height="1920"></div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // the one camera move: pull back from the page to the whole screen
+      tl.fromTo("#frame-page", { scale: 1.12, y: 140, transformOrigin: "540px 395px" },
+                { scale: 1, y: 0, duration: 0.5, ease: "power2.inOut" }, 8.6);
+      tl.fromTo("#touch", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.1 }, 9.85);
+      tl.to("#touch", { scale: 1.25, opacity: 0, duration: 0.3 }, 10.05);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+node_modules/
+.hyperframes/
+capture/.frames/
+capture/google-fonts.css
+# footage and renders are made by the capture scripts and the renderers
+reel-manglish/assets/story.mp4
+reel-manglish/renders/
+reel-types/public/picker.mp4
+reel-types/public/pages/
+reel-types/out/
+out/

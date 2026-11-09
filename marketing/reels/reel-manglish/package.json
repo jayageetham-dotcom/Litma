@@ -1,0 +1,11 @@
+{
+  "name": "reel-manglish",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.9.26 preview",
+    "check": "npx --yes hyperframes@0.9.26 check",
+    "render": "npx --yes hyperframes@0.9.26 render --output renders/litma-reel-1-manglish.mp4 --crf 16",
+    "publish": "npx --yes hyperframes@0.9.26 publish"
+  }
+}

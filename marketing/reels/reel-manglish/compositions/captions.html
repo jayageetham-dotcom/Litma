@@ -1,0 +1,47 @@
+<template>
+  <style>
+    @font-face { font-family: "Anek Malayalam"; font-weight: 100 800; font-stretch: 75% 125%;
+      src: url("assets/fonts/anek-malayalam-malayalam-standard-normal.woff2") format("woff2");
+      unicode-range: U+0307, U+0323, U+0951-0952, U+0964-0965, U+0D00-0D7F, U+1CDA, U+1CF2, U+200C-200D, U+20B9, U+25CC, U+A830-A832; }
+    @font-face { font-family: "Anek Malayalam"; font-weight: 100 800; font-stretch: 75% 125%;
+      src: url("assets/fonts/anek-malayalam-latin-standard-normal.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+2000-206F, U+2122, U+2212; }
+    #root { position: absolute; inset: 0; }
+    /* Instagram's own "text with background" sticker: what a person adds in the app */
+    .cap { position: absolute; left: 0; right: 0; top: 1150px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .cap span { display: inline-block; background: #111113; color: #ffffff; border-radius: 14px;
+      padding: 12px 26px 6px; font: 700 66px/1.3 "Anek Malayalam", sans-serif; letter-spacing: -0.01em;
+       }
+    #cap-e { top: 1060px; }
+    /* the title shot sits high, so its captions sit under it */
+    #cap-a, #cap-b { top: 720px; }
+  </style>
+  <div id="root" data-composition-id="captions" data-width="1080" data-height="1920">
+    <div id="cap-a" class="cap clip" data-start="0" data-duration="1.55" data-track-index="0">
+      <span id="cap-a-t" data-var-text="capA">ഇംഗ്ലീഷിൽ ടൈപ്പ് ചെയ്യൂ</span>
+    </div>
+    <div id="cap-b" class="cap clip" data-start="1.55" data-duration="1.45" data-track-index="0">
+      <span id="cap-b-t" data-var-text="capB">മലയാളം തനിയെ വരും</span>
+    </div>
+    <div id="cap-c" class="cap clip" data-start="3.15" data-duration="2.85" data-track-index="0">
+      <span id="cap-c-t" data-var-text="capC">കീബോർഡ് മാറ്റേണ്ട</span>
+    </div>
+    <div id="cap-d" class="cap clip" data-start="6.1" data-duration="2.5" data-track-index="0">
+      <span id="cap-d-t" data-var-text="capD">ഫോണിലും ലാപ്ടോപ്പിലും</span>
+    </div>
+    <div id="cap-e" class="cap clip" data-start="9.0" data-duration="2.2" data-track-index="0">
+      <span id="cap-e1" data-var-text="capE1">കഥ, കവിത, തിരക്കഥ…</span>
+      <span id="cap-e2" data-var-text="capE2">എല്ലാം ഇവിടെ എഴുതാം</span>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const pop = (sel, at) => tl.fromTo(sel, { scale: 0.86 }, { scale: 1, duration: 0.14, ease: "back.out(2)" }, at);
+    pop("#cap-b-t", 1.55);
+    pop("#cap-c-t", 3.15);
+    pop("#cap-d-t", 6.1);
+    pop("#cap-e1", 9.0);
+    tl.fromTo("#cap-e2", { opacity: 0, scale: 0.86 }, { opacity: 1, scale: 1, duration: 0.14, ease: "back.out(2)" }, 9.6);
+    window.__timelines["captions"] = tl;
+  </script>
+</template>

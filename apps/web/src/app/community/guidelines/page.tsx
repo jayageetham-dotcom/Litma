@@ -155,6 +155,7 @@ export default function CommunityGuidelinesPage() {
       }
       sections={sections}
       other={{ href: "/terms/", label: "Terms of Use" }}
+      back={{ href: "/community/", label: "Litma Community" }}
     />
   );
 }

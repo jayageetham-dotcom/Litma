@@ -1,14 +1,20 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
 
 export type LegalSection = { id: string; title: string; body: React.ReactNode };
 
 /** Privacy Policy and Terms: a calm reading page in the public pages' light style. */
-export function LegalPage({ title, updated, intro, sections, other }: { title: string; updated: string; intro: React.ReactNode; sections: LegalSection[]; other: { href: string; label: string } }) {
+export function LegalPage({ title, updated, intro, sections, other, back }: { title: string; updated: string; intro: React.ReactNode; sections: LegalSection[]; other: { href: string; label: string }; back?: { href: string; label: string } }) {
   return (
     <div className="landing min-h-dvh bg-canvas text-ink">
       <LandingNav />
       <main className="mx-auto max-w-3xl px-5 pb-20 pt-32 md:px-10 md:pt-36">
+        {back && (
+          <Link href={back.href} className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-muted transition hover:text-ink">
+            <ArrowLeft size={16} aria-hidden /> {back.label}
+          </Link>
+        )}
         <p className="text-sm font-semibold text-accent">Litma</p>
         <h1 className="mt-1 text-4xl font-bold tracking-tight md:text-5xl" style={{ fontFamily: "var(--font-landing)" }}>
           {title}

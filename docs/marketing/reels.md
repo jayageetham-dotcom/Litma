@@ -11,6 +11,7 @@ Sources live in `marketing/reels/`. Claude can do all of this with the **litma-r
 | `marketing/reels/capture/` | Playwright scripts that screen-record the real app at phone size (1080 × 1920) with human typing rhythm, and grab each writing type's real first page. |
 | `marketing/reels/reel-manglish/` | Reel 1, **HyperFrames** (HTML + GSAP). A short story typed in Manglish turns into Malayalam. 16 s. |
 | `marketing/reels/reel-types/` | Reel 2, **Remotion** (React). Nine writing types land on the desk as a pile. 16.7 s. |
+| `marketing/reels/reel-launch/` | Reel 3, **HyperFrames**. A 30 s launch ad: the app in dark mode inside a phone frame, a Malayalam voiceover (owner's choices for this reel, see its `SPEC.md`). Footage from `capture/rec-launch.cjs`. |
 
 Footage, pages and renders are not committed (`marketing/reels/.gitignore`); the capture scripts
 make them again in about a minute.

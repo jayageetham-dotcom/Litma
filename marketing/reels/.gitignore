@@ -9,3 +9,7 @@ reel-types/public/picker.mp4
 reel-types/public/pages/
 reel-types/out/
 out/
+reel-launch/assets/*.mp4
+reel-launch/assets/*.marks.json
+reel-launch/assets/vo-norm.wav
+reel-launch/renders/

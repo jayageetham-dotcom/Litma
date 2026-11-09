@@ -1,0 +1,38 @@
+<template>
+  <style>
+    @font-face { font-family: "Anek Malayalam"; font-weight: 100 800; font-stretch: 75% 125%;
+      src: url("assets/fonts/anek-malayalam-malayalam-standard-normal.woff2") format("woff2");
+      unicode-range: U+0307, U+0323, U+0951-0952, U+0964-0965, U+0D00-0D7F, U+1CDA, U+1CF2, U+200C-200D, U+20B9, U+25CC, U+A830-A832; }
+    @font-face { font-family: "Anek Malayalam"; font-weight: 100 800; font-stretch: 75% 125%;
+      src: url("assets/fonts/anek-malayalam-latin-standard-normal.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+2000-206F, U+2122, U+2212; }
+    #root { position: absolute; inset: 0; font-family: "Anek Malayalam", sans-serif; color: #17142e; }
+    #lock { position: absolute; left: 0; right: 0; top: 330px; display: flex; flex-direction: column; align-items: center; gap: 26px; }
+    #icon { width: 220px; height: 220px; border-radius: 50px; box-shadow: 0 24px 60px rgba(60,40,140,0.28); }
+    #word { font-weight: 800; font-size: 130px; line-height: 1; }
+    #word b { color: #6b4eff; }
+    #line { position: absolute; left: 0; right: 0; top: 820px; text-align: center; font-weight: 800; font-size: 96px; line-height: 1.15; }
+    #l2 { position: relative; display: inline-block; color: #5b3ef0; }
+    #l2 span { position: relative; z-index: 1; }
+    #marker { position: absolute; left: -14px; right: -14px; bottom: 6px; height: 34px; border-radius: 12px; background: #d5f567; transform-origin: left center; z-index: 0; }
+    #dot { position: absolute; right: -40px; bottom: 20px; width: 26px; height: 26px; border-radius: 50%; background: #ff5e7e; }
+    #cta { position: absolute; left: 0; right: 0; top: 1090px; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+    #pill { background: #17142e; color: #fff; font-weight: 700; font-size: 54px; border-radius: 999px; padding: 22px 56px 14px; }
+    #where { font-weight: 600; font-size: 36px; color: #3d3760; }
+  </style>
+  <div id="root" data-composition-id="endcard" data-width="1080" data-height="1920">
+    <div id="lock"><img id="icon" src="assets/icon.png" alt="Litma" /><div id="word">ലിറ്റ്മ<b>.</b></div></div>
+    <div id="line">എഴുതൂ,<br /><span id="l2"><span>മലയാളത്തിൽ.</span><i id="marker"></i><i id="dot"></i></span></div>
+    <div id="cta"><div id="pill" data-var-text="url">getlitma.in</div><div id="where">Free to use · Web, Mac, Windows, Linux</div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#icon", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(2)" }, 0.05);
+    tl.fromTo("#word", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.4, ease: "power2.out" }, 0.3);
+    tl.fromTo("#line", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 0.55);
+    tl.fromTo("#marker", { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power2.out" }, 0.9);
+    tl.fromTo("#dot", { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(3)" }, 1.15);
+    tl.fromTo("#cta", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 1.1);
+    window.__timelines["endcard"] = tl;
+  </script>
+</template>

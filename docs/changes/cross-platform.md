@@ -11,7 +11,7 @@ the code, and what is still unverified.
 
 ### Still open (after the 2026-11-07 work)
 
-Reels (2026-11-09): post them with a track from Instagram's music picker; on the Mac, run the one-time setup in `docs/marketing/reels.md` (Whisper and yt-dlp could not reach their downloads from the cloud sandbox).
+Reels (2026-11-09): reel 3 (launch ad) can be re-voiced with Despina (Gemini) when the TTS quota allows; post the reels with a track from Instagram's music picker; on the Mac, run the one-time setup in `docs/marketing/reels.md` (Whisper and yt-dlp could not reach their downloads from the cloud sandbox).
 
 
 Only the owner can do these (accounts, secrets, dashboards):
@@ -49,13 +49,16 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
-## 2026-11-09: Clearer FTP sign-in errors in the website deploy
+## 2026-11-09: Reel 3, 30 s launch ad with Malayalam voiceover (marketing only, no app change)
 
-- CI only (`deploy.yml`): port-21 check and the server's own replies when the getlitma.in sign-in fails. A deploy failed with "max-retries exceeded"; cause not yet known (password, username or the host blocking GitHub). Details in `web.md`.
-
-## 2026-11-09: Desktop build retries and caches Electron
-
-- CI only (`.github/workflows/desktop.yml`): Electron download cached, electron-builder retried 3 times after a GitHub 504 failed a Mac build. `npm ci` no longer downloads the Electron binary in CI (`ELECTRON_SKIP_BINARY_DOWNLOAD=1` in `desktop.yml` and `deploy.yml`). Details in `desktop.md`.
+- `marketing/reels/reel-launch/` (HyperFrames, `SPEC.md`): the app in dark mode inside a plain phone frame on a
+  soft colour-field backdrop, writer questions in bubbles, a monitor for the desktop beat, end card with
+  getlitma.in. Owner's choices for this reel (override `docs/marketing/reels.md`): dark screens, phone frame,
+  Malayalam voiceover, no subtitles. Reference: Sleeko Studio's HowDo launch ad.
+- Footage: `marketing/reels/capture/rec-launch.cjs` (dark mode, 1170 x 2394 phone, 1920 x 1200 desktop).
+- Voice: TTSForFree "Sobhana (Natural)" ml-IN; the Gemini voice did not fit the free daily quota. Cut into
+  `assets/vo1..8.wav` at the pauses; the sentence-to-pause mapping was matched by timing, not heard.
+- No music (HeyGen catalog needs a sign-in). No Release needed: nothing in the apps changed.
 
 ## 2026-11-09: Instagram reels (marketing only, no app change)
 

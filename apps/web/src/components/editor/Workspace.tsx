@@ -122,6 +122,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const [inboxCount, setInboxCount] = useState(0);
   const [isPublic, setIsPublic] = useState(!!initial.is_public);
   const [shareId, setShareId] = useState(initial.share_id ?? null);
+  const [sharing, setSharing] = useState(false);
+  const [shareError, setShareError] = useState(false);
   const [menu, setMenu] = useState<"export" | "share" | null>(null);
   const [stats, setStats] = useState({ words: initial.word_count, chars: 0, aksharas: 0, pages: 1 });
   // the writing timer counts the words written while it runs
@@ -563,14 +565,28 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           type="checkbox"
           checked={isPublic}
           className="accent-[var(--accent)]"
+          disabled={sharing}
           onChange={async (e) => {
-            const id = await store.setPublic(docRef.current.id, e.target.checked);
-            setIsPublic(e.target.checked);
-            setShareId(id);
+            // read the choice now: after the await, React has already put the controlled box back
+            const on = e.target.checked;
+            const before = { isPublic, shareId };
+            setIsPublic(on);
+            setShareError(false);
+            setSharing(true);
+            try {
+              setShareId(await store.setPublic(docRef.current.id, on));
+            } catch {
+              setIsPublic(before.isPublic);
+              setShareId(before.shareId);
+              setShareError(true);
+            } finally {
+              setSharing(false);
+            }
           }}
         />
         Anyone with the link can read
       </label>
+      {shareError && <p className="text-xs font-semibold text-danger">Couldn’t change sharing. Check your connection and try again.</p>}
       {isPublic && shareId && (
         <div className="flex gap-1">
           <input readOnly className="field !py-1 !text-xs" value={`${appUrl(`/read/?s=${shareId}`)}`} onFocus={(e) => e.target.select()} />

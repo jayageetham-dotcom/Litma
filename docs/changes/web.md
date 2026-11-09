@@ -9,6 +9,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Share switch in the editor showed "off" after turning it on
+
+- `components/editor/Workspace.tsx` (`shareBody`): the checkbox handler read `e.target.checked` after `await store.setPublic(...)`, when React had already put the controlled box back, so it saved "public" but set the state to off (no tick, no link). The owner's work was saved public three times (Supabase logs: three PATCH 200 at 13:58 UTC; the row has `is_public = true` and a share link). Now the choice is read first and shown at once, the box is disabled while saving, and a failed save puts it back with a message. Unverified in a browser: sharing needs a signed-in cloud session.
+
 ## 2026-11-09: Editor Export/Share menus; Settings width
 
 - `components/editor/Workspace.tsx`: the editor header is `relative z-50`, so the Export and Share menus sit above the toolbar and the tool rail (only the first item showed before). `Menu` keeps `onClose` in a ref and adds its outside-click listener once (cleared timer): it used to re-add it through `setTimeout` on every editor render, leaving stray listeners that closed the next menu as soon as it opened ("Export doesn't open after clicking outside"). The menu buttons carry `data-menu-button`. Playwright (dark, 1440 px): all six export items on top; reopen works three times after typing and outside clicks.

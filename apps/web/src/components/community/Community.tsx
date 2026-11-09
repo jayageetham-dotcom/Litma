@@ -66,7 +66,7 @@ export function Community() {
         ) : (
           <>
             <Hero signedIn={signedIn} me={me} />
-            <section className="relative mx-auto max-w-7xl px-5 pb-24 md:px-10">{body}</section>
+            <section className="relative mx-auto max-w-7xl px-5 pb-24 pt-6 md:px-10 md:pt-8">{body}</section>
           </>
         )}
         <LegalStrip />
@@ -79,8 +79,8 @@ export function Community() {
 function Hero({ signedIn, me }: { signedIn: boolean; me: Me | null }) {
   const t = useT();
   return (
-    <section className="relative overflow-hidden pb-14 pt-32 md:pb-20 md:pt-44">
-      <ColourField />
+    <section className="relative overflow-hidden pb-12 pt-32 md:pb-16 md:pt-44">
+      <ColourField fade />
       <div className="relative mx-auto max-w-7xl px-5 md:px-10">
         <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-line bg-surface/90 py-1.5 pl-1.5 pr-4 text-xs font-bold text-muted">
           <span className="rounded-full bg-lime px-2.5 py-1 text-on-pop" style={display}>

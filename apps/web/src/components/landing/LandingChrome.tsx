@@ -37,10 +37,13 @@ export function LandingNav({ right, links = true }: { right?: React.ReactNode; l
   );
 }
 
-/** Soft colour fields and a dot grid behind a hero. */
-export function ColourField() {
+/**
+ * Soft colour fields and a dot grid behind a hero. `fade` lets the colours die out towards the bottom,
+ * for heroes whose content continues on the same background (no hard line where the hero ends).
+ */
+export function ColourField({ fade = false }: { fade?: boolean }) {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div aria-hidden className={`pointer-events-none absolute inset-0 overflow-hidden ${fade ? "[mask-image:linear-gradient(to_bottom,black_55%,transparent)]" : ""}`}>
       <div className="glow -left-56 -top-64 size-[48rem] [--glow:color-mix(in_srgb,var(--violet)_30%,transparent)]" />
       <div className="glow right-[-17rem] -top-4 size-[44rem] [--glow:color-mix(in_srgb,var(--coral)_30%,transparent)]" />
       <div className="glow bottom-[-19rem] left-[calc(33%-7rem)] size-[42rem] [--glow:color-mix(in_srgb,var(--lime)_50%,transparent)]" />

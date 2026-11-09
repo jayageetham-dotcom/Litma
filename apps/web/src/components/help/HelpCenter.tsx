@@ -369,9 +369,7 @@ function TopicNav({ data, current }: { data: HelpData; current: string }) {
 function PageTop({ data, go, children }: { data: HelpData; go: (href: string) => void; children: React.ReactNode }) {
   return (
     <section className="relative overflow-hidden pb-12 pt-28 md:pb-14 md:pt-36">
-      <ColourField />
-      {/* fade the colour field into the page so the hero has no hard bottom edge */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-mist" />
+      <ColourField fade />
       <div className="relative mx-auto max-w-7xl px-5 md:px-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">{children}</div>

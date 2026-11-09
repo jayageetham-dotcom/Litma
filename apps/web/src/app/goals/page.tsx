@@ -122,7 +122,7 @@ function GoalsView() {
       <h1 className="text-[1.8rem] font-bold leading-tight sm:text-[2.2rem]">{t("goals.title")}</h1>
       <p className="mt-2 max-w-2xl text-muted">{t("goals.intro")}</p>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-3">
         <Card title={t("goals.panel.today")} dot="bg-tint-tangerine">
           <dl className="grid grid-cols-2 gap-4">
             <Big label={t("goals.todayLabel")} value={num(w.today)} hint={g.daily ? t("goals.ofGoal", { n: num(g.daily) }) : undefined} />
@@ -251,7 +251,7 @@ function GoalsView() {
         <Big label={t("goals.stats.perDay")} value={num(sum.perWritingDay)} hint={sum.bestDay ? t("goals.stats.bestDay", { n: num(sum.bestDay.words) }) : undefined} />
       </dl>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
         <Card title={t("goals.stats.perDayChart")} dot="bg-tint-tangerine">
           <DayBars data={series} field="words" label={t("goals.words")} color={SERIES[0]} />
         </Card>

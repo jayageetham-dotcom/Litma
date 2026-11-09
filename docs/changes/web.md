@@ -9,6 +9,13 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Spacing pass (heroes, Goals on phones, Profile loading)
+
+- `components/landing/LandingChrome.tsx`: `ColourField fade` masks the colour field towards the bottom, for heroes whose content continues on the same background. Used by the community hero (`components/community/Community.tsx`, also `pt-6 md:pt-8` above the categories and search) and the help topic/guide hero (`components/help/HelpCenter.tsx`, replacing the gradient overlay from earlier today). The home, download and auth heroes keep the approved look (they end where a new band starts).
+- `app/goals/page.tsx`: the two card grids are `grid-cols-[minmax(0,1fr)]` on phones; before, a card's content widened the page to 656 px on a 390 px phone (sideways scrolling).
+- `app/profile/page.tsx`: the loading cards get the page's side margins (they touched the screen edges on phones).
+- Checked with Playwright at 1440 px and iPhone 13: every public page, desk, books, trash, dictionary, profile, settings, goals, admin, editor, book editor; no page wider than the screen. Desktop app gets the Goals/Profile/community fixes with the next Release.
+
 ## 2026-11-09: Help pages: space under the hero
 
 - `src/components/help/HelpCenter.tsx`: topic and guide pages start their content 2-3rem below the hero (`pt-8 md:pt-12`), and the hero's colour field fades into the page (a short gradient to `--mist`) instead of ending in a hard line. The "Still need help?" card has equal space above and below (`py-16 md:py-24`; the grids above it lost their `pb-20`), so it no longer touches the white section on the help home. Looked at in Playwright at 1600-1670 px (home, topic and guide pages). Desktop opens help in the browser, so no Release needed for this.

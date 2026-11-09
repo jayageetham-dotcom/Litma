@@ -88,7 +88,7 @@ function ProfileView() {
 
   if (!p)
     return (
-      <div className="pt-6">
+      <div className="mx-auto max-w-5xl px-5 pt-6">
         <FormSkeleton cards={3} />
       </div>
     );

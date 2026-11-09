@@ -868,20 +868,47 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         {!focus && !phone && (
           // Collapsed it's a thin icon rail; hovering (or tabbing into) it slides out labels over the page.
           <nav className="group/rail no-print relative w-12 shrink-0" aria-label="Panels">
-            <div className="absolute inset-y-0 right-0 z-40 flex w-12 flex-col gap-0.5 overflow-hidden border-l border-line bg-surface px-1.5 py-3 transition-[width,box-shadow] duration-200 ease-out group-hover/rail:w-56 group-hover/rail:shadow-[var(--pop-shadow)] group-hover/rail:delay-150 group-has-[:focus-visible]/rail:w-56 group-has-[:focus-visible]/rail:shadow-[var(--pop-shadow)]">
-              <RailBtn active={outline} onClick={() => setOutline((o) => !o)} label="Outline" hint="Chapters and headings" icon={ListTree} tint="text-tint-sky" />
-              <span className="mx-1.5 my-1 h-px shrink-0 bg-line" />
-              {PANELS.map((p) => (
-                <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} />
-              ))}
-              <span className="mx-1.5 my-1 h-px shrink-0 bg-line" />
-              <RailBtn active={typewriter} onClick={() => setTypewriter((t) => !t)} label="Typewriter scrolling" hint="While you type, keep the line you are writing in the middle of the screen" icon={TypewriterIcon} tint="text-tint-lime" />
-              {store.isCloud() && shareId && isPublic && (
-                <a href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-[9px] text-muted hover:bg-subtle hover:text-ink" aria-label="Open reader view">
-                  <Eye size={17} className="shrink-0" />
-                  <span className="whitespace-nowrap text-[13px] opacity-0 transition-opacity group-hover/rail:opacity-100 group-has-[:focus-visible]/rail:opacity-100">Reader view</span>
-                </a>
-              )}
+            <div className="scrollbar-none absolute inset-y-0 right-0 z-40 flex w-12 flex-col gap-0.5 overflow-y-auto overflow-x-hidden border-l border-line bg-surface px-1.5 py-2 transition-[width,box-shadow] duration-200 ease-out group-hover/rail:w-56 group-hover/rail:shadow-[var(--pop-shadow)] group-hover/rail:delay-150 group-has-[:focus-visible]/rail:w-56 group-has-[:focus-visible]/rail:shadow-[var(--pop-shadow)]">
+              {/* grouped like the phone's More sheet: write, words, plan and assist, page, review and share */}
+              {(() => {
+                const tool = (id: PanelId) => {
+                  const p = PANELS.find((x) => x.id === id)!;
+                  return <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} />;
+                };
+                const groups: [string, React.ReactNode[]][] = [
+                  [t("app.tools.groupWrite"), [<RailBtn key="outline" active={outline} onClick={() => setOutline((o) => !o)} label="Outline" hint="Chapters and headings" icon={ListTree} tint="text-tint-sky" />, tool("story"), tool("dict")]],
+                  [t("app.tools.groupWords"), [tool("saved"), tool("rhyme"), tool("check"), tool("keys")]],
+                  [t("app.tools.groupPlan"), [tool("ai"), tool("inbox"), tool("goals")]],
+                  [t("app.tools.groupPage"), [tool("page"), <RailBtn key="typewriter" active={typewriter} onClick={() => setTypewriter((tw) => !tw)} label="Typewriter scrolling" hint="While you type, keep the line you are writing in the middle of the screen" icon={TypewriterIcon} tint="text-tint-lime" />]],
+                  [
+                    t("app.tools.groupShare"),
+                    [
+                      tool("read"),
+                      tool("history"),
+                      ...(store.isCloud() && shareId && isPublic
+                        ? [
+                            <a key="reader" href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-[9px] text-muted hover:bg-subtle hover:text-ink" aria-label="Open reader view">
+                              <Eye size={17} className="shrink-0" />
+                              <span className="whitespace-nowrap text-[13px] opacity-0 transition-opacity group-hover/rail:opacity-100 group-has-[:focus-visible]/rail:opacity-100">Reader view</span>
+                            </a>,
+                          ]
+                        : []),
+                    ],
+                  ],
+                ];
+                return groups.map(([label, items], i) => (
+                  <div key={label} role="group" aria-label={label} className="flex shrink-0 flex-col gap-0.5">
+                    {/* closed rail: a thin line between groups; open rail: the group's name */}
+                    <div className={`relative h-6 shrink-0 ${i ? "mt-1" : ""}`}>
+                      {i > 0 && <span aria-hidden className="absolute inset-x-1.5 top-1/2 h-px bg-line transition-opacity group-hover/rail:opacity-0 group-hover/rail:delay-150 group-has-[:focus-visible]/rail:opacity-0" />}
+                      <span aria-hidden className="absolute inset-x-[9px] top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted opacity-0 transition-opacity group-hover/rail:opacity-100 group-hover/rail:delay-150 group-has-[:focus-visible]/rail:opacity-100">
+                        {label}
+                      </span>
+                    </div>
+                    {items}
+                  </div>
+                ));
+              })()}
             </div>
           </nav>
         )}

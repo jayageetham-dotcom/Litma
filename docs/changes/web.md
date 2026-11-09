@@ -9,6 +9,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Editor rail grouped like the phone
+
+- `components/editor/Workspace.tsx`: the desktop/tablet tool rail is grouped like the phone's More sheet: Write (Outline, Story World, Dictionary; tabs on the phone), Words (Saved, Rhymes, Spelling, Keyboard), Plan and assist (AI, Inbox, Goals), Page (Page & type, Typewriter), Review and share (Read aloud, History, Reader view). Closed: a line between groups; open: the group's name. The rail scrolls (`overflow-y-auto`) on short windows, where the last tools used to be cut off. New string `app.tools.groupWrite` (en, ml). Playwright at 1440×1100 and ×720 (dark). Desktop gets it with the next Release.
+
 ## 2026-11-09: Shared link shows every page, with the writer's name
 
 - `app/read/page.tsx`: the shared reader lays the work out on its printed pages (`paginate(documentPrint(doc))`, like the PDF), removes pages whose flow has no text (an inserted page left empty), renumbers the folios 1, 2, 3 and shows "n pages"; pages shrink to the screen width with `zoom` (ResizeObserver). Before, it was one continuous sheet, so text after a page break read as if it weren't a page of its own (the owner thought only the first page showed). Title and byline (avatar + pen name) above the pages.

@@ -242,3 +242,22 @@ jobs:
         if: steps.check.outputs.skip != 'true' && env.SUPABASE_DB_PASSWORD != ''
         run: |
           supabase db push --remote="$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD" --yes
+
+      # The Malayalam spelling engine (litma-spell, mlmorph). Last and allowed to fail: the editor
+      # falls back to its own checks while the engine is missing, and nothing above depends on it.
+      - uses: actions/setup-node@v6
+        if: steps.check.outputs.skip != 'true'
+        with:
+          node-version: 22
+
+      - name: Deploy the spelling engine
+        if: steps.check.outputs.skip != 'true'
+        continue-on-error: true
+        run: |
+          # data from mlmorph on PyPI, checked by sha256 (not committed)
+          node scripts/build-mlmorph.mjs
+          # bundled on this machine (Docker): the data is about 8 MB, over server-side bundling's 5 MB limit
+          supabase functions deploy litma-spell --remote="$PROJECT_REF" --use-docker --yes || {
+            echo "::warning::litma-spell didn't deploy; writers get the editor's own spelling checks until it does."
+            exit 1
+          }

@@ -105,7 +105,7 @@ Litma can mark spelling in your text and ask the AI companion to check grammar.
 ![The Check panel](shots/spelling.webp "Broken letters and common misspellings, each with its fix.")
 
 1. Choose **Spelling and grammar** on the right-hand rail.
-2. Tick **Mark spelling in the text**. Litma underlines:
+2. Litma underlines these in your text (untick **Mark spelling in the text** to hide the marks):
    - **Broken letters**: Malayalam typed in an old or broken way that looks right but searches and sorts wrongly, like ന്‍ for ൻ or a colon for ഃ (ദു:ഖം for ദുഃഖം). **Fix all** puts every one right at once.
    - **Misspellings**: words often written wrongly (ഉൽഘാടനം for ഉദ്ഘാടനം), with the standard spelling.
 3. Click a fix to use it, or **Keep** to leave the word as it is. A kept word isn't marked again on this device.
@@ -114,9 +114,13 @@ Tick **Also mark words the dictionary doesn't have** to see words Litma can't fi
 
 ### Grammar
 
-Choose **Check grammar with AI**. The AI companion reads your selection, or the text before the cursor, and lists each error with its fix. It leaves dialect, regional words and dialogue as you wrote them. It uses your own AI key, or your Claude plan ([use your Claude plan instead of a key](#open-claude)).
+1. In the same panel, choose **Check the whole work**, or select a passage first and choose **Check the selected text**. A long work is read part by part; **Stop** ends the check.
+2. Each mistake appears as a card: the mistake, the correction and a short reason in Malayalam.
+3. Choose **Fix** to correct it in your text, **Show** to jump to it, or **×** to ignore it. **Fix all** corrects every open card at once.
 
-> **Phone:** Tap the tools button and choose **Check**. The phone lists what it finds with the fixes; the marks inside the text are on the website and desktop app.
+The check leaves dialect, regional words, names and dialogue as you wrote them. It uses your own AI key (Settings → Your AI keys). Without a key, choose **Check with Claude**: Claude checks the work on your own Claude plan and sends each fix to your **Assistant inbox**, where you accept or dismiss it ([connect Claude first](#open-claude)).
+
+> **Phone:** Tap the tools button and choose **Check**. The phone lists spelling with the fixes; the marks inside the text are on the website and desktop app, and the phone's grammar check still opens the AI companion.
 
 ## Read aloud {#read-aloud}
 

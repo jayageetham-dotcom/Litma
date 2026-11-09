@@ -26,7 +26,7 @@ const BILLING: Record<AIProvider, [string, string]> = {
 };
 
 /** Turn a provider's raw error into one plain sentence the writer can act on. */
-function friendlyAIError(raw: string, provider: AIProvider): string {
+export function friendlyAIError(raw: string, provider: AIProvider): string {
   const [where] = BILLING[provider];
   const m = raw.toLowerCase();
   if (/credit balance|insufficient_quota|billing|exceeded your current quota|payment/.test(m))
@@ -146,10 +146,10 @@ export function getAIPrefs() {
   }
 }
 
-type Why = "nokey" | "nocredit" | "badkey";
+export type Why = "nokey" | "nocredit" | "badkey";
 
 /** What went wrong with an API call, in a form the panel can act on. */
-function classifyAIError(raw: string): Why | null {
+export function classifyAIError(raw: string): Why | null {
   const m = raw.toLowerCase();
   if (/credit balance|insufficient_quota|billing|exceeded your current quota|payment/.test(m)) return "nocredit";
   if (/invalid x-api-key|invalid api key|incorrect api key|api key not valid|authentication_error|\b401\b/.test(m)) return "badkey";
@@ -330,7 +330,7 @@ export function AIPanel({
           <p className="mt-1 text-xs text-muted">{g.hint}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {(Object.keys(AI_ACTIONS) as AIAction[])
-              .filter((a) => a !== "custom" && AI_ACTIONS[a].needsSelection === g.sel)
+              .filter((a) => a !== "custom" && !("hidden" in AI_ACTIONS[a]) && AI_ACTIONS[a].needsSelection === g.sel)
               .map((a) => {
                 const meta = AI_ACTIONS[a];
                 const disabled = !!busy || (meta.needsSelection && !hasSel);

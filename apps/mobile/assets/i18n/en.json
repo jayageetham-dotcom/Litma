@@ -1155,7 +1155,35 @@
     },
     "grammar": "Grammar",
     "grammarHint": "The AI companion reads your selection, or the text before the cursor, and lists each error with the fix. It leaves dialect, regional words and dialogue as you wrote them.",
-    "grammarButton": "Check grammar with AI"
+    "grammarButton": "Check grammar with AI",
+    "ai": {
+      "hint": "The AI reads your selection, or the whole work part by part, and lists each mistake with its fix. Dialect, regional words, names and dialogue stay as you wrote them.",
+      "checkWork": "Check the whole work",
+      "checkSelection": "Check the selected text",
+      "with": "Uses your {name} key",
+      "stop": "Stop",
+      "reading": "Reading…",
+      "part": "Reading part {n} of {of}…",
+      "none": "No grammar mistakes found.",
+      "found_one": "{count} mistake to look at",
+      "found_other": "{count} mistakes to look at",
+      "fixAll": "Fix all",
+      "fix": "Fix",
+      "show": "Show",
+      "ignore": "Ignore",
+      "state": {
+        "fixed": "Fixed",
+        "ignored": "Ignored",
+        "missing": "Not found in the text (it may have changed)"
+      },
+      "failed": "The check didn't finish. Please try again.",
+      "needKeyLocal": "Add an AI key in Settings → Your AI keys to check grammar.",
+      "noKey": "You haven't added an AI key, so Claude can do the check on your own Claude plan. Each mistake comes back to your Assistant inbox, where you accept or dismiss it.",
+      "openClaude": "Check with Claude",
+      "connectFirst": "Claude needs the Litma connector. Set it up once in Settings → Connect AI assistants.",
+      "opened": "Claude is checking your work. When it has finished, the fixes are waiting in your Assistant inbox.",
+      "openInbox": "Open the Assistant inbox"
+    }
   },
   "read": {
     "voice": "Voice",

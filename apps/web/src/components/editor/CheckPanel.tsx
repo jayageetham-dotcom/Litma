@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { Check, Sparkles, Wand2 } from "lucide-react";
+import { Check, Wand2 } from "lucide-react";
+import { GrammarCheck } from "./GrammarCheck";
 import { useT } from "@/i18n/react";
 import { SPELL_EVENT, addMyWord, setSpellPrefs, spellPrefs, type SpellPrefs } from "@/lib/spell";
 import { spellIssues, type DocIssue } from "@/extensions/writing-aids";
@@ -19,8 +20,8 @@ function Group({ title, dot, children }: { title: string; dot: string; children:
   );
 }
 
-/** Spelling marks in the text and their list, and a grammar check through the AI companion. */
-export function CheckPanel({ editor, onGrammar }: { editor: Editor; onGrammar: () => void }) {
+/** Spelling marks in the text and their list (free, on the device), and an AI grammar check whose fixes apply here. */
+export function CheckPanel({ editor, kind, docId, title, onOpenInbox }: { editor: Editor; kind: string; docId: string; title: string; onOpenInbox: () => void }) {
   const t = useT();
   const [prefs, setPrefs] = useState<SpellPrefs>(() => spellPrefs());
   const [issues, setIssues] = useState<DocIssue[]>([]);
@@ -117,10 +118,7 @@ export function CheckPanel({ editor, onGrammar }: { editor: Editor; onGrammar: (
       </Group>
 
       <Group title={t("check.grammar")} dot="bg-tint-violet">
-        <p className="mb-3 text-xs text-muted">{t("check.grammarHint")}</p>
-        <button type="button" className="btn btn-accent w-full" onClick={onGrammar}>
-          <Sparkles size={15} /> {t("check.grammarButton")}
-        </button>
+        <GrammarCheck editor={editor} kind={kind} docId={docId} title={title} onOpenInbox={onOpenInbox} />
       </Group>
     </div>
   );

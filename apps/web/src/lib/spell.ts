@@ -27,9 +27,9 @@ export interface SpellPrefs {
 
 export function spellPrefs(): SpellPrefs {
   try {
-    return { on: false, unknown: false, ...JSON.parse(localStorage.getItem(LS_PREFS) ?? "{}") };
+    return { on: true, unknown: false, ...JSON.parse(localStorage.getItem(LS_PREFS) ?? "{}") };
   } catch {
-    return { on: false, unknown: false };
+    return { on: true, unknown: false };
   }
 }
 export function setSpellPrefs(p: Partial<SpellPrefs>) {

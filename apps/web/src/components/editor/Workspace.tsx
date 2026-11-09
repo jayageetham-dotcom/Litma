@@ -625,7 +625,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       <>
         {id === "ai" && <AIPanel key={aiStart ?? "ai"} editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} start={aiStart ?? undefined} onStarted={() => setAiStart(null)} />}
         {id === "rhyme" && <RhymePanel editor={editor} />}
-        {id === "check" && <CheckPanel editor={editor} onGrammar={() => { setAiStart("grammar"); openPanel("ai"); }} />}
+        {id === "check" && <CheckPanel editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} />}
         {id === "read" && <ReadAloudPanel editor={editor} />}
         {id === "goals" && <GoalPanel docId={initial.id} words={stats.words} settings={settings} onChange={updateSettings} />}
         {id === "inbox" && <InboxPanel editor={editor} docId={initial.id} onCount={setInboxCount} />}

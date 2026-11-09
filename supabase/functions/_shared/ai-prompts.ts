@@ -14,6 +14,8 @@ export const AI_ACTIONS = {
   toEnglish: { label: "Translate to English", ml: "ഇംഗ്ലീഷിലേക്ക്", needsSelection: true },
   critique: { label: "Editor's notes", ml: "നിരൂപണം", needsSelection: false },
   custom: { label: "Ask anything", ml: "ചോദിക്കൂ", needsSelection: false },
+  /** the Spelling and grammar panel's check: a JSON list of fixes (not a button in the AI panel) */
+  grammarCheck: { label: "Grammar check", ml: "വ്യാകരണ പരിശോധന", needsSelection: true, hidden: true },
 } as const;
 export type AIAction = keyof typeof AI_ACTIONS;
 
@@ -56,6 +58,12 @@ export function userPrompt(action: AIAction, opts: { selection?: string; context
       return `Proofread the selected Malayalam passage. List each error as "തെറ്റ് → ശരി — short reason", then give the corrected passage.${S}`;
     case "grammar":
       return `Check the spelling, grammar, sandhi and punctuation of the ${sel ? "selected passage" : "text"}. List each error as "തെറ്റ് → ശരി — short reason in Malayalam", in order, then stop. Don't rewrite for style. Don't mark dialect, regional or community words, or dialogue written the way people speak: those are the writer's choice. If there are no errors, say so in one Malayalam sentence.${S || C}`;
+    case "grammarCheck":
+      return `Check the spelling, grammar, sandhi and punctuation of the passage below. Answer with JSON only, no other text: an array of objects {"wrong": "...", "right": "...", "why": "..."}.
+- "wrong": the mistaken word or short phrase, copied character for character from the passage (keep it as short as possible, but long enough to be unique in its sentence).
+- "right": what should replace exactly that text.
+- "why": a short reason in Malayalam (at most 8 words).
+List the mistakes in the order they appear, at most 40. Don't rewrite for style or word choice. Don't mark dialect, regional or community words, names, or dialogue written the way people speak: those are the writer's choice. If there are no mistakes, answer [].${S}`;
     case "synonyms":
       return `Give 8–12 Malayalam synonyms or near-synonyms for the selected word or phrase, each with a 3–6 word note on its shade of meaning, as a list.${S}`;
     case "rhymes":

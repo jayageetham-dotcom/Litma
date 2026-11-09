@@ -1,0 +1,6 @@
+# Only finished posters go to GitHub. Working files (src/, svg, html, scripts) stay on the Mac.
+*
+!.gitignore
+!README.md
+!*_1080.png
+!*_master@3x.png

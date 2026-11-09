@@ -16,6 +16,8 @@ on:
       - "apps/desktop/**"
       - "apps/mobile/**"
       - ".github/workflows/desktop.yml"
+      # Instagram reels and posters aren't part of the site
+      - "marketing/**"
   workflow_dispatch:
   # called by the Release workflow with the release tag
   workflow_call:

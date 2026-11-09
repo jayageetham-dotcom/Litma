@@ -9,6 +9,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Help pages: space under the hero
+
+- `src/components/help/HelpCenter.tsx`: topic and guide pages start their content 2-3rem below the hero (`pt-8 md:pt-12`), and the hero's colour field fades into the page (a short gradient to `--mist`) instead of ending in a hard line. Looked at in Playwright at 1670 px (topic and guide pages). Desktop opens help in the browser, so no Release needed for this.
+
 ## 2026-11-09: Litma Community
 
 - Pages: `src/app/community/page.tsx` (+ `layout.tsx`, public metadata) and `src/app/community/guidelines/` (LegalPage). Components in `src/components/community/`: `Community.tsx` (hero like the home page, sign-in card for visitors, category rail/chips, list, new thread, reports queue, legal strip), `ThreadView.tsx` (post, replies, likes, edit/delete, report, moderation menu, closed/removed banners, banned note), `Dialogs.tsx` (agree, report, moderate, ban), `bits.tsx` (`PostField` Manglish switch shared across the boxes via `litma:fieldMode:community`, `PostBody` with `nofollow ugc` links, `Dialog`).

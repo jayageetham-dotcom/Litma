@@ -368,8 +368,10 @@ function TopicNav({ data, current }: { data: HelpData; current: string }) {
 
 function PageTop({ data, go, children }: { data: HelpData; go: (href: string) => void; children: React.ReactNode }) {
   return (
-    <section className="relative overflow-hidden pb-10 pt-28 md:pt-36">
+    <section className="relative overflow-hidden pb-12 pt-28 md:pb-14 md:pt-36">
       <ColourField />
+      {/* fade the colour field into the page so the hero has no hard bottom edge */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-mist" />
       <div className="relative mx-auto max-w-7xl px-5 md:px-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">{children}</div>
@@ -407,7 +409,7 @@ function CategoryView({ data, category: c, go }: { data: HelpData; category: Hel
       <PageTop data={data} go={go}>
         <Crumbs items={[{ href: "/help/", label: "Help" }, { label: c.title }]} />
       </PageTop>
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-5 pb-20 md:px-10 lg:grid-cols-[250px_minmax(0,1fr)]">
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-5 pb-20 pt-8 md:pt-12 md:px-10 lg:grid-cols-[250px_minmax(0,1fr)]">
         <div className="min-w-0 lg:sticky lg:top-28 lg:self-start">
           <TopicNav data={data} current={c.id} />
         </div>
@@ -477,7 +479,7 @@ function ArticleView({ data, category: c, article: a, go }: { data: HelpData; ca
       <PageTop data={data} go={go}>
         <Crumbs items={[{ href: "/help/", label: "Help" }, { href: `/help/?c=${c.id}`, label: c.title }, { label: a.title }]} />
       </PageTop>
-      <div className={`mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-5 pb-20 md:px-10 lg:grid-cols-[250px_minmax(0,1fr)] ${a.toc.length > 1 ? "xl:grid-cols-[250px_minmax(0,1fr)_210px]" : ""}`}>
+      <div className={`mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-5 pb-20 pt-8 md:pt-12 md:px-10 lg:grid-cols-[250px_minmax(0,1fr)] ${a.toc.length > 1 ? "xl:grid-cols-[250px_minmax(0,1fr)_210px]" : ""}`}>
         <aside className="min-w-0 lg:sticky lg:top-28 lg:self-start">
           <TopicNav data={data} current={c.id} />
           <div className="hidden lg:block">

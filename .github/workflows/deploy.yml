@@ -29,6 +29,11 @@ concurrency:
   group: deploy-litma
   cancel-in-progress: false
 
+env:
+  # npm ci would also download Electron itself from github.com, which sometimes answers 504.
+  # No step here runs Electron; electron-builder fetches (and caches) its own copy.
+  ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+
 jobs:
   web-deploy:
     name: 🎉 Build & upload site

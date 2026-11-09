@@ -55,7 +55,7 @@ From the 2026-11-08 writing aids (owner actions, free):
 
 ## 2026-11-09: Desktop build retries and caches Electron
 
-- CI only (`.github/workflows/desktop.yml`): Electron download cached, electron-builder retried 3 times after a GitHub 504 failed a Mac build. Details in `desktop.md`.
+- CI only (`.github/workflows/desktop.yml`): Electron download cached, electron-builder retried 3 times after a GitHub 504 failed a Mac build. `npm ci` no longer downloads the Electron binary in CI (`ELECTRON_SKIP_BINARY_DOWNLOAD=1` in `desktop.yml` and `deploy.yml`). Details in `desktop.md`.
 
 ## 2026-11-09: Instagram reels (marketing only, no app change)
 

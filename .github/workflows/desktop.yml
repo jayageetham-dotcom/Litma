@@ -39,6 +39,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  # npm ci would also download Electron itself from github.com, which sometimes answers 504.
+  # No step here runs Electron; electron-builder fetches (and caches) its own copy.
+  ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
   REF: ${{ inputs.ref || github.ref }}
 
 jobs:
@@ -107,7 +110,7 @@ jobs:
       # Electron's own download comes from github.com, which sometimes answers 504.
       # Keep it between runs so most builds never download it at all.
       - name: Keep the Electron download
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .electron-cache
           key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}

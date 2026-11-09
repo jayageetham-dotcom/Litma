@@ -6,7 +6,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { AboutLitma } from "@/components/UpdateNotice";
 import { UsageSettings } from "@/components/UsageSettings";
-import { HelpCard } from "@/components/HelpLink";
+import { CommunityCard, HelpCard } from "@/components/HelpLink";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { AppHeader } from "@/components/AppHeader";
 import { RequireAuth } from "@/lib/auth";
@@ -57,7 +57,10 @@ function Settings() {
         <h1 className="text-3xl font-bold">Settings</h1>
 
         <LanguagePicker />
-        <HelpCard />
+        <div className="space-y-3">
+          <HelpCard />
+          <CommunityCard />
+        </div>
         <GoalsCard />
         <BackupSettings />
 

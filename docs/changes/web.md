@@ -9,6 +9,14 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Litma Community
+
+- Pages: `src/app/community/page.tsx` (+ `layout.tsx`, public metadata) and `src/app/community/guidelines/` (LegalPage). Components in `src/components/community/`: `Community.tsx` (hero like the home page, sign-in card for visitors, category rail/chips, list, new thread, reports queue, legal strip), `ThreadView.tsx` (post, replies, likes, edit/delete, report, moderation menu, closed/removed banners, banned note), `Dialogs.tsx` (agree, report, moderate, ban), `bits.tsx` (`PostField` Manglish switch shared across the boxes via `litma:fieldMode:community`, `PostBody` with `nofollow ugc` links, `Dialog`).
+- Data: `src/lib/community.ts` (Supabase tables/RPCs; localStorage `litma:community` in local mode, local writer is a moderator, ban is a no-op there).
+- Links: `LandingChrome.tsx` nav (Community) and footer (Community, Guidelines); `AppHeader.tsx` avatar menu; Settings `CommunityCard` (`HelpLink.tsx`); `lib/seo.ts` sitemap; help guide `content/help/13-community.md` (`users` icon added to `HelpCenter.tsx`).
+- Legal text: `app/terms/page.tsx` (#community, "The service"), `app/privacy/page.tsx` (#community, "How long we keep it").
+- Checked: typecheck, local-mode build, Playwright (desktop 1360 px and iPhone 13): list, category filter, Manglish search, new thread with Manglish typing, agreement dialog (button disabled until ticked), reply, like, report, close with reason (reply box hidden, reports resolved), queue, delete own thread, guidelines anchor, no horizontal overflow on the phone (fixed a grid overflow). Unverified: the Supabase path in the browser (no reachable project from the sandbox), dark-mode writers (page is always light by design), real Malayalam fonts (Google Fonts blocked in the sandbox).
+
 ## 2026-11-09: getlitma.in upload says why it can't sign in
 
 - `.github/workflows/deploy.yml`: before signing in, checks that ftp.getlitma.in answers on port 21 from GitHub (else: firewall/cPHulk, not the password). When sign-in fails, runs lftp once with `-d` and prints the server's replies (password masked), then says which it is: 530 refused login (password or full username like litma@getlitma.in), FTPS/TLS failure, or a session cut off (cPHulk/firewall). Unverified until the next deploy run; the sandbox can't reach getlitma.in.

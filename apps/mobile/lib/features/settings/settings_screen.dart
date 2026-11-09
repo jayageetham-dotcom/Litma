@@ -184,6 +184,17 @@ class SettingsScreen extends ConsumerWidget {
                 launchUrl(Uri.parse('${AppConfig.site}/help/'), mode: LaunchMode.externalApplication);
               },
             ),
+            // Litma Community (getlitma.in/community/) opens in the phone's browser until the app has its own screens
+            ListTile(
+              leading: const Icon(LucideIcons.users),
+              title: Text(context.t('community.eyebrow')),
+              subtitle: Text(context.t('community.cardHint')),
+              trailing: const Icon(LucideIcons.externalLink, size: 16),
+              onTap: () {
+                Analytics.tap('community.eyebrow');
+                launchUrl(Uri.parse('${AppConfig.site}/community/'), mode: LaunchMode.externalApplication);
+              },
+            ),
             ListTile(
               leading: const Icon(LucideIcons.globe),
               title: Text(context.t('app.settings.website')),
@@ -193,6 +204,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             ListTile(leading: const Icon(LucideIcons.shieldCheck), title: Text(context.t('legal.privacy')), trailing: const Icon(LucideIcons.externalLink, size: 16), onTap: () => openLegal('privacy')),
             ListTile(leading: const Icon(LucideIcons.fileText), title: Text(context.t('legal.terms')), trailing: const Icon(LucideIcons.externalLink, size: 16), onTap: () => openLegal('terms')),
+            ListTile(leading: const Icon(LucideIcons.bookOpenText), title: Text(context.t('community.guidelines')), trailing: const Icon(LucideIcons.externalLink, size: 16), onTap: () => openLegal('community/guidelines')),
           ])),
           const SizedBox(height: 20),
           if (writer != null)

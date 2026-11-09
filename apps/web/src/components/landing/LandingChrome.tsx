@@ -6,6 +6,7 @@ const NAV = [
   { href: "/#types", label: "Writing types" },
   { href: "/#how", label: "How it works" },
   { href: "/#desk", label: "Features" },
+  { href: "/community/", label: "Community" },
   { href: "/help/", label: "Help" },
 ];
 
@@ -68,6 +69,9 @@ export function LandingFooter() {
             <Link href="/dictionary/" className="hover:text-lime">
               Dictionary
             </Link>
+            <Link href="/community/" className="hover:text-lime">
+              Community
+            </Link>
             <Link href="/help/" className="hover:text-lime">
               Help
             </Link>
@@ -79,6 +83,9 @@ export function LandingFooter() {
             </Link>
             <Link href="/terms/" className="hover:text-lime">
               Terms
+            </Link>
+            <Link href="/community/guidelines/" className="hover:text-lime">
+              Guidelines
             </Link>
           </nav>
         </div>

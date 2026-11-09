@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BarChart3, BookA, LifeBuoy, LogOut, Settings, Target, User } from "lucide-react";
+import { BarChart3, BookA, LifeBuoy, LogOut, Settings, Target, User, UsersRound } from "lucide-react";
 import { ADMIN_ON_THIS_APP, admin, isDemo } from "@/lib/admin";
 import { Logo } from "./Logo";
 import { AvatarArt, profileAvatar } from "./art/Avatars";
@@ -87,6 +87,9 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
                   </Link>
                   <Link role="menuitem" href="/goals/" className="mt-0.5 flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-sm hover:bg-subtle">
                     <Target size={15} /> {t("nav.goals")}
+                  </Link>
+                  <Link role="menuitem" href="/community/" className="mt-0.5 flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-sm hover:bg-subtle">
+                    <UsersRound size={15} /> {t("community.nav")}
                   </Link>
                   <Link role="menuitem" href="/settings/" className="mt-0.5 flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-sm hover:bg-subtle">
                     <Settings size={15} /> {t("nav.settings")}

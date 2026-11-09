@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalPage, type LegalSection } from "@/components/legal/LegalPage";
 
-const UPDATED = "8 November 2026";
+const UPDATED = "9 November 2026";
 
 const sections: LegalSection[] = [
   {
@@ -106,6 +106,33 @@ const sections: LegalSection[] = [
     ),
   },
   {
+    id: "community",
+    title: "Litma Community",
+    body: (
+      <>
+        <p>If you take part in <Link href="/community/">Litma Community</Link>, we keep:</p>
+        <ul>
+          <li>
+            <strong>Your posts:</strong> the conversations and replies you write, shown with your pen name (or profile name) and avatar to every signed-in Litma writer. Don&apos;t put personal details in a post.
+          </li>
+          <li>
+            <strong>Your likes and reports.</strong> Other writers see how many likes a post has, not who liked it. A writer never sees who reported their post; the moderators do.
+          </li>
+          <li>
+            <strong>Your agreement:</strong> the date and version of the Community Guidelines you agreed to.
+          </li>
+          <li>
+            <strong>Moderation records:</strong> which posts were closed or removed and why, and whether an account was stopped from posting, so we can handle complaints and answer lawful requests.
+          </li>
+        </ul>
+        <p>
+          A post you delete, or one the moderators remove, is hidden at once and kept for 180 days (the period India&apos;s IT Rules ask for), then deleted for good. Moderation records are kept for two years. Deleting your account deletes your posts, likes
+          and reports. We may share a post and the account details behind it with the authorities when a lawful order requires it.
+        </p>
+      </>
+    ),
+  },
+  {
     id: "share",
     title: "Services we use",
     body: (
@@ -160,7 +187,7 @@ const sections: LegalSection[] = [
         <p>
           We keep your account and writing for as long as you have a Litma account. Works you move to Trash can be deleted for good from there. To delete your whole account and everything in it, email{" "}
           <a href="mailto:support@getlitma.in?subject=Delete%20my%20Litma%20account">support@getlitma.in</a> from the email address of your account. We delete it within 30 days and confirm by email. Backups that may still hold it are replaced within a further
-          30 days. Usage statistics and your writing statistics are kept for 90 days and then deleted automatically.
+          30 days. Usage statistics and your writing statistics are kept for 90 days and then deleted automatically. Community posts follow the rules in Litma Community above.
         </p>
       </>
     ),

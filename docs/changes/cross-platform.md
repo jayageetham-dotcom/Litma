@@ -14,6 +14,13 @@ the code, and what is still unverified.
 Reels (2026-11-09): reel 3 (launch ad) can be re-voiced with Despina (Gemini) when the TTS quota allows; post the reels with a track from Instagram's music picker; on the Mac, run the one-time setup in `docs/marketing/reels.md` (Whisper and yt-dlp could not reach their downloads from the cloud sandbox).
 
 
+Litma Community (2026-11-09):
+- **Push**, then check migration `20261109120000_community` ran and the cron job `litma-prune-community` exists. Until then /community/ shows "Something went wrong" to signed-in writers.
+- Run the Supabase security and performance advisors after the migration (the sandbox could not reach the project).
+- **Legal:** have a lawyer read `/community/guidelines/` (#responsibility, #contact), Terms #community and Privacy #community. India's IT Rules 2021 expect a named **Grievance Officer** (name and contact) on the site; the pages give only support@getlitma.in and promise 24-hour acknowledgement and 15-day resolution. Add the name when decided.
+- Moderators are `app_admins` rows; there are no email notifications for new reports yet (check **Reports** on /community/).
+- Desktop gets the community only after a **Release**; the phone app links to the website until native screens exist.
+
 Only the owner can do these (accounts, secrets, dashboards):
 - **Phone app in the stores:** App Store Connect and Google Play Console accounts, then the store
   secrets listed at the top of `.github/workflows/mobile-release.yml`; until then the web's store
@@ -48,6 +55,13 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Google Drive backup on the website:** enable the Drive API, add `getlitma.in` as a JavaScript origin of the Web OAuth client, add the `drive.file` scope to the consent screen, set the repo variable `GOOGLE_CLIENT_ID` (README → Google Drive backup). Without it the button stays hidden.
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
+
+## 2026-11-09: Litma Community (forum), guidelines and user-content notices
+
+- New public-styled page `/community/` (web and desktop share it): categories, search (Manglish-aware), threads, replies, likes, edit/delete own posts, report, guideline agreement before the first post, and moderation for `app_admins` (close, reopen, remove, restore, pin, remove reply, stop a writer posting, reports queue). Details in `web.md`.
+- Database: `supabase/migrations/20261109120000_community.sql` (tables `community_threads`, `community_replies`, `community_likes`, `community_reports`, `community_members`, `community_mod_log`; RLS, triggers, functions, 180-day purge by cron `litma-prune-community`). Checked in PGlite (Postgres 16 in WASM) with stand-in `auth.uid()`, roles and `app_admins`: 40+ cases incl. posting before agreeing, forged author/status fields, closed threads, bans, removed posts' visibility, admin-only functions, rate limit. Not yet run on Supabase.
+- Legal: new `/community/guidelines/` (what is never allowed, moderation, "Who is responsible for posts", grievances); Terms of Use get a "Community and other people's content" section (user content is the writer's responsibility, intermediary status, indemnity) and a line in "The service"; Privacy Policy gets a "Litma Community" section. All dated 9 November 2026. The notice is not shown inside the writing app, only on the community, guidelines, Terms and Privacy pages.
+- Desktop: no desktop-only code; it gets the pages with the next **Release**. Phone: Settings links to the community and the guidelines in the browser (`apps/mobile/lib/features/settings/settings_screen.dart`); native screens noted in `apps/mobile/README.md`. Strings `community.*` in `packages/i18n` (en + ml), copied by `npm run mobile:assets`.
 
 ## 2026-11-09: Instagram posters folder (marketing only, no app change)
 

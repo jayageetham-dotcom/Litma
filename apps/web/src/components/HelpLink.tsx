@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ExternalLink, LifeBuoy } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, ExternalLink, LifeBuoy, UsersRound } from "lucide-react";
 import { useT } from "@/i18n/react";
 import { BASE } from "@/lib/config";
 import { desktop } from "@/lib/desktop";
@@ -40,5 +41,22 @@ export function HelpCard() {
       </span>
       <ExternalLink size={16} className="shrink-0 text-muted group-hover:text-accent" aria-hidden />
     </a>
+  );
+}
+
+/** Settings card into Litma Community (an in-app page, so it stays inside the desktop app too). */
+export function CommunityCard() {
+  const t = useT();
+  return (
+    <Link href="/community/" className="group flex items-center gap-4 rounded-xl bg-paper p-4 transition hover:-translate-y-0.5" style={{ boxShadow: "var(--sheet-shadow)" }}>
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-subtle text-tint-violet">
+        <UsersRound size={20} aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold">{t("community.eyebrow")}</span>
+        <span className="block text-sm text-muted">{t("community.cardHint")}</span>
+      </span>
+      <ChevronRight size={16} className="shrink-0 text-muted group-hover:text-accent" aria-hidden />
+    </Link>
   );
 }

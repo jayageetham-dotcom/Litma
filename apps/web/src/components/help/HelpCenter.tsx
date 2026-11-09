@@ -2,28 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  ArrowLeft,
-  ArrowRight,
-  BookOpen,
-  BookA,
-  ChevronRight,
-  Keyboard,
-  LifeBuoy,
-  Mail,
-  MonitorSmartphone,
-  PenLine,
-  Rocket,
-  Search,
-  Settings,
-  Share2,
-  Sparkles,
-  LayoutTemplate,
-  Map as MapIcon,
-  X,
-  Target,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, BookA, ChevronRight, Keyboard, LifeBuoy, Mail, MonitorSmartphone, PenLine, Rocket, Search, Settings, Share2, Sparkles, LayoutTemplate, Map as MapIcon, X, Target, type LucideIcon, UsersRound } from "lucide-react";
 import { ColourField, LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
 import type { HelpArticle, HelpCategory, HelpData } from "@/lib/help-types";
 
@@ -40,6 +19,7 @@ const ICONS: Record<string, LucideIcon> = {
   "monitor-smartphone": MonitorSmartphone,
   settings: Settings,
   target: Target,
+  users: UsersRound,
 };
 
 /** Fill and text colours for each tint, from the home page's palette. */

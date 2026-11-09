@@ -15,6 +15,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-09: Community links
+
+- `lib/features/settings/settings_screen.dart`: "Litma Community" (opens getlitma.in/community/ in the browser) and "Community guidelines" (in-app browser via `openLegal('community/guidelines')`). Strings `community.*` from `packages/i18n` (assets regenerated). Native community screens are listed in `README.md` → Changes to mirror. Unverified: `flutter analyze` and tests (no Flutter SDK in the sandbox; watch CI).
+
 ## 2026-11-08: Test fake understands log_writing
 
 - `lib/data/fake.dart` `FakeBackend.rpc` now handles `log_writing` like the SQL function (words, minutes, hours, work_days); since the goals work the app sends `log_writing`, so `offline_test.dart` "words written offline are added up into one change" failed against the fake. App code unchanged.

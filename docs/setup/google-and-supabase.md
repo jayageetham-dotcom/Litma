@@ -182,7 +182,9 @@ Pushing to `main` deploys the Edge Functions and applies migrations, once GitHub
    should list `writing_stats_retention` (Nov 2026) among the others.
 6. Check the nightly statistics clean-up (statistics are kept 90 days):
    https://supabase.com/dashboard/project/jdexadomaxjtxlvgtldu/integrations/cron/jobs should show
-   `litma-prune-statistics` at `40 21 * * *` (03:10 India time). Or in the SQL editor:
+   `litma-prune-statistics` at `40 21 * * *` (03:10 India time) and `litma-prune-community` at
+   `50 21 * * *` (03:20 India time; deletes community posts 180 days after they were deleted or
+   removed, from migration `community`, Nov 2026). Or in the SQL editor:
 
    ```sql
    select jobname, schedule, active from cron.job;
@@ -235,7 +237,10 @@ insert into public.app_admins (user_id)
 select id from auth.users where email = 'you@example.com';
 ```
 
-Settings then shows the Admin dashboard link to that account.
+Settings then shows the Admin dashboard link to that account. The same row makes that account a
+moderator of Litma Community (getlitma.in/community/): a **Moderate** menu on every post, and
+**Reports** on the community page for the reports queue. Add your community moderators the same way
+(they also see the admin dashboard).
 
 ## Part 9. Connect AI assistants (MCP), for writers
 
@@ -253,7 +258,7 @@ web host's firewall blocks data-centre callers on `getlitma.in/mcp`.
 - [ ] Supabase URL configuration: Site URL and the four redirect URLs (incl. the phone's)
 - [ ] Apple: Sign in with Apple for `in.getlitma.litma`, Supabase Apple provider
 - [ ] GitHub secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`; deploy job green; migrations listed
-- [ ] Cron job `litma-prune-statistics` active
+- [ ] Cron jobs `litma-prune-statistics` and `litma-prune-community` active
 - [ ] Edge Function secrets: `SEND_EMAIL_HOOK_SECRET`, `SMTP_PASSWORD`, `LITMA_KEYS_SECRET`
 - [ ] Send Email hook on; password email arrives
 - [ ] Drive backup: Drive API on, GitHub variable `GOOGLE_CLIENT_ID`, button works

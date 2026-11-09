@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalPage, type LegalSection } from "@/components/legal/LegalPage";
 
-const UPDATED = "7 November 2026";
+const UPDATED = "9 November 2026";
 
 const sections: LegalSection[] = [
   {
@@ -45,12 +45,45 @@ const sections: LegalSection[] = [
       <>
         <p>Please don&apos;t use Litma to:</p>
         <ul>
-          <li>share writing that you have no right to share, or that breaks the law;</li>
+          <li>share or post writing that you have no right to share, or that breaks the law;</li>
           <li>share content that attacks or demeans people for their religion, caste, race, community, region, gender, age or ability, or that harasses or threatens anyone;</li>
           <li>try to reach other people&apos;s accounts or data, break Litma&apos;s security, or overload its servers;</li>
           <li>copy, resell or rebuild Litma&apos;s service, or scrape its dictionary in bulk.</li>
         </ul>
-        <p>We may remove a shared link that breaks these rules, and suspend an account that keeps breaking them. Where we can, we will tell you first and explain why.</p>
+        <p>We may remove a shared link or a community post that breaks these rules, and suspend an account that keeps breaking them. Where we can, we will tell you first and explain why.</p>
+      </>
+    ),
+  },
+  {
+    id: "community",
+    title: "Community and other people's content",
+    body: (
+      <>
+        <p>
+          <Link href="/community/">Litma Community</Link> lets signed-in writers post conversations and replies that other writers can read. Before your first post you agree to the <Link href="/community/guidelines/">Community Guidelines</Link>, which are
+          part of these terms.
+        </p>
+        <ul>
+          <li>
+            <strong>You are responsible for what you post, share or publish.</strong> Posts in the community, works you share by link or publish, and anything else a writer makes public through Litma are written by that writer, not by Litma. They
+            show the writer&apos;s own views.
+          </li>
+          <li>
+            Litma does not write, check or approve that content before it appears, and does not guarantee that it is true, accurate, original or lawful. As far as the law allows, Litma is not responsible or liable for content created by writers, or for
+            any loss or harm that comes from it.
+          </li>
+          <li>
+            Litma acts as an intermediary under India&apos;s Information Technology Act, 2000 and the rules made under it. When we learn of content that breaks the law or our guidelines, through a report, a complaint or a lawful order, we remove it or
+            limit access to it as the law requires, and we may keep it for up to 180 days afterwards when the law asks us to.
+          </li>
+          <li>
+            You agree to make good any claim, loss, cost or legal expense that Litma or the people who run it face because of content you posted, shared or published, or because you broke these terms or the guidelines.
+          </li>
+          <li>
+            We may close or remove conversations, remove posts, and stop an account from posting, with or without notice, when content breaks these terms or the guidelines. Complaints and grievances go to{" "}
+            <a href="mailto:support@getlitma.in?subject=Community%20grievance">support@getlitma.in</a> (see <Link href="/community/guidelines/#contact">Complaints and grievances</Link>).
+          </li>
+        </ul>
       </>
     ),
   },
@@ -82,7 +115,8 @@ const sections: LegalSection[] = [
           Litma is free to use today. We keep improving it, so features may change. If we ever plan to charge for something, or to close Litma, we will tell you well in advance and give you time to export your writing.
         </p>
         <p>
-          Litma is provided “as is”. As far as the law allows, we are not liable for indirect losses, or for losses caused by things outside our control, such as a broken connection or a third-party service. Nothing in these terms limits rights
+          Litma is provided “as is”. As far as the law allows, we are not liable for indirect losses, for losses caused by things outside our control, such as a broken connection or a third-party service, or for content created by other writers (see
+          Community and other people&apos;s content above). Nothing in these terms limits rights
           you have by law that cannot be limited.
         </p>
       </>

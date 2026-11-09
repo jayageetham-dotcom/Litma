@@ -167,7 +167,18 @@
     "admin": "Admin dashboard",
     "adminHint": "Usage, writers and charts for the whole of Litma. Only admins see this.",
     "help": "Help and guide",
-    "helpHint": "Step-by-step guides with pictures for every part of Litma. Opens in your browser."
+    "helpHint": "Step-by-step guides with pictures for every part of Litma. Opens in your browser.",
+    "nav": {
+      "onThisPage": "Settings",
+      "language": "Language",
+      "help": "Help and community",
+      "goals": "Goals",
+      "backup": "Backup",
+      "ai": "AI keys",
+      "mcp": "Connect AI assistants",
+      "usage": "Usage statistics",
+      "about": "About Litma"
+    }
   },
   "download": {
     "title": "Litma for your computer",

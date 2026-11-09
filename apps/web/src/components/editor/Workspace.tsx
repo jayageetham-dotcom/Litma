@@ -652,7 +652,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
       {/* ── Top bar ── */}
       {!focus && (
-        <header className="no-print flex items-center gap-1 border-b border-line bg-header px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] md:gap-2 md:px-3 md:py-2">
+        <header className="no-print relative z-50 flex items-center gap-1 border-b border-line bg-header px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] md:gap-2 md:px-3 md:py-2">
           <button onClick={goToDesk} className="btn btn-ghost !p-2" title="Back to desk" aria-label="Back to desk">
             <ArrowLeft size={phone ? 20 : 18} />
           </button>
@@ -696,7 +696,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           ) : (
             <>
               <div className="relative">
-                <button className="btn btn-ghost !px-2.5" onClick={() => setMenu(menu === "export" ? null : "export")} aria-expanded={menu === "export"}>
+                <button className="btn btn-ghost !px-2.5" data-menu-button onClick={() => setMenu(menu === "export" ? null : "export")} aria-expanded={menu === "export"}>
                   <Download size={16} /> <span className="hidden lg:inline">Export</span>
                 </button>
                 {menu === "export" && (
@@ -708,7 +708,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 )}
               </div>
               <div className="relative">
-                <button className="btn btn-ghost !px-2.5" onClick={() => setMenu(menu === "share" ? null : "share")} aria-expanded={menu === "share"}>
+                <button className="btn btn-ghost !px-2.5" data-menu-button onClick={() => setMenu(menu === "share" ? null : "share")} aria-expanded={menu === "share"}>
                   <Share2 size={16} /> <span className="hidden lg:inline">Share</span>
                 </button>
                 {menu === "share" && (
@@ -1112,18 +1112,23 @@ function RailBtn({ active, onClick, label, hint, icon: Icon, badge = 0, tint = "
 }
 
 function Menu({ children, onClose, wide }: { children: React.ReactNode; onClose: () => void; wide?: boolean }) {
+  // the editor re-renders often, so keep the latest onClose in a ref and add the listeners once:
+  // re-adding them on every render (through a timer) left stray listeners that closed the next menu at once
+  const close = useRef(onClose);
+  close.current = onClose;
   useEffect(() => {
     const h = (e: MouseEvent) => {
-      if (!(e.target as HTMLElement).closest("[data-menu]")) onClose();
+      if (!(e.target as HTMLElement).closest("[data-menu], [data-menu-button]")) close.current();
     };
-    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    setTimeout(() => document.addEventListener("click", h));
+    const k = (e: KeyboardEvent) => e.key === "Escape" && close.current();
+    const timer = setTimeout(() => document.addEventListener("click", h));
     document.addEventListener("keydown", k);
     return () => {
+      clearTimeout(timer);
       document.removeEventListener("click", h);
       document.removeEventListener("keydown", k);
     };
-  }, [onClose]);
+  }, []);
   return (
     <div data-menu className={`absolute right-0 top-10 z-50 rounded-xl border border-line bg-paper p-1.5 shadow-xl [&>button+button]:mt-0.5 ${wide ? "w-80" : "w-56"}`} role="menu">
       {children}

@@ -1,6 +1,7 @@
 "use client";
 import { BackupSettings, GoalsCard } from "@/components/settings/BackupSettings";
 import { useEffect, useState } from "react";
+import { useT } from "@/i18n/react";
 import { Copy, KeyRound, Trash2 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 import { LanguagePicker } from "@/components/LanguagePicker";
@@ -36,6 +37,39 @@ export default function SettingsPage() {
   );
 }
 
+const SECTIONS = ["language", "help", "goals", "backup", "ai", "mcp", "usage", "about"] as const;
+
+/** Section list beside the settings on wide screens (lines the page up with the header); follows the scroll. */
+function SettingsNav() {
+  const t = useT();
+  const [on, setOn] = useState<string>("language");
+  useEffect(() => {
+    const els = SECTIONS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const io = new IntersectionObserver(
+      (entries) => {
+        const top = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (top) setOn(top.target.id);
+      },
+      { rootMargin: "-80px 0px -60% 0px" }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+  return (
+    <nav aria-label={t("settings.nav.onThisPage")} className="max-lg:hidden lg:sticky lg:top-24 lg:self-start">
+      <ul className="grid gap-0.5">
+        {SECTIONS.map((id) => (
+          <li key={id}>
+            <a href={`#${id}`} aria-current={on === id ? "true" : undefined} className={`block rounded-[6px] px-3 py-2 text-sm transition ${on === id ? "bg-subtle font-semibold text-ink" : "text-muted hover:bg-subtle hover:text-ink"}`}>
+              {t(`settings.nav.${id}`)}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
 function Settings() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [tokenName, setTokenName] = useState("Claude");
@@ -53,20 +87,30 @@ function Settings() {
   return (
     <div className="min-h-dvh">
       <AppHeader />
-      <main className="mx-auto max-w-3xl space-y-12 px-5 pb-24 pt-8 sm:pt-12">
+      <main className="mx-auto max-w-6xl px-5 pb-24 pt-8 sm:pt-12">
         <h1 className="text-3xl font-bold">Settings</h1>
-
-        <LanguagePicker />
-        <div className="space-y-3">
+        <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[12rem_minmax(0,1fr)]">
+        <SettingsNav />
+        <div className="min-w-0 max-w-3xl space-y-12">
+        <div id="language" className="scroll-mt-24">
+          <LanguagePicker />
+        </div>
+        <div id="help" className="scroll-mt-24 space-y-3">
           <HelpCard />
           <CommunityCard />
         </div>
-        <GoalsCard />
-        <BackupSettings />
+        <div id="goals" className="scroll-mt-24">
+          <GoalsCard />
+        </div>
+        <div id="backup" className="scroll-mt-24">
+          <BackupSettings />
+        </div>
 
-        <AIKeys />
+        <div id="ai" className="scroll-mt-24">
+          <AIKeys />
+        </div>
 
-        <section>
+        <section id="mcp" className="scroll-mt-24">
           <h2 className="text-xl font-semibold">Connect AI assistants (MCP)</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
             Litma is an MCP server at {url}. Connect any AI assistant that supports MCP (Claude, ChatGPT, Cursor, VS Code and others) with your own account. It can then read and write your works, manage Story World, look words up in the dictionary, assemble books and prepare PDFs. Each writer creates their own token below; it only ever sees that writer’s work.
@@ -165,8 +209,14 @@ function Settings() {
             </p>
           </div>
         </section>
-        <UsageSettings />
-        <AboutLitma />
+        <div id="usage" className="scroll-mt-24">
+          <UsageSettings />
+        </div>
+        <div id="about" className="scroll-mt-24">
+          <AboutLitma />
+        </div>
+        </div>
+        </div>
       </main>
       <MobileNav />
     </div>

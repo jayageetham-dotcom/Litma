@@ -9,6 +9,12 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Editor Export/Share menus; Settings width
+
+- `components/editor/Workspace.tsx`: the editor header is `relative z-50`, so the Export and Share menus sit above the toolbar and the tool rail (only the first item showed before). `Menu` keeps `onClose` in a ref and adds its outside-click listener once (cleared timer): it used to re-add it through `setTimeout` on every editor render, leaving stray listeners that closed the next menu as soon as it opened ("Export doesn't open after clicking outside"). The menu buttons carry `data-menu-button`. Playwright (dark, 1440 px): all six export items on top; reopen works three times after typing and outside clicks.
+- `app/settings/page.tsx`: same width as the header (`max-w-6xl`), a section list on the left on wide screens (`SettingsNav`, follows the scroll; strings `settings.nav.*`), the settings column stays `max-w-3xl`. Section ids `language, help, goals, backup, ai, mcp, usage, about`, so `/settings/#mcp` (linked from the AI panel) now scrolls to MCP. Phones unchanged (one column, no list).
+- Desktop gets both with the next Release.
+
 ## 2026-11-09: Same top spacing on every app page
 
 - `app/profile/page.tsx`, `app/settings/page.tsx`, `app/goals/page.tsx`, `components/admin/AdminDashboard.tsx` (and the Profile/Goals loading screens): `pt-8 sm:pt-12` like the desk and dictionary. Measured header-to-heading gap: 48 px desktop, 32 px iPhone 13 on desk, dictionary, goals, settings, admin (Profile needs sign-in; same classes).

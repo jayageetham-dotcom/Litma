@@ -49,6 +49,11 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
+## 2026-11-09: Instagram posters folder (marketing only, no app change)
+
+- `marketing/posters/`: finished posters (`*_1080.png` to post, `*_master@3x.png` 3240 wide). `marketing/posters/.gitignore` allows only those two kinds of file plus the README.
+- `.github/workflows/deploy.yml`: `marketing/**` added to `paths-ignore`, so poster and reel commits don't redeploy getlitma.in.
+
 ## 2026-11-09: Reel 3, 30 s launch ad with Malayalam voiceover (marketing only, no app change)
 
 - `marketing/reels/reel-launch/` (HyperFrames, `SPEC.md`): the app in dark mode inside a plain phone frame on a
@@ -59,6 +64,14 @@ From the 2026-11-08 writing aids (owner actions, free):
 - Voice: TTSForFree "Sobhana (Natural)" ml-IN; the Gemini voice did not fit the free daily quota. Cut into
   `assets/vo1..8.wav` at the pauses; the sentence-to-pause mapping was matched by timing, not heard.
 - No music (HeyGen catalog needs a sign-in). No Release needed: nothing in the apps changed.
+
+## 2026-11-09: Clearer FTP sign-in errors in the website deploy
+
+- CI only (`deploy.yml`): port-21 check and the server's own replies when the getlitma.in sign-in fails. A deploy failed with "max-retries exceeded"; cause not yet known (password, username or the host blocking GitHub). Details in `web.md`.
+
+## 2026-11-09: Desktop build retries and caches Electron
+
+- CI only (`.github/workflows/desktop.yml`): Electron download cached, electron-builder retried 3 times after a GitHub 504 failed a Mac build. `npm ci` no longer downloads the Electron binary in CI (`ELECTRON_SKIP_BINARY_DOWNLOAD=1` in `desktop.yml` and `deploy.yml`). Details in `desktop.md`.
 
 ## 2026-11-09: Instagram reels (marketing only, no app change)
 

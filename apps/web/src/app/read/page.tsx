@@ -6,12 +6,14 @@ import type { JSONContent } from "@tiptap/core";
 import { X } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { InkLoader } from "@/components/ui/Skeleton";
+import { InkLoader, PagesSkeleton } from "@/components/ui/Skeleton";
+import { AvatarArt, AVATAR_TINTS, isAvatarImage, tintFor, type AvatarTint } from "@/components/art/Avatars";
+import { paginate } from "@/lib/paginate";
+import { documentPrint } from "@/lib/book-sections";
 import { store } from "@/lib/store";
 import { useUser } from "@/lib/auth";
 import { kindDot } from "@/lib/tints";
-import { renderDocHtml } from "@/lib/doc-html";
-import { docClasses, settingsFor, templateFor } from "@/lib/templates";
+import { templateFor } from "@/lib/templates";
 import type { LitmaDoc } from "@/lib/types";
 
 /** Reading time at a calm pace for Malayalam prose (about 150 words a minute). */
@@ -60,7 +62,7 @@ type Heading = { id: string; text: string; level: number };
  * Document outline beside the page on wide screens, like Google Docs: title, chapters, scenes and
  * headings; click to jump, and the part being read is highlighted.
  */
-function Outline({ root, html }: { root: React.RefObject<HTMLElement | null>; html: string }) {
+function Outline({ root, laid }: { root: React.RefObject<HTMLElement | null>; laid: number | null }) {
   const [items, setItems] = useState<Heading[]>([]);
   const [active, setActive] = useState<string | null>(null);
   useEffect(() => {
@@ -86,7 +88,7 @@ function Outline({ root, html }: { root: React.RefObject<HTMLElement | null>; ht
     );
     nodes.forEach((n) => io.observe(n));
     return () => io.disconnect();
-  }, [root, html]);
+  }, [root, laid]);
 
   if (items.length < 2) return <div aria-hidden className="max-xl:hidden" />;
   return (
@@ -109,30 +111,81 @@ function Outline({ root, html }: { root: React.RefObject<HTMLElement | null>; ht
   );
 }
 
-/** Public, read-only reader view for shared works: /read/?s=<share id> */
+const MM = 96 / 25.4;
+
+/** The author block's text in the work itself, for when the byline can't be looked up. */
+function authorInWork(doc: LitmaDoc): string | null {
+  const block = (doc.content.content ?? []).find((n: JSONContent) => n.type === "styledBlock" && n.attrs?.variant === "author");
+  const text = (block?.content ?? []).map((c: JSONContent) => c.text ?? "").join("").trim();
+  return text || null;
+}
+
+/**
+ * Public, read-only reader for shared works: /read/?s=<share id>. The work is shown on its printed
+ * pages (the same layout as its PDF), pages without any text are left out (an inserted page the
+ * writer never filled), the rest are numbered in order, and the pages shrink to fit a phone.
+ */
 function Reader() {
   const shareId = useSearchParams().get("s") ?? "";
   const [doc, setDoc] = useState<LitmaDoc | null | undefined>(undefined);
+  const [author, setAuthor] = useState<{ name: string | null; avatar: string | null; tint: string | null } | null>(null);
+  const [laid, setLaid] = useState<number | null>(null);
+  const [scale, setScale] = useState(1);
   const close = useClose();
   const progress = useProgress();
-  const sheet = useRef<HTMLElement>(null);
+  const pages = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!shareId) return setDoc(null);
     store.getShared(shareId).then(setDoc);
+    store.getSharedAuthor(shareId).then(setAuthor).catch(() => setAuthor(null));
   }, [shareId]);
 
-  const view = useMemo(() => {
-    if (!doc) return null;
-    const s = { ...settingsFor(doc.kind), ...doc.settings };
-    // One continuous sheet, like a pageless Google Doc: inserted pages become a little space
-    // in the flow (see .reader-sheet .page-break). Trailing blank lines are dropped so the
-    // page ends with a proper margin under the last line.
-    const isBlank = (n: JSONContent) => n.type === "paragraph" && !(n.content ?? []).some((c) => c.type !== "hardBreak");
-    const blocks = [...(doc.content.content ?? [])];
-    while (blocks.length && (isBlank(blocks[blocks.length - 1]) || blocks[blocks.length - 1].type === "pageBreak")) blocks.pop();
-    const html = renderDocHtml(doc, { ...doc.content, content: blocks });
-    const words = doc.word_count || html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
-    return { s, html, words };
+  const print = useMemo(() => (doc ? documentPrint(doc) : null), [doc]);
+
+  // lay the work out on pages, then drop the empty ones and number the rest 1, 2, 3…
+  useEffect(() => {
+    if (!print || !pages.current) return;
+    let cancelled = false;
+    (async () => {
+      await document.fonts?.ready;
+      if (cancelled || !pages.current) return;
+      await paginate(pages.current, print.spec, print.sections);
+      if (cancelled || !pages.current) return;
+      const all = Array.from(pages.current.querySelectorAll<HTMLElement>(".pp-page"));
+      const kept = all.filter((pg) => {
+        const flow = pg.querySelector(".pp-flow");
+        const empty = !(flow?.textContent ?? "").trim() && !flow?.querySelector("img, svg, hr");
+        if (empty) pg.remove();
+        return !empty;
+      });
+      kept.forEach((pg, i) => {
+        const folio = pg.querySelector(".pp-folio");
+        if (folio) folio.textContent = String(i + 1);
+      });
+      setLaid(kept.length);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [print]);
+
+  // shrink the pages to the screen's width (phones), never enlarge them
+  useEffect(() => {
+    const el = frame.current;
+    if (!el || !print) return;
+    const fit = () => setScale(Math.min(1, el.clientWidth / (print.spec.w * MM)));
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [print, laid]);
+
+  const words = useMemo(() => {
+    if (!doc) return 0;
+    if (doc.word_count) return doc.word_count;
+    const text = JSON.stringify(doc.content).match(/"text":"([^"]*)"/g) ?? [];
+    return text.join(" ").split(/\s+/).filter(Boolean).length;
   }, [doc]);
 
   if (doc === undefined) return <InkLoader />;
@@ -156,7 +209,7 @@ function Reader() {
     </header>
   );
 
-  if (!doc || !view)
+  if (!doc || !print)
     return (
       <div className="min-h-dvh">
         {header}
@@ -172,51 +225,54 @@ function Reader() {
       </div>
     );
 
-  const { s, html, words } = view;
   const tpl = templateFor(doc.kind);
+  const byline = author?.name || authorInWork(doc);
+  const tint = AVATAR_TINTS.includes(author?.tint as AvatarTint) ? (author!.tint as AvatarTint) : tintFor(byline);
   return (
     <div className="min-h-dvh">
       {header}
       <main className="px-3 pb-20 pt-8 sm:px-5 sm:pt-12">
-        {/* what this is, before the page */}
-        <div className="no-print mx-auto mb-6 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-sm text-muted sm:mb-8" style={{ maxWidth: "210mm" }}>
-          <span className="inline-flex items-center gap-1.5 font-semibold text-highlight" style={{ fontFamily: "var(--font-display)" }}>
-            <span aria-hidden className={`size-1.5 rounded-full ${kindDot(doc.kind)}`} />
-            {tpl.ml}
-          </span>
-          <span aria-hidden>·</span>
-          <span>{words.toLocaleString("en-IN")} words</span>
-          <span aria-hidden>·</span>
-          <span>{minutes(words)} min read</span>
+        {/* what this is and who wrote it, before the pages */}
+        <div className="no-print mx-auto mb-8 text-center sm:mb-10" style={{ maxWidth: "210mm" }}>
+          <h1 className="text-[1.9rem] font-bold leading-tight sm:text-[2.4rem]" style={{ fontFamily: "var(--font-display)" }}>
+            {doc.title}
+          </h1>
+          {byline && (
+            <p className="mt-3 inline-flex items-center gap-2.5 text-[1.05rem] font-semibold">
+              <AvatarArt id={isAvatarImage(author?.avatar) ? author!.avatar : null} name={byline} tint={tint} size={30} />
+              <span style={{ fontFamily: "var(--font-display)" }}>{byline}</span>
+            </p>
+          )}
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-sm text-muted">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-highlight" style={{ fontFamily: "var(--font-display)" }}>
+              <span aria-hidden className={`size-1.5 rounded-full ${kindDot(doc.kind)}`} />
+              {tpl.ml}
+            </span>
+            <span aria-hidden>·</span>
+            <span>{words.toLocaleString("en-IN")} words</span>
+            <span aria-hidden>·</span>
+            <span>{minutes(words)} min read</span>
+            {laid !== null && laid > 1 && (
+              <>
+                <span aria-hidden>·</span>
+                <span>{laid} pages</span>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="mx-auto grid justify-center gap-10 xl:grid-cols-[14rem_minmax(0,210mm)_14rem]">
-          <Outline root={sheet} html={html} />
-          <article
-            ref={sheet}
-            className={`reader-sheet page-stack ${docClasses(doc.kind, s)} overflow-hidden rounded-md`}
-            aria-label={doc.title}
-            style={
-              {
-                "--page-w": "210mm",
-                "--page-h": "auto",
-                "--m-top": "min(22mm, 9vw)",
-                // the work's own margins on wide screens; narrower on phones so the text gets the width
-                "--m-right": `min(${s.margins.right}mm, 7vw)`,
-                "--m-bottom": "min(22mm, 9vw)",
-                "--m-left": `min(${s.margins.left}mm, 7vw)`,
-                "--doc-font": `'${s.font}'`,
-                "--doc-size": `${s.fontSize}pt`,
-                "--doc-lh": s.lineHeight,
-                maxWidth: "100%",
-                background: "var(--paper)",
-                boxShadow: "var(--sheet-shadow)",
-              } as React.CSSProperties
-            }
-          >
-            {/* a full bottom margin under the last line, like the end of a printed page */}
-            <div className="ProseMirror !min-h-0" style={{ paddingBottom: "calc(min(22mm, 9vw) + 3rem)" }} dangerouslySetInnerHTML={{ __html: html }} />
-          </article>
+          <Outline root={pages} laid={laid} />
+          <div ref={frame} className="relative min-w-0" style={{ width: `min(100%, ${print.spec.w}mm)` }}>
+            {laid === null && (
+              <div className="absolute inset-x-0 top-0 z-10">
+                <PagesSkeleton pages={1} />
+              </div>
+            )}
+            <div style={{ zoom: scale, visibility: laid === null ? "hidden" : undefined }} aria-label={doc.title} role="document">
+              <div ref={pages} className="pp-root" />
+            </div>
+          </div>
           <div aria-hidden className="max-xl:hidden" />
         </div>
 

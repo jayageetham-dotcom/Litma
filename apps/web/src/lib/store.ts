@@ -334,6 +334,15 @@ export const store = {
     return share_id;
   },
 
+  /** The byline of a shared work (pen name or name, avatar); null when unknown. Works for visitors who aren't signed in. */
+  async getSharedAuthor(shareId: string): Promise<{ name: string | null; avatar: string | null; tint: string | null } | null> {
+    const sb = getSupabase();
+    if (!sb) return null;
+    const { data, error } = await sb.rpc("shared_author", { p_share: shareId });
+    if (error || !data) return null;
+    return data as { name: string | null; avatar: string | null; tint: string | null };
+  },
+
   async getShared(shareId: string): Promise<LitmaDoc | null> {
     const sb = getSupabase();
     if (!sb) return null;

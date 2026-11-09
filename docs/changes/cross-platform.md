@@ -15,6 +15,7 @@ Reels (2026-11-09): reel 3 (launch ad) can be re-voiced with Despina (Gemini) wh
 
 
 Litma Community (2026-11-09):
+- **Push** also runs migration `20261109140000_shared_author` (writer's name on shared links); until then the shared page shows the author line from the work itself.
 - **Push**, then check migration `20261109120000_community` ran and the cron job `litma-prune-community` exists. Until then /community/ shows "Something went wrong" to signed-in writers.
 - Run the Supabase security and performance advisors after the migration (the sandbox could not reach the project).
 - **Legal:** have a lawyer read `/community/guidelines/` (#responsibility, #contact), Terms #community and Privacy #community. India's IT Rules 2021 expect a named **Grievance Officer** (name and contact) on the site; the pages give only support@getlitma.in and promise 24-hour acknowledgement and 15-day resolution. Add the name when decided.

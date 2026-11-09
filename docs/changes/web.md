@@ -9,6 +9,12 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Shared link shows every page, with the writer's name
+
+- `app/read/page.tsx`: the shared reader lays the work out on its printed pages (`paginate(documentPrint(doc))`, like the PDF), removes pages whose flow has no text (an inserted page left empty), renumbers the folios 1, 2, 3 and shows "n pages"; pages shrink to the screen width with `zoom` (ResizeObserver). Before, it was one continuous sheet, so text after a page break read as if it weren't a page of its own (the owner thought only the first page showed). Title and byline (avatar + pen name) above the pages.
+- Byline: new migration `supabase/migrations/20261109140000_shared_author.sql`, `shared_author(p_share)` (security definer, `anon` + `authenticated`): pen name or display name and avatar, only for a work that is shared and not in the trash. `store.getSharedAuthor()`; until the migration runs, the reader uses the work's own author block. Checked in PGlite: shared → name, unshared/unknown → null, visitors still can't read `profiles`.
+- Help guide `content/help/08-share-export.md` updated. Playwright with a mocked Supabase (the owner's poem plus an empty inserted page): desktop and iPhone 13 show pages 1–3 with the empty page dropped, byline shown, no sideways scroll. On phones the A4 pages are scaled down, so the text is small (pinch to zoom).
+
 ## 2026-11-09: Share switch in the editor showed "off" after turning it on
 
 - `components/editor/Workspace.tsx` (`shareBody`): the checkbox handler read `e.target.checked` after `await store.setPublic(...)`, when React had already put the controlled box back, so it saved "public" but set the state to off (no tick, no link). The owner's work was saved public three times (Supabase logs: three PATCH 200 at 13:58 UTC; the row has `is_public = true` and a share link). Now the choice is read first and shown at once, the box is disabled while saving, and a failed save puts it back with a message. Unverified in a browser: sharing needs a signed-in cloud session.

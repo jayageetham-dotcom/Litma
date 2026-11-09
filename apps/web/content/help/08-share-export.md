@@ -17,7 +17,7 @@ Send someone a link so they can read your work in their browser, without an acco
 2. Tick **Anyone with the link can read**. The link appears below it.
 3. Choose **Copy** and send the link.
 
-The reader sees your work on one clean continuous sheet, with an outline beside it on wide screens and a bar that shows how far they have read. They can't change anything. Untick it any time and the link stops working.
+The reader sees the title and your name (your pen name, or your profile name) above your work, laid out on its printed pages, the same as its PDF. Pages with no text, such as an inserted page you left empty, are left out, and the rest are numbered in order. There is an outline beside the pages on wide screens and a bar that shows how far they have read. They can't change anything. Untick it any time and the link stops working.
 
 > **Phone:** Open a work, tap **More → Share & export** and switch on **Anyone with the link can read**. The share button next to the link sends it straight to an app on your phone.
 

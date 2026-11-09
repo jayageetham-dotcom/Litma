@@ -104,6 +104,14 @@ jobs:
       - name: Set version
         shell: bash
         run: npm pkg set version="${{ needs.web.outputs.version }}" -w @litma/desktop
+      # Electron's own download comes from github.com, which sometimes answers 504.
+      # Keep it between runs so most builds never download it at all.
+      - name: Keep the Electron download
+        uses: actions/cache@v4
+        with:
+          path: .electron-cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
       - name: Build installer
         shell: bash
         working-directory: apps/desktop
@@ -122,8 +130,18 @@ jobs:
             [ "${{ matrix.flag }}" = "--mac" ] && EXTRA="-c.mac.identity=-"
             echo "No signing certificate: building an unsigned installer"
           fi
-          npx electron-builder --config electron-builder.yml ${{ matrix.flag }} $EXTRA
+          # Retry when a download from GitHub fails for a moment (504, reset connection).
+          for attempt in 1 2 3; do
+            if npx electron-builder --config electron-builder.yml ${{ matrix.flag }} $EXTRA; then exit 0; fi
+            [ "$attempt" = 3 ] && break
+            echo "::warning::electron-builder failed (attempt $attempt of 3). Trying again in 30 seconds."
+            sleep 30
+          done
+          echo "::error::electron-builder failed 3 times."
+          exit 1
         env:
+          ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache/electron
+          ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-cache/builder
           # optional signing (see apps/desktop/README.md); unsigned builds when these are empty
           CSC_LINK: ${{ matrix.os == 'macos-latest' && secrets.CSC_LINK || secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.CSC_KEY_PASSWORD || secrets.WIN_CSC_KEY_PASSWORD }}

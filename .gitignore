@@ -13,3 +13,4 @@ apps/desktop/dist
 apps/desktop/release
 apps/desktop/app
 /release
+.electron-cache

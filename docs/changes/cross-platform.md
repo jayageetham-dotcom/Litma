@@ -49,6 +49,10 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
+## 2026-11-09: Desktop build retries and caches Electron
+
+- CI only (`.github/workflows/desktop.yml`): Electron download cached, electron-builder retried 3 times after a GitHub 504 failed a Mac build. Details in `desktop.md`.
+
 ## 2026-11-09: Instagram reels (marketing only, no app change)
 
 - Two 9:16 reels made from real footage of the app: `marketing/reels/reel-manglish` (HyperFrames: a short story typed in Manglish becomes Malayalam) and `marketing/reels/reel-types` (Remotion: the nine writing types land on the desk). Footage comes from `marketing/reels/capture` (Playwright screen recording of a local-mode build at 1080 x 1920, Google Fonts served from Fontsource). Workflow, rules and prompts: `docs/marketing/reels.md`; Claude skill `litma-reels`.

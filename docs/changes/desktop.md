@@ -16,6 +16,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+## 2026-11-09: Desktop build survives GitHub download hiccups
+
+- A Release failed on macOS: github.com answered 504 while electron-builder downloaded Electron 33.2.1. `.github/workflows/desktop.yml` now keeps Electron's download in `actions/cache` (`ELECTRON_CACHE` / `ELECTRON_BUILDER_CACHE` under `.electron-cache`, key from `package-lock.json`) and tries `electron-builder` up to 3 times, 30 s apart. No app change. Unverified until the next Release run (the cache is filled on the first run).
+
 ## 2026-11-08: Read aloud: pitch, volume, word underline
 
 - Same web code (`ReadAloudPanel.tsx`, `lib/speech.ts`); no desktop-only change. Reaches the desktop app with the next Release. The Mac and Windows system voices still have no Malayalam, so most desktop writers see the "no voice" help as before.

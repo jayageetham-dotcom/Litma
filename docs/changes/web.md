@@ -9,6 +9,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Page width matches the header
+
+- `app/goals/page.tsx`, `app/profile/page.tsx` (`max-w-5xl` → `max-w-6xl`) and `components/admin/AdminDashboard.tsx` (`max-w-7xl md:px-8` → `max-w-6xl px-5`): the content now lines up with `AppHeader` (logo to avatar), like the desk and dictionary. Goals measured in Playwright at 1332 px (heading and content edges equal the header's); Profile needs sign-in, so it was not seen in the local build. Settings keeps its narrower reading column. Desktop gets it with the next Release.
+
 ## 2026-11-09: Spacing pass (heroes, Goals on phones, Profile loading)
 
 - `components/landing/LandingChrome.tsx`: `ColourField fade` masks the colour field towards the bottom, for heroes whose content continues on the same background. Used by the community hero (`components/community/Community.tsx`, also `pt-6 md:pt-8` above the categories and search) and the help topic/guide hero (`components/help/HelpCenter.tsx`, replacing the gradient overlay from earlier today). The home, download and auth heroes keep the approved look (they end where a new band starts).

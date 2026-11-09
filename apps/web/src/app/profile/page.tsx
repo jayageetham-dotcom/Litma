@@ -88,7 +88,7 @@ function ProfileView() {
 
   if (!p)
     return (
-      <div className="mx-auto max-w-6xl px-5 pt-6">
+      <div className="mx-auto max-w-6xl px-5 pt-8 sm:pt-12">
         <FormSkeleton cards={3} />
       </div>
     );
@@ -162,7 +162,7 @@ function ProfileView() {
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-5 pb-24 pt-4">
+    <main className="mx-auto max-w-6xl px-5 pb-24 pt-8 sm:pt-12">
       <h1 className="text-3xl font-bold">Profile</h1>
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_20rem]">
         <form onSubmit={save} className="space-y-8">

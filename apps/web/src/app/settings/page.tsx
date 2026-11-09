@@ -53,7 +53,7 @@ function Settings() {
   return (
     <div className="min-h-dvh">
       <AppHeader />
-      <main className="mx-auto max-w-3xl space-y-12 px-5 pb-24 pt-4">
+      <main className="mx-auto max-w-3xl space-y-12 px-5 pb-24 pt-8 sm:pt-12">
         <h1 className="text-3xl font-bold">Settings</h1>
 
         <LanguagePicker />

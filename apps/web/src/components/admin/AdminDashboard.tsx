@@ -160,7 +160,7 @@ export function AdminDashboard() {
   const feature = (n: string) => (n in FEATURE_KEYS ? t(FEATURE_KEYS[n]) : n);
 
   return (
-    <main className="mx-auto max-w-6xl px-5 pb-24 pt-4">
+    <main className="mx-auto max-w-6xl px-5 pb-24 pt-8 sm:pt-12">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">{t("admin.title")}</h1>

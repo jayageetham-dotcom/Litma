@@ -9,6 +9,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Same top spacing on every app page
+
+- `app/profile/page.tsx`, `app/settings/page.tsx`, `app/goals/page.tsx`, `components/admin/AdminDashboard.tsx` (and the Profile/Goals loading screens): `pt-8 sm:pt-12` like the desk and dictionary. Measured header-to-heading gap: 48 px desktop, 32 px iPhone 13 on desk, dictionary, goals, settings, admin (Profile needs sign-in; same classes).
+
 ## 2026-11-09: Page width matches the header
 
 - `app/goals/page.tsx`, `app/profile/page.tsx` (`max-w-5xl` → `max-w-6xl`) and `components/admin/AdminDashboard.tsx` (`max-w-7xl md:px-8` → `max-w-6xl px-5`): the content now lines up with `AppHeader` (logo to avatar), like the desk and dictionary. Goals measured in Playwright at 1332 px (heading and content edges equal the header's); Profile needs sign-in, so it was not seen in the local build. Settings keeps its narrower reading column. Desktop gets it with the next Release.

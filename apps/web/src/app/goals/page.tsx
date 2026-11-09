@@ -103,7 +103,7 @@ function GoalsView() {
 
   if (!w.goals)
     return (
-      <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-5">
+      <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-5 sm:pt-12">
         <FormSkeleton cards={3} />
       </div>
     );
@@ -118,7 +118,7 @@ function GoalsView() {
   const hours = sum.hours.map((n, h) => ({ day: `${h}`, words: n }));
 
   return (
-    <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-5 sm:pt-10">
+    <main className="mx-auto max-w-6xl px-4 pb-28 pt-8 sm:px-5 sm:pt-12">
       <h1 className="text-[1.8rem] font-bold leading-tight sm:text-[2.2rem]">{t("goals.title")}</h1>
       <p className="mt-2 max-w-2xl text-muted">{t("goals.intro")}</p>
 

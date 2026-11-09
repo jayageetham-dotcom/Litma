@@ -51,10 +51,10 @@ export function CheckPanel({ editor, kind, docId, title, onOpenInbox }: { editor
   const fixAll = () => {
     // from the end, so earlier positions stay right
     const tr = editor.state.tr;
-    [...issues].filter((i) => i.kind === "unicode" && i.fix[0]).reverse().forEach((i) => tr.insertText(i.fix[0], i.pos, i.end));
+    [...issues].filter((i) => (i.kind === "unicode" || i.kind === "punct") && i.fix[0]).reverse().forEach((i) => tr.insertText(i.fix[0], i.pos, i.end));
     editor.view.dispatch(tr);
   };
-  const broken = issues.filter((i) => i.kind === "unicode").length;
+  const broken = issues.filter((i) => i.kind === "unicode" || i.kind === "punct").length;
   const shown = issues.slice(0, 200);
 
   return (
@@ -63,6 +63,10 @@ export function CheckPanel({ editor, kind, docId, title, onOpenInbox }: { editor
         <label className="flex items-center gap-2">
           <input type="checkbox" className="accent-[var(--accent)]" checked={prefs.on} onChange={(e) => setSpellPrefs({ on: e.target.checked })} />
           {t("check.markOn")}
+        </label>
+        <label className={`mt-2 flex items-center gap-2 ${prefs.on ? "" : "opacity-60"}`}>
+          <input type="checkbox" className="accent-[var(--accent)]" disabled={!prefs.on} checked={prefs.punct} onChange={(e) => setSpellPrefs({ punct: e.target.checked })} />
+          {t("check.punctOn")}
         </label>
         <label className={`mt-2 flex items-start gap-2 ${prefs.on ? "" : "opacity-60"}`}>
           <input type="checkbox" className="mt-0.5 accent-[var(--accent)]" disabled={!prefs.on} checked={prefs.unknown} onChange={(e) => setSpellPrefs({ unknown: e.target.checked })} />
@@ -90,18 +94,30 @@ export function CheckPanel({ editor, kind, docId, title, onOpenInbox }: { editor
                   {shown.map((i) => (
                     <li key={`${i.pos}-${i.text}`} className="rounded-xl border border-line bg-paper px-3 py-2">
                       <div className="flex items-center gap-2">
-                        <button type="button" className="min-w-0 truncate text-left text-[15px] hover:underline" style={ml} onClick={() => show(i)} data-private>
-                          {i.text}
-                        </button>
-                        <span className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[11px] ${i.kind === "unknown" ? "bg-subtle text-muted" : "bg-danger-soft text-danger"}`}>{t(`check.kind.${i.kind}`)}</span>
+                        {i.kind === "punct" ? (
+                          <button type="button" className="min-w-0 truncate text-left text-[13.5px] hover:underline" onClick={() => show(i)}>
+                            {t(`check.punct.${(i.rule ?? "spaceBefore") as "spaceBefore"}`)}
+                          </button>
+                        ) : (
+                          <button type="button" className="min-w-0 truncate text-left text-[15px] hover:underline" style={ml} onClick={() => show(i)} data-private>
+                            {i.text}
+                          </button>
+                        )}
+                        <span className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[11px] ${i.kind === "unknown" ? "bg-subtle text-muted" : i.kind === "suspect" || i.kind === "punct" ? "bg-highlight-soft text-highlight" : "bg-danger-soft text-danger"}`}>{t(`check.kind.${i.kind}`)}</span>
                       </div>
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        {i.fix.map((f) => (
-                          <button key={f} type="button" onClick={() => replace(i, f)} className="rounded-full border border-line-strong px-2.5 py-0.5 text-[14px] hover:border-accent hover:text-accent" style={ml} data-private>
-                            {f}
+                        {i.kind === "punct" ? (
+                          <button type="button" onClick={() => replace(i, i.fix[0])} className="rounded-full border border-line-strong px-2.5 py-0.5 text-[13px] hover:border-accent hover:text-accent">
+                            {t("check.ai.fix")}
                           </button>
-                        ))}
-                        {i.kind !== "unicode" && (
+                        ) : (
+                          i.fix.map((f) => (
+                            <button key={f} type="button" onClick={() => replace(i, f)} className="rounded-full border border-line-strong px-2.5 py-0.5 text-[14px] hover:border-accent hover:text-accent" style={ml} data-private>
+                              {f}
+                            </button>
+                          ))
+                        )}
+                        {i.kind !== "unicode" && i.kind !== "punct" && (
                           <button type="button" onClick={() => addMyWord(i.text)} className="px-1.5 py-0.5 text-xs text-muted hover:text-ink">
                             {t("check.keep")}
                           </button>

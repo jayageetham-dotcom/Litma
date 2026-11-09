@@ -140,7 +140,7 @@ const sections: LegalSection[] = [
         <p>We do not sell or rent your information. A few services help run Litma and handle data only for that purpose:</p>
         <ul>
           <li>
-            <strong>Supabase</strong> stores your account and writing and runs Litma&apos;s server functions.
+            <strong>Supabase</strong> stores your account and writing and runs Litma&apos;s server functions, including the Malayalam spelling check (the words being checked are not kept).
           </li>
           <li>
             <strong>Our web host</strong> serves the website and the desktop app&apos;s update file. <strong>GitHub</strong> hosts the desktop app downloads.

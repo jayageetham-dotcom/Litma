@@ -1144,14 +1144,16 @@
     "none": "Nothing to fix.",
     "count_one": "{count} thing to look at",
     "count_other": "{count} things to look at",
-    "fixAll_one": "Fix {count} broken letter",
-    "fixAll_other": "Fix {count} broken letters",
+    "fixAll_one": "Fix {count} letter or spacing mark",
+    "fixAll_other": "Fix {count} letters and spacing marks",
     "keep": "Keep",
-    "offHint": "Marks letters typed in an old or broken way (ന്‍ for ൻ, a colon for ഃ) and common misspellings, with the fix.",
+    "offHint": "Marks letters typed in an old or broken way (ന്‍ for ൻ, a colon for ഃ), common misspellings, likely typos with their correct spelling, and spacing around punctuation.",
     "kind": {
       "unicode": "Broken letter",
       "mistake": "Misspelling",
-      "unknown": "Not in the dictionary"
+      "unknown": "Not in the dictionary",
+      "suspect": "Check spelling?",
+      "punct": "Spacing"
     },
     "grammar": "Grammar",
     "grammarHint": "The AI companion reads your selection, or the text before the cursor, and lists each error with the fix. It leaves dialect, regional words and dialogue as you wrote them.",
@@ -1183,6 +1185,13 @@
       "connectFirst": "Claude needs the Litma connector. Set it up once in Settings → Connect AI assistants.",
       "opened": "Claude is checking your work. When it has finished, the fixes are waiting in your Assistant inbox.",
       "openInbox": "Open the Assistant inbox"
+    },
+    "punctOn": "Mark spacing around punctuation",
+    "punct": {
+      "spaceBefore": "Space before a punctuation mark",
+      "spaceAfter": "No space after a punctuation mark",
+      "doubleSpace": "Two spaces between words",
+      "doubleComma": "Two commas"
     }
   },
   "read": {

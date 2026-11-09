@@ -468,6 +468,18 @@ $mm: 3.7795275591px;
   .spell-unicode {
     text-decoration-color: var(--accent);
   }
+  // a likely typo (the engine knows close spellings): an amber wavy line, a question rather than an error
+  .spell-suspect {
+    text-decoration: underline wavy var(--highlight);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-skip-ink: none;
+  }
+  // spacing around punctuation: a soft mark under the spaces or the mark
+  .spell-punct {
+    background: color-mix(in srgb, var(--highlight) 18%, transparent);
+    border-radius: 2px;
+  }
   .spell-unknown {
     text-decoration: underline dotted var(--muted);
     text-underline-offset: 4px;

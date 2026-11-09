@@ -100,17 +100,21 @@ Open **Page & type** on the right-hand rail to set up the whole work.
 
 ## Spelling and grammar {#spelling}
 
-Litma can mark spelling in your text and ask the AI companion to check grammar.
+Litma checks Malayalam spelling as you write, with its own Malayalam engine: it knows how words take their endings and join together, so it understands forms like പോയിരുന്നെങ്കിലോ and കുട്ടികൾക്ക്, not just the words in a list. Spelling and spacing are free and need no AI. For grammar, an AI check is one click away.
 
 ![The Check panel](shots/spelling.webp "Broken letters and common misspellings, each with its fix.")
 
-1. Choose **Spelling and grammar** on the right-hand rail.
-2. Litma underlines these in your text (untick **Mark spelling in the text** to hide the marks):
-   - **Broken letters**: Malayalam typed in an old or broken way that looks right but searches and sorts wrongly, like ന്‍ for ൻ or a colon for ഃ (ദു:ഖം for ദുഃഖം). **Fix all** puts every one right at once.
-   - **Misspellings**: words often written wrongly (ഉൽഘാടനം for ഉദ്ഘാടനം), with the standard spelling.
-3. Click a fix to use it, or **Keep** to leave the word as it is. A kept word isn't marked again on this device.
+1. Choose **Spelling and grammar** on the right-hand rail. Litma marks these in your text:
+   - **Broken letters** (blue wavy line): Malayalam typed in an old or broken way that looks right but searches and sorts wrongly, like ന്‍ for ൻ or a colon for ഃ (ദു:ഖം for ദുഃഖം).
+   - **Misspellings** (red wavy line): words often written wrongly (ഉൽഘാടനം for ഉദ്ഘാടനം), with the standard spelling.
+   - **Check spelling?** (amber wavy line): a word the engine doesn't know that is close to words it does, like പോയീ (പോയി) or ഹ്രുദയം (ഹൃദയം). It's a question: if your word is right, choose **Keep**.
+   - **Spacing**: a space before a comma or full stop, no space after one, two spaces between words, or two commas.
+2. Click a fix in the list to use it, or **Keep** to leave the word as it is. A kept word isn't marked again on this device. **Fix all** puts every broken letter and spacing mark right at once.
+3. Untick **Mark spelling in the text** or **Mark spacing around punctuation** to hide those marks.
 
-Tick **Also mark words the dictionary doesn't have** to see words Litma can't find, with a faint dotted line. Malayalam joins words freely and every region and community has its own words, so these are only questions, never mistakes.
+Names, dialect and words from every region and community are often unknown to any dictionary. Litma never calls them mistakes: a word the engine can't place and can't match to a close spelling is left alone. Tick **Also mark words the dictionary doesn't have** to see those too, with a faint dotted line.
+
+> Litma's spelling engine is built on **mlmorph**, the Malayalam morphology analyser by Swathanthra Malayalam Computing (free software, MIT licence). The words being checked go to Litma's own server and aren't kept. Without a connection, Litma still marks broken letters, common misspellings and spacing.
 
 ### Grammar
 

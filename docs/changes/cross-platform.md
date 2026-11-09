@@ -14,6 +14,8 @@ the code, and what is still unverified.
 Reels (2026-11-09): reel 3 (launch ad) can be re-voiced with Despina (Gemini) when the TTS quota allows; post the reels with a track from Instagram's music picker; on the Mac, run the one-time setup in `docs/marketing/reels.md` (Whisper and yt-dlp could not reach their downloads from the cloud sandbox).
 
 
+Spelling engine (2026-11-09): Edge Function `litma-spell` (mlmorph) is deployed by the push as the last Supabase step (`--use-docker`, allowed to fail). Check the Actions log for "Deploy the spelling engine" and that litma-spell appears in the Supabase dashboard; if it fails, writers simply get the old spelling checks. Phone app: not yet using it (README). Desktop: next Release.
+
 Grammar check (2026-11-09): the web/desktop Spelling and grammar panel checks grammar itself with fix cards; the push deploys the `litma-ai` function with the new `grammarCheck` action (until then the check answers "Unknown action"). The phone app still uses the old flow (see `apps/mobile/README.md`).
 
 Litma Community (2026-11-09):

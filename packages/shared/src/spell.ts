@@ -7,12 +7,18 @@
  *   taking off common endings. Malayalam joins words freely and every region and community has its
  *   own words, so an unknown word is never called wrong; the writer can keep it ("Add to my words").
  *
- * Grammar goes to the AI companion (the "grammar" action in ai-prompts.ts).
+ * - "suspect" (with the morphology engine, litma-spell + mlmorph.ts): a word the engine doesn't know
+ *   but that is close to words it does, offered as "Check spelling?" with those spellings.
+ * - "punct": spacing around punctuation (punctuation.ts).
+ *
+ * Grammar beyond that goes to the AI (the grammarCheck action in ai-prompts.ts).
  * Dependency-free: shared by the web app and the MCP server; the phone app ports it in
  * lib/data/spell.dart (keep the two in step, same cases in test/spell_test.dart).
  */
 
-export type SpellKind = "unicode" | "mistake" | "unknown";
+import { punctuationIssues } from "./punctuation.ts";
+
+export type SpellKind = "unicode" | "mistake" | "suspect" | "punct" | "unknown";
 
 export interface SpellIssue {
   /** offsets in the checked text */
@@ -22,7 +28,19 @@ export interface SpellIssue {
   kind: SpellKind;
   /** suggested replacements, best first */
   fix: string[];
+  /** for "punct": which rule (spaceBefore, spaceAfter, doubleSpace, doubleComma) */
+  rule?: string;
 }
+
+/**
+ * What the morphology engine (litma-spell, mlmorph.ts) says about a word: "ok", a listed "mistake",
+ * a "suspect" (unknown, with close spellings it knows) or "unknown". null: the engine isn't reachable.
+ */
+export interface EngineVerdict {
+  k: "ok" | "mistake" | "suspect" | "unknown";
+  fix?: string[];
+}
+export type SpellEngine = (words: string[]) => Promise<Map<string, EngineVerdict> | null>;
 
 const ZWJ = "‍";
 const ZWNJ = "‌";
@@ -147,6 +165,10 @@ export interface SpellOptions {
   unknown?: boolean;
   /** the writer's own words and ones they chose to ignore */
   mine?: Set<string>;
+  /** the morphology engine; without it (or when it can't be reached) only the rules below run */
+  engine?: SpellEngine;
+  /** punctuation and spacing rules (punctuation.ts) */
+  punctuation?: boolean;
 }
 
 /** Fetch a text file relative to the /dict root (e.g. "words/d15-d3e"); null when missing. */
@@ -194,9 +216,10 @@ export function createSpeller(fetchText: SpellFetch, fetchIndex: IndexFetch, sha
       joined.push([at, at + m[0].length]);
       out.push({ from: at, to: at + m[0].length, text: m[0], kind: "unicode", fix: [`${m[1]}ഃ${m[2]}`] });
     }
-    for (const { word, from, to } of words(text)) {
-      if (joined.some(([x, y]) => from >= x && to <= y)) continue;
-      if (opts.mine?.has(word)) continue;
+    const list = words(text).filter(({ word, from, to }) => !joined.some(([x, y]) => from >= x && to <= y) && !opts.mine?.has(word));
+    // one request to the engine for the block's words (it caches; null when it can't be reached)
+    const verdicts = opts.engine ? await opts.engine([...new Set(list.map((w) => w.word))]).catch(() => null) : null;
+    for (const { word, from, to } of list) {
       const u = unicodeFix(word);
       if (u) {
         out.push({ from, to, text: word, kind: "unicode", fix: [u] });
@@ -207,8 +230,23 @@ export function createSpeller(fetchText: SpellFetch, fetchIndex: IndexFetch, sha
         out.push({ from, to, text: word, kind: "mistake", fix: [m.fix] });
         continue;
       }
+      const v = verdicts?.get(word);
+      if (v && v.k !== "ok") {
+        // the dictionary (or a word it comes from) knows it: never marked
+        if (v.k !== "mistake" && (await isKnown(word))) continue;
+        if (v.k === "mistake" && v.fix?.length) {
+          out.push({ from, to, text: word, kind: "mistake", fix: v.fix });
+          continue;
+        }
+        if (v.k === "suspect" && v.fix?.length) {
+          out.push({ from, to, text: word, kind: "suspect", fix: v.fix.slice(0, 4) });
+          continue;
+        }
+      }
+      if (v?.k === "ok") continue;
       if (opts.unknown && [...word].length > 2 && !(await isKnown(word))) out.push({ from, to, text: word, kind: "unknown", fix: [] });
     }
+    if (opts.punctuation) for (const p of punctuationIssues(text)) out.push({ from: p.from, to: p.to, text: p.text, kind: "punct", fix: [p.fix], rule: p.rule });
     return out.sort((a, b) => a.from - b.from);
   }
 

@@ -1,9 +1,13 @@
 "use client";
-/** Spelling check in the browser: word lists from /dict/words, the writer's own words on this device. */
+/**
+ * Spelling check in the browser: word lists from /dict/words, the writer's own words on this device,
+ * and the mlmorph engine on the server (lib/spell-engine.ts) when it can be reached.
+ */
 import { BASE } from "./config";
 import { loadIndex } from "./dictionary";
 import { mlShardName } from "@litma/shared/dict";
 import { createSpeller, type SpellIssue } from "@litma/shared/spell";
+import { spellEngine } from "./spell-engine";
 
 const speller = createSpeller(
   (path) =>
@@ -23,13 +27,15 @@ export interface SpellPrefs {
   on: boolean;
   /** also mark words the dictionary doesn't have */
   unknown: boolean;
+  /** spacing around punctuation */
+  punct: boolean;
 }
 
 export function spellPrefs(): SpellPrefs {
   try {
-    return { on: true, unknown: false, ...JSON.parse(localStorage.getItem(LS_PREFS) ?? "{}") };
+    return { on: true, unknown: false, punct: true, ...JSON.parse(localStorage.getItem(LS_PREFS) ?? "{}") };
   } catch {
-    return { on: true, unknown: false };
+    return { on: true, unknown: false, punct: true };
   }
 }
 export function setSpellPrefs(p: Partial<SpellPrefs>) {
@@ -64,5 +70,5 @@ export function addMyWord(w: string) {
 export function blockChecker(): (text: string) => Promise<SpellIssue[]> {
   const p = spellPrefs();
   const mine = myWords();
-  return (text) => speller.check(text, { unknown: p.unknown, mine });
+  return (text) => speller.check(text, { unknown: p.unknown, mine, engine: spellEngine, punctuation: p.punct });
 }

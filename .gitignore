@@ -14,3 +14,5 @@ apps/desktop/release
 apps/desktop/app
 /release
 .electron-cache
+# made by scripts/build-mlmorph.mjs in the deploy job (mlmorph data for litma-spell)
+supabase/functions/litma-spell/data

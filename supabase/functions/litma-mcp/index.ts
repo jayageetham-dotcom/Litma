@@ -16,7 +16,7 @@ import { WRITING_GUIDES } from "../_shared/guides.ts";
 import { FORM_NAMES, KINDS, newSettings, starterContent, withAuthor, type DocKind } from "../_shared/forms.ts";
 import { createDictionary, mlShardName } from "../_shared/dict.ts";
 import { RHYME_KINDS, createRhymes, rhymeKey, type RhymeKind } from "../_shared/rhyme.ts";
-import { createSpeller } from "../_shared/spell.ts";
+import { createSpeller, type EngineVerdict, type SpellEngine } from "../_shared/spell.ts";
 import { localDay, streak as streakOf, summarise, wordsThisWeek, type GoalPrefs } from "../_shared/goals.ts";
 import { metrePattern } from "../_shared/manglish.ts";
 import { transliteratePhrase } from "../_shared/google.ts";
@@ -45,6 +45,25 @@ const siteFile = (path: string, as: "json" | "text") =>
     .catch(() => null);
 const rhymes = createRhymes((path) => siteFile(`${path}.json`, "json"));
 const speller = createSpeller((path) => siteFile(`${path}.txt`, "text") as Promise<string | null>, () => dict.index(), mlShardName);
+
+/** The mlmorph engine (litma-spell), called with the service key; null when it isn't deployed or fails. */
+const spellEngine: SpellEngine = async (words) => {
+  if (!words.length) return new Map();
+  try {
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/litma-spell`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${key}`, apikey: key },
+      body: JSON.stringify({ words: words.slice(0, 1000) }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) return null;
+    const { verdicts } = (await r.json()) as { verdicts: Record<string, EngineVerdict> };
+    return new Map(Object.entries(verdicts ?? {}));
+  } catch {
+    return null;
+  }
+};
 
 type Json = Record<string, unknown>;
 
@@ -492,12 +511,12 @@ const TOOLS: Tool[] = [
     name: "check_spelling",
     title: "Check Malayalam spelling",
     description:
-      "Find letters typed in an old or broken way (ന്‍ for ൻ, a colon for ഃ, split vowel signs) and common misspellings in Malayalam text, with fixes. Optionally list words the dictionary doesn't know: these are questions, not errors (dialect and community words are often missing from dictionaries). For grammar, read the text yourself.",
+      "Check Malayalam spelling with Litma's engine (a Malayalam morphology, so inflected and joined words are understood): letters typed in an old or broken way (ന്‍ for ൻ, a colon for ഃ), common misspellings, likely typos (kind 'suspect', with the spellings the engine knows), and spacing around punctuation ('punct'), each with fixes. Optionally list words the dictionary doesn't know: these are questions, not errors (names, dialect and community words are often missing). For grammar, read the text yourself.",
     inputSchema: { type: "object", properties: { text: S("string", "Malayalam text"), unknown: S("boolean", "Also list words not in the dictionary (default false)") }, required: ["text"] },
     annotations: RO,
     async run(a) {
       const text = String(a.text ?? "").slice(0, 20000);
-      const issues = await speller.check(text, { unknown: !!a.unknown });
+      const issues = await speller.check(text, { unknown: !!a.unknown, engine: spellEngine, punctuation: true });
       return outJson({ issues: issues.map(({ text: t, kind, fix, from }) => ({ text: t, kind, fix, at: from })) });
     },
   },

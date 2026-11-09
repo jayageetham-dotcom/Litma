@@ -9,6 +9,14 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-09: Malayalam spelling engine (mlmorph) on the server
+
+- New Edge Function `supabase/functions/litma-spell/index.ts` with `packages/shared/src/mlmorph.ts` (TypeScript port of SMC's mlmorph: SFST transducer lookup, analysis weights, normaliser, foreign-word detector, the twelve suggestion strategies, common-mistakes list). Data built by `scripts/build-mlmorph.mjs` (pinned mlmorph 1.4.3 wheel, sha256; SFST `malayalam.a` → `mlmorph.bin.gz` 7.6 MB + `mistakes.json`; gitignored). Checked: identical accept/reject to Python mlmorph on 2,149 words, analyses identical on 932/934; ~17 µs a word; under Deno cold start 0.14 s (data load), then ~12 ms a request; 1,000 misspelled words in 0.16 s; ~140 MB RSS.
+- `packages/shared/src/spell.ts`: kinds `suspect` and `punct`; `check()` takes `engine` (one request per block, a word the dictionary or the writer knows is never a suspect) and `punctuation` (`packages/shared/src/punctuation.ts`: space before a mark, none after, two spaces, two commas). Synced to `_shared`.
+- Web: `lib/spell-engine.ts` (batching, cache, 12 s timeout, 60 s pause after a failure, returns null so the editor falls back), `lib/spell.ts` (`punct` pref, default on; spelling marks default on), `extensions/writing-aids.ts` + `styles/editor.scss` (`.spell-suspect` amber wavy, `.spell-punct` soft background), `CheckPanel.tsx` (labels, spacing switch, Fix all covers spacing). MCP `check_spelling` calls the engine with the service key and falls back.
+- Deploy: `.github/workflows/deploy.yml` builds the data and deploys `litma-spell --use-docker` as the last step with `continue-on-error`; `supabase/config.toml` (`verify_jwt`, `static_files`). Help `03-editor.md#spelling`, Privacy (Supabase line), Terms (credits).
+- Playwright against a mocked Supabase forwarding to the real engine under Deno: suspects (പോയീ, ഇരുന്നൂ, അവൻറെ, ഹ്രുദയം, സംസ്താനം), spacing and a listed mistake marked, a name (ജഗത്ത്) not; fix from the list and Fix all work; a typo typed later is checked; with the engine returning 503 the editor shows its own marks and no errors; local mode makes no engine requests. Unverified: the real deploy (Docker bundling with static files on CLI 3.0.0), behaviour on Supabase's runtime limits, and false alarms on large real texts (Olam's word lists weren't available in the sandbox).
+
 ## 2026-11-09: Grammar check works inside the Spelling and grammar panel
 
 - Before: "Check grammar with AI" switched to the AI companion; without a key it only prepared a Claude hand-over (one more click, so it looked like nothing happened), and with a key the answer was plain text that couldn't be applied.

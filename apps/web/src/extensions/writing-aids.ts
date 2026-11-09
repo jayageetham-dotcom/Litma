@@ -45,7 +45,7 @@ function textBlocks(doc: PMNode, from = 0, to = doc.content.size) {
   return out;
 }
 
-const CLASS: Record<SpellIssue["kind"], string> = { unicode: "spell-unicode", mistake: "spell-mistake", unknown: "spell-unknown" };
+const CLASS: Record<SpellIssue["kind"], string> = { unicode: "spell-unicode", mistake: "spell-mistake", suspect: "spell-suspect", punct: "spell-punct", unknown: "spell-unknown" };
 
 /** All spelling issues currently marked, in document order. */
 export function spellIssues(state: EditorState): DocIssue[] {

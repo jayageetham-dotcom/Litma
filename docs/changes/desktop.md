@@ -12,6 +12,7 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   section break in novels and stories, Book details and cover labels in Malayalam, in-app
   confirm dialogs) and to publish the first Linux AppImage.
 - **Release needed** for Litma Community (2026-11-09): `/community/` and `/community/guidelines/` run inside the app (no desktop-only code). Check both by loading and by the avatar menu and Settings links in a packaged build.
+- **Release needed** for the 2026-11-09 spelling engine, grammar fix cards, grouped rail, editor menus and the other web changes of that day (all in the shared web code).
 - Installers are unsigned until the signing secrets exist (see cross-platform.md).
 - **Release needed** for the 2026-11-08 writing aids (reminders in the main process, notifications, folder backup, and the web features). Try on a Mac and Windows: notification permission, reminder with the window closed, choosing a Google Drive for desktop folder.
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away

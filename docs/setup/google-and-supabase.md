@@ -177,7 +177,10 @@ Pushing to `main` deploys the Edge Functions and applies migrations, once GitHub
    - `SUPABASE_DB_PASSWORD` = the password from step 2
 4. Push, then open **Actions → Deploy Litma**. The job **Edge Functions & database** should be green.
    It deploys `litma-transliterate`, `litma-mcp`, `litma-ai`, `litma-track`, `litma-admin` and
-   `litma-send-email`, and runs `supabase db push`.
+   `litma-send-email`, and runs `supabase db push`. Last, it builds the spelling engine's data from
+   mlmorph on PyPI and deploys `litma-spell` with Docker (`--use-docker`, the data is over 5 MB). That
+   step may fail without stopping the others; the editor then uses its own spelling checks. Check it at
+   https://supabase.com/dashboard/project/jdexadomaxjtxlvgtldu/functions (litma-spell listed).
 5. Check the migrations: https://supabase.com/dashboard/project/jdexadomaxjtxlvgtldu/database/migrations
    should list `writing_stats_retention` (Nov 2026) among the others.
 6. Check the nightly statistics clean-up (statistics are kept 90 days):

@@ -193,7 +193,8 @@
       "ai": "AI keys",
       "mcp": "Connect AI assistants",
       "usage": "Usage statistics",
-      "about": "About Litma"
+      "about": "About Litma",
+      "deleteAccount": "Delete account"
     }
   },
   "download": {

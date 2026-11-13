@@ -8,6 +8,7 @@ import { LanguagePicker } from "@/components/LanguagePicker";
 import { AboutLitma } from "@/components/UpdateNotice";
 import { UsageSettings } from "@/components/UsageSettings";
 import { DeleteAccount } from "@/components/settings/DeleteAccount";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { CommunityCard, HelpCard } from "@/components/HelpLink";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { AppHeader } from "@/components/AppHeader";
@@ -38,7 +39,8 @@ export default function SettingsPage() {
   );
 }
 
-const SECTIONS = ["language", "help", "goals", "backup", "ai", "mcp", "usage", "about"] as const;
+const SECTIONS = ["language", "help", "goals", "backup", "ai", "mcp", "usage", "about", "delete-account"] as const;
+const NAV_KEY = { "delete-account": "deleteAccount" } as const;
 
 /** Section list beside the settings on wide screens (lines the page up with the header); follows the scroll. */
 function SettingsNav() {
@@ -59,10 +61,10 @@ function SettingsNav() {
   return (
     <nav aria-label={t("settings.nav.onThisPage")} className="max-lg:hidden lg:sticky lg:top-24 lg:self-start">
       <ul className="grid gap-0.5">
-        {SECTIONS.map((id) => (
+        {SECTIONS.filter((id) => id !== "delete-account" || isSupabaseConfigured).map((id) => (
           <li key={id}>
             <a href={`#${id}`} aria-current={on === id ? "true" : undefined} className={`block rounded-[6px] px-3 py-2 text-sm transition ${on === id ? "bg-subtle font-semibold text-ink" : "text-muted hover:bg-subtle hover:text-ink"}`}>
-              {t(`settings.nav.${id}`)}
+              {t(`settings.nav.${id === "delete-account" ? NAV_KEY[id] : id}`)}
             </a>
           </li>
         ))}

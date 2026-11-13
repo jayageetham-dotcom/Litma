@@ -61,6 +61,10 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
+## 2026-11-13: Credits in one place only (owner)
+
+- Removed source names from everywhere but the help section Credits and licences and `THIRD_PARTY_NOTICES.md`: the "Data: … from Olam. Opposites via Datamuse." line under dictionary entries (`DictionaryView.tsx`), the Olam link on the home page (`app/page.tsx`) and in `HowItWorks.tsx`, "Google Input Tools" in the home features and the Manglish panel (now "Online suggestions"), the mlmorph note in `03-editor.md`, Olam in `06-dictionary.md`, `rhyme.source` (en, ml; phone uses the same string). Terms → Dictionary, spelling and fonts now links to the credits section. README trimmed the same way. Privacy still names Google Input Tools as a service that sees data (a disclosure, not a credit).
+
 ## 2026-11-13: Credits for mlmorph and the other open work
 
 - New `THIRD_PARTY_NOTICES.md` (repo root): mlmorph (full MIT text, Santhosh Thottingal and contributors, SMC; what was ported; sources of its mistakes list), Olam datasets (ODbL, CC BY-SA 4.0), Datamuse, SMC / Noto / Google fonts (SIL OFL), the `logos` collection (CC0). Header notes in `packages/shared/src/mlmorph.ts` and `litma-spell/index.ts` point to it.

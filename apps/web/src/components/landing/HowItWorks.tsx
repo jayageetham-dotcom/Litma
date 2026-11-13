@@ -107,7 +107,7 @@ export function HowItWorks() {
             </div>
           </Card>
 
-          <Card className="md:col-span-2" fill="bg-coral" title="Dictionary one click away" body="Select a word for its meaning, English sense and synonyms from Olam's open datasets. Tap a synonym to swap it in.">
+          <Card className="md:col-span-2" fill="bg-coral" title="Dictionary one click away" body="Select a word for its meaning, English sense and synonyms. Tap a synonym to swap it in.">
             <div style={ml}>
               <div className={`${chip} px-4 py-3 text-[15px]`}>
                 രാത്രി മുഴുവൻ <span className="rounded bg-lime px-1 font-bold text-on-pop">മഴ</span> പെയ്തു.

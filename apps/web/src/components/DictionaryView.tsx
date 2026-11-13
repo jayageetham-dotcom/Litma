@@ -124,16 +124,12 @@ export function DictionaryView({
   const [sugs, setSugs] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [available, setAvailable] = useState<boolean | null>(null);
-  const [sources, setSources] = useState<{ name: string; url: string; license: string }[]>([]);
   const seq = useRef(0);
   const sugSeq = useRef(0);
   const saved = useBookmarks();
 
   useEffect(() => {
-    loadIndex().then((i) => {
-      setAvailable(!!i);
-      if (i) setSources(i.sources);
-    });
+    loadIndex().then((i) => setAvailable(!!i));
   }, []);
 
   // look up the word passed in, including on first render (a link such as /dictionary/?w=താമര)
@@ -244,7 +240,7 @@ export function DictionaryView({
 
       {available === false && (
         <p className="mt-4 rounded-lg bg-highlight-soft px-3 py-2 text-sm">
-          The dictionary data isn’t installed on this site yet. Run <code>npm run dict</code> (or deploy; CI builds it) to add the Olam datasets.
+          The dictionary data isn’t installed on this site yet. Run <code>npm run dict</code> (or deploy; CI builds it) to add the dictionary data.
         </p>
       )}
 
@@ -353,21 +349,6 @@ export function DictionaryView({
         </article>
       )}
 
-      {sources.length > 0 && (
-        <p className={`border-t border-line text-[11px] leading-relaxed text-muted ${compact ? "mt-2 pt-3" : "mt-4 pt-5"}`}>
-          Data:{" "}
-          {sources.map((s, i) => (
-            <span key={s.url}>
-              {i > 0 && " · "}
-              <a href={s.url} target="_blank" rel="noreferrer" className="underline">
-                {s.name}
-              </a>{" "}
-              ({s.license})
-            </span>
-          ))}{" "}
-          from Olam. Opposites via Datamuse.
-        </p>
-      )}
     </div>
   );
 }

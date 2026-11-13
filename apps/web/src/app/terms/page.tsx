@@ -102,7 +102,7 @@ const sections: LegalSection[] = [
     title: "Dictionary, spelling and fonts",
     body: (
       <p>
-        Litma&apos;s dictionary is built on Olam&apos;s open English-Malayalam data and Datuk&apos;s Malayalam dictionary, its spelling check on Swathanthra Malayalam Computing&apos;s mlmorph, and Litma bundles open Malayalam fonts, each under its own licence. Meanings and spelling suggestions are for guidance; check important ones yourself.
+        Litma&apos;s dictionary, spelling check and fonts use open data and software, each under its own licence (listed in <Link href="/help/?a=credits">Credits and licences</Link>). Meanings and spelling suggestions are for guidance; check important ones yourself.
       </p>
     ),
   },

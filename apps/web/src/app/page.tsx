@@ -52,7 +52,7 @@ const display = { fontFamily: "var(--font-display)" };
 
 /** Each feature carries the Malayalam word a writer would use for it, and a colour from the home palette. */
 const FEATURES: { ml: string; title: string; body: React.ReactNode; dot: string; hover: string }[] = [
-  { ml: "എഴുത്ത്", title: "Manglish or Malayalam", dot: "bg-violet", hover: "group-hover:text-violet", body: "Type “nammude naadu” and get നമ്മുടെ നാട്. Google Input Tools predictions, an offline engine, and your own keyboard all work." },
+  { ml: "എഴുത്ത്", title: "Manglish or Malayalam", dot: "bg-violet", hover: "group-hover:text-violet", body: "Type “nammude naadu” and get നമ്മുടെ നാട്. Online suggestions, an offline engine, and your own keyboard all work." },
   { ml: "താൾ", title: "Real A4 pages", dot: "bg-coral", hover: "group-hover:text-coral", body: "Text flows onto separate printed-size pages with page numbers and running heads. Export print-ready PDFs." },
   { ml: "രൂപം", title: "സാഹിത്യരൂപങ്ങൾ, each set its own way", dot: "bg-sky", hover: "group-hover:text-sky", body: "Screenplays in the Malayalam two-column layout, poems with വൃത്തം metre marks, novels with chapters, features with pull quotes." },
   { ml: "കഥാലോകം", title: "Story World", dot: "bg-lime", hover: "group-hover:text-lime", body: "Characters, locations, props, a drag-and-drop beat board, timeline, research notes and scene and character reports for every work." },
@@ -61,15 +61,7 @@ const FEATURES: { ml: string; title: string; body: React.ReactNode; dot: string;
     title: "Dictionary built in",
     dot: "bg-tangerine",
     hover: "group-hover:text-tangerine",
-    body: (
-      <>
-        Malayalam–Malayalam, English–Malayalam, synonyms and opposites from{" "}
-        <a href="https://olam.in/p/open" target="_blank" rel="noreferrer" className="font-semibold text-violet-text underline underline-offset-2 group-hover:text-lime">
-          Olam’s open datasets
-        </a>
-        , one click from your text.
-      </>
-    ),
+    body: "Malayalam–Malayalam, English–Malayalam, synonyms and opposites, one click from your text.",
   },
   { ml: "പുസ്തകം", title: "Make it a book", dot: "bg-violet", hover: "group-hover:text-violet", body: "Gather works into a book with covers, title and copyright pages, a contents page with real page numbers, and export one PDF." },
   { ml: "കരുതൽ", title: "Never lose a line", dot: "bg-coral", hover: "group-hover:text-coral", body: "Every keystroke is saved on your device at once and synced to the cloud within seconds, even through a dropped connection." },

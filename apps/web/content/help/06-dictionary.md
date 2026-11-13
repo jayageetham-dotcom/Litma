@@ -7,7 +7,7 @@ icon: book-a
 tint: violet
 ---
 
-Litma has a Malayalam ↔ English dictionary and thesaurus built in, from the Olam open dictionary, so you can check a word without leaving your page.
+Litma has a Malayalam ↔ English dictionary and thesaurus built in, so you can check a word without leaving your page.
 
 ## Look up a word {#look-up}
 

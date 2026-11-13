@@ -782,7 +782,7 @@ export function KeysPanel({ editor }: { editor: Editor }) {
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-[11.5px] leading-snug text-muted">Google Input Tools predictions fix most spellings automatically, so “nammude” becomes നമ്മുടെ even without capitals.</p>
+        <p className="mt-2 text-[11.5px] leading-snug text-muted">Online suggestions fix most spellings automatically, so “nammude” becomes നമ്മുടെ even without capitals.</p>
       </div>
     </div>
   );

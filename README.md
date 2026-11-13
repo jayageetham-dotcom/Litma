@@ -154,6 +154,10 @@ The website's **Settings → Backup → Save to Google Drive** uses Google's own
 3. **OAuth consent screen → Data access**: add the scope `.../auth/drive.file` (non-sensitive, so only the usual app verification, no security assessment). The Privacy Policy already describes it.
 4. GitHub → Settings → Secrets and variables → Actions → **Variables**: `GOOGLE_CLIENT_ID` = that client id. The next deploy shows the button. Without it the button is hidden; download and the desktop folder backup work anyway.
 
+## Changing Litma
+
+Every addition, change or removal also updates the strings in both languages (`packages/i18n/locales`, checked by `npm run i18n:check`), the help guide (`apps/web/content/help`), and where it applies the Privacy Policy and Terms, credits, CSP, setup guide and change logs. The full checklist is in [`CLAUDE.md`](CLAUDE.md) under **Every change: the checklist**.
+
 ## Features
 
 - **Typing:** Manglish → Malayalam with an offline engine that follows how people really type (see [Manglish typing](#manglish-typing)), Google predictions on top when online, and in-place late correction; a built-in Enhanced InScript keyboard or your own Malayalam keyboard; English. `Ctrl/⌘+M` switches. On-screen akshara palette.

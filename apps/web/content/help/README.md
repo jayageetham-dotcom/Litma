@@ -32,6 +32,10 @@ new guides.
 - The first paragraph of a guide is its summary on cards and in search, so make it one or two
   plain sentences.
 
+## Keep the guides true
+
+Every time a feature is added, changed or removed in any Litma app, its guide changes in the same commit: new steps and pictures, removed text and links for a removed feature, and the topic's `summary`. Ids (`{#id}`) never change once live. This is part of the checklist in the repository's `CLAUDE.md` (**Every change: the checklist**).
+
 ## Writing a guide
 
 - `### Heading` makes a section; guides with two or more get an "On this page" list.

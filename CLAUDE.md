@@ -16,6 +16,19 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - When the work is done, tell the owner plainly whether a Release is needed for the desktop app (and later the phone app) to get it, and offer to start it if this session can.
 - Mobile (`apps/mobile`, Flutter): make the same change there. The app has sign-in, desk (works, books, trash), writing-type picker, editor, reader, profile, settings, dictionary with നാട്ടറിവ് and saved words, Story World, books, sharing and export, AI companion and inbox, version history, offline. For anything it doesn't have yet (see its README), note there what it must mirror. Shared strings go in `packages/i18n`, then `npm run mobile:assets`; tokens via `npm run tokens && npm run mobile:assets`. The phone app reaches writers only through store releases (`mobile-release.yml`, run by the Release workflow once the store secrets exist).
 
+## Every change: the checklist (owner's standing rule)
+Whenever anything in Litma is **added, changed or removed**, go through this list before finishing. It applies to small fixes too; skip only the lines that really don't apply.
+1. **Every app:** web, desktop (Electron) and phone (Flutter), as in the section above.
+2. **Strings (i18n):** new UI text goes into `packages/i18n/locales/en.json` **and** `ml.json` (same key, same `{placeholders}`, plural `_one`/`_other` in both), never inline. Changed wording: change both. Removed feature: delete its keys from both. Then `npm run mobile:assets` (the phone's copy) and `npm run i18n:check` (CI fails on a missing Malayalam string). Only the owner's admin dashboard (`admin.*`) may stay English. The sign-in pages and their error messages (`lib/auth.tsx`, phone `authMessage`) are still English inline; keep them that way until they move to i18n together.
+3. **Help guide:** update the guide for the feature in `apps/web/content/help/` (README there explains the format): new feature, new guide or section; changed behaviour, change the steps and pictures; removed feature, remove its text and every link to it. Never change a live `{#id}`. Link related guides to each other, and keep each topic's `summary` true.
+4. **Privacy Policy and Terms** (`app/privacy`, `app/terms`, and the community guidelines for forum changes): when data collected, a service that sees writers' data, deletion, moderation or account rules change. Update the date at the top.
+5. **Credits:** new outside data, fonts, code or services go in `THIRD_PARTY_NOTICES.md` and the help section `11-account.md#credits` only (see Writing aids → Credits).
+6. **Security:** a new outside host (script, API, font, frame) goes into the CSP in `apps/web/public/.htaccess`; a new Edge Function gets a `config.toml` entry, a line in `deploy.yml`, auth checks and a rate limit (`_shared/ratelimit.ts`); new email/password auth calls go through `useCaptcha` / `withCaptcha`.
+7. **Setup:** a new secret, variable, migration, cron job or dashboard switch goes into `docs/setup/google-and-supabase.md` (and its checklist).
+8. **Project docs:** `README.md` (features, table, layout), `apps/mobile/README.md` (what the phone has or must mirror), this file's map and rules, and `docs/changes/` (each app's file and the cross-platform summary with Open items).
+9. **Checks:** `npm run typecheck`, `npm run build`, `npm run i18n:check`, `npm run sync:shared` (no drift); `flutter analyze && flutter test` in `apps/mobile` when the phone changed (or say it is unverified).
+10. **Tell the owner** whether a desktop Release or a phone store build is needed for writers to get it.
+
 ## Fairness (owner's standing rule)
 - Never discriminate by religion, caste, race, community, region, gender, age or ability, in anything: UI text, sample and template content, dictionary lists, quotes, examples, AI prompts, MCP text and emails.
 - Treat every community the same way. Their words, festivals, food, names and customs sit side by side as equals: never in an "other" or "also" section, never as an afterthought, never labelled by community (ഉമ്മ beside അമ്മ, not under "Muslim words").
@@ -124,7 +137,7 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Esc in the card editor closes only the card (capture-phase listener).
 
 ## i18n
-- UI strings live in `src/i18n/locales/<code>.json` (en is the source; others fall back to it). Use `useT()` from `@/i18n/react`: `t("desk.newWork")`, `t("common.words", { count })` (plural keys `_one`/`_other`). Add a language by adding a JSON file and a line in `LOCALES` (`src/i18n/index.ts`). The JSON is plain data so Electron and the Flutter app share it. Settings → Language switches it (per device, `litma:locale`). New UI text goes into the JSON files, not inline.
+- UI strings live in `packages/i18n/locales/<code>.json` (en is the source; others fall back to it, but every writer-facing key must exist in ml too: `npm run i18n:check`, run in CI). Use `useT()` from `@/i18n/react`: `t("desk.newWork")`, `t("common.words", { count })` (plural keys `_one`/`_other`). Add a language by adding a JSON file and a line in `LOCALES` (`src/i18n/index.ts`). The JSON is plain data so Electron and the Flutter app share it. Settings → Language switches it (per device, `litma:locale`). New UI text goes into the JSON files, not inline.
 
 ## Pictures (no uploads for now)
 - Photo uploads are off to save storage cost: `PHOTO_UPLOADS = false` in `src/lib/config.ts` hides the profile photo, cover picture, author photo and Story World picture uploads (the upload code stays; flip the flag to bring them back). Pictures uploaded earlier still show and can be removed.

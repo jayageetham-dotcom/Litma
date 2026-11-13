@@ -63,6 +63,12 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
+## 2026-11-13: i18n gaps filled, and the every-change checklist
+
+- `ml.json`: 98 writer-facing strings that existed only in English (Litma Community moderation, reasons, agreement, errors; AI grammar check; Settings admin link) now have Malayalam. Only `admin.*` (owner's dashboard) stays English.
+- New `scripts/check-i18n.mjs` (`npm run i18n:check`): every en key in every other language except `admin.*`, no extra keys, same `{placeholders}`. Runs in the deploy job (fails the build).
+- `CLAUDE.md` **Every change: the checklist**: strings in both languages, help guide, Privacy/Terms, credits, CSP and rate limits, setup guide, project docs and change logs, checks, Release. Pointers from `README.md` (Changing Litma) and `apps/web/content/help/README.md`.
+
 ## 2026-11-13: Help guides and sign-in messages for the security work
 
 - Help: `01-getting-started.md` new guides **The quick security check** (`?a=security-check`) and **If your account is blocked** (`?a=blocked`), leaked-password note; `11-account.md` Get help links; `13-community.md` account blocks. Privacy: Cloudflare Turnstile listed, hashed-address rate limits. Sign-in messages for blocked accounts, leaked passwords and an unfinished check (web `lib/auth.tsx`, phone `authMessage`); the auth callback page explains Google's error too. README and phone README updated.

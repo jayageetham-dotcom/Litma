@@ -21,7 +21,8 @@
     "desktop:dist": "npm run dist -w @litma/desktop",
     "desktop:web": "npm run build:desktop -w @litma/web",
     "release:dry": "node scripts/release.mjs --dry-run",
-    "mobile:assets": "node scripts/build-mobile-assets.mjs"
+    "mobile:assets": "node scripts/build-mobile-assets.mjs",
+    "i18n:check": "node scripts/check-i18n.mjs"
   },
   "engines": {
     "node": ">=20"

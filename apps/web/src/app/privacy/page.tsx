@@ -152,6 +152,9 @@ const sections: LegalSection[] = [
             <strong>Google and Apple</strong> handle sign-in when you choose them.
           </li>
           <li>
+            <strong>Cloudflare Turnstile</strong> runs the quick security check that can appear when you sign in, create an account or ask for a password link. It looks at your browser and connection to tell people from automated programs, and doesn&apos;t receive your email, password or writing.
+          </li>
+          <li>
             <strong>Anthropic, OpenAI or Google Gemini</strong> receive the text you send to the AI companion, only when you ask it something and only with your own key. Their own privacy policies apply to that request.
           </li>
           <li>
@@ -209,7 +212,7 @@ const sections: LegalSection[] = [
     title: "Security",
     body: (
       <p>
-        Litma uses encrypted connections (HTTPS), each account can reach only its own data, AI keys are encrypted and assistant tokens are stored only as fingerprints. No service is perfectly secure, so please use a strong password and tell us at once if
+        Litma uses encrypted connections (HTTPS), each account can reach only its own data, AI keys are encrypted and assistant tokens are stored only as fingerprints. To stop abuse, our server functions count requests per connection for a minute at a time, using a one-way scrambled form of the network address that is never stored. No service is perfectly secure, so please use a strong password and tell us at once if
         you notice anything wrong.
       </p>
     ),

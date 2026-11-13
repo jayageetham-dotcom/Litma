@@ -78,6 +78,9 @@ export function safeNext(next: string | null, fallback = "/desk/") {
 /** Plain-language auth errors. */
 export function authMessage(e: unknown): string {
   const m = e instanceof Error ? e.message : String(e ?? "");
+  if (/banned/i.test(m)) return "This account is blocked for breaking Litma's Terms of Use. If you think this is a mistake, write to support@getlitma.in.";
+  if (/pwned|leaked|known to be weak|data breach/i.test(m)) return "This password has turned up in a data leak on another site, so it isn't safe. Choose a different one.";
+  if (/captcha/i.test(m)) return "Finish the quick security check, then try again.";
   if (/invalid login credentials/i.test(m)) return "That email and password don't match. Check them, or reset your password.";
   if (/email not confirmed/i.test(m)) return "Confirm your email first. Open the link we sent you, then sign in.";
   if (/already registered|already exists/i.test(m)) return "An account with this email already exists. Sign in instead.";

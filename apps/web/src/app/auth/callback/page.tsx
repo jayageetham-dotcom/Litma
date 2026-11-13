@@ -19,7 +19,11 @@ const EMAIL_TYPES = new Set(["signup", "invite", "magiclink", "recovery", "email
 function Callback() {
   const router = useRouter();
   const params = useSearchParams();
-  const [error, setError] = useState<string | null>(params.get("error_description"));
+  const [error, setError] = useState<string | null>(() => {
+    // e.g. Google sign-in for a blocked account comes back with "User is banned"
+    const d = params.get("error_description");
+    return d ? authMessage(d) : null;
+  });
   useEffect(() => {
     const sb = getSupabase();
     if (!sb || error) return;

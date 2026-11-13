@@ -91,6 +91,7 @@ AI suggestions come from the provider you choose (Claude, ChatGPT or Gemini) und
 ## Get help {#get-help}
 
 - **These guides:** on the website and desktop app, **Settings → Help and guide**, your picture → **Help and guide**, or **Help → Litma Help** in the desktop app's menu bar. On the phone, **Settings → Help and guide**. They open in your browser at getlitma.in/help.
+- **Can't sign in?** See [The quick security check](/help/?a=security-check) and [If your account is blocked](/help/?a=blocked).
 - **Write to us:** support@getlitma.in. Tell us what you were doing, what you expected and which device you use (website, desktop app or phone). A screenshot helps a lot.
 
 > **Tip:** If something looks wrong after an update, reload the page (or restart the desktop app). Your writing is saved on the device and in your account.

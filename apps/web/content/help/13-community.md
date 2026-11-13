@@ -38,6 +38,6 @@ If a post breaks the guidelines (hate, harassment, someone's private details, co
 
 Litma's moderators can close a conversation so no one can reply, remove a conversation or a reply, pin a conversation to the top, and stop a writer from posting for a time. A closed or removed conversation shows the reason.
 
-If you are stopped from posting, you can still read the community, and a note tells you until when. If you think a decision was wrong, write to support@getlitma.in.
+If you are stopped from posting, you can still read the community, and a note tells you until when. For serious or repeated abuse, such as spam, Litma can also block the whole account from signing in, or delete it (see [If your account is blocked](/help/?a=blocked)). If you think a decision was wrong, write to support@getlitma.in.
 
 Read the full [Community Guidelines](/community/guidelines/).

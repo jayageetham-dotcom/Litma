@@ -9,6 +9,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-13: Sign-in messages and help for blocks and the check
+
+- `lib/auth.tsx` `authMessage`: banned, leaked password, captcha; `app/auth/callback` runs `error_description` through it. Help guides `security-check`, `blocked`.
+
 ## 2026-11-13: Delete account, admin block/delete, CAPTCHA, CSP
 
 - `components/settings/DeleteAccount.tsx` (Settings), `lib/offline.ts` `forgetAccount`, login notice `?deleted=1`.

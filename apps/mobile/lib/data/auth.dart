@@ -167,6 +167,9 @@ class SupabaseAuth implements AuthGateway {
 String authMessage(Object e) {
   if (e is OfflineException) return "Can't reach the server. Check your connection and try again.";
   final m = e is AuthException ? e.message : '$e';
+  if (RegExp('banned', caseSensitive: false).hasMatch(m)) return "This account is blocked for breaking Litma's Terms of Use. If you think this is a mistake, write to support@getlitma.in.";
+  if (RegExp('pwned|leaked|known to be weak|data breach', caseSensitive: false).hasMatch(m)) return "This password has turned up in a data leak on another site, so it isn't safe. Choose a different one.";
+  if (RegExp('captcha', caseSensitive: false).hasMatch(m)) return 'Finish the quick security check, then try again.';
   if (RegExp('invalid login credentials', caseSensitive: false).hasMatch(m)) return "That email and password don't match. Check them, or reset your password.";
   if (RegExp('email not confirmed', caseSensitive: false).hasMatch(m)) return 'Confirm your email first. Open the link we sent you, then sign in.';
   if (RegExp('already registered|already exists', caseSensitive: false).hasMatch(m)) return 'An account with this email already exists. Sign in instead.';

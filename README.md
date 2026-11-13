@@ -157,6 +157,9 @@ The website's **Settings → Backup → Save to Google Drive** uses Google's own
 ## Features
 
 - **Typing:** Manglish → Malayalam with an offline engine that follows how people really type (see [Manglish typing](#manglish-typing)), Google predictions on top when online, and in-place late correction; a built-in Enhanced InScript keyboard or your own Malayalam keyboard; English. `Ctrl/⌘+M` switches. On-screen akshara palette.
+- **Account and safety:** Settings → Delete account in every app (`litma-account`); the owner can block an account for some days or for good, or delete it, from /admin/ → Writers (`litma-admin`, logged in `admin_actions`). Rate limits on the public Edge Functions (`_shared/ratelimit.ts`), a Cloudflare Turnstile check on sign-in once CAPTCHA is on in Supabase (`/captcha/`), and HSTS + Content-Security-Policy in `apps/web/public/.htaccess`.
+- **Your account, your call:** Settings → Delete account on every app (`litma-account`); admins can block an account for some days or for good, or delete it (/admin/ → Writers, `litma-admin`, logged in `admin_actions`).
+- **Security:** rate limits on the public functions (`_shared/ratelimit.ts`), an optional Cloudflare Turnstile check before email sign-in, sign-up and reset (`/captcha/`, shown only when Supabase asks), and HSTS, CSP and frame rules in `apps/web/public/.htaccess`.
 - **Works offline** on the web, desktop and phone: a copy of your works stays on the device and changes are sent when the connection returns.
 - **A4 pages** by default (A5, Letter, Legal), page numbers, running heads, true-size PDF export.
 - **Nine സാഹിത്യരൂപങ്ങൾ (writing types)**, each with its own template and toolbar — including the Kerala **screenplay** layout (Scene: N, location, time, cast on the right, action left, two-column dialogue) and **poems/lyrics** with akshara counts and laghu/guru metre marks.
@@ -232,7 +235,7 @@ apps/web/src/components/  UI; editor/ holds the Tiptap workspace, toolbar, panel
 apps/web/src/extensions/  Tiptap extensions (manglish, pagination, screenplay, blocks, tools, keep-selection)
 apps/mobile/lib/          phone app: core (tokens, Manglish), data (store, offline), editor, features
 packages/shared/src/      dependency-free code shared with Edge Functions (import as @litma/shared/<file>)
-supabase/functions/ litma-transliterate · litma-ai · litma-spell · litma-mcp · litma-track · litma-admin · litma-send-email (+ _shared, synced from packages/shared/src)
+supabase/functions/ litma-transliterate · litma-ai · litma-spell · litma-account · litma-mcp · litma-track · litma-admin · litma-send-email (+ _shared, synced from packages/shared/src)
 supabase/migrations schema, RLS, storage policies
 scripts/build-dictionary.mjs   Olam datasets → apps/web/public/dict shards (run by CI; `npm run dict` locally)
 scripts/build-mlmorph.mjs      mlmorph wheel → litma-spell's data (run by CI before deploying litma-spell)

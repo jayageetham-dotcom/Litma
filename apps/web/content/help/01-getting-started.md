@@ -2,7 +2,7 @@
 id: getting-started
 title: Getting started
 ml: തുടക്കം
-summary: Create your account, find your way around the desk and start your first work.
+summary: Create your account, sign in (and the quick security check), find your way around the desk and start your first work.
 icon: rocket
 tint: violet
 ---
@@ -48,6 +48,8 @@ You need an account so your works are saved safely and sync between your devices
 
 Or choose **Continue with Google** to use your Google account; there is no email to confirm.
 
+Choose a password you don't use anywhere else. If a password has turned up in a data leak on another site, Litma asks you to pick a different one.
+
 > **Phone:** The phone app also offers **Continue with Apple** on iPhone.
 
 ### Sign in
@@ -62,6 +64,14 @@ Choose **Sign in** at the top of the home page, type your email and password, an
 4. Choose a new password. The link works in any browser, even a different one from where you asked for it.
 
 > **Note:** No email? Look in your spam or promotions folder, and check that you typed the address you signed up with. Still nothing after a few minutes? Write to support@getlitma.in.
+
+## The quick security check {#security-check}
+
+Sometimes, when you sign in, create an account or ask for a password link, a small **Quick security check** box appears for a moment. It keeps automated sign-ups out and usually finishes by itself; if it shows a box to tick, tick it. Then Litma carries on. It looks the same on the website, the desktop app and the phone app, and it never appears when you sign in with Google or Apple. If it says the check couldn't finish, check your connection, close the box and try again.
+
+## If your account is blocked {#blocked}
+
+Litma can block an account that keeps breaking the [Terms of Use](/terms/) or the [Community Guidelines](/community/guidelines/), for a time or for good. A blocked account can't sign in from any app until the block ends; its works stay as they were. If you think this is a mistake, write to support@getlitma.in from your account's email address.
 
 ## Your desk {#desk}
 

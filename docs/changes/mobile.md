@@ -15,6 +15,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-13: Sign-in messages
+
+- `authMessage` in `lib/data/auth.dart`: banned, leaked password, captcha (same wording as the web).
+
 ## 2026-11-13: Delete account and CAPTCHA
 
 - Settings: `_DeleteAccount` + `_DeleteDialog` (type DELETE) → `AccountApi.delete` (`lib/data/account.dart`), `OfflineLayer.forgetAccount` (`LocalDb.forget` in SQLite and memory), sign out.

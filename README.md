@@ -34,6 +34,7 @@ docs/changes       what changed in each app and what is still open (for maintain
 | MCP server | Edge Function `litma-mcp`, exposed at `getlitma.in/mcp` by `apps/web/public/mcp.php` (a relay with no secrets) |
 | Usage statistics and the admin dashboard | Edge Functions `litma-track`, `litma-admin` |
 | Sign-in emails through the getlitma.in mailbox | Edge Function `litma-send-email` (Supabase Send Email hook) |
+| Malayalam spelling engine (a TypeScript port of SMC's mlmorph) | Edge Function `litma-spell` (signed-in users only; the editor falls back to its own checks when it can't be reached) |
 
 The site is static, so there are no server secrets on cPanel. Service keys stay inside Supabase.
 
@@ -62,6 +63,14 @@ Pushing a tag yourself (`git tag v1.2.3 && git push --tags`) also builds and pub
 ## Dictionary data
 
 `npm run dict` downloads Olam's open datasets (Datuk — ODbL, EnMl — ODbL, E.K. Kurup — CC BY-SA 4.0) and writes sharded JSON to `apps/web/public/dict/` (git-ignored). CI does this on every deploy (cached), so the dictionary is served from `/dict/`. At the end it runs `scripts/build-rhymes.mjs`, which writes the rhyme finder's files (`dict/rhyme/<s|e|f>-<hex>.json`, about 2,400 small files) and the spelling word lists (`dict/words/<shard>.txt`) from the same headwords. Entries that describe a caste or community, or abuse, are never suggested as rhymes.
+
+## Spelling engine
+
+`supabase/functions/litma-spell` runs `packages/shared/src/mlmorph.ts`, a TypeScript port of [mlmorph](https://gitlab.com/smc/mlmorph), the Malayalam morphology analyser by Santhosh Thottingal and contributors at Swathanthra Malayalam Computing (MIT licence). It answers the same as Python mlmorph on its test words and checks a word in about 17 µs. `scripts/build-mlmorph.mjs` downloads the pinned mlmorph wheel from PyPI (version and sha256 in the script), converts its transducer to `mlmorph.bin.gz` (about 7.6 MB) and its common-mistakes list to `mistakes.json`, into `supabase/functions/litma-spell/data/` (git-ignored). The deploy job runs it and deploys `litma-spell` with `--use-docker` as its last step, which may fail without stopping the rest of the deploy.
+
+## Credits
+
+Litma stands on open work: mlmorph (spelling engine), Olam's datasets (dictionary), Datamuse (English words), SMC and Google's Noto fonts, and the `logos` collection. The licences and full notices are in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md); writers see them in the help guide **Credits and licences** (`/help/?a=credits`, linked from Settings → About).
 
 ## Local development
 
@@ -154,7 +163,7 @@ The website's **Settings → Backup → Save to Google Drive** uses Google's own
 - **Accounts:** sign up, sign in (password, email link, Google), forgot/reset password, **profile** with avatar pictures (photo uploads are paused for now), pen name, bio, default typing mode, writing heatmap.
 - **Goals and statistics (`/goals/`):** daily and weekly word goals, streaks with rest days, a goal and finish date per work, a writing timer (sprint) with a chime and notification, a daily reminder (browser tab, desktop app main process, or the phone's own scheduled notification), and 7/30/90-day statistics (words, minutes, writing days, hours of the day, by writing type and work). Kept for 90 days.
 - **Rhymes (പ്രാസം):** ദ്വിതീയാക്ഷര, അന്ത്യ and ആദി പ്രാസം from the dictionary's headwords with laghu–guru patterns (files built by `scripts/build-rhymes.mjs`), in the editor, the Dictionary's പ്രാസം tab, the phone and MCP (`find_rhymes`).
-- **Spelling and grammar:** broken Unicode letters, common misspellings and (optionally) words the dictionary doesn't have, marked in the text (`packages/shared/src/spell.ts`, word lists in `dict/words/`); grammar through the AI companion. MCP `check_spelling`.
+- **Spelling and grammar:** Litma's own spelling engine, built on **mlmorph** (Swathanthra Malayalam Computing, MIT), knows Malayalam word forms with all their endings and joins. It marks common misspellings in red with the right spelling, words it can't analyse as amber "Check spelling?" with likely fixes, broken Unicode letters, and spacing around punctuation (`packages/shared/src/spell.ts`, `punctuation.ts`, `mlmorph.ts`; Edge Function `litma-spell`). If the engine can't be reached the editor goes on with its own checks. **Check grammar** in the Spelling and grammar panel asks the writer's AI companion and shows each fix as a card to accept or skip. MCP `check_spelling`.
 - **Read aloud** with the device's own Malayalam voice (Web Speech API; the phone's own speech engine on the phone), sentence by sentence with the line highlighted.
 - **Backup:** everything as one zip (Word files + a restorable JSON), downloaded, saved to Google Drive, written daily into a folder by the desktop app, or shared from the phone; restore on the website or desktop app.
 - **Pin the work in progress** to the top of the desk (one at a time, saved in the profile so every device and the phone show it; MCP `pin_document`).
@@ -223,8 +232,10 @@ apps/web/src/components/  UI; editor/ holds the Tiptap workspace, toolbar, panel
 apps/web/src/extensions/  Tiptap extensions (manglish, pagination, screenplay, blocks, tools, keep-selection)
 apps/mobile/lib/          phone app: core (tokens, Manglish), data (store, offline), editor, features
 packages/shared/src/      dependency-free code shared with Edge Functions (import as @litma/shared/<file>)
-supabase/functions/ litma-transliterate · litma-ai · litma-mcp · litma-track · litma-admin · litma-send-email (+ _shared, synced from packages/shared/src)
+supabase/functions/ litma-transliterate · litma-ai · litma-spell · litma-mcp · litma-track · litma-admin · litma-send-email (+ _shared, synced from packages/shared/src)
 supabase/migrations schema, RLS, storage policies
 scripts/build-dictionary.mjs   Olam datasets → apps/web/public/dict shards (run by CI; `npm run dict` locally)
+scripts/build-mlmorph.mjs      mlmorph wheel → litma-spell's data (run by CI before deploying litma-spell)
+THIRD_PARTY_NOTICES.md         licences and credits for the open work Litma uses
 apps/web/public/mcp.php   /mcp relay   ·   apps/web/public/.htaccess  routing & caching
 ```

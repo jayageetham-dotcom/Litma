@@ -12,6 +12,7 @@
  *   sound-alike letters), each candidate kept only if the morphology accepts it.
  *
  * Dependency-free: runs in the litma-spell Edge Function (Deno) and could run in a browser worker.
+ * mlmorph's copyright and MIT licence notice: THIRD_PARTY_NOTICES.md at the repository root.
  */
 
 // ── the transducer ──

@@ -114,7 +114,7 @@ Litma checks Malayalam spelling as you write, with its own Malayalam engine: it 
 
 Names, dialect and words from every region and community are often unknown to any dictionary. Litma never calls them mistakes: a word the engine can't place and can't match to a close spelling is left alone. Tick **Also mark words the dictionary doesn't have** to see those too, with a faint dotted line.
 
-> Litma's spelling engine is built on **mlmorph**, the Malayalam morphology analyser by Swathanthra Malayalam Computing (free software, MIT licence). The words being checked go to Litma's own server and aren't kept. Without a connection, Litma still marks broken letters, common misspellings and spacing.
+> Litma's spelling engine is built on **mlmorph**, the Malayalam morphology analyser by Santhosh Thottingal and contributors at Swathanthra Malayalam Computing (free software, MIT licence); see [Credits and licences](/help/?a=credits). The words being checked go to Litma's own server and aren't kept. Without a connection, Litma still marks broken letters, common misspellings and spacing.
 
 ### Grammar
 

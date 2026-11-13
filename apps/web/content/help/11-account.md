@@ -2,7 +2,7 @@
 id: account
 title: Account and settings
 ml: അക്കൗണ്ടും ക്രമീകരണങ്ങളും
-summary: Your profile and pen name, avatar, language, dark mode, backups, usage statistics and getting help.
+summary: Your profile and pen name, avatar, language, dark mode, backups, usage statistics, getting help, and credits for the open work Litma uses.
 icon: settings
 tint: violet
 ---
@@ -60,6 +60,26 @@ On the website and desktop app, open **Settings → Backup**:
 ### Bring works back from a backup {#restore}
 
 On the website or desktop app, open **Settings → Backup** and choose **Restore from a backup file**. Works that are no longer in Litma come back with their Story World. Works that are still there are left as they are, so restoring never changes or deletes anything.
+
+## Credits and licences {#credits}
+
+Litma stands on the work of the Malayalam computing community and of open-source projects. Thank you to all of them.
+
+### Words and spelling
+
+- **Spelling check:** Litma's spelling engine is built on **mlmorph**, the Malayalam morphology analyser by Santhosh Thottingal and contributors at [Swathanthra Malayalam Computing](https://smc.org.in) (MIT licence). It knows how Malayalam words take their endings and join, and its suggestions and list of common misspellings come from mlmorph's spellchecker. That list was gathered from Malayalam Wikipedia's page of commonly misspelt words and the Kerala government's [Malayalam glossary](https://glossary.kerala.gov.in).
+- **Dictionary:** [Olam](https://olam.in/p/open)'s open datasets: Datuk's Malayalam–Malayalam dictionary (ODbL), the English–Malayalam dictionary (ODbL) and E. K. Kurup's thesaurus (CC BY-SA 4.0). Opposites come from [Datamuse](https://www.datamuse.com). Rhymes and the spelling word lists are made from Olam's words.
+- **Manglish suggestions:** Google Input Tools when you are online; Litma's own engine offline.
+
+### Fonts
+
+- Manjari, Gayathri, Chilanka, Karumbi, Dyuthi, Uroob, Meera and Rachana by Swathanthra Malayalam Computing; Noto Serif and Noto Sans Malayalam by Google; Anek Malayalam and Baloo Chettan 2 by Ek Type; Inter and Manrope for Latin text. All under the SIL Open Font License.
+
+### Software
+
+- Litma is built with Next.js, React, Tiptap, Tailwind CSS, Electron, Flutter and Supabase, Lucide icons, and the open `logos` collection for platform marks (CC0). The full licence texts for code Litma includes are kept with Litma's source.
+
+AI suggestions come from the provider you choose (Claude, ChatGPT or Gemini) under that provider's terms.
 
 ## Get help {#get-help}
 

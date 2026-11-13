@@ -61,6 +61,14 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
 
+## 2026-11-13: Credits for mlmorph and the other open work
+
+- New `THIRD_PARTY_NOTICES.md` (repo root): mlmorph (full MIT text, Santhosh Thottingal and contributors, SMC; what was ported; sources of its mistakes list), Olam datasets (ODbL, CC BY-SA 4.0), Datamuse, SMC / Noto / Google fonts (SIL OFL), the `logos` collection (CC0). Header notes in `packages/shared/src/mlmorph.ts` and `litma-spell/index.ts` point to it.
+- Help: new guide section **Credits and licences** (`content/help/11-account.md#credits`, `/help/?a=credits`); the editor guide's spelling note credits mlmorph and links there.
+- Settings → About links to it on web and desktop (`AboutLitma`, opens in the browser on desktop via `useHelpHref`) and on the phone (Settings ListTile). New string `legal.credits`.
+- README: spelling and grammar feature text, a **Spelling engine** and a **Credits** section, `litma-spell` in the table and layout. CLAUDE.md: credits rule under the spelling engine.
+- Unverified: not built or clicked here (typecheck only); `flutter analyze` not run (no SDK in the cloud). Desktop gets the About link with the next Release.
+
 ## 2026-11-09: Litma Community (forum), guidelines and user-content notices
 
 - New public-styled page `/community/` (web and desktop share it): categories, search (Manglish-aware), threads, replies, likes, edit/delete own posts, report, guideline agreement before the first post, and moderation for `app_admins` (close, reopen, remove, restore, pin, remove reply, stop a writer posting, reports queue). Details in `web.md`.

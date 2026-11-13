@@ -18,6 +18,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+## 2026-11-13: Credits link (web code, needs a Release)
+
+- Settings → About's new "Credits and licences" link comes from `apps/web` (`AboutLitma`); on desktop it opens getlitma.in/help/?a=credits in the browser. Reaches the app with the next Release.
+
 ## 2026-11-09: Desktop build survives GitHub download hiccups
 
 - A Release failed on macOS: github.com answered 504 while electron-builder downloaded Electron 33.2.1. `.github/workflows/desktop.yml` now keeps Electron's download in `actions/cache` (`ELECTRON_CACHE` / `ELECTRON_BUILDER_CACHE` under `.electron-cache`, key from `package-lock.json`) and tries `electron-builder` up to 3 times, 30 s apart. A day earlier `npm ci` itself failed the same way (electron's postinstall got a 504), so `desktop.yml` and `deploy.yml` now set `ELECTRON_SKIP_BINARY_DOWNLOAD=1`: no CI step runs the Electron binary, and electron-builder fetches its own copy. No app change. Unverified until the next Release run (the cache is filled on the first run).

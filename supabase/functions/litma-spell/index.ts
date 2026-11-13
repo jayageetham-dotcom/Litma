@@ -9,6 +9,7 @@
  * data/mistakes.json) is made by scripts/build-mlmorph.mjs in the deploy job and shipped with the
  * function (static_files in supabase/config.toml); it loads once per instance (about 0.1 s).
  * Nothing is stored: the words are checked and forgotten.
+ * mlmorph's copyright and MIT licence notice: THIRD_PARTY_NOTICES.md at the repository root.
  */
 import { cors, preflight } from "../_shared/cors.ts";
 import { MlMorph, MlSpeller } from "../_shared/mlmorph.ts";

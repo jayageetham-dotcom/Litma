@@ -195,6 +195,16 @@ class SettingsScreen extends ConsumerWidget {
                 launchUrl(Uri.parse('${AppConfig.site}/community/'), mode: LaunchMode.externalApplication);
               },
             ),
+            // the help guide that credits mlmorph, Olam, the fonts and the other open work Litma uses
+            ListTile(
+              leading: const Icon(LucideIcons.award),
+              title: Text(context.t('legal.credits')),
+              trailing: const Icon(LucideIcons.externalLink, size: 16),
+              onTap: () {
+                Analytics.tap('legal.credits');
+                launchUrl(Uri.parse('${AppConfig.site}/help/?a=credits'), mode: LaunchMode.externalApplication);
+              },
+            ),
             ListTile(
               leading: const Icon(LucideIcons.globe),
               title: Text(context.t('app.settings.website')),

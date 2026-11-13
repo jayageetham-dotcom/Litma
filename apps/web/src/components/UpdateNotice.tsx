@@ -6,6 +6,7 @@ import { BASE } from "@/lib/config";
 import { BUILD_ID } from "@/lib/version";
 import { desktop, type DesktopUpdateState } from "@/lib/desktop";
 import { useT } from "@/i18n/react";
+import { useHelpHref } from "@/components/HelpLink";
 
 const POLL_MS = 15 * 60 * 1000;
 
@@ -148,6 +149,7 @@ function DesktopUpdate() {
 /** Settings → About: the version, and on the desktop a "Check for updates" button. */
 export function AboutLitma() {
   const t = useT();
+  const creditsHref = useHelpHref("?a=credits");
   const [d, setD] = useState<ReturnType<typeof desktop>>(undefined);
   const [busy, setBusy] = useState(false);
   useEffect(() => setD(desktop()), []);
@@ -176,12 +178,15 @@ export function AboutLitma() {
           </button>
         )}
       </div>
-      <p className="mt-3 flex gap-4 text-sm">
+      <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
         <a href={`${BASE}/privacy/`} className="font-medium text-accent hover:underline">
           {t("legal.privacy")}
         </a>
         <a href={`${BASE}/terms/`} className="font-medium text-accent hover:underline">
           {t("legal.terms")}
+        </a>
+        <a href={creditsHref} target="_blank" rel="noreferrer" className="font-medium text-accent hover:underline">
+          {t("legal.credits")}
         </a>
       </p>
     </section>

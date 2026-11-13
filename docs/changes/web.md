@@ -9,6 +9,11 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-13: Credits and licences
+
+- `components/UpdateNotice.tsx` `AboutLitma`: "Credits and licences" link beside Privacy and Terms → `/help/?a=credits` (new tab; getlitma.in on desktop). String `legal.credits` (en, ml).
+- `content/help/11-account.md`: new `## Credits and licences {#credits}` (words and spelling, fonts, software); `03-editor.md` spelling note credits mlmorph. `THIRD_PARTY_NOTICES.md` at the repo root. README updated.
+
 ## 2026-11-09: Malayalam spelling engine (mlmorph) on the server
 
 - New Edge Function `supabase/functions/litma-spell/index.ts` with `packages/shared/src/mlmorph.ts` (TypeScript port of SMC's mlmorph: SFST transducer lookup, analysis weights, normaliser, foreign-word detector, the twelve suggestion strategies, common-mistakes list). Data built by `scripts/build-mlmorph.mjs` (pinned mlmorph 1.4.3 wheel, sha256; SFST `malayalam.a` → `mlmorph.bin.gz` 7.6 MB + `mistakes.json`; gitignored). Checked: identical accept/reject to Python mlmorph on 2,149 words, analyses identical on 932/934; ~17 µs a word; under Deno cold start 0.14 s (data load), then ~12 ms a request; 1,000 misspelled words in 0.16 s; ~140 MB RSS.

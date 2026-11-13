@@ -61,6 +61,12 @@ On the website and desktop app, open **Settings → Backup**:
 
 On the website or desktop app, open **Settings → Backup** and choose **Restore from a backup file**. Works that are no longer in Litma come back with their Story World. Works that are still there are left as they are, so restoring never changes or deletes anything.
 
+## Delete your account {#delete-account}
+
+Open **Settings** and scroll to the end: **Delete account** is there on the website, the desktop app and the phone app. Type DELETE to confirm. Your account and everything in it are deleted at once and for good: works, books, Story World, versions, saved words, AI keys, assistant tokens, goals and your posts in Litma Community. Litma can't bring them back, so make a backup first (see [Back up your works](/help/?a=backup)) if you want to keep your writing.
+
+Can't sign in any more? Write to support@getlitma.in from your account's email address and we'll delete it for you within 30 days.
+
 ## Credits and licences {#credits}
 
 Litma stands on the work of the Malayalam computing community and of open-source projects. Thank you to all of them.
@@ -69,6 +75,7 @@ Litma stands on the work of the Malayalam computing community and of open-source
 
 - **Spelling check:** Litma's spelling engine is built on **mlmorph**, the Malayalam morphology analyser by Santhosh Thottingal and contributors at [Swathanthra Malayalam Computing](https://smc.org.in) (MIT licence). It knows how Malayalam words take their endings and join, and its suggestions and list of common misspellings come from mlmorph's spellchecker. That list was gathered from Malayalam Wikipedia's page of commonly misspelt words and the Kerala government's [Malayalam glossary](https://glossary.kerala.gov.in).
 - **Dictionary:** [Olam](https://olam.in/p/open)'s open datasets: Datuk's Malayalam–Malayalam dictionary (ODbL), the English–Malayalam dictionary (ODbL) and E. K. Kurup's thesaurus (CC BY-SA 4.0). Opposites come from [Datamuse](https://www.datamuse.com). Rhymes and the spelling word lists are made from Olam's words.
+- **Litma's dictionary files are open too.** The dictionary, thesaurus, rhyme and word-list files Litma builds from these datasets (served from `getlitma.in/dict/`) are shared under the same licences: the parts from Datuk and the English–Malayalam dictionary under the [Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/), and the parts from E. K. Kurup's thesaurus under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). You may reuse them under those terms. Your own writing in Litma is never part of them.
 - **Manglish suggestions:** Google Input Tools when you are online; Litma's own engine offline.
 
 ### Fonts

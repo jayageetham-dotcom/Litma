@@ -316,6 +316,14 @@ export async function hasPending(table: string, id: string): Promise<boolean> {
   return !!u && (await queued(u)).some((o) => sameRow(o, table, id));
 }
 
+/** Removes everything this device keeps for one account (after the account is deleted). */
+export async function forgetAccount(u: string) {
+  const range = IDBKeyRange.bound(`${u}|`, `${u}|\uffff`);
+  await run(ROWS, "readwrite", (s) => s.delete(range)).catch(() => {});
+  for (const o of await queued(u)) if (o.key != null) await run(OUTBOX, "readwrite", (s) => s.delete(o.key!)).catch(() => {});
+  if (rememberedUser()?.id === u) rememberUser(null);
+}
+
 export type SyncState = { pending: number; syncing: boolean; offline: boolean };
 
 /** Tell the app how many changes wait (OfflineStatus, the editor's save line). */

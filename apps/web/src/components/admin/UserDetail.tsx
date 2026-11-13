@@ -7,9 +7,21 @@ import { Sheet } from "@/components/ui/Sheet";
 import { SkeletonLines } from "@/components/ui/Skeleton";
 import { DayBars, SERIES, compact, num } from "./charts";
 import { ago, duration, featureKey } from "./AdminDashboard";
+import { AccountActions } from "./AccountActions";
 
 /** One writer: account facts, 90 days of activity, devices and a timeline of what they used. No writing. */
-export function UserDetail({ user: u, onClose, countryName }: { user: AdminUser; onClose: () => void; countryName: (c: string | null) => string }) {
+export function UserDetail({
+  user: u,
+  onClose,
+  countryName,
+  onChange,
+}: {
+  user: AdminUser;
+  onClose: () => void;
+  countryName: (c: string | null) => string;
+  /** blocked or unblocked (patch), or deleted (null) */
+  onChange: (patch: Partial<AdminUser> | null) => void;
+}) {
   const t = useT();
   const screen = useScreen();
   const [act, setAct] = useState<UserActivity | null>(null);
@@ -69,6 +81,14 @@ export function UserDetail({ user: u, onClose, countryName }: { user: AdminUser;
         {!act && !err && <SkeletonLines lines={6} />}
         {act && (
           <>
+            <section>
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+                <span aria-hidden className="h-2 w-2 rounded-full bg-danger" />
+                {t("admin.account.title")}
+              </h3>
+              <AccountActions key={u.id} user={u} bannedUntil={act.account?.banned_until ?? u.banned_until ?? null} actions={act.actions ?? []} onChange={onChange} />
+            </section>
+
             <section>
               <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                 <span aria-hidden className="h-2 w-2 rounded-full bg-accent" />

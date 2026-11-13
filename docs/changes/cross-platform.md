@@ -11,6 +11,8 @@ the code, and what is still unverified.
 
 ### Still open (after the 2026-11-07 work)
 
+Security (2026-11-13): owner to create the Turnstile widget, set `TURNSTILE_SITE_KEY`, then switch on Supabase Captcha protection and leaked-password protection (setup guide 3.5). Deleting an account also deletes its community posts, including removed ones kept for the IT Rules' 180 days; if that record must survive deletion, copy removed posts to a separate table first.
+
 Reels (2026-11-09): reel 3 (launch ad) can be re-voiced with Despina (Gemini) when the TTS quota allows; post the reels with a track from Instagram's music picker; on the Mac, run the one-time setup in `docs/marketing/reels.md` (Whisper and yt-dlp could not reach their downloads from the cloud sandbox).
 
 
@@ -60,6 +62,16 @@ From the 2026-11-08 writing aids (owner actions, free):
 - **Google Drive backup on the website:** enable the Drive API, add `getlitma.in` as a JavaScript origin of the Web OAuth client, add the `drive.file` scope to the consent screen, set the repo variable `GOOGLE_CLIENT_ID` (README → Google Drive backup). Without it the button stays hidden.
 - **Desktop Release** for read aloud, rhymes, spelling, goals, the reminder kept by the main process, and the daily folder backup. **Phone store build** for the same on the phone.
 - Unverified: the phone code (no Flutter SDK in the sandbox; new plugins flutter_local_notifications 22, timezone, flutter_tts, Android desugaring). Watch CI `mobile.yml` (`flutter analyze`, tests incl. `goals_test.dart`, `spell_test.dart`). Real devices: reminders after a reboot, the timer notification in the background, Google's Malayalam voice on Android, Edge's Malayalam voices on Windows.
+
+## 2026-11-13: Account deletion, admin blocking, rate limits, CAPTCHA, security headers
+
+- **Delete account in every app** (App Store and Google Play rule): Edge Function `litma-account` (`{op:"delete",confirm:"DELETE"}`; removes storage files via `_shared/accounts.ts`, then `auth.admin.deleteUser`; every table cascades). Web/desktop `components/settings/DeleteAccount.tsx` (Settings, last section; then `forgetAccount` in `lib/offline.ts`, sign out, `/login/?deleted=1`). Phone `_DeleteAccount` in `settings_screen.dart`, `lib/data/account.dart`, `LocalDb.forget`. Help `/help/?a=delete-account` (public link for Google Play). Privacy and Terms updated (13 Nov).
+- **Admin: block or delete an account** (/admin/ → Writers → a writer → Account, `components/admin/AccountActions.tsx`): block for 1/3/7/30/90/365/any days or for good (Supabase `ban_duration`; 36500 days), unblock, delete (type the email). `litma-admin` ops `block`/`unblock`/`delete`; refuses self and admins; every action in `admin_actions` (migration `20261113120000_admin_moderation.sql`, which also adds `banned_until` to `admin_users`). Blocked badge in the list. Terms and Privacy say so.
+- **Rate limits:** `_shared/ratelimit.ts` (in-memory per instance, hashed IP or user id): `litma-transliterate` 600/min per address, `litma-track` 60 batches/min (extra dropped silently), `litma-spell` 120/min per writer, `litma-account` 5 per 10 min.
+- **CAPTCHA (Cloudflare Turnstile), off until the owner turns it on:** page `/captcha/` (needs repo variable `TURNSTILE_SITE_KEY` → `NEXT_PUBLIC_TURNSTILE_SITE_KEY`), framed by web/desktop (`components/auth/Captcha.tsx`, `useCaptcha`) and shown in a web view on the phone (`lib/features/auth/captcha.dart`, new dependency `webview_flutter`). Every sign-in, sign-up, email-link and reset call runs first without a token; only when Supabase answers `captcha_failed` does the check appear and the call repeat with the token. Setup: `docs/setup/google-and-supabase.md` 3.5 (also leaked-password protection).
+- **Security headers** in `apps/web/public/.htaccess`: HSTS (1 year, no subdomains), Content-Security-Policy (self + Supabase, Google sign-in/Drive/Fonts, Datamuse, GitHub, Turnstile; `'unsafe-inline'` scripts for Next's static export), `frame-ancestors 'self'` + `X-Frame-Options SAMEORIGIN` (the `/captcha/` page also allows `app:` for the desktop app), Permissions-Policy.
+- **Dictionary share-alike:** credits section and `THIRD_PARTY_NOTICES.md` say the files at `/dict/` are under ODbL 1.0 / CC BY-SA 4.0; `build-dictionary.mjs` writes `dict/LICENSE.txt`.
+- Checked: web typecheck; a cloud-mode build with a mocked Supabase and Turnstile in Playwright (CSP headers served like .htaccess): no CSP violations on home, help, dictionary, legal, download, community, login, desk, settings, admin; sign-in shows the check and retries with the token; Delete account calls the function and lands on the notice; admin block/unblock/delete. Not checked: real Turnstile, the Edge Functions on Supabase (deploy), the phone (no Flutter here: run `flutter pub get && flutter analyze && flutter test`), the desktop iframe.
 
 ## 2026-11-13: Credits in one place only (owner)
 

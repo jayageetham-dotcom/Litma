@@ -18,6 +18,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+## 2026-11-13: Delete account and CAPTCHA (web code, needs a Release)
+
+- Settings → Delete account and the sign-in check come from `apps/web`. The check loads `https://getlitma.in/captcha/` in an iframe (Turnstile won't run on app://litma); `.htaccess` lets `app:` frame that page only. Subframe navigation isn't blocked by `main.ts`. Unverified in a packaged app.
+
 ## 2026-11-13: Credits link (web code, needs a Release)
 
 - Settings → About's new "Credits and licences" link comes from `apps/web` (`AboutLitma`); on desktop it opens getlitma.in/help/?a=credits in the browser. Reaches the app with the next Release.

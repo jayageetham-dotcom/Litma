@@ -26,6 +26,9 @@ abstract class LocalDb {
   Future<void> addOp(String uid, Json op);
   Future<void> putOp(int key, Json op);
   Future<void> removeOp(int key);
+
+  /// Removes every row and waiting change of one account (after the account is deleted).
+  Future<void> forget(String uid);
 }
 
 /// SQLite on the phone (works offline, survives restarts, no size limit like web storage).
@@ -78,6 +81,12 @@ class SqliteDb implements LocalDb {
 
   @override
   Future<void> removeOp(int key) => _db.delete('outbox', where: 'key = ?', whereArgs: [key]);
+
+  @override
+  Future<void> forget(String uid) async {
+    await _db.delete('rows', where: 'k >= ? AND k < ?', whereArgs: ['$uid|', '$uid|\uFFFF']);
+    await _db.delete('outbox', where: 'uid = ?', whereArgs: [uid]);
+  }
 }
 
 /// In memory (tests and design previews).
@@ -111,4 +120,10 @@ class MemoryDb implements LocalDb {
 
   @override
   Future<void> removeOp(int key) async => _ops.remove(key);
+
+  @override
+  Future<void> forget(String uid) async {
+    _rows.removeWhere((k, _) => k.startsWith('$uid|'));
+    _ops.removeWhere((_, v) => v.$1 == uid);
+  }
 }

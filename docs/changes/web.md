@@ -9,6 +9,14 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+## 2026-11-13: Delete account, admin block/delete, CAPTCHA, CSP
+
+- `components/settings/DeleteAccount.tsx` (Settings), `lib/offline.ts` `forgetAccount`, login notice `?deleted=1`.
+- `components/admin/AccountActions.tsx` in `UserDetail.tsx`; `lib/admin.ts` `block`/`unblock`/`remove`, `BLOCK_FOREVER`; Blocked badge in `WriterName`.
+- `app/captcha/` page + `components/auth/Captcha.tsx` (`useCaptcha`) used by login (password and email link), signup, forgot-password.
+- `public/.htaccess`: HSTS, CSP, frame rules, Permissions-Policy. Add any new outside host to the CSP.
+- Help `11-account.md`: Delete your account; credits: dictionary files share-alike.
+
 ## 2026-11-13: Credits in one place only (owner)
 
 - Removed source names from everywhere but the help section Credits and licences and `THIRD_PARTY_NOTICES.md`: the "Data: … from Olam. Opposites via Datamuse." line under dictionary entries (`DictionaryView.tsx`), the Olam link on the home page (`app/page.tsx`) and in `HowItWorks.tsx`, "Google Input Tools" in the home features and the Manglish panel (now "Online suggestions"), the mlmorph note in `03-editor.md`, Olam in `06-dictionary.md`, `rhyme.source` (en, ml; phone uses the same string). Terms → Dictionary, spelling and fonts now links to the credits section. README trimmed the same way. Privacy still names Google Input Tools as a service that sees data (a disclosure, not a credit).

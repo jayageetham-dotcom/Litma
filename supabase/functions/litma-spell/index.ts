@@ -13,6 +13,10 @@
  */
 import { cors, preflight } from "../_shared/cors.ts";
 import { MlMorph, MlSpeller } from "../_shared/mlmorph.ts";
+import { hit, ipKey, tooMany, userIdFromJwt } from "../_shared/ratelimit.ts";
+
+// the editor batches words (a few calls a minute while typing); this only stops scripts
+const PER_MINUTE = 120;
 
 const MAX_WORDS = 1000;
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, "content-type": "application/json" } });
@@ -47,6 +51,8 @@ Deno.serve(async (req) => {
   const pre = preflight(req);
   if (pre) return pre;
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
+  const wait = hit("spell", userIdFromJwt(req) ?? (await ipKey(req)), PER_MINUTE, 60);
+  if (wait) return tooMany(wait);
   let words: unknown;
   try {
     words = (await req.json())?.words;

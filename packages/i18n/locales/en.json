@@ -1,4 +1,9 @@
 {
+  "auth": {
+    "captchaTitle": "Quick security check",
+    "captchaHint": "This keeps automated sign-ups out. It usually finishes by itself.",
+    "captchaFailed": "The check couldn't finish. Check your connection, then close this and try again."
+  },
   "common": {
     "cancel": "Cancel",
     "close": "Close",
@@ -164,6 +169,17 @@
     "usage": "Usage statistics",
     "usageHint": "Help improve Litma by sharing which pages and buttons you use, how long you write and what kind of device you use. Your writing, titles and names are never sent.",
     "usageOn": "Share usage statistics",
+    "deleteTitle": "Delete account",
+    "deleteHint": "Deletes your account and everything in it for good: works, books, Story World, versions, saved words, AI keys, assistant tokens, goals and community posts. Back up first if you want to keep your writing.",
+    "deleteButton": "Delete my account",
+    "deleteConfirmTitle": "Delete your Litma account?",
+    "deleteConfirmBody": "This can't be undone. Type DELETE to confirm.",
+    "deleteConfirm": "Delete for good",
+    "deleteTypeLabel": "Type DELETE",
+    "deleteBusy": "Deleting…",
+    "deleteFailed": "Your account couldn't be deleted. Check your connection and try again, or write to support@getlitma.in.",
+    "deleteOffline": "You're offline. Connect to the internet to delete your account.",
+    "deleteDone": "Your account has been deleted.",
     "admin": "Admin dashboard",
     "adminHint": "Usage, writers and charts for the whole of Litma. Only admins see this.",
     "help": "Help and guide",
@@ -656,6 +672,37 @@
       "sortActive": "Most active",
       "export": "Download CSV",
       "none": "No writers match."
+    },
+    "account": {
+      "title": "Account",
+      "active": "Active. This writer can sign in.",
+      "blocked": "Blocked:",
+      "blockedBadge": "Blocked",
+      "until": "until {date}",
+      "forGood": "for good",
+      "reason": "Reason (kept in the admin log, not shown to the writer)",
+      "reasonHint": "e.g. spam, broke the guidelines",
+      "blockFor": "Block sign-in for",
+      "days_one": "{count} day",
+      "days_other": "{count} days",
+      "custom": "Other number of days",
+      "daysLabel": "Days",
+      "block": "Block",
+      "changeBlock": "Change block",
+      "unblock": "Unblock",
+      "badDays": "Enter a number of days from 1 to 36500.",
+      "blockHint": "A blocked writer can't sign in from any app. A session already open ends within the hour. Their works stay; unblock to let them back in.",
+      "delete": "Delete account…",
+      "deleteWarning": "Deletes this account and everything in it for good: works, books, Story World, versions, saved words, keys, statistics and community posts. It can't be undone.",
+      "typeToConfirm": "Type {value} to confirm",
+      "deleteForGood": "Delete for good",
+      "isAdmin": "This is an admin account. Admin accounts can't be blocked or deleted here.",
+      "history": "Admin actions",
+      "log": {
+        "block": "Blocked",
+        "unblock": "Unblocked",
+        "delete": "Deleted"
+      }
     },
     "user": {
       "activity": "Activity, last 90 days",

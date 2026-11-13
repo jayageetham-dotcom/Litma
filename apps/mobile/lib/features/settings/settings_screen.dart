@@ -229,8 +229,132 @@ class SettingsScreen extends ConsumerWidget {
               icon: const Icon(LucideIcons.logOut, size: 18),
               label: Text(context.t('nav.signOut')),
             )),
+          // Delete account (App Store and Google Play ask for it inside the app); web: components/settings/DeleteAccount.tsx
+          if (writer != null) ...[
+            const SizedBox(height: 28),
+            item(_DeleteAccount(writerId: writer.id)),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _DeleteAccount extends ConsumerWidget {
+  const _DeleteAccount({required this.writerId});
+  final String writerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.c;
+    final text = Theme.of(context).textTheme;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(context.t('settings.deleteTitle'), style: text.titleMedium),
+      const SizedBox(height: 4),
+      Text(context.t('settings.deleteHint'), style: text.bodySmall?.copyWith(color: c.muted)),
+      const SizedBox(height: 10),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          style: TextButton.styleFrom(foregroundColor: c.danger),
+          onPressed: () async {
+            final services = ref.read(servicesProvider);
+            final done = await showDialog<bool>(context: context, builder: (_) => _DeleteDialog(services: services, writerId: writerId));
+            if (done == true && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.t('settings.deleteDone'))));
+              Navigator.of(context).popUntil((r) => r.isFirst);
+            }
+          },
+          icon: const Icon(LucideIcons.trash2, size: 18),
+          label: Text(context.t('settings.deleteButton')),
+        ),
+      ),
+    ]);
+  }
+}
+
+/// Type DELETE, then the account goes for good: the server deletes it, the phone forgets its copy and signs out.
+class _DeleteDialog extends StatefulWidget {
+  const _DeleteDialog({required this.services, required this.writerId});
+  final Services services;
+  final String writerId;
+  @override
+  State<_DeleteDialog> createState() => _DeleteDialogState();
+}
+
+class _DeleteDialogState extends State<_DeleteDialog> {
+  final _typed = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _typed.dispose();
+    super.dispose();
+  }
+
+  Future<void> _delete() async {
+    final s = widget.services;
+    if (s.offline.deviceOffline) {
+      setState(() => _error = context.t('settings.deleteOffline'));
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await s.account.delete();
+      await s.offline.forgetAccount(widget.writerId);
+      try {
+        await s.auth.signOut();
+      } catch (_) {
+        // the account is gone; the session ends with it
+      }
+      if (mounted) Navigator.pop(context, true);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = context.t('settings.deleteFailed');
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final ok = _typed.text.trim() == 'DELETE' && !_busy;
+    return AlertDialog(
+      title: Text(context.t('settings.deleteConfirmTitle')),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(context.t('settings.deleteConfirmBody')),
+        const SizedBox(height: 14),
+        TextField(
+          controller: _typed,
+          autofocus: true,
+          autocorrect: false,
+          enableSuggestions: false,
+          textCapitalization: TextCapitalization.characters,
+          decoration: InputDecoration(labelText: context.t('settings.deleteTypeLabel')),
+          onChanged: (_) => setState(() {}),
+          onSubmitted: (_) => ok ? _delete() : null,
+        ),
+        if (_error != null) ...[
+          const SizedBox(height: 10),
+          Text(_error!, style: TextStyle(color: c.danger)),
+        ],
+      ]),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      actions: [
+        TextButton(onPressed: _busy ? null : () => Navigator.pop(context, false), style: TextButton.styleFrom(foregroundColor: c.ink), child: Text(context.t('common.cancel'))),
+        FilledButton(
+          onPressed: ok ? _delete : null,
+          style: FilledButton.styleFrom(backgroundColor: c.danger, foregroundColor: c.dangerInk),
+          child: Text(context.t(_busy ? 'settings.deleteBusy' : 'settings.deleteConfirm')),
+        ),
+      ],
     );
   }
 }

@@ -96,6 +96,8 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://getlitma.in
           # Google Drive backup (Settings → Backup): a Google Cloud OAuth web client id; empty hides the button
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID || '' }}
+          # Cloudflare Turnstile site key for the /captcha/ page (public; the secret goes in Supabase Auth)
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY || '' }}
           NEXT_PUBLIC_BASE_PATH: ""
 
       # lftp instead of FTP-Deploy-Action: cPanel's FTPS server resets connections
@@ -248,6 +250,7 @@ jobs:
           supabase functions deploy litma-ai --remote="$PROJECT_REF" --yes
           supabase functions deploy litma-track --remote="$PROJECT_REF" --no-verify-jwt --yes
           supabase functions deploy litma-admin --remote="$PROJECT_REF" --yes
+          supabase functions deploy litma-account --remote="$PROJECT_REF" --yes
           supabase functions deploy litma-send-email --remote="$PROJECT_REF" --no-verify-jwt --yes
 
       - name: Apply database migrations

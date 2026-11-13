@@ -7,6 +7,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { AboutLitma } from "@/components/UpdateNotice";
 import { UsageSettings } from "@/components/UsageSettings";
+import { DeleteAccount } from "@/components/settings/DeleteAccount";
 import { CommunityCard, HelpCard } from "@/components/HelpLink";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { AppHeader } from "@/components/AppHeader";
@@ -215,6 +216,7 @@ function Settings() {
         <div id="about" className="scroll-mt-24">
           <AboutLitma />
         </div>
+        <DeleteAccount />
         </div>
         </div>
       </main>

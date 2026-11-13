@@ -26,11 +26,12 @@ abstract class AuthGateway {
   /// null when signed out.
   Writer? get writer;
   Stream<Writer?> get changes;
-  Future<void> signIn(String email, String password);
+  /// [captchaToken]: from the human check, once Supabase asks for one (lib/features/auth/captcha.dart).
+  Future<void> signIn(String email, String password, {String? captchaToken});
 
   /// Returns true when the account needs the email confirmed before signing in.
-  Future<bool> signUp(String email, String password, {String? name});
-  Future<void> resetPassword(String email);
+  Future<bool> signUp(String email, String password, {String? name, String? captchaToken});
+  Future<void> resetPassword(String email, {String? captchaToken});
   Future<void> signInWithGoogle();
   Future<void> signInWithApple();
   bool get appleAvailable;
@@ -97,13 +98,14 @@ class SupabaseAuth implements AuthGateway {
   }
 
   @override
-  Future<void> signIn(String email, String password) => _guard(() => client.auth.signInWithPassword(email: email.trim(), password: password)).then((_) => Analytics.track('sign_in', {'method': 'password'}));
+  Future<void> signIn(String email, String password, {String? captchaToken}) => _guard(() => client.auth.signInWithPassword(email: email.trim(), password: password, captchaToken: captchaToken)).then((_) => Analytics.track('sign_in', {'method': 'password'}));
 
   @override
-  Future<bool> signUp(String email, String password, {String? name}) => _guard(() async {
+  Future<bool> signUp(String email, String password, {String? name, String? captchaToken}) => _guard(() async {
         final r = await client.auth.signUp(
           email: email.trim(),
           password: password,
+          captchaToken: captchaToken,
           emailRedirectTo: authRedirect,
           data: name == null || name.trim().isEmpty ? null : {'full_name': name.trim()},
         );
@@ -114,7 +116,7 @@ class SupabaseAuth implements AuthGateway {
       });
 
   @override
-  Future<void> resetPassword(String email) => _guard(() => client.auth.resetPasswordForEmail(email.trim(), redirectTo: authRedirect));
+  Future<void> resetPassword(String email, {String? captchaToken}) => _guard(() => client.auth.resetPasswordForEmail(email.trim(), redirectTo: authRedirect, captchaToken: captchaToken));
 
   @override
   Future<void> signInWithGoogle() => _guard(() => client.auth.signInWithOAuth(OAuthProvider.google, redirectTo: authRedirect)).then((_) => Analytics.track('sign_in', {'method': 'google'}));

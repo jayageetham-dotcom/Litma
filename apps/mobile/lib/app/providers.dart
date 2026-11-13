@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/config.dart';
 import '../core/i18n.dart';
+import '../data/account.dart';
 import '../data/ai.dart';
 import '../data/auth.dart';
 import '../data/dictionary.dart';
@@ -27,6 +28,7 @@ class Services {
   final Transliterator transliterator;
   final Dictionary dictionary;
   late final AiApi ai = AiApi(auth);
+  late final AccountApi account = AccountApi(auth);
   StreamSubscription<List<ConnectivityResult>>? _net;
 
   /// Follow the phone's network: no network means offline at once; back online starts a sync.

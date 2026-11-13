@@ -351,7 +351,7 @@ export function AdminDashboard() {
             </Card>
           </div>
         ) : (
-          <Writers users={users} />
+          <Writers users={users} onChange={(id, patch) => setUsers((list) => (list ?? []).flatMap((u) => (u.id !== id ? [u] : patch ? [{ ...u, ...patch }] : [])))} />
         )}
       </div>
       {data && <p className="mt-8 text-xs text-muted">{t("admin.updated", { time: new Date(data.generated_at).toLocaleString("en-IN") })}</p>}
@@ -373,7 +373,8 @@ export const featureKey = (n: string) => FEATURE_KEYS[n];
 
 type Sort = "seen" | "joined" | "words" | "active";
 
-function Writers({ users }: { users: AdminUser[] }) {
+/** `onChange(id, patch)`: an account was blocked or unblocked (patch) or deleted (null). */
+function Writers({ users, onChange }: { users: AdminUser[]; onChange: (id: string, patch: Partial<AdminUser> | null) => void }) {
   const t = useT();
   const screen = useScreen();
   const router = useRouter();
@@ -498,7 +499,17 @@ function Writers({ users }: { users: AdminUser[] }) {
         </div>
       )}
 
-      {selected && <UserDetail user={selected} onClose={() => setOpen(null)} countryName={countryName} />}
+      {selected && (
+        <UserDetail
+          user={selected}
+          onClose={() => setOpen(null)}
+          countryName={countryName}
+          onChange={(patch) => {
+            onChange(selected.id, patch);
+            if (!patch) setOpen(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -510,6 +521,7 @@ function WriterName({ u }: { u: AdminUser }) {
       <span className="flex items-center gap-1.5 font-semibold">
         <span className="truncate">{u.name || u.email || u.id.slice(0, 8)}</span>
         {u.is_admin && <span className="shrink-0 rounded-full bg-subtle px-1.5 py-0.5 text-[10px] font-semibold text-muted">{t("admin.users.admin")}</span>}
+        {u.banned_until && new Date(u.banned_until) > new Date() && <span className="shrink-0 rounded-full bg-danger-soft px-1.5 py-0.5 text-[10px] font-semibold text-danger">{t("admin.account.blockedBadge")}</span>}
       </span>
       {u.name && u.email && <span className="block truncate text-xs text-muted">{u.email}</span>}
       {!u.confirmed && <span className="block text-xs text-highlight">{t("admin.users.unconfirmed")}</span>}

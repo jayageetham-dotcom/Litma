@@ -7,6 +7,7 @@ import { getSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { authMessage, authRedirect, safeNext, useRedirectIfSignedIn } from "@/lib/auth";
 import { track } from "@/lib/analytics";
+import { useCaptcha } from "@/components/auth/Captcha";
 
 function LoginForm() {
   const router = useRouter();
@@ -17,8 +18,9 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ kind: "error" | "info"; text: string } | null>(params.get("reset") ? { kind: "info", text: "Password updated. Sign in with your new password." } : null);
+  const [msg, setMsg] = useState<{ kind: "error" | "info"; text: string } | null>(params.get("reset") ? { kind: "info", text: "Password updated. Sign in with your new password." } : params.get("deleted") ? { kind: "info", text: "Your account has been deleted. Thank you for writing with Litma." } : null);
   const sb = getSupabase();
+  const [captcha, withCaptcha] = useCaptcha();
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,12 +37,12 @@ function LoginForm() {
     setMsg(null);
     try {
       if (magic) {
-        const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: authRedirect(next), shouldCreateUser: false } });
+        const { error } = await withCaptcha((captchaToken) => sb.auth.signInWithOtp({ email, options: { emailRedirectTo: authRedirect(next), shouldCreateUser: false, captchaToken } }));
         if (error) throw error;
         track("sign_in", { method: "email_link" });
         setMsg({ kind: "info", text: `Sign-in link sent to ${email}. Open it on this device.` });
       } else {
-        const { error } = await sb.auth.signInWithPassword({ email, password });
+        const { error } = await withCaptcha((captchaToken) => sb.auth.signInWithPassword({ email, password, options: { captchaToken } }));
         if (error) throw error;
         track("sign_in", { method: "password" });
         router.replace(next);
@@ -65,6 +67,7 @@ function LoginForm() {
 
   return (
     <form onSubmit={submit} className="space-y-5" noValidate>
+      {captcha}
       <div>
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="mt-1 text-sm text-muted">

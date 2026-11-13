@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalPage, type LegalSection } from "@/components/legal/LegalPage";
 
-const UPDATED = "9 November 2026";
+const UPDATED = "13 November 2026";
 
 const sections: LegalSection[] = [
   {
@@ -185,9 +185,9 @@ const sections: LegalSection[] = [
     body: (
       <>
         <p>
-          We keep your account and writing for as long as you have a Litma account. Works you move to Trash can be deleted for good from there. To delete your whole account and everything in it, email{" "}
-          <a href="mailto:support@getlitma.in?subject=Delete%20my%20Litma%20account">support@getlitma.in</a> from the email address of your account. We delete it within 30 days and confirm by email. Backups that may still hold it are replaced within a further
-          30 days. Usage statistics and your writing statistics are kept for 90 days and then deleted automatically. Community posts follow the rules in Litma Community above.
+          We keep your account and writing for as long as you have a Litma account. Works you move to Trash can be deleted for good from there. To delete your whole account and everything in it, open Settings → Delete account in any Litma app (website, desktop or phone). It is deleted at once, with your pictures, and can&apos;t be undone. You can also email{" "}
+          <a href="mailto:support@getlitma.in?subject=Delete%20my%20Litma%20account">support@getlitma.in</a> from the email address of your account; then we delete it within 30 days and confirm by email. Backups that may still hold it are replaced within a further
+          30 days. Usage statistics and your writing statistics are kept for 90 days and then deleted automatically. Community posts follow the rules in Litma Community above. If we block or delete an account for breaking the Terms, we keep a short record of that action: the account&apos;s id, the date and the reason.
         </p>
       </>
     ),

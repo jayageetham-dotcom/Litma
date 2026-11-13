@@ -12,6 +12,7 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 import { cors, preflight } from "../_shared/cors.ts";
+import { hit, ipKey } from "../_shared/ratelimit.ts";
 
 const URL_ = Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
@@ -20,6 +21,8 @@ const db = createClient(URL_, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth
 const NAME = /^[a-z][a-z0-9_]{1,39}$/;
 const ID = /^[A-Za-z0-9_-]{6,64}$/;
 const MAX_EVENTS = 60;
+// the apps send a batch every few seconds at most; more than this from one address is a script
+const BATCHES_PER_MINUTE = 60;
 
 type Json = Record<string, unknown>;
 const str = (v: unknown, n: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, n) : null);
@@ -133,6 +136,8 @@ Deno.serve(async (req) => {
   const pre = preflight(req);
   if (pre) return pre;
   if (req.method !== "POST") return new Response("POST only", { status: 405, headers: cors });
+  // over the limit: answer as usual (beacons don't read it) but store nothing
+  if (hit("track", await ipKey(req), BATCHES_PER_MINUTE, 60)) return noContent();
 
   let body: Json;
   try {

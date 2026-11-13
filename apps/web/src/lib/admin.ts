@@ -40,6 +40,7 @@ export type Dashboard = {
 export type AdminUser = {
   id: string; email: string | null; name: string | null; location: string | null; provider: string;
   joined: string; confirmed: boolean; last_sign_in: string | null; last_seen: string | null; is_admin: boolean;
+  /** set while the account is blocked */ banned_until?: string | null;
   sessions: number; events: number; page_views: number; active_days: number; engaged_seconds: number;
   ai_requests: number; mcp_calls: number; words: number; writing_days: number; works: number; books: number;
   country: string | null; platform: string | null; device: string | null; os: string | null; locale: string | null;
@@ -53,7 +54,12 @@ export type UserActivity = {
   daily: { day: string; events: number; words: number }[];
   devices: { platform: string | null; device: string | null; os: string | null; browser: string | null; country: string | null; app_version: string | null; sessions: number; last_seen: string }[];
   events: UserEvent[];
+  account?: { banned_until: string | null };
+  actions?: AdminAction[];
 };
+export type AdminAction = { created_at: string; action: "block" | "unblock" | "delete"; days: number | null; reason: string | null };
+/** Days used for "block for good" (Supabase needs a duration; this is 100 years). */
+export const BLOCK_FOREVER = 36500;
 
 export const isDemo = () => !isSupabaseConfigured;
 
@@ -104,6 +110,18 @@ export const admin = {
   dashboard: (days: number, includeAdmins: boolean) => (isDemo() ? Promise.resolve(demoDashboard(days)) : call<Dashboard>({ op: "dashboard", days, includeAdmins })),
   users: (includeAdmins: boolean) => (isDemo() ? Promise.resolve(demoUsers()) : call<AdminUser[]>({ op: "users", includeAdmins })),
   user: (id: string) => (isDemo() ? Promise.resolve(demoActivity()) : call<UserActivity>({ op: "user", id })),
+  /** Block sign-in for `days` (BLOCK_FOREVER for good). Returns when the block ends. */
+  block: async (id: string, days: number, reason: string): Promise<string | null> => {
+    if (isDemo()) return new Date(Date.now() + days * 864e5).toISOString();
+    return (await call<{ banned_until: string | null }>({ op: "block", id, days, reason })).banned_until;
+  },
+  unblock: async (id: string): Promise<void> => {
+    if (!isDemo()) await call({ op: "unblock", id });
+  },
+  /** Deletes the account and everything in it; `confirm` is the account's email (or id when it has none). */
+  remove: async (id: string, confirm: string, reason: string): Promise<void> => {
+    if (!isDemo()) await call({ op: "delete", id, confirm, reason });
+  },
 };
 
 // ── sample numbers for local mode (deterministic, clearly not real) ──

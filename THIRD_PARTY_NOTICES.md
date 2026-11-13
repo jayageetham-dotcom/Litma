@@ -55,6 +55,13 @@ from `/dict/`. https://olam.in/p/open
 - Olam English–Malayalam dictionary (EnMl): Open Database License (ODbL) 1.0
 - E. K. Kurup's Malayalam thesaurus: Creative Commons Attribution-ShareAlike 4.0
 
+**Share-alike.** The files Litma builds from these datasets (`apps/web/public/dict/`: dictionary and
+thesaurus shards, rhyme files `dict/rhyme/`, word lists `dict/words/`) are derived databases, offered
+to the public at `https://getlitma.in/dict/` under the same licences: ODbL 1.0
+(https://opendatacommons.org/licenses/odbl/1-0/) for what comes from Datuk and EnMl, and CC BY-SA 4.0
+(https://creativecommons.org/licenses/by-sa/4.0/) for what comes from the thesaurus.
+`scripts/build-dictionary.mjs` writes `dict/LICENSE.txt` saying so. No writer's content is ever in them.
+
 Opposites are looked up from Datamuse (https://www.datamuse.com/api/).
 
 ## Fonts

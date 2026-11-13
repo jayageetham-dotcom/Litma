@@ -309,6 +309,23 @@ async function main() {
     ],
   };
   writeFileSync(join(OUT, "index.json"), JSON.stringify(index, null, 1));
+  // these files are derived databases of ODbL / CC BY-SA data, so they carry the same licences
+  writeFileSync(
+    join(OUT, "LICENSE.txt"),
+    [
+      "Litma dictionary files (https://getlitma.in/dict/)",
+      "",
+      "Built from Olam's open datasets (https://olam.in/p/open) and offered under the same licences:",
+      "- Data from the Datuk Malayalam-Malayalam dictionary and the Olam English-Malayalam dictionary:",
+      "  Open Database License (ODbL) 1.0, https://opendatacommons.org/licenses/odbl/1-0/",
+      "- Data from E. K. Kurup's Malayalam thesaurus:",
+      "  Creative Commons Attribution-ShareAlike 4.0, https://creativecommons.org/licenses/by-sa/4.0/",
+      "",
+      "The rhyme files (rhyme/) and word lists (words/) are made from the same headwords.",
+      "Credits: https://getlitma.in/help/?a=credits",
+      "",
+    ].join("\n")
+  );
   // rhyme finder (പ്രാസം) files from the same headwords
   const { buildRhymes } = await import("./build-rhymes.mjs");
   buildRhymes(OUT);

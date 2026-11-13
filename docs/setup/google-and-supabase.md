@@ -144,6 +144,28 @@ Apple requires it once Google sign-in is offered in an iPhone app.
 3. Desktop app: **Continue with Google** opens the browser and comes back into the app.
 4. Phone app: **Continue with Google** opens a browser sheet and returns to the app.
 
+### 3.5 Stop automated sign-ups (CAPTCHA and leaked passwords, free)
+
+Litma's apps already know how to show the human check; it starts working once you turn it on here.
+Until then nothing changes for writers.
+
+1. **Cloudflare Turnstile** (free, no Cloudflare hosting needed): https://dash.cloudflare.com/?to=/:account/turnstile
+   → **Add widget**. Name `Litma`, hostname `getlitma.in`, widget mode **Managed**. Copy the **Site
+   key** and the **Secret key**.
+2. **GitHub → Settings → Secrets and variables → Actions → Variables** → add `TURNSTILE_SITE_KEY`
+   with the site key. Push or re-run the deploy, so getlitma.in/captcha/ has the key. Open
+   https://getlitma.in/captcha/ to check: a small Cloudflare box should appear.
+3. **Supabase → Authentication → Attack Protection**
+   (https://supabase.com/dashboard/project/jdexadomaxjtxlvgtldu/auth/protection):
+   - **Enable Captcha protection** → provider **Turnstile by Cloudflare** → paste the **Secret key** → Save.
+     Do this only after step 2 is live, or sign-in stops working.
+   - **Prevent use of leaked passwords** → on (checks new passwords against HaveIBeenPwned).
+4. Try it: sign in at getlitma.in in a private window. A "Quick security check" box appears for a
+   moment, then you are in. The desktop app shows the same box (it loads getlitma.in/captcha/), and the
+   phone app shows it in a sheet. Google and Apple sign-in never ask for it.
+
+To switch CAPTCHA off again, untick it in Supabase; the apps stop asking straight away.
+
 ## Part 4. Google Drive backup (website, optional, free)
 
 Writers get **Settings → Backup → Save to Google Drive**. Litma only sees the files it makes (a
@@ -176,7 +198,7 @@ Pushing to `main` deploys the Edge Functions and applies migrations, once GitHub
    - `SUPABASE_ACCESS_TOKEN` = the token from step 1
    - `SUPABASE_DB_PASSWORD` = the password from step 2
 4. Push, then open **Actions → Deploy Litma**. The job **Edge Functions & database** should be green.
-   It deploys `litma-transliterate`, `litma-mcp`, `litma-ai`, `litma-track`, `litma-admin` and
+   It deploys `litma-transliterate`, `litma-mcp`, `litma-ai`, `litma-track`, `litma-admin`, `litma-account` and
    `litma-send-email`, and runs `supabase db push`. Last, it builds the spelling engine's data from
    mlmorph on PyPI and deploys `litma-spell` with Docker (`--use-docker`, the data is over 5 MB). That
    step may fail without stopping the others; the editor then uses its own spelling checks. Check it at
@@ -245,6 +267,10 @@ moderator of Litma Community (getlitma.in/community/): a **Moderate** menu on ev
 **Reports** on the community page for the reports queue. Add your community moderators the same way
 (they also see the admin dashboard).
 
+Admins can also block a writer (for some days or for good) or delete an account from **/admin/ →
+Writers → a writer → Account**. Admin accounts can't be blocked or deleted there. Every action is
+kept in the `admin_actions` table (migration `20261113120000_admin_moderation`).
+
 ## Part 9. Connect AI assistants (MCP), for writers
 
 Nothing to set up on Google or Supabase. Each writer makes a token in **Settings → Connect AI
@@ -266,6 +292,8 @@ web host's firewall blocks data-centre callers on `getlitma.in/mcp`.
 - [ ] Send Email hook on; password email arrives
 - [ ] Drive backup: Drive API on, GitHub variable `GOOGLE_CLIENT_ID`, button works
 - [ ] Your account in `app_admins`
+- [ ] Turnstile widget, GitHub variable `TURNSTILE_SITE_KEY`, then Supabase Captcha protection on (3.5)
+- [ ] Supabase "Prevent use of leaked passwords" on (3.5)
 
 ## When something goes wrong
 

@@ -108,6 +108,9 @@ class OfflineLayer {
     return u == null ? [] : db.withPrefix(_key(u, table, ''));
   }
 
+  /// Forget everything this phone keeps for an account (after the account is deleted).
+  Future<void> forgetAccount(String uid) => db.forget(uid);
+
   // ── outbox ──
 
   int? _inflight;

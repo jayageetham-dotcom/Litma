@@ -15,6 +15,12 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-13: Delete account and CAPTCHA
+
+- Settings: `_DeleteAccount` + `_DeleteDialog` (type DELETE) → `AccountApi.delete` (`lib/data/account.dart`), `OfflineLayer.forgetAccount` (`LocalDb.forget` in SQLite and memory), sign out.
+- Sign-in, sign-up and reset go through `withCaptcha` (`lib/features/auth/captcha.dart`): only when Supabase asks, a sheet with getlitma.in/captcha/ in a web view (`webview_flutter`, SPM-ready) sends the token over the `LitmaCaptcha` channel. `AuthGateway` methods take `captchaToken`.
+- Unverified: not analysed or built (no Flutter here). Run `flutter pub get` (pubspec.lock changes), `flutter analyze`, `flutter test`.
+
 ## 2026-11-13: Credits and licences link
 
 - `lib/features/settings/settings_screen.dart`: About card ListTile "Credits and licences" (`legal.credits`, award icon) opening `getlitma.in/help/?a=credits` in the browser. `assets/i18n` regenerated. Not analysed here: run `flutter analyze` (check `LucideIcons.award` exists in lucide_icons_flutter 4).

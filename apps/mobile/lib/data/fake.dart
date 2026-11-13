@@ -153,11 +153,11 @@ class FakeAuth implements AuthGateway {
   }
 
   @override
-  Future<void> signIn(String email, String password) async => _set(Writer(id: 'writer-1', email: email));
+  Future<void> signIn(String email, String password, {String? captchaToken}) async => _set(Writer(id: 'writer-1', email: email));
   @override
-  Future<bool> signUp(String email, String password, {String? name}) async => true;
+  Future<bool> signUp(String email, String password, {String? name, String? captchaToken}) async => true;
   @override
-  Future<void> resetPassword(String email) async {}
+  Future<void> resetPassword(String email, {String? captchaToken}) async {}
   @override
   Future<void> signInWithGoogle() async => _set(const Writer(id: 'writer-1', email: 'writer@example.com'));
   @override

@@ -4,11 +4,13 @@ import Link from "next/link";
 import { AuthShell, Field, Notice } from "@/components/AuthShell";
 import { getSupabase } from "@/lib/supabase/client";
 import { authMessage, authRedirect } from "@/lib/auth";
+import { useCaptcha } from "@/components/auth/Captcha";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "error" | "info"; text: string } | null>(null);
+  const [captcha, withCaptcha] = useCaptcha();
   return (
     <AuthShell quote={false} switchTo={{ href: "/login/", label: "Sign in" }}>
       <form
@@ -23,11 +25,12 @@ export default function ForgotPasswordPage() {
           if (!email) return setMsg({ kind: "error", text: "Enter your email address." });
           setBusy(true);
           setMsg(null);
-          const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: authRedirect("/reset-password/") });
+          const { error } = await withCaptcha((captchaToken) => sb.auth.resetPasswordForEmail(email, { redirectTo: authRedirect("/reset-password/"), captchaToken }));
           setBusy(false);
           setMsg(error ? { kind: "error", text: authMessage(error) } : { kind: "info", text: `If ${email} has a Litma account, a reset link is on its way.` });
         }}
       >
+        {captcha}
         <h1 className="text-2xl font-bold">Reset your password</h1>
         <p className="text-sm text-muted">Enter your email and we’ll send a link to choose a new password.</p>
         <Field label="Email" name="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />

@@ -6,6 +6,7 @@ import { AuthShell, Field, GoogleButton, Notice } from "@/components/AuthShell";
 import { getSupabase } from "@/lib/supabase/client";
 import { authMessage, authRedirect, safeNext, useRedirectIfSignedIn } from "@/lib/auth";
 import { track } from "@/lib/analytics";
+import { useCaptcha } from "@/components/auth/Captcha";
 import { useT } from "@/i18n/react";
 
 function strength(p: string) {
@@ -21,6 +22,7 @@ const LABELS = ["Too short", "Weak", "Fair", "Good", "Strong"];
 
 function SignupForm() {
   const t = useT();
+  const [captcha, withCaptcha] = useCaptcha();
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
@@ -55,7 +57,7 @@ function SignupForm() {
     setBusy(true);
     setError(null);
     try {
-      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name.trim() }, emailRedirectTo: authRedirect(next) } });
+      const { data, error } = await withCaptcha((captchaToken) => sb.auth.signUp({ email, password, options: { data: { full_name: name.trim() }, emailRedirectTo: authRedirect(next), captchaToken } }));
       if (error) throw error;
       track("sign_up", { method: "password" });
       if (data.session) router.replace(next);
@@ -83,6 +85,7 @@ function SignupForm() {
 
   return (
     <form onSubmit={submit} className="space-y-5" noValidate>
+      {captcha}
       <div>
         <h1 className="text-2xl font-bold">Create your account</h1>
         <p className="mt-1 text-sm text-muted">

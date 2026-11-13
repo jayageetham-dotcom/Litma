@@ -11,6 +11,7 @@ import '../../data/auth.dart';
 import '../../widgets/brand.dart';
 import '../../core/keyboard.dart';
 import '../../data/analytics.dart';
+import 'captcha.dart';
 
 /// Sign in / Create account: one screen that morphs between the two, the form card on a stack of
 /// violet and lime sheets (the web's AuthShell). Always light, like the website's public pages.
@@ -77,7 +78,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     if (password.isEmpty) return setState(() => _error = context.t('app.auth.passwordMissing'));
     await _run(() async {
       if (_signUp) {
-        final confirmFirst = await _auth.signUp(email, password, name: _name.text);
+        final confirmFirst = await withCaptcha(context, (token) => _auth.signUp(email, password, name: _name.text, captchaToken: token));
         if (confirmFirst && mounted) {
           setState(() {
             _notice = context.t('app.auth.confirmSent');
@@ -85,7 +86,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           });
         }
       } else {
-        await _auth.signIn(email, password);
+        await withCaptcha(context, (token) => _auth.signIn(email, password, captchaToken: token));
       }
     });
     if (_auth.writer != null && mounted) Navigator.of(context).popUntil((r) => r.isFirst);
@@ -108,7 +109,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           FilledButton(
             onPressed: () async {
               try {
-                await _auth.resetPassword(ctrl.text);
+                await withCaptcha(context, (token) => _auth.resetPassword(ctrl.text, captchaToken: token));
                 if (context.mounted) Navigator.pop(context, true);
               } catch (_) {
                 if (context.mounted) Navigator.pop(context, false);

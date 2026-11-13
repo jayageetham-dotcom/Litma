@@ -66,6 +66,19 @@ Options -Indexes
   </If>
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # HTTPS only from now on (a year; subdomains such as mail. are left out on purpose)
+  Header always set Strict-Transport-Security "max-age=31536000"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+  # What pages may load (keep in step with the services the apps use: Supabase, Google sign-in and
+  # Drive, Google Fonts, Datamuse, GitHub releases, Cloudflare Turnstile). Next.js's static export
+  # needs inline scripts, hence 'unsafe-inline'.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googleapis.com https://accounts.google.com https://api.datamuse.com https://api.github.com https://github.com https://*.githubusercontent.com https://fonts.googleapis.com https://fonts.gstatic.com https://challenges.cloudflare.com; frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; frame-ancestors 'self'"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  # the human check is also framed by the desktop app (app://litma); nothing else may frame any page
+  <If "%{REQUEST_URI} =~ m#^/captcha/#">
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googleapis.com https://accounts.google.com https://api.datamuse.com https://api.github.com https://github.com https://*.githubusercontent.com https://fonts.googleapis.com https://fonts.gstatic.com https://challenges.cloudflare.com; frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; frame-ancestors 'self' app:"
+    Header always unset X-Frame-Options
+  </If>
 </IfModule>
 
 # Never serve the FTP deploy state file

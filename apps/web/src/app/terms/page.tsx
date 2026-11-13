@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalPage, type LegalSection } from "@/components/legal/LegalPage";
 
-const UPDATED = "9 November 2026";
+const UPDATED = "13 November 2026";
 
 const sections: LegalSection[] = [
   {
@@ -50,7 +50,7 @@ const sections: LegalSection[] = [
           <li>try to reach other people&apos;s accounts or data, break Litma&apos;s security, or overload its servers;</li>
           <li>copy, resell or rebuild Litma&apos;s service, or scrape its dictionary in bulk.</li>
         </ul>
-        <p>We may remove a shared link or a community post that breaks these rules, and suspend an account that keeps breaking them. Where we can, we will tell you first and explain why.</p>
+        <p>We may remove a shared link or a community post that breaks these rules, and block an account that keeps breaking them, for a time or for good. For serious or repeated abuse (spam, attacks on the service, illegal content) we may delete the account. Where we can, we will tell you first and explain why.</p>
       </>
     ),
   },
@@ -127,7 +127,7 @@ const sections: LegalSection[] = [
     title: "Leaving Litma",
     body: (
       <p>
-        You can stop using Litma at any time. To delete your account and all your writing, email <a href="mailto:support@getlitma.in?subject=Delete%20my%20Litma%20account">support@getlitma.in</a> from your account&apos;s email address. Export anything you want
+        You can stop using Litma at any time. To delete your account and all your writing, open Settings → Delete account in any Litma app, or email <a href="mailto:support@getlitma.in?subject=Delete%20my%20Litma%20account">support@getlitma.in</a> from your account&apos;s email address. Export anything you want
         to keep first.
       </p>
     ),

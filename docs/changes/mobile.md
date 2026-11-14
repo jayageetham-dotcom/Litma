@@ -12,6 +12,7 @@ Reaches writers only through store builds. Cross-app summary and open items:
   suggestion row, mid-line Manglish, desk keyboard, editor tools from #5, cover designer, book
   PDFs including the whole-book PDF, Book details, statistics reaching /admin/).
 - Writing aids (2026-11-08) need a CI run and a device check (see that entry). Still to do on the phone: spelling marks inside the text, restore from a backup, Drive backup without the share sheet.
+- **Bug (owner, 2026-11-14, seen on the iPad simulator):** in an open work, More → Move to trash should trash it, close the editor and show the desk refreshed without that work. It doesn't do all of that. Code: `lib/editor/editor_screen.dart` (`case 'trash'`: `store.trashDoc` then `nav.pop('trashed')`); check that the pop really closes the editor on iPad (a different route or sheet may be on top) and that the desk reloads its list on the `'trashed'` result. Fix later; check on iPhone and Android too.
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 

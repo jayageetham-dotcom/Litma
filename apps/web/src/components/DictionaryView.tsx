@@ -4,10 +4,12 @@ import { Search } from "lucide-react";
 import { BookmarkButton, useBookmarks } from "@/components/SavedWords";
 import { InkDots } from "@/components/ui/Skeleton";
 import { track } from "@/lib/analytics";
-import { loadIndex, lookup, manglishCandidates, opposites, suggest, type LookupResult } from "@/lib/dictionary";
+import { loadIndex, lookup, manglishCandidates, opposites, typingSuggestions, type LookupResult } from "@/lib/dictionary";
 
 /** Malayalam text, with the UI font for any Latin letters (glosses, English words) */
 const ml = { fontFamily: "'Noto Sans Malayalam', var(--font-ui)" } as const;
+
+const NO_SUGS = { ml: [] as string[], words: [] as string[] };
 
 /** Part-of-speech abbreviations in the data, spelled out (Malayalam · English). */
 const POS: Record<string, [string, string]> = {
@@ -121,7 +123,11 @@ export function DictionaryView({
   const [res, setRes] = useState<LookupResult | null>(null);
   const [opp, setOpp] = useState<{ word: string; gloss?: string }[] | null>(null);
   const [alts, setAlts] = useState<string[]>([]);
-  const [sugs, setSugs] = useState<string[]>([]);
+  /** suggestions under the box while typing: Malayalam for Manglish, then completions */
+  const [sugs, setSugs] = useState<{ ml: string[]; words: string[] }>(NO_SUGS);
+  /** the row picked with ↑ ↓ (index into the rows, -1 = none) */
+  const [active, setActive] = useState(-1);
+  const typing = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [available, setAvailable] = useState<boolean | null>(null);
   const seq = useRef(0);
@@ -147,7 +153,8 @@ export function DictionaryView({
     const id = ++seq.current;
     setBusy(true);
     sugSeq.current++; // a suggestion list still loading must not reopen over the result
-    setSugs([]);
+    clearTimeout(typing.current);
+    closeSugs();
     setOpp(null);
     // which kind of word, never the word itself
     track("dictionary_lookup", { script: /[\u0D00-\u0D7F]/.test(w) ? "malayalam" : "latin" });
@@ -191,6 +198,27 @@ export function DictionaryView({
 
   const firstPos = shaped?.groups[0]?.pos;
 
+  function closeSugs() {
+    setSugs(NO_SUGS);
+    setActive(-1);
+  }
+  function choose(word: string) {
+    setQ(word);
+    run(word);
+  }
+  /** the rows in the list: English words first when the letters start some (hou → House), else the
+   *  Malayalam the Manglish stands for; `i` numbers them for ↑ ↓ */
+  const groups = [
+    { key: "words", label: /[\u0D00-\u0D7F]/.test(q) ? "മലയാളം" : "English", words: sugs.words },
+    { key: "ml", label: "മലയാളം", words: sugs.ml },
+  ]
+    .filter((g) => g.words.length)
+    .reduce<{ key: string; label: string; items: { word: string; i: number }[] }[]>((all, g) => {
+      const start = all.reduce((n, x) => n + x.items.length, 0);
+      return [...all, { key: g.key, label: g.label, items: g.words.map((word, j) => ({ word, i: start + j })) }];
+    }, []);
+  const rows = groups.flatMap((g) => g.items.map((x) => x.word));
+
   return (
     <div>
       <form
@@ -206,35 +234,68 @@ export function DictionaryView({
           value={q}
           placeholder="Malayalam, English or Manglish word"
           aria-label="Word to look up"
-          onChange={async (e) => {
+          onChange={(e) => {
             const v = e.target.value;
             setQ(v);
             const id = ++sugSeq.current;
-            const list = v.trim().length >= 2 ? await suggest(v, 8) : [];
-            if (id === sugSeq.current) setSugs(list);
+            clearTimeout(typing.current);
+            if (v.trim().length < 2) return closeSugs();
+            // a short pause, so Manglish isn't sent to the transliterator on every key
+            typing.current = setTimeout(async () => {
+              const next = await typingSuggestions(v, 8);
+              if (id !== sugSeq.current) return;
+              setSugs(next);
+              setActive(-1);
+            }, 150);
           }}
-          onBlur={() => setTimeout(() => setSugs([]), 150)}
-          onKeyDown={(e) => e.key === "Escape" && setSugs([])}
+          onBlur={() => setTimeout(closeSugs, 150)}
+          onKeyDown={(e) => {
+            if (!rows.length) return;
+            if (e.key === "Escape") closeSugs();
+            else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault();
+              const step = e.key === "ArrowDown" ? 1 : -1;
+              // past the last row goes back to the box (-1), above the box to the last row
+              setActive((a) => (a + step >= rows.length ? -1 : a + step < -1 ? rows.length - 1 : a + step));
+            } else if (e.key === "Enter" && active >= 0 && active < rows.length) {
+              e.preventDefault();
+              choose(rows[active]);
+            }
+          }}
+          role="combobox"
+          aria-expanded={rows.length > 0}
+          aria-controls="dict-suggestions"
+          aria-activedescendant={active >= 0 && active < rows.length ? `dict-sug-${active}` : undefined}
+          autoComplete="off"
           style={ml}
         />
-        {sugs.length > 0 && (
-          <ul className="absolute inset-x-0 top-full z-20 mt-1.5 max-h-72 overflow-y-auto rounded-xl border border-line bg-surface py-1.5 shadow-[var(--pop-shadow)]" role="listbox">
-            {sugs.map((s) => (
-              <li key={s}>
-                <button
-                  type="button"
-                  className="w-full px-4 py-2 text-left text-[15px] hover:bg-subtle"
-                  style={ml}
-                  onClick={() => {
-                    setQ(s);
-                    run(s);
-                  }}
-                >
-                  {s}
-                </button>
-              </li>
+        {rows.length > 0 && (
+          <div
+            id="dict-suggestions"
+            role="listbox"
+            className="absolute inset-x-0 top-full z-20 mt-1.5 max-h-80 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-[var(--pop-shadow)]"
+          >
+            {groups.map((g) => (
+              <div key={g.key} role="group" aria-label={g.label}>
+                {groups.length > 1 && <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted">{g.label}</p>}
+                {g.items.map(({ word, i }) => (
+                  <button
+                    key={word}
+                    id={`dict-sug-${i}`}
+                    type="button"
+                    role="option"
+                    aria-selected={i === active}
+                    className={`mt-0.5 block w-full rounded-[6px] px-3 py-2 text-left text-[15px] ${i === active ? "bg-[var(--option-hover)]" : "hover:bg-[var(--option-hover)]"}`}
+                    style={ml}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => choose(word)}
+                  >
+                    {word}
+                  </button>
+                ))}
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </form>
 

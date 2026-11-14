@@ -10,6 +10,14 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-14: Dictionary suggests Malayalam for Manglish while typing
+
+- Owner: the dictionary should suggest like Olam as you type, English and Malayalam from Manglish. Before, the box suggested only English or Malayalam prefixes; Manglish (`maza`) showed nothing until Enter.
+- `lib/dictionary.ts` `typingSuggestions(q)`: English/Malayalam prefix completions (`suggest`) plus, for Manglish, the transliterator's spellings that are dictionary words and words starting with them (`kadal` → കടൽ, കടൽക്കര…); unknown spellings are still offered when none is in the dictionary. English completions lead when there are some (`hou` → House…), and the Malayalam group is then 4 long.
+- `components/DictionaryView.tsx`: 150 ms pause before asking (the transliterator is a network call), grouped list (English / മലയാളം headings when both), ↑ ↓ Enter, Esc, combobox roles, rows styled like other menus. Used by /dictionary and the editor's Dictionary panel.
+- Help `06-dictionary.md#look-up` step 2.
+- Checked: `tsc --noEmit`; the logic against the built `public/dict` data with the offline Manglish rules (mazha, veedu, kadal, sneham, amma, hou, മഴ). **Not checked:** `npm run build` and a click-through (the Linux VM can't use the Mac's node_modules); try on getlitma.in after the push.
+
 ## 2026-11-14: Clear button and Esc in name fields
 
 - `src/components/ScriptField.tsx`: × inside the field (keeps focus, so Esc still works after it), Esc restores the value from focus time (`before` ref).

@@ -14,7 +14,7 @@ Litma has a Malayalam ↔ English dictionary and thesaurus built in, so you can 
 On the website and desktop app, open **Dictionary** at the top of any page (the book icon), or inside a work choose **Dictionary & thesaurus** on the right-hand rail.
 
 1. Type a word in Malayalam, in English, or in Manglish (`mazha` finds മഴ).
-2. Pick it from the list.
+2. Words appear under the box as you type: English words that start with those letters, and for Manglish the Malayalam words it may stand for (`kadal` offers കടൽ, കടൽക്കര…). Pick one with a click, or with <kbd>↑</kbd> <kbd>↓</kbd> and <kbd>Enter</kbd>.
 3. You see its meanings, the kind of word (noun, verb…) and synonyms (പര്യായങ്ങൾ), best first.
 
 Inside the editor you can also select a word and press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd> to look it up. Click a synonym to put it in place of the selected word.

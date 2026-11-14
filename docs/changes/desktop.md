@@ -20,6 +20,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
 
+## 2026-11-14: Dictionary suggestions for Manglish (web code)
+
+Same `DictionaryView` as the website (see `web.md`). No desktop-only code. Reaches the downloads with the next **Release** and the Mac App Store copy with the next **Desktop store builds** run.
+
 ## 2026-11-14: Mac App Store build: own signing keychain
 
 - First run of **Desktop store builds** failed while signing: `security set-key-partition-list … SecKeychainUnlock: The user name or passphrase you entered is not correct`. Cause: electron-builder 25.1.8 (`app-builder-lib/out/codeSign/macCodeSign.js`, `importCerts`) passes the `.p12` password as the password of the random-password keychain it creates from `CSC_LINK`.

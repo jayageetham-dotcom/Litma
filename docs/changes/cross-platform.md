@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-14: Dictionary suggestions for Manglish
+
+Website and desktop: the dictionary box now suggests Malayalam words for Manglish as you type (like Olam), next to English completions, with ↑ ↓ Enter. The phone already suggested Manglish spellings. Details in `web.md`; desktop gets it with the next Release (and Mac App Store build). Help `06-dictionary.md#look-up`.
+
 ## 2026-11-14: Mac App Store signing
 
 The five Mac App Store secrets are set (Apple Distribution and Mac Installer certificates, Mac App Store profile for `in.getlitma.litma`). The first store build failed in electron-builder's own keychain step; `apps/desktop/scripts/build-mas.sh` now signs with a keychain of its own; run #2 passed. Next: TestFlight for Mac, then attach the build to the macOS version (manual release). Details in `desktop.md`.

@@ -16,6 +16,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-14: Dictionary suggestions (web caught up with the phone)
+
+No phone change. The phone's dictionary already offers Malayalam for Manglish while typing (`_typed` in `dictionary_screen.dart`: chips from the transliterator + English completions). The web now does more: it keeps only spellings that are dictionary words and adds words starting with them (`typingSuggestions` in `apps/web/src/lib/dictionary.ts`). Optional later: do the same in `_typed` so both apps suggest alike.
+
 ## 2026-11-14: iPad screenshots for the App Store
 
 - `test/screenshots/screens_test.dart`: `shoot` takes a `ratio` (default 3); new iPad 13" shots at 1032 x 1376 points x 2 = 2064 x 2752: `ipad-01-desk`, `02-editor-typing` (keyboard 400 pt), `03-editor-novel`, `04-editor-poem`, `05-dictionary`, `06-nattarivu`, `07-story-world`, `08-cover-designer`.

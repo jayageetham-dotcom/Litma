@@ -124,9 +124,9 @@ Litma saves as you type. There is no Save button; the line under the title says 
 
 ### Rename a work
 
-Click the work's title at the top left of the editor and type a new name. When the typing mode is Manglish, each word you type in the title turns into Malayalam, as in your text. The title on the page (the ശീർഷകം line) is part of your text and can be different.
+Click the work's title at the top left of the editor and type a new name. When the typing mode is Manglish, each word you type in the title turns into Malayalam, as in your text. To start again, click the **×** at the end of the title. Press **Esc** to cancel and keep the old title; a title left empty also gets its old name back. The title on the page (the ശീർഷകം line) is part of your text and can be different.
 
-> **Phone:** Tap the title beside the back button. Type the new name in Manglish, Malayalam or English. The **മലയാളം / As typed** switch above the box decides whether Manglish turns into Malayalam, and your phone remembers your choice.
+> **Phone:** Tap the title beside the back button. Type the new name in Manglish, Malayalam or English. The **മലയാളം / As typed** switch above the box decides whether Manglish turns into Malayalam, and your phone remembers your choice. The **×** in the box empties it; **Cancel** keeps the old name.
 
 ## Import a text or Markdown file {#import}
 

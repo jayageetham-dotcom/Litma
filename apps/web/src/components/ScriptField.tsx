@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { manglish } from "@litma/shared/manglish";
+import { X } from "lucide-react";
 import { useT } from "@/i18n/react";
 
 type Mode = "manglish" | "plain";
@@ -36,6 +37,8 @@ export function ScriptField({ label, value, onChange, storageKey, defaultMode = 
   const caret = useRef<number | null>(null);
   // only text typed in this visit is converted on Enter/blur, so tabbing through never rewrites a name
   const dirty = useRef(false);
+  // the value when the writer came into the field, for Esc
+  const before = useRef<string | null>(null);
   useEffect(() => {
     try {
       const m = localStorage.getItem(`litma:fieldMode:${storageKey}`);
@@ -72,9 +75,10 @@ export function ScriptField({ label, value, onChange, storageKey, defaultMode = 
           ))}
         </span>
       </div>
+      <div className="relative">
       <input
         ref={ref}
-        className="field !py-1.5"
+        className={`field !py-1.5 ${value ? "!pr-8" : ""}`}
         value={value}
         placeholder={placeholder}
         style={{ fontFamily: "'Noto Sans Malayalam', Inter, sans-serif" }}
@@ -97,11 +101,44 @@ export function ScriptField({ label, value, onChange, storageKey, defaultMode = 
           }
           onChange(v);
         }}
+        onFocus={() => {
+          before.current = value;
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter") finishAll();
+          if (e.key === "Escape" && before.current !== null && before.current !== value) {
+            // Esc puts back what was there before this visit to the field
+            e.preventDefault();
+            e.stopPropagation();
+            dirty.current = false;
+            onChange(before.current);
+          }
         }}
-        onBlur={finishAll}
+        onBlur={() => {
+          finishAll();
+          before.current = null;
+        }}
       />
+      {value && (
+        <button
+          type="button"
+          className="absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-muted hover:bg-subtle hover:text-ink"
+          aria-label={t("field.clear")}
+          title={t("field.clear")}
+          // keep the field focused, so Esc can still bring the old text back
+          onPointerDown={(e) => e.preventDefault()}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            if (before.current === null) before.current = value;
+            dirty.current = false;
+            onChange("");
+            ref.current?.focus();
+          }}
+        >
+          <X className="h-3.5 w-3.5" aria-hidden />
+        </button>
+      )}
+      </div>
       {latin && (
         <button type="button" className="mt-1 block max-w-full truncate text-left text-[11px] text-muted hover:text-accent" style={{ fontFamily: "'Noto Sans Malayalam', Inter, sans-serif" }} onClick={() => onChange(toMalayalam(value))} title={t("field.convert")}>
           → {toMalayalam(value)}

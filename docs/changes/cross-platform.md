@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-14: Clear button and Esc in name fields
+
+The work title (editor top bar, phone rename box) and the Book details Title, Subtitle and Author fields get a × that empties them, and Esc puts back the text from before the writer clicked in (web, desktop, phone with a hardware keyboard). A work title left empty gets its old name back. New string `field.clear` (en + ml). Help: `01-getting-started.md` (Rename a work), `02-typing.md#manglish-fields`. Unverified: `npm run build` (couldn't run in the sandbox), phone `flutter analyze`/`flutter test`; desktop needs a Release.
+
 ## 2026-11-14: Phone editing fixes, title in Manglish
 
 Phone app: a selection can run over many lines and pages (handles, bar, typing replaces it), Backspace removes an empty page, Move to trash closes the editor at once, rename takes Manglish. Web and desktop: the title box turns Manglish into Malayalam. Details in `mobile.md` and `web.md`. Phone changes are unverified until `flutter analyze`/`flutter test` and a simulator check; desktop needs a Release.

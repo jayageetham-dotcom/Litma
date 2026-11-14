@@ -15,6 +15,11 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-14: Clear button and Esc in name fields
+
+- `lib/widgets/script_field.dart`: × suffix button (`_clear`, keeps the keyboard up), Esc on a hardware keyboard (iPad) restores the text from focus time (`_before`, `_escape` in a `Focus` wrapper; ignored when nothing changed, so Esc still closes the rename dialog). Used by the rename box and Book details.
+- Unverified: `flutter analyze`, `flutter test`, a device check.
+
 ## 2026-11-14: Selection across lines; rename in Manglish
 
 - **Selection over many lines and pages** (owner: selecting and deleting more than one line was hard on iPhone and iPad). The selection is kept in the session instead of a line's field: `DocPoint`, `setSpan`, `spanRange`, `spanParts`, `spanText`, `replaceSpan`, `deleteSpan`, `selectAll`, `_deleteRange` (lines and pages wholly inside go, the two end lines join; dialogue and cast entries keep their shape) and bold/italic over the range (`_markSpan`) in `lib/editor/session.dart`; `TextBlock.removeRange` in `document.dart`. New `lib/editor/selection_layer.dart` (over the page list in `editor_screen.dart`): highlight, two handles that drag across lines and pages and scroll at the screen edges, and a bar with Cut, Copy, Paste, Delete, B, I, Select all (`app.selection.*`). A long press or a field's own selection becomes the selection; the line last moved to holds its part as the field's selection, and `BlockController.onSpanEdit` turns typing, Backspace or Enter into one replacement (one undo step). Fields' own highlight is clear and their menu hides while the layer shows (`page_view.dart`, Select all in the field menu selects the whole work). `selectedText` (Look up, AI) covers the whole range. Test in `test/tools_test.dart`.

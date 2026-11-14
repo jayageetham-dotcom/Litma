@@ -87,3 +87,5 @@ Some fields outside the editor, like a book's Title, Subtitle and Author, have a
 - **As typed:** the text stays exactly as you type it, for English names or titles.
 
 Litma remembers your choice for each field on that device.
+
+Typed a wrong name? The **×** at the end of the field empties it so you can start again. Press **Esc** to put back what was there before you clicked in (on a computer, or an iPad or tablet with a keyboard).

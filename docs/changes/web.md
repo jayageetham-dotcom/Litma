@@ -10,6 +10,13 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-14: Clear button and Esc in name fields
+
+- `src/components/ScriptField.tsx`: × inside the field (keeps focus, so Esc still works after it), Esc restores the value from focus time (`before` ref).
+- `src/components/editor/Workspace.tsx`: title box shows a × while editing (`group/title`), Esc puts back the title from focus time and leaves the box (stops the focus-mode Esc), an empty title on blur gets its old name back (`titleBefore`).
+- `field.clear` in `packages/i18n` (en, ml), help in `01-getting-started.md` and `02-typing.md`.
+- Typecheck passes; `npm run build` and a click-through are still to do (the sandbox's Linux VM can't use the Mac's `node_modules`).
+
 ## 2026-11-14: Title in Manglish
 
 - `components/editor/Workspace.tsx`: the work's title box follows the typing mode. In Manglish mode a finished word (space or punctuation) turns into Malayalam, and the rest when leaving the title (`titleDirty`, `toMalayalam` from `components/ScriptField.tsx`), like the phone app's rename box. Help: Getting started → Rename a work. `tsc --noEmit` passes; not tried in a browser. Desktop gets it with the next Release.

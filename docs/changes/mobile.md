@@ -15,6 +15,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-14: Android build tools for the current Flutter
+
+- The first signed store build failed: Flutter stable (3.50 on CI) needs Android Gradle Plugin ≥ 9.1.1 and warns below Gradle 9.5.0. `android/settings.gradle.kts` AGP 9.1.0 → 9.1.1, `gradle/wrapper/gradle-wrapper.properties` Gradle 9.3.1 → 9.5.0 (the versions Flutter's error names; the sandbox could not reach Google's Maven to check for newer). **Unverified** until the next Mobile store builds run. CI uses floating `stable`, so a future Flutter may ask again.
+
 ## 2026-11-14: Store builds, developer accounts bought
 
 - The owner has Apple and Google Play developer accounts. `docs/setup/google-and-supabase.md` Part 10 (with checklist and troubleshooting rows) walks through the App ID, App Store Connect app and API key, Play Console app, upload keystore, service account, store forms and the GitHub secrets.

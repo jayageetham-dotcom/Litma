@@ -12,6 +12,7 @@ Reaches writers only through store builds. Cross-app summary and open items:
   suggestion row, mid-line Manglish, desk keyboard, editor tools from #5, cover designer, book
   PDFs including the whole-book PDF, Book details, statistics reaching /admin/).
 - Writing aids (2026-11-08) need a CI run and a device check (see that entry). Still to do on the phone: spelling marks inside the text, restore from a backup, Drive backup without the share sheet.
+- **Move to material_ui / cupertino_ui (2026-11-14):** Flutter 3.47+ deprecates `package:flutter/material.dart` and `cupertino.dart`; CI's `flutter analyze` failed on it (46 infos). For now `analysis_options.yaml` ignores `deprecated_member_use`, and `editor_screen.dart` keeps its `rendering.dart` import with an ignore (unneeded on 3.50, needed on older SDKs). After the first store release: `flutter pub add material_ui cupertino_ui`, `dart fix --apply --code=migrate_design_widgets`, wrap the app in `MaterialUiCompatibilityBridge` while `animations`/`printing` still use the old library, check every screen, then remove the ignore.
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 

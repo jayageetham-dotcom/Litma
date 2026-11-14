@@ -16,3 +16,4 @@ apps/desktop/app
 .electron-cache
 # made by scripts/build-mlmorph.mjs in the deploy job (mlmorph data for litma-spell)
 supabase/functions/litma-spell/data
+Claude outputs/

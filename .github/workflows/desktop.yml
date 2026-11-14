@@ -133,6 +133,12 @@ jobs:
             [ "${{ matrix.flag }}" = "--mac" ] && EXTRA="-c.mac.identity=-"
             echo "No signing certificate: building an unsigned installer"
           fi
+          # macOS with the Developer ID certificate: sign from a keychain made by scripts/mac-keychain.sh,
+          # because electron-builder 25.1.8 can't unlock the one it makes from CSC_LINK. With APPLE_ID,
+          # APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID set, electron-builder also notarises the app.
+          if [ "${{ matrix.flag }}" = "--mac" ] && [ -n "${CSC_LINK:-}" ]; then
+            source scripts/mac-keychain.sh
+          fi
           # Retry when a download from GitHub fails for a moment (504, reset connection).
           for attempt in 1 2 3; do
             if npx electron-builder --config electron-builder.yml ${{ matrix.flag }} $EXTRA; then exit 0; fi

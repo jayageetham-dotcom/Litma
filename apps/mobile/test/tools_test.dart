@@ -146,6 +146,27 @@ void main() {
     await close(t, s, o);
   });
 
+  testWidgets('a long press, then a handle dragged over lines: the selection stays when the finger lifts', (t) async {
+    final (s, o) = await open(t, DocKind.story, [p('one two'), p('three'), p('four five')]);
+    TextBlock line(int i) => s.document.blocks[i] as TextBlock;
+    final first = s.controllerFor(line(0));
+    s.focused = line(0); // the long press puts the keyboard on this line
+    // the long press: the field selects the word "two"
+    first.value = first.value.copyWith(selection: const TextSelection(baseOffset: 5, extentOffset: 8));
+    expect(s.spanText, 'two');
+    // the end handle is dragged to "four|" and the finger lifts
+    final r = s.spanRange!;
+    s.setSpan(r.$1, DocPoint(line(2), 4), sync: false);
+    s.syncSpan();
+    expect(s.spanText, 'two\nthree\nfour');
+    expect(first.blockSelection.isCollapsed, isTrue, reason: 'the first line let go of its word');
+    // the first line repeats its old word (its field losing focus): the selection stays
+    first.value = first.value.copyWith(selection: const TextSelection(baseOffset: 5, extentOffset: 8));
+    expect(s.spanMultiLine, isTrue);
+    expect(s.spanText, 'two\nthree\nfour');
+    await close(t, s, o);
+  });
+
   testWidgets('plays: Story World characters fill the cast list once', (t) async {
     final (s, o) = await open(t, DocKind.drama, [
       p('കഥാപാത്രങ്ങൾ', 'styledBlock', {'variant': 'subhead'}),

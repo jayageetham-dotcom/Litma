@@ -938,6 +938,13 @@ class EditorSession extends ChangeNotifier {
     final line = part.line;
     _syncing = true;
     try {
+      // the line that held the selection before (where the long press was) lets go of it quietly,
+      // or it reports its old word back when it loses focus and the selection shrinks to that word
+      final before = focused;
+      if (before != null && !identical(before, line)) {
+        final c = _controllers[before];
+        if (c != null && !c.blockSelection.isCollapsed) c.placeCursor(c.blockSelection.extentOffset);
+      }
       focused = line;
       controllerFor(line).select(part.from, part.to);
       _synced = (line, part.from, part.to);
@@ -959,6 +966,9 @@ class EditorSession extends ChangeNotifier {
     final synced = _synced;
     // the field reporting back what this editor gave it
     if (hasSpan && synced != null && identical(synced.$1, c.block) && sel.start == synced.$2 && sel.end == synced.$3) return;
+    // a selection over several lines: another line inside it repeating an old selection of its own
+    // (a field losing focus) doesn't replace it
+    if (!sel.isCollapsed && spanMultiLine && !identical(synced?.$1, c.block) && spanParts.any((p) => identical(p.line, c.block))) return;
     if (!sel.isCollapsed) {
       _anchor = DocPoint(c.block, sel.baseOffset);
       _extent = DocPoint(c.block, sel.extentOffset);

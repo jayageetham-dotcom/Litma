@@ -137,7 +137,7 @@ jobs:
             echo "::error::$FTP_HOST does not resolve. Set LITMA_FTP_SERVER to the FTP server shown in cPanel → FTP Accounts → Configure FTP Client."
             exit 1
           fi
-          LOGIN="set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set ftp:passive-mode true; set net:timeout 30; set net:max-retries 3"
+          LOGIN="set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set ssl:priority NORMAL:-VERS-TLS1.3; set ftp:passive-mode true; set net:timeout 30; set net:max-retries 3"
 
           # Where are we? List the account's top folder once (also checks the login).
           # First: does the server answer at all? (A firewall that blocks GitHub looks like a timeout.)
@@ -148,7 +148,7 @@ jobs:
           if ! TOP=$(lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" -e "$LOGIN; cls -1a /; bye" 2>&1); then
             echo "$TOP" | tail -5
             # Run once more with the conversation shown, to tell a refused login from a broken connection.
-            DBG=$(lftp -d -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set ftp:passive-mode true; set net:timeout 20; set net:max-retries 1; cls -1 /; bye" 2>&1 | sed -E 's/^(---> PASS ).*/\1****/')
+            DBG=$(lftp -d -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set ssl:priority NORMAL:-VERS-TLS1.3; set ftp:passive-mode true; set net:timeout 20; set net:max-retries 1; cls -1 /; bye" 2>&1 | sed -E 's/^(---> PASS ).*/\1****/')
             echo "What the server said:"; echo "$DBG" | grep -E '^(<---|\*\*\*\*)|SSL|TLS|refused|timed out|Login' | grep -v PASS | tail -15
             if echo "$DBG" | grep -qE '^<--- 530'; then
               echo "::error::$FTP_HOST refused the login for $FTP_USER (530). Either the password is wrong (cPanel → FTP Accounts → Change Password, then update the LITMA_FTP_PASSWORD secret) or the username is not the full FTP account name (e.g. litma@getlitma.in, in LITMA_FTP_USERNAME). After many failed tries cPHulk may block GitHub for a while too."
@@ -181,6 +181,7 @@ jobs:
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate no
+          set ssl:priority NORMAL:-VERS-TLS1.3
           set ftp:passive-mode true
           set net:timeout 30
           set net:max-retries 8

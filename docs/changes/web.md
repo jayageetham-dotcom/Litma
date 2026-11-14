@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-14: FTPS upload forced to TLS 1.2
+
+- The Release run's site upload failed listing files: `gnutls_record_recv: Error in parsing` on the FTPS data connection (lftp/GnuTLS with cPanel's FTP server over TLS 1.3). Every lftp login (`deploy.yml`, `desktop.yml` latest.json upload, `clear-getlitma.yml`, `legacy-redirect.yml`) now sets `ssl:priority NORMAL:-VERS-TLS1.3`. **Unverified** until the next push/deploy run.
+
 ## 2026-11-14: Delete-account guide says what is kept
 
 - New section `11-account.md#delete-data` (`/help/?a=delete-data`): deleting works, books, saved words, keys, community posts (hidden copy 180 days) and statistics without closing the account; Google Play's "delete some data" link.

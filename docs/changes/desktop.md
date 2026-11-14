@@ -20,6 +20,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
 
+## 2026-11-14: Mac App Store copy carries its encryption answer
+
+- Builds 2 and 3 showed "Missing Compliance" in TestFlight: `ITSAppUsesNonExemptEncryption` (and `ElectronTeamID`) were under `mas.extendInfo`, which electron-builder 25 ignores (`macPackager.js` reads `extendInfo` from `mac` only). Moved to `mac.extendInfo` in `electron-builder.stores.yml` (store builds only; `electron-builder.yml` for the downloads is unchanged). Unverified until the next **Desktop store builds** run: its build should arrive without the compliance question.
+
 ## 2026-11-14: Dictionary suggestions for Manglish (web code)
 
 Same `DictionaryView` as the website (see `web.md`). No desktop-only code. Reaches the downloads with the next **Release** and the Mac App Store copy with the next **Desktop store builds** run.

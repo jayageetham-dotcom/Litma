@@ -11,6 +11,12 @@ appId: in.getlitma.litma
 mac:
   # store version number (CFBundleVersion) is set per build by the workflow (-c.buildVersion)
   category: public.app-category.productivity
+  # Info.plist keys for the Mac App Store copy. Here and not under mas: electron-builder 25 reads
+  # extendInfo only from mac (macPackager.js), so under mas they never reached the app and App Store
+  # Connect asked the encryption question for every build. This file builds only the store copies.
+  extendInfo:
+    ElectronTeamID: D9U998359G
+    ITSAppUsesNonExemptEncryption: false
 mas:
   type: distribution
   hardenedRuntime: false
@@ -19,9 +25,6 @@ mas:
   # written by the workflow from the MAS_PROVISION_PROFILE_BASE64 secret (never committed)
   provisioningProfile: build/litma-mas.provisionprofile
   artifactName: Litma-mac-store.${ext}
-  extendInfo:
-    ElectronTeamID: D9U998359G
-    ITSAppUsesNonExemptEncryption: false
 appx:
   # identityName, publisher and publisherDisplayName come from Partner Center (repository variables,
   # passed by the workflow); the Store signs the package itself

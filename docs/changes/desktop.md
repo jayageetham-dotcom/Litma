@@ -13,7 +13,7 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   confirm dialogs) and to publish the first Linux AppImage.
 - **Release needed** for Litma Community (2026-11-09): `/community/` and `/community/guidelines/` run inside the app (no desktop-only code). Check both by loading and by the avatar menu and Settings links in a packaged build.
 - **Release needed** for the 2026-11-09 spelling engine, grammar fix cards, grouped rail, editor menus and the other web changes of that day (all in the shared web code).
-- Installers are unsigned until the signing secrets exist. Mac: move `apps/desktop/download-workflow/desktop.yml` into `.github/workflows/` first, then add the secrets (setup 10.5).
+- The Mac download is signed and notarised (14 Nov). The Windows installer is still unsigned until `WIN_CSC_LINK` exists (a paid code-signing certificate).
 - **Store builds (2026-11-14):** the five `MAS_*` secrets are set. Desktop store builds run #2 passed; 0.7.26 (4) submitted for Mac App Store review on 14 Nov; check the Mac App Store copy in TestFlight for Mac before submitting.
 - **Release needed** for the 2026-11-08 writing aids (reminders in the main process, notifications, folder backup, and the web features). Try on a Mac and Windows: notification permission, reminder with the window closed, choosing a Google Drive for desktop folder.
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
@@ -23,8 +23,7 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 ## 2026-11-14: Signed getlitma.in Mac download (prepared)
 
 - New `apps/desktop/scripts/mac-keychain.sh`, sourced by the macOS step of `desktop.yml` when `CSC_LINK` is set: own keychain with a known password, imports the Developer ID Application `.p12` and Apple's Developer ID intermediates, checks the identity, sets `CSC_KEYCHAIN`, unsets `CSC_LINK`; removed when the step ends. Notarisation stays electron-builder's (automatic with `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`).
-- The `desktop.yml` change waits in `apps/desktop/download-workflow/desktop.yml` for the owner to move; then the owner adds the secrets (setup 10.5) and runs **Release**.
-- **Unverified** until that Release: signing, notarisation (can take minutes), the dmg opening without the warning, and the in-app updater moving an older unsigned copy to the signed one.
+- Owner moved the `desktop.yml` change into place (dabf5ea), added `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` and ran **Release**: the Mac download from getlitma.in now installs and opens without the security warning (owner, 14 Nov). Still to see: the in-app updater moving an older unsigned copy to the signed one.
 
 ## 2026-11-14: Mac App Store copy carries its encryption answer
 

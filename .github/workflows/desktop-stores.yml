@@ -115,21 +115,19 @@ jobs:
       - if: steps.secrets.outputs.ok == 'yes'
         name: Build the Mac App Store package
         working-directory: apps/desktop
+        # scripts/build-mas.sh makes its own keychain (electron-builder 25.1.8 can't unlock the one it
+        # makes from CSC_LINK), writes the provisioning profile, builds and signs; each upload needs a
+        # higher build number (CFBundleVersion) for the same version, so it uses the run number
         env:
-          PROF: ${{ secrets.MAS_PROVISION_PROFILE_BASE64 }}
-          CSC_LINK: ${{ secrets.MAS_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAS_CSC_KEY_PASSWORD }}
-          CSC_INSTALLER_LINK: ${{ secrets.MAS_INSTALLER_CSC_LINK }}
-          CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.MAS_INSTALLER_CSC_KEY_PASSWORD }}
+          MAS_CSC_LINK: ${{ secrets.MAS_CSC_LINK }}
+          MAS_CSC_KEY_PASSWORD: ${{ secrets.MAS_CSC_KEY_PASSWORD }}
+          MAS_INSTALLER_CSC_LINK: ${{ secrets.MAS_INSTALLER_CSC_LINK }}
+          MAS_INSTALLER_CSC_KEY_PASSWORD: ${{ secrets.MAS_INSTALLER_CSC_KEY_PASSWORD }}
+          MAS_PROVISION_PROFILE_BASE64: ${{ secrets.MAS_PROVISION_PROFILE_BASE64 }}
+          BUILD_NUMBER: ${{ github.run_number }}
           ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache/electron
           ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-cache/builder
-        run: |
-          echo "$PROF" | base64 -d > build/litma-mas.provisionprofile
-          npm run build
-          node scripts/copy-web.mjs
-          # each upload needs a higher build number (CFBundleVersion) for the same version
-          npx electron-builder --config electron-builder.stores.yml --mac mas --universal -c.buildVersion=${{ github.run_number }}
-          rm -f build/litma-mas.provisionprofile
+        run: bash scripts/build-mas.sh
       - if: steps.secrets.outputs.ok == 'yes'
         uses: actions/upload-artifact@v6
         with:

@@ -17,7 +17,7 @@ The work title (editor top bar, phone rename box) and the Book details Title, Su
 
 ## 2026-11-14: Phone editing fixes, title in Manglish
 
-Phone app: a selection can run over many lines and pages (handles, bar, typing replaces it), Backspace removes an empty page, Move to trash closes the editor at once, rename takes Manglish. Web and desktop: the title box turns Manglish into Malayalam. Details in `mobile.md` and `web.md`. Phone changes are unverified until `flutter analyze`/`flutter test` and a simulator check; desktop needs a Release.
+Phone app: a selection can run over many lines and pages (handles, bar, typing replaces it), Backspace removes an empty page, Move to trash closes the editor at once, rename takes Manglish. Web and desktop: the title box turns Manglish into Malayalam. Details in `mobile.md` and `web.md`. Phone changes pass CI and were checked by the owner on TestFlight build 0.7.24 (6) on an iPhone; desktop needs a Release. App Store: build 6 is the one to submit (Apple ID 6834719757, manual release); after it is live, fill `STORE_LINKS` and the `mobile.ios` link in `latest.json`.
 
 ## 2026-11-14: Store setup
 

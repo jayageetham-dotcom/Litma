@@ -68,6 +68,12 @@ void main() {
       expect(r2.synonyms.first, 'വനം', reason: 'in both the definition and the strongest thesaurus set');
       expect(r2.translations, ['forest', 'jungle']);
     });
+    test('a stray joiner after ് (some keyboards add one) still finds the word', () async {
+      expect((await dictionary().lookup('കാട്\u200C')).head, 'കാട്');
+      expect((await dictionary().lookup('കാട്\u200D')).head, 'കാട്');
+      expect(spellings('അവന്\u200D'), contains('അവൻ'), reason: 'old-style chillu becomes the atomic letter');
+      expect(spellings('house'), ['house']);
+    });
     test('suggestions by prefix', () async {
       expect(await dictionary().suggest('fo'), ['forest']);
     });

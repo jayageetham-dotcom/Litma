@@ -27,6 +27,20 @@ class LookupResult {
 final RegExp _ml = RegExp('[ഀ-ൿ]');
 bool isMalayalam(String s) => _ml.hasMatch(s);
 
+const _chillu = {'ന': 'ൻ', 'ണ': 'ൺ', 'ര': 'ർ', 'ല': 'ൽ', 'ള': 'ൾ', 'ക': 'ൿ'};
+
+/// Ways to spell a typed word for the dictionary, as typed first (same as `spellings` in
+/// packages/shared/src/dict.ts). Some keyboards put an invisible joiner (U+200C / U+200D) after ്
+/// (കാട് + U+200C), or type a chillu as consonant + ് + U+200D; the dictionary mostly has the plain or
+/// atomic form, but some old spellings keep the joiner, so the word as typed is tried first.
+List<String> spellings(String raw) {
+  final w = raw.trim();
+  if (!isMalayalam(w)) return [w];
+  final chillu = w.replaceAllMapped(RegExp('([നണരലളക])\u0D4D\u200D'), (m) => _chillu[m[1]]!);
+  final joiners = RegExp('[\u200C\u200D]');
+  return {w, chillu, chillu.replaceAll(joiners, ''), w.replaceAll(joiners, '')}.toList();
+}
+
 const _enStems = <(String, String)>[
   (r'ies$', 'y'),
   (r'ves$', 'f'),
@@ -127,7 +141,16 @@ class Dictionary {
     return (shard?[k] as Map?)?.cast<String, dynamic>();
   }
 
+  /// Words starting with [prefix]; a Malayalam prefix typed with stray joiners is tried cleaned up too.
   Future<List<String>> suggest(String prefix, {int max = 10}) async {
+    for (final p in spellings(prefix)) {
+      final out = await _suggestExact(p, max: max);
+      if (out.isNotEmpty) return out;
+    }
+    return [];
+  }
+
+  Future<List<String>> _suggestExact(String prefix, {int max = 10}) async {
     final p = prefix.trim();
     if (p.isEmpty) return [];
     final ml = isMalayalam(p);
@@ -145,8 +168,19 @@ class Dictionary {
     return out.take(max).toList();
   }
 
+  /// Looks a word up as typed, then (Malayalam only) as [spellings] cleans it up.
   Future<LookupResult> lookup(String raw) async {
     if (raw.trim().isNotEmpty) Analytics.track('dictionary_lookup', {'script': RegExp('[\u0D00-\u0D7F]').hasMatch(raw) ? 'ml' : 'en'});
+    final first = await _lookupExact(raw);
+    if (first.head != null) return first;
+    for (final w in spellings(raw).skip(1)) {
+      final r = await _lookupExact(w);
+      if (r.head != null) return r;
+    }
+    return first;
+  }
+
+  Future<LookupResult> _lookupExact(String raw) async {
     final query = raw.trim();
     final lang = isMalayalam(query) ? 'ml' : 'en';
     final res = LookupResult(lang: lang, query: query);

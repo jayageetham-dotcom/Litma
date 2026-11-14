@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-14: Dictionary finds words typed with a stray joiner
+
+`packages/shared/src/dict.ts`: exported `spellings()`; `lookup`/`suggest` retry with joiners removed and old chillu made atomic when the word as typed isn't found. Synced to `supabase/functions/_shared/dict.ts`. Checked with node against `public/dict`; `tsc --noEmit` passes.
+
 ## 2026-11-14: Dictionary suggests Malayalam for Manglish while typing
 
 - Owner: the dictionary should suggest like Olam as you type, English and Malayalam from Manglish. Before, the box suggested only English or Malayalam prefixes; Manglish (`maza`) showed nothing until Enter.

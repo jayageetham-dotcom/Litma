@@ -40,6 +40,22 @@ export interface LookupResult {
 export type DictFetch = (path: string) => Promise<unknown | null>;
 
 const ML_RE = /[ഀ-ൿ]/;
+
+const CHILLU: Record<string, string> = { "ന": "ൻ", "ണ": "ൺ", "ര": "ർ", "ല": "ൽ", "ള": "ൾ", "ക": "ൿ" };
+
+/**
+ * Ways to spell a typed word for the dictionary, as typed first. Some keyboards put an invisible
+ * joiner (U+200C / U+200D) after ് (കാട് + U+200C), or type a chillu as consonant + ് + U+200D;
+ * the dictionary mostly has the plain or atomic form, but some old spellings keep the joiner, so the
+ * word as typed is always tried first.
+ */
+export function spellings(raw: string): string[] {
+  const w = raw.trim();
+  if (!ML_RE.test(w)) return [w];
+  const n = w.normalize("NFC");
+  const chillu = n.replace(/([നണരലളക])\u0D4D\u200D/g, (_, c: string) => CHILLU[c]);
+  return [...new Set([w, n, chillu, chillu.replace(/[\u200C\u200D]/g, ""), n.replace(/[\u200C\u200D]/g, "")])];
+}
 const hex = (ch: string) => ch.codePointAt(0)!.toString(16);
 
 const EN_STEMS: [RegExp, string][] = [
@@ -103,7 +119,7 @@ export function createDictionary(fetchJson: DictFetch) {
     return shard?.[k] ?? null;
   }
 
-  async function suggest(prefix: string, max = 10): Promise<string[]> {
+  async function suggestExact(prefix: string, max = 10): Promise<string[]> {
     const p = prefix.trim();
     if (!p) return [];
     const isMl = ML_RE.test(p);
@@ -120,7 +136,7 @@ export function createDictionary(fetchJson: DictFetch) {
     return out.sort((a, b) => a.length - b.length).slice(0, max);
   }
 
-  async function lookup(raw: string): Promise<LookupResult> {
+  async function lookupExact(raw: string): Promise<LookupResult> {
     const query = raw.trim();
     const lang: "en" | "ml" = ML_RE.test(query) ? "ml" : "en";
     const res: LookupResult = { lang, query, head: null, meanings: [], synonyms: [], translations: [], related: [] };
@@ -251,6 +267,26 @@ export function createDictionary(fetchJson: DictFetch) {
       ml.forEach((w) => out.push({ word: w, gloss: a }));
     }
     return out.slice(0, 12);
+  }
+
+  /** Words starting with `prefix`; a Malayalam prefix typed with stray joiners is tried cleaned up too. */
+  async function suggest(prefix: string, max = 10): Promise<string[]> {
+    for (const p of spellings(prefix)) {
+      const out = await suggestExact(p, max);
+      if (out.length) return out;
+    }
+    return [];
+  }
+
+  /** Looks a word up as typed, then (Malayalam only) as {@link spellings} cleans it up. */
+  async function lookup(raw: string): Promise<LookupResult> {
+    const first = await lookupExact(raw);
+    if (first.head) return first;
+    for (const w of spellings(raw).slice(1)) {
+      const r = await lookupExact(w);
+      if (r.head) return { ...r, query: first.query };
+    }
+    return first;
   }
 
   return { index, getEn, getMl, suggest, lookup, opposites };

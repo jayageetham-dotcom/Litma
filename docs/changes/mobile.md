@@ -16,6 +16,11 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-14: Dictionary: words typed with a stray joiner
+
+- `lib/data/dictionary.dart`: `spellings()` (port of `shared/dict.ts`), `lookup` → `_lookupExact` per spelling, `suggest` → `_suggestExact` per spelling. Fixes "No entry for കാട്" when the iPhone keyboard adds U+200C after ് (owner, TestFlight build 6), and the empty suggestion list while typing such words.
+- Test in `test/phases_test.dart` ("a stray joiner after ്…"). **Unverified:** `flutter analyze`, `flutter test` (no Flutter here; CI). Ships with the next phone build (after 0.7.24 (6), which is in review).
+
 ## 2026-11-14: Dictionary suggestions (web caught up with the phone)
 
 No phone change. The phone's dictionary already offers Malayalam for Manglish while typing (`_typed` in `dictionary_screen.dart`: chips from the transliterator + English completions). The web now does more: it keeps only spellings that are dictionary words and adds words starting with them (`typingSuggestions` in `apps/web/src/lib/dictionary.ts`). Optional later: do the same in `_typed` so both apps suggest alike.

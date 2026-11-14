@@ -14,10 +14,20 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - **Release needed** for Litma Community (2026-11-09): `/community/` and `/community/guidelines/` run inside the app (no desktop-only code). Check both by loading and by the avatar menu and Settings links in a packaged build.
 - **Release needed** for the 2026-11-09 spelling engine, grammar fix cards, grouped rail, editor menus and the other web changes of that day (all in the shared web code).
 - Installers are unsigned until the signing secrets exist (see cross-platform.md).
+- **Store builds (2026-11-14):** owner to move `apps/desktop/store-workflow/desktop-stores.yml` into `.github/workflows/`, then set up each store (setup guide Part 11) and run **Desktop store builds**; check the Mac App Store copy in TestFlight for Mac before submitting.
 - **Release needed** for the 2026-11-08 writing aids (reminders in the main process, notifications, folder backup, and the web features). Try on a Mac and Windows: notification permission, reminder with the window closed, choosing a Google Drive for desktop folder.
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+
+## 2026-11-14: Store builds (Mac App Store, Microsoft Store, Snap Store)
+
+- `src/store.ts` (new): which store a copy came from (`process.mas`, `process.windowsStore`, `SNAP`). In a store copy `updater.ts` does nothing (`checkForUpdates`, `downloadUpdate`, `installUpdate`, `startUpdateChecks` return early), the menus have no "Check for updates", `main.ts` passes `--litma-store=` and the preload then exposes no update functions plus `store`; the Microsoft Store copy keeps the package's own AppUserModelId. Downloads from getlitma.in: unchanged behaviour (`store` is null).
+- `src/backup.ts`: the folder is saved with a security-scoped bookmark in the Mac App Store sandbox (`securityScopedBookmarks`, `startAccessingSecurityScopedResource` in `withFolder`); other copies work as before.
+- `electron-builder.stores.yml` (extends `electron-builder.yml`, which is unchanged): `appId in.getlitma.litma`, `mas` (sandbox entitlements `build/entitlements.mas.plist` / `.inherit.plist`, provisioning profile written by CI, `ElectronTeamID`), `appx` (tiles in `build/appx/`, made from `build/icon.png`; identity from repo variables), `snap` (strict, stable, name `litma`). Config loads and validates with app-builder-lib 25.1.8; the base config still resolves to `com.jayageetham.litma` with no store sections.
+- Workflow `desktop-stores.yml` (by hand; skips each store until its secrets/variables exist; Mac upload with the `ASC_*` key via `xcrun altool`, Snap via `snapcore/action-publish`, Microsoft Store packages attached for a Partner Center upload). It waits in `apps/desktop/store-workflow/` because `.github/workflows/` is the owner's to write: one `git mv` (setup 11.0).
+- Web: `UpdateNotice` shows nothing in a store copy and About says "Updates come from {store}" (`update.storeAuto`, `update.store_*`, en + ml).
+- **Unverified:** no store package has been built yet (no Electron/Windows/macOS toolchain here). First runs to watch: the Mac sandbox (sign-in, `app://`, `/dict` fetch, export, print, backup folder), `xcrun altool --upload-app` still accepted on the runner's Xcode, the appx build on windows-latest, the snap template build on ubuntu-latest. A Release is needed for the downloads to carry the store detection too (harmless there).
 
 ## 2026-11-14: Clear button and Esc in name fields
 

@@ -362,6 +362,77 @@ Without it, the first launch of the Mac app needs right-click → Open.
    `APPLE_APP_SPECIFIC_PASSWORD`. `APPLE_TEAM_ID` is already set (10.1).
 4. The next Actions → **Release** builds a signed, notarised Mac app.
 
+## Part 11. The desktop app in the Mac App Store, Microsoft Store and Snap Store
+
+The downloads from getlitma.in stay as they are (Release → **Desktop app**). The store packages come
+from a separate workflow, **Desktop store builds**, run by hand. Each store is skipped with a warning
+until its secrets exist. A store copy is updated by its store, so Litma's own update card stays off in it.
+
+### 11.0 Put the workflow in place (once)
+
+The workflow file waits in `apps/desktop/store-workflow/` because only you write to `.github/workflows/`:
+```sh
+cd ~/Documents/Litma
+git mv apps/desktop/store-workflow/desktop-stores.yml .github/workflows/desktop-stores.yml
+git commit -m "Add the desktop store builds workflow" && git push
+```
+
+### 11.1 Mac App Store (same listing as the iPhone app)
+
+1. App Store Connect → **Litma: Malayalam Writing** → **Add Platform** → **macOS**. The Mac app uses
+   the same ID, `in.getlitma.litma`, so it shares the listing.
+2. Make a certificate request in Keychain Access (as in 10.5, step 1).
+3. [developer.apple.com → Certificates](https://developer.apple.com/account/resources/certificates/list)
+   → **+** → **Apple Distribution** → upload the request → download → double-click it. Keychain
+   Access → My Certificates → **Apple Distribution: …** → Export as `mas-app.p12` (in your home
+   folder) with a password. Secrets: `MAS_CSC_LINK` (`base64 -i ~/mas-app.p12 | pbcopy`) and
+   `MAS_CSC_KEY_PASSWORD`.
+4. **+** again → **Mac Installer Distribution** → same steps → `mas-installer.p12`. Secrets:
+   `MAS_INSTALLER_CSC_LINK`, `MAS_INSTALLER_CSC_KEY_PASSWORD`.
+5. **Profiles** → **+** → Distribution: **Mac App Store Connect** → App ID `in.getlitma.litma` → the
+   Apple Distribution certificate → name it `Litma Mac App Store` → download. Secret
+   `MAS_PROVISION_PROFILE_BASE64`: `base64 -i ~/Downloads/Litma_Mac_App_Store.provisionprofile | pbcopy`
+   (move it to your home folder first if Terminal can't read Downloads).
+6. Actions → **Desktop store builds** → Run workflow. The upload uses the App Store Connect key the
+   phone builds already use (`ASC_*`). If the upload step fails, download `litma-mac-app-store` from
+   the run and send the `.pkg` with Apple's **Transporter** app.
+7. In App Store Connect, the macOS version needs its own screenshots (for example 2880 × 1800), then
+   pick the build and submit. The Mac app runs in Apple's sandbox: check sign-in, saving, export and
+   the backup folder in TestFlight for Mac before submitting.
+
+### 11.2 Microsoft Store
+
+1. [Partner Center](https://partner.microsoft.com/dashboard) → sign up as an individual developer
+   (the sign-up page shows any fee).
+2. **Apps and games** → **New product** → **MSIX or PWA app** → reserve the name **Litma**.
+3. The product → **Product identity**: copy three values into GitHub → Settings → Secrets and
+   variables → Actions → **Variables** tab (not secrets):
+   - `MSSTORE_IDENTITY_NAME` ← Package/Identity/Name
+   - `MSSTORE_PUBLISHER` ← Package/Identity/Publisher (starts with `CN=`)
+   - `MSSTORE_PUBLISHER_DISPLAY_NAME` ← Package/Properties/PublisherDisplayName
+4. Run **Desktop store builds**, download `litma-microsoft-store` from the run (two `.appx` files, x64
+   and arm64), and upload both in the submission's **Packages** page. The Store signs them.
+5. Fill the listing (description, screenshots, privacy policy `https://getlitma.in/privacy/`, age
+   rating questionnaire) and submit. Later versions: run the workflow after each Release and upload the
+   new packages; a new submission needs a higher version, which Release gives.
+
+### 11.3 Snap Store (Linux)
+
+1. Sign in at [snapcraft.io](https://snapcraft.io) (Ubuntu One account) and register the name
+   **litma** ([snapcraft.io/register-snap](https://snapcraft.io/register-snap)).
+2. On your Mac: `brew install snapcraft`, then
+   `snapcraft export-login --snaps=litma --channels=stable --acls=package_access,package_push,package_update,package_release litma-snap.txt`
+   and sign in when asked. Secret `SNAPCRAFT_STORE_CREDENTIALS`: the whole content of `litma-snap.txt`
+   (then delete the file).
+3. Run **Desktop store builds**. The snap is built on every run (download `litma-snap` to try it) and
+   uploaded to the **stable** channel when the secret exists.
+4. On snapcraft.io → **litma** → **Listing**: icon, screenshots, description, then make it public.
+
+### 11.4 After they're live
+
+Put the store links on the website's download page (`STORE_LINKS` in `lib/release.ts`, shown by `components/StoreBadges.tsx`)
+and in the desktop help guide.
+
 ## Checklist
 
 - [ ] Google consent screen: name, logo, links, domains, scopes (email, profile, openid, drive.file), published
@@ -383,6 +454,10 @@ Without it, the first launch of the Mac app needs right-click → Open.
 - [ ] Play service account; secret `PLAY_SERVICE_ACCOUNT_JSON` (10.3)
 - [ ] Store links in `STORE_LINKS` and `latest.json` once the apps are live (10.4)
 - [ ] Mac desktop signing: `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` (10.5)
+- [ ] Desktop store workflow moved into `.github/workflows/` (11.0)
+- [ ] Mac App Store: macOS platform added; secrets `MAS_CSC_LINK`, `MAS_CSC_KEY_PASSWORD`, `MAS_INSTALLER_CSC_LINK`, `MAS_INSTALLER_CSC_KEY_PASSWORD`, `MAS_PROVISION_PROFILE_BASE64` (11.1)
+- [ ] Microsoft Store: Partner Center app; variables `MSSTORE_IDENTITY_NAME`, `MSSTORE_PUBLISHER`, `MSSTORE_PUBLISHER_DISPLAY_NAME`; first packages uploaded by hand (11.2)
+- [ ] Snap Store: name `litma` registered; secret `SNAPCRAFT_STORE_CREDENTIALS` (11.3)
 
 ## When something goes wrong
 

@@ -15,6 +15,10 @@ Phone app screenshot test renders eight iPad 13" shots (`ipad-0N-*`, 2064 x 2752
 
 The work title (editor top bar, phone rename box) and the Book details Title, Subtitle and Author fields get a × that empties them, and Esc puts back the text from before the writer clicked in (web, desktop, phone with a hardware keyboard). A work title left empty gets its old name back. New string `field.clear` (en + ml). Help: `01-getting-started.md` (Rename a work), `02-typing.md#manglish-fields`. Unverified: `npm run build` (couldn't run in the sandbox), phone `flutter analyze`/`flutter test`; desktop needs a Release.
 
+## 2026-11-14: Desktop app for the stores
+
+Mac App Store (sharing the iPhone app's listing), Microsoft Store and Snap Store packages of the desktop app: `electron-builder.stores.yml`, `src/store.ts` (store copies don't self-update), workflow **Desktop store builds** waiting in `apps/desktop/store-workflow/` for the owner to move into `.github/workflows/`. Setup guide Part 11. Details and what is unverified in `desktop.md`.
+
 ## 2026-11-14: Phone editing fixes, title in Manglish
 
 Phone app: a selection can run over many lines and pages (handles, bar, typing replaces it), Backspace removes an empty page, Move to trash closes the editor at once, rename takes Manglish. Web and desktop: the title box turns Manglish into Malayalam. Details in `mobile.md` and `web.md`. Phone changes pass CI and were checked by the owner on TestFlight build 0.7.24 (6) on an iPhone; desktop needs a Release. App Store: build 6 is the one to submit (Apple ID 6834719757, manual release); after it is live, fill `STORE_LINKS` and the `mobile.ios` link in `latest.json`.

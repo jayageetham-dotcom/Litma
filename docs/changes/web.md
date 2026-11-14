@@ -17,6 +17,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
 - `field.clear` in `packages/i18n` (en, ml), help in `01-getting-started.md` and `02-typing.md`.
 - Typecheck passes; `npm run build` and a click-through are still to do (the sandbox's Linux VM can't use the Mac's `node_modules`).
 
+## 2026-11-14: Update card off in store copies of the desktop app
+
+- `lib/desktop.ts` (`store` on the bridge), `components/UpdateNotice.tsx`: nothing shown in a desktop copy from an app store; About says the store updates it (`update.storeAuto`, `update.store_mas|msstore|snap`). Website and normal desktop downloads: unchanged. `tsc --noEmit` passes.
+
 ## 2026-11-14: Title in Manglish
 
 - `components/editor/Workspace.tsx`: the work's title box follows the typing mode. In Manglish mode a finished word (space or punctuation) turns into Malayalam, and the rest when leaving the title (`titleDirty`, `toMalayalam` from `components/ScriptField.tsx`), like the phone app's rename box. Help: Getting started → Rename a work. `tsc --noEmit` passes; not tried in a browser. Desktop gets it with the next Release.

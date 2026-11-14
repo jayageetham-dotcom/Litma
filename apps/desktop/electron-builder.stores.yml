@@ -1,0 +1,41 @@
+# The desktop app for the app stores: Mac App Store (mas), Microsoft Store (appx) and Snap Store (snap).
+# Built by hand with Actions → "Desktop store builds" (.github/workflows/desktop-stores.yml).
+# It adds to electron-builder.yml; the downloads from getlitma.in (Release → desktop.yml) keep using
+# electron-builder.yml alone and are not affected by anything here.
+#
+# Store copies are updated by their store: the app sees which store it came from (src/store.ts) and
+# keeps its own updater and update card off.
+extends: ./electron-builder.yml
+# same app ID as the iPhone and iPad app, so the Mac app joins that App Store listing (Add Platform → macOS)
+appId: in.getlitma.litma
+mac:
+  # store version number (CFBundleVersion) is set per build by the workflow (-c.buildVersion)
+  category: public.app-category.productivity
+mas:
+  type: distribution
+  hardenedRuntime: false
+  entitlements: build/entitlements.mas.plist
+  entitlementsInherit: build/entitlements.mas.inherit.plist
+  # written by the workflow from the MAS_PROVISION_PROFILE_BASE64 secret (never committed)
+  provisioningProfile: build/litma-mas.provisionprofile
+  artifactName: Litma-mac-store.${ext}
+  extendInfo:
+    ElectronTeamID: D9U998359G
+    ITSAppUsesNonExemptEncryption: false
+appx:
+  # identityName, publisher and publisherDisplayName come from Partner Center (repository variables,
+  # passed by the workflow); the Store signs the package itself
+  applicationId: Litma
+  displayName: Litma
+  languages: [en-IN, ml-IN]
+  artifactName: Litma-win-store-${arch}.${ext}
+snap:
+  summary: Write Malayalam novels, poems and screenplays
+  description: >-
+    Litma is a writing desk for Malayalam literature. Type in Manglish and see Malayalam script,
+    write novels, stories, poems, screenplays and plays on pages that look like the printed book,
+    with a Malayalam dictionary, rhymes, Story World and offline writing. One account works on the
+    web, on phones and on the desktop.
+  grade: stable
+  confinement: strict
+  artifactName: Litma-linux-store.${ext}

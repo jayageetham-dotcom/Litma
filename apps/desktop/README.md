@@ -34,6 +34,22 @@ Without certificates the installers are unsigned:
 - **macOS**: first launch needs right-click → Open (or System Settings → Privacy & Security → Open Anyway). To sign and notarize, add repository secrets `CSC_LINK` (base64 .p12 of a Developer ID Application certificate), `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`.
 - **Windows**: SmartScreen shows "More info → Run anyway". Add `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD` for a code-signing certificate.
 
+## App stores
+
+Besides the downloads from getlitma.in, the app can be packaged for the **Mac App Store**, the
+**Microsoft Store** and the **Snap Store** (`electron-builder.stores.yml`, which adds to
+`electron-builder.yml`; workflow **Desktop store builds**, run by hand; setup in
+`docs/setup/google-and-supabase.md`, Part 11).
+
+- A store copy knows where it came from (`src/store.ts`: `process.mas`, `process.windowsStore`, `SNAP`).
+  Its store updates it, so the updater, the "Check for updates" menu items and the web app's update
+  card are off (the preload exposes no update functions and sets `litmaDesktop.store`).
+- Mac App Store: sandboxed (`build/entitlements.mas*.plist`), app ID `in.getlitma.litma` (shared with
+  the phone app's listing). The backup folder is kept with a security-scoped bookmark (`src/backup.ts`).
+- Microsoft Store: `.appx` for x64 and arm64 with the tiles in `build/appx/`; the Store signs it. The
+  app keeps the package's own app id (no `setAppUserModelId`).
+- Snap Store: strict confinement, name `litma`.
+
 ## How sign-in works
 
 Email and password sign-in happens in the app. Google sign-in opens in the app window too; Supabase sends the browser back to the website's `/auth/callback/` (getlitma.in, or the old jayageetham.com/litma address for apps from before the move), which the app intercepts and finishes on `app://litma/auth/callback/`, so the session is stored in the app. Links in emails (confirm, reset password) open in your browser.

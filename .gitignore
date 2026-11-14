@@ -17,3 +17,7 @@ apps/desktop/app
 # made by scripts/build-mlmorph.mjs in the deploy job (mlmorph data for litma-spell)
 supabase/functions/litma-spell/data
 Claude outputs/
+# store signing files the desktop store workflow writes from secrets (never commit them)
+apps/desktop/build/*.provisionprofile
+*.p12
+*.p8

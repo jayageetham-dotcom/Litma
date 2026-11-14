@@ -14,7 +14,7 @@ plugins {
 }
 
 android {
-    namespace = "`in`.getlitma.litma"
+    namespace = "in.getlitma.litma"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -26,7 +26,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "`in`.getlitma.litma"
+        applicationId = "in.getlitma.litma"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

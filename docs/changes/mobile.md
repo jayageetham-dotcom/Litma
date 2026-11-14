@@ -18,6 +18,7 @@ Reaches writers only through store builds. Cross-app summary and open items:
 ## 2026-11-14: Android build tools for the current Flutter
 
 - The first signed store build failed: Flutter stable (3.50 on CI) needs Android Gradle Plugin ≥ 9.1.1 and warns below Gradle 9.5.0. `android/settings.gradle.kts` AGP 9.1.0 → 9.1.1, `gradle/wrapper/gradle-wrapper.properties` Gradle 9.3.1 → 9.5.0 (the versions Flutter's error names; the sandbox could not reach Google's Maven to check for newer). **Unverified** until the next Mobile store builds run. CI uses floating `stable`, so a future Flutter may ask again.
+- AGP 9.1.1 then refused the namespace: `app/build.gradle.kts` had `namespace` and `applicationId` as the string "`in`.getlitma.litma" with literal backticks (Kotlin-keyword escaping copied into a string). Both are now plain `in.getlitma.litma` (`in` is not a Java keyword); the Kotlin sources keep `package \`in\`.getlitma.litma`.
 
 ## 2026-11-14: Store builds, developer accounts bought
 

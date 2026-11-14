@@ -70,6 +70,12 @@ The toolbar also has left, centre, right and justify, bulleted and numbered list
 
 In novels and stories, paragraphs start with a small indent like a printed book. The first paragraph of a chapter, the first after a scene break, and the paragraph after an empty line sit at the margin. An empty line works as a quiet section break.
 
+## Select text {#select}
+
+Drag over the words you want, or press <kbd>Shift</kbd> with the arrow keys. A selection can run over as many lines and pages as you like. Typing replaces it, and <kbd>Backspace</kbd> removes it.
+
+> **Phone:** Press and hold a word to select it. Drag the round handles to take in more, over as many lines and pages as you like. The page scrolls when you drag near the top or bottom. The bar above the selection has **Cut**, **Copy**, **Paste**, **Delete**, bold, italic and **Select all**. Typing or <kbd>Backspace</kbd> replaces the whole selection, and **Undo** brings it back.
+
 ## Pages and Insert page {#pages}
 
 Your text flows from page to page by itself, like in Google Docs. A page exists only while there is text on it, so when you delete the last words of a page, the page goes away.
@@ -83,7 +89,7 @@ To start a fresh page (for example before a new part):
 
 To remove an inserted page, put the cursor at the start of the page after it and press <kbd>Backspace</kbd>. On an empty inserted page, <kbd>Backspace</kbd> removes the whole page.
 
-> **Phone:** The phone app shows your writing as pages too. Each holds about as much as a printed page, so the pages are tall, and when one is full your writing carries on to the next. To add a blank page between two pages, tap the small **+** in the gap between them, or choose **Insert page** in the tools to add one after the line you're on. To see the pages exactly as they will print, choose **Pages** in the tools.
+> **Phone:** The phone app shows your writing as pages too. Each holds about as much as a printed page, so the pages are tall, and when one is full your writing carries on to the next. To add a blank page between two pages, tap the small **+** in the gap between them, or choose **Insert page** in the tools to add one after the line you're on. To see the pages exactly as they will print, choose **Pages** in the tools. To remove an empty page, put the cursor on it and press Backspace.
 
 ## Page & type: paper, margins and fonts {#page-setup}
 

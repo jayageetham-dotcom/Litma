@@ -50,6 +50,7 @@ import { ReplaceStep } from "@tiptap/pm/transform";
 import { Sheet } from "@/components/ui/Sheet";
 import { useKeyboardInset, useScreen } from "@/lib/useLayout";
 import { ManglishPopup } from "./ManglishPopup";
+import { toMalayalam } from "@/components/ScriptField";
 import { AIPanel, HistoryPanel, InboxPanel, KeysPanel, OutlinePanel, PagePanel } from "./Panels";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { store } from "@/lib/store";
@@ -169,6 +170,10 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const pristine = useRef(!!initial.settings.pristine);
   const docRef = useRef<LitmaDoc>(initial);
   const titleRef = useRef(initial.title);
+  // the title was typed in this visit (only then is it converted from Manglish on leaving it)
+  const titleDirty = useRef(false);
+  // the title when the writer clicked into it, so Esc can put it back
+  const titleBefore = useRef<string | null>(null);
   const lastSavedWords = useRef(initial.word_count);
   /** minutes (Date.now() / 60 000) in which the writer changed the text since the last save */
   const activeMinutes = useRef(new Set<number>());
@@ -673,21 +678,96 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             <ArrowLeft size={phone ? 20 : 18} />
           </button>
           <div className="min-w-0 flex-1">
+            <div className="group/title relative max-w-xl">
             <input
               value={title}
+              onFocus={() => {
+                titleBefore.current = titleRef.current;
+              }}
               onChange={(e) => {
-                setTitle(e.target.value);
-                titleRef.current = e.target.value;
+                // In Manglish mode a finished word turns into Malayalam, as in the text (and in the phone app's rename box)
+                let v = e.target.value;
+                const el = e.target;
+                const at = el.selectionStart ?? v.length;
+                const done = mode === "manglish" && !(e.nativeEvent as InputEvent).isComposing ? /([A-Za-z~_^]+)([^A-Za-z~_^])$/.exec(v.slice(0, at)) : null;
+                if (done) {
+                  const ml = toMalayalam(done[1]);
+                  const start = at - done[0].length;
+                  v = v.slice(0, start) + ml + done[2] + v.slice(at);
+                  const caret = start + ml.length + done[2].length;
+                  requestAnimationFrame(() => el.setSelectionRange(caret, caret));
+                }
+                titleDirty.current = true;
+                setTitle(v);
+                titleRef.current = v;
                 if (pristine.current) {
                   pristine.current = false;
                   setSettings((prev) => ({ ...prev, pristine: false }));
                 }
                 saver.current?.touch();
               }}
-              onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-              className="w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none md:text-[1.05rem]"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                if (e.key === "Escape" && titleBefore.current !== null) {
+                  // Esc cancels: the title goes back to what it was, and the cursor leaves it
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const v = titleBefore.current;
+                  titleDirty.current = false;
+                  if (v !== titleRef.current) {
+                    setTitle(v);
+                    titleRef.current = v;
+                    saver.current?.touch();
+                  }
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+              onBlur={() => {
+                const before = titleBefore.current;
+                titleBefore.current = null;
+                // a title left empty gets its earlier name back, so a work is never nameless
+                if (!titleRef.current.trim() && before?.trim()) {
+                  titleDirty.current = false;
+                  setTitle(before);
+                  titleRef.current = before;
+                  saver.current?.touch();
+                  return;
+                }
+                // the last word, typed in Manglish, when leaving the title
+                if (!titleDirty.current || mode !== "manglish" || !/[A-Za-z]/.test(titleRef.current)) return;
+                titleDirty.current = false;
+                const v = toMalayalam(titleRef.current);
+                setTitle(v);
+                titleRef.current = v;
+                saver.current?.touch();
+              }}
+              className={`w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none md:text-[1.05rem] ${title ? "focus:pr-8" : ""}`}
               aria-label="Title"
             />
+            {title && (
+              <button
+                type="button"
+                // shown while the title is being edited (always reachable on touch screens)
+                className="absolute right-1 top-1/2 hidden h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-muted hover:bg-canvas hover:text-ink group-focus-within/title:grid"
+                aria-label={t("field.clear")}
+                title={t("field.clear")}
+                // keep the title focused, so Esc can still bring the old title back
+                onPointerDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  const input = (e.currentTarget.previousElementSibling as HTMLInputElement | null);
+                  if (titleBefore.current === null) titleBefore.current = titleRef.current;
+                  titleDirty.current = false;
+                  setTitle("");
+                  titleRef.current = "";
+                  saver.current?.touch();
+                  input?.focus();
+                }}
+              >
+                <X size={14} aria-hidden />
+              </button>
+            )}
+            </div>
             <div className="flex items-center gap-2 truncate px-1.5 text-[11.5px] text-muted">
               <span className="font-semibold text-highlight">{template.ml}</span>
               {phone ? (

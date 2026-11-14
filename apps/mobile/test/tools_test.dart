@@ -111,6 +111,41 @@ void main() {
     await close(t, s, o);
   });
 
+  testWidgets('a selection over several lines and pages: copy text, bold, delete, type over it', (t) async {
+    final (s, o) = await open(t, DocKind.story, [p('one two'), p('three'), {'type': 'pageBreak'}, p('four five'), p('six')]);
+    TextBlock line(int i) => s.document.blocks[i] as TextBlock;
+    s.setSpan(DocPoint(line(0), 4), DocPoint(line(3), 5));
+    expect(s.hasSpan, isTrue);
+    expect(s.spanMultiLine, isTrue);
+    expect(s.spanText, 'two\nthree\nfour ');
+    // bold for the whole range, and off again
+    s.toggleMark('bold');
+    expect(s.markActive('bold'), isTrue);
+    expect(line(1).marks.every((m) => m.has('bold')), isTrue);
+    expect(line(0).marks[0].has('bold'), isFalse, reason: 'outside the selection');
+    s.toggleMark('bold');
+    expect(line(1).marks.any((m) => m.has('bold')), isFalse);
+    // Delete: the lines and the page between go, the two ends join
+    s.deleteSpan();
+    expect(s.hasSpan, isFalse);
+    expect((s.document.toJson()['content'] as List).map((b) => b['type']), ['paragraph', 'paragraph']);
+    expect(line(0).text, 'one five');
+    expect(identical(s.focused, line(0)), isTrue);
+    expect(s.controllerFor(line(0)).blockSelection.extentOffset, 4, reason: 'the cursor stays where the selection started');
+    // typing over a selection replaces it; the handles can be dragged either way round
+    s.setSpan(DocPoint(line(1), 2), DocPoint(line(0), 3));
+    expect(s.spanText, ' five\nsi');
+    s.replaceSpan('!');
+    expect(line(0).text, 'one!x');
+    expect(s.document.blocks.length, 1);
+    // Select all
+    s.selectAll();
+    expect(s.spanText, 'one!x');
+    s.replaceSpan('');
+    expect(line(0).text, '');
+    await close(t, s, o);
+  });
+
   testWidgets('plays: Story World characters fill the cast list once', (t) async {
     final (s, o) = await open(t, DocKind.drama, [
       p('കഥാപാത്രങ്ങൾ', 'styledBlock', {'variant': 'subhead'}),

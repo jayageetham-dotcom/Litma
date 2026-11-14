@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-14: Phone editing fixes, title in Manglish
+
+Phone app: a selection can run over many lines and pages (handles, bar, typing replaces it), Backspace removes an empty page, Move to trash closes the editor at once, rename takes Manglish. Web and desktop: the title box turns Manglish into Malayalam. Details in `mobile.md` and `web.md`. Phone changes are unverified until `flutter analyze`/`flutter test` and a simulator check; desktop needs a Release.
+
 ## 2026-11-14: Store setup
 
 Apple and Google Play developer accounts bought. Setup guide Part 10 (phone stores, Mac signing); iOS store build now signs with the App Store Connect key (`mobile-release.yml`). Details in `mobile.md` and `desktop.md`.

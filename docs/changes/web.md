@@ -10,6 +10,11 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-14: Title in Manglish
+
+- `components/editor/Workspace.tsx`: the work's title box follows the typing mode. In Manglish mode a finished word (space or punctuation) turns into Malayalam, and the rest when leaving the title (`titleDirty`, `toMalayalam` from `components/ScriptField.tsx`), like the phone app's rename box. Help: Getting started → Rename a work. `tsc --noEmit` passes; not tried in a browser. Desktop gets it with the next Release.
+- Help: new section Writing and formatting → Select text `{#select}` (web and phone), and the phone note under Pages says Backspace removes an empty page.
+
 ## 2026-11-14: FTPS upload forced to TLS 1.2
 
 - The Release run's site upload failed listing files: `gnutls_record_recv: Error in parsing` on the FTPS data connection (lftp/GnuTLS with cPanel's FTP server over TLS 1.3). Every lftp login (`deploy.yml`, `desktop.yml` latest.json upload, `clear-getlitma.yml`, `legacy-redirect.yml`) now sets `ssl:priority NORMAL:-VERS-TLS1.3`. **Unverified** until the next push/deploy run.

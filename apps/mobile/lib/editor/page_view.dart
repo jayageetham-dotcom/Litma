@@ -88,9 +88,25 @@ class EditableLine extends StatelessWidget {
       curve: Motion.emphasized,
       builder: (context, style, _) {
         c.baseStyle = style;
-        return TextField(
+        // The selection is drawn by the editor's selection layer (it can run over many lines), so the
+        // field's own highlight is clear and its menu gives way to the layer's bar.
+        final field = TextField(
+          key: session.keyFor(block),
           controller: c,
           focusNode: focus,
+          contextMenuBuilder: (context, state) {
+            if (session.hasSpan) return const SizedBox.shrink();
+            final items = [
+              for (final i in state.contextMenuButtonItems)
+                i.type == ContextMenuButtonType.selectAll
+                    ? i.copyWith(onPressed: () {
+                        state.hideToolbar();
+                        session.selectAll();
+                      })
+                    : i,
+            ];
+            return AdaptiveTextSelectionToolbar.buttonItems(anchors: state.contextMenuAnchors, buttonItems: items);
+          },
           style: style,
           textAlign: look.align,
           maxLines: null,
@@ -116,6 +132,7 @@ class EditableLine extends StatelessWidget {
           autocorrect: false,
           enableSuggestions: false,
         );
+        return TextSelectionTheme(data: TextSelectionTheme.of(context).copyWith(selectionColor: Colors.transparent), child: field);
       },
     );
 

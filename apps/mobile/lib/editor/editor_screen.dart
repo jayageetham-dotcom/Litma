@@ -15,12 +15,14 @@ import '../data/forms.dart';
 import '../data/models.dart';
 import '../features/reader/reader_screen.dart';
 import '../widgets/brand.dart';
+import '../widgets/script_field.dart';
 import 'block_controller.dart';
 import 'block_style.dart';
 import 'document.dart';
 import 'page_view.dart';
 import 'pages.dart';
 import 'saver.dart';
+import 'selection_layer.dart';
 import 'session.dart';
 import 'tools.dart';
 import 'work_tools.dart';
@@ -194,19 +196,38 @@ class _EditorState extends ConsumerState<_Editor> {
   }
 
   Future<void> _rename() async {
-    final ctrl = TextEditingController(text: s.title);
-    final name = await showDialog<String>(
+    // Manglish, Malayalam or English, with the same മലയാളം / As typed switch as Book details
+    var name = s.title;
+    final save = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.t('app.editor.renameTitle')),
-        content: TextField(controller: ctrl, autofocus: true, textInputAction: TextInputAction.done, onSubmitted: (v) => Navigator.pop(context, v)),
+        content: SizedBox(
+          width: 420,
+          child: ScriptField(
+            label: context.t('bookDetails.title'),
+            storageKey: 'work.title',
+            value: name,
+            autofocus: true,
+            onChanged: (v) => name = v,
+            onSubmitted: () => Navigator.pop(context, true),
+          ),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), style: TextButton.styleFrom(foregroundColor: context.c.ink), child: Text(context.t('common.cancel'))),
-          FilledButton(onPressed: () => Navigator.pop(context, ctrl.text), child: Text(context.t('common.save'))),
+          TextButton(onPressed: () => Navigator.pop(context, false), style: TextButton.styleFrom(foregroundColor: context.c.ink), child: Text(context.t('common.cancel'))),
+          FilledButton(
+            onPressed: () async {
+              // leaving the field turns a last Manglish word into Malayalam first
+              FocusManager.instance.primaryFocus?.unfocus();
+              await Future<void>.delayed(Duration.zero);
+              if (context.mounted) Navigator.pop(context, true);
+            },
+            child: Text(context.t('common.save')),
+          ),
         ],
       ),
     );
-    if (name != null) await s.rename(name);
+    if (save == true && name.trim().isNotEmpty) await s.rename(name.trim());
   }
 
   void _read() {
@@ -490,7 +511,9 @@ class _PageState extends State<_Page> {
             },
           ),
         );
-        return wide ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 760), child: list)) : list;
+        // the selection over many lines (highlight, handles, bar) is drawn above the page
+        final withSelection = Stack(children: [list, Positioned.fill(child: SelectionLayer(session: session, scroll: widget.controller))]);
+        return wide ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 760), child: withSelection)) : withSelection;
       }),
     );
   }

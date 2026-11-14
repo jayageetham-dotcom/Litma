@@ -508,7 +508,8 @@
     "typing": "Typing",
     "manglish": "മലയാളം",
     "plain": "As typed",
-    "convert": "Convert to Malayalam"
+    "convert": "Convert to Malayalam",
+    "clear": "Clear"
   },
   "bookDetails": {
     "title": "Title",
@@ -1141,6 +1142,14 @@
       "daily": "Keep a daily copy on this phone",
       "dailyHint": "Once a day, when you open Litma, a backup is kept in the app (the last 14).",
       "restoreWhere": "To bring works back from a backup, use Settings, Backup on the website or the desktop app."
+    },
+    "selection": {
+      "cut": "Cut",
+      "copy": "Copy",
+      "paste": "Paste",
+      "selectAll": "Select all",
+      "start": "Start of selection",
+      "end": "End of selection"
     }
   },
   "legal": {

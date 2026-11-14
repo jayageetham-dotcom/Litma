@@ -29,6 +29,7 @@ class BlockController extends TextEditingController {
     required this.onChanged,
     this.mode = InputMode.manglish,
     this.spelling,
+    this.onSpanEdit,
   }) : super.fromValue(TextEditingValue(text: '$sentinel${block.text}', selection: TextSelection.collapsed(offset: block.text.length + 1)));
 
   final TextBlock block;
@@ -44,6 +45,10 @@ class BlockController extends TextEditingController {
 
   /// Backspace at the very start. The editor merges into the previous block.
   final void Function(BlockController c) onMergeBack;
+
+  /// A selection across several lines is active and the writer typed [inserted] (empty for
+  /// Backspace/Delete): the editor replaces the whole range. True when it did.
+  final bool Function(BlockController c, String inserted)? onSpanEdit;
 
   /// Any change to text, marks or selection the editor should save or redraw for.
   final void Function(BlockController c, {required bool textChanged}) onChanged;
@@ -95,6 +100,7 @@ class BlockController extends TextEditingController {
     // Backspace at the start: the sentinel is gone
     if (!text.startsWith(sentinel)) {
       if (old.text.length > text.length && text == old.text.substring(1)) {
+        if (onSpanEdit?.call(this, '') ?? false) return;
         super.value = old.copyWith(selection: const TextSelection.collapsed(offset: 1));
         onMergeBack(this);
         return;
@@ -140,6 +146,9 @@ class BlockController extends TextEditingController {
     }
     final removedEnd = oldBody.length - s;
     final inserted = newBody.substring(p, newBody.length - s);
+
+    // a selection over several lines: the editor replaces all of it
+    if (onSpanEdit?.call(this, inserted) ?? false) return;
 
     // Enter: split the block instead of adding a line break
     final nl = inserted.indexOf('\n');
@@ -330,6 +339,9 @@ class BlockController extends TextEditingController {
     }
     onChanged(this, textChanged: !s.isCollapsed);
   }
+
+  /// Redraw after the editor changed this line's marks.
+  void refresh() => notifyListeners();
 
   /// Clear typing marks when the cursor moves somewhere else.
   void clearTypingMarks() => typingMarks = null;

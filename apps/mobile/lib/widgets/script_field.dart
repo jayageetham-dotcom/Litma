@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../app/providers.dart';
 import '../core/i18n.dart';
@@ -14,7 +16,11 @@ import '../core/theme.dart';
 /// The choice is remembered per field on this phone. Only text typed in this visit is converted
 /// when leaving, so moving through the fields never rewrites a name.
 class ScriptField extends ConsumerStatefulWidget {
-  const ScriptField({super.key, required this.label, required this.value, required this.onChanged, required this.storageKey, this.plainByDefault = false});
+  const ScriptField({super.key, required this.label, required this.value, required this.onChanged, required this.storageKey, this.plainByDefault = false, this.autofocus = false, this.onSubmitted});
+  final bool autofocus;
+
+  /// Done on the keyboard, after the last word has been converted.
+  final VoidCallback? onSubmitted;
   final String label;
   final String value;
   final ValueChanged<String> onChanged;
@@ -31,6 +37,9 @@ class _ScriptFieldState extends ConsumerState<ScriptField> {
   late bool _manglish;
   bool _dirty = false;
 
+  /// The text when the writer came into the field: Esc (hardware keyboard) puts it back.
+  String? _before;
+
   static final _finished = RegExp(r'([A-Za-z~_^]+)([^A-Za-z~_^])$');
   static final _latin = RegExp('[A-Za-z]');
 
@@ -42,7 +51,12 @@ class _ScriptFieldState extends ConsumerState<ScriptField> {
     final saved = ref.read(servicesProvider).prefs.getString(_key);
     _manglish = saved == null ? !widget.plainByDefault : saved == 'manglish';
     _focus.addListener(() {
-      if (!_focus.hasFocus) _finishAll();
+      if (_focus.hasFocus) {
+        _before ??= _text.text;
+      } else {
+        _finishAll();
+        _before = null;
+      }
     });
   }
 
@@ -88,6 +102,25 @@ class _ScriptFieldState extends ConsumerState<ScriptField> {
     setState(() {});
   }
 
+  /// The × button: empties the field and keeps the keyboard up for the new text.
+  void _clear() {
+    _before ??= _text.text;
+    _dirty = false;
+    _set('', 0);
+    setState(() {});
+    _focus.requestFocus();
+  }
+
+  /// Esc: back to the text from before this visit to the field.
+  KeyEventResult _escape(FocusNode _, KeyEvent e) {
+    final before = _before;
+    if (e is! KeyDownEvent || e.logicalKey != LogicalKeyboardKey.escape || before == null || before == _text.text) return KeyEventResult.ignored;
+    _dirty = false;
+    _set(before, before.length);
+    setState(() {});
+    return KeyEventResult.handled;
+  }
+
   void _finishAll() {
     if (_dirty && _manglish && _latin.hasMatch(_text.text)) _set(toMalayalam(_text.text), toMalayalam(_text.text).length);
     _dirty = false;
@@ -124,16 +157,37 @@ class _ScriptFieldState extends ConsumerState<ScriptField> {
         ),
       ]),
       const SizedBox(height: 4),
-      TextField(
+      Focus(
+        canRequestFocus: false,
+        skipTraversal: true,
+        onKeyEvent: _escape,
+        child: TextField(
         controller: _text,
         focusNode: _focus,
+        autofocus: widget.autofocus,
+        textInputAction: widget.onSubmitted == null ? null : TextInputAction.done,
         onTapOutside: dismissKeyboard,
         autocorrect: !_manglish,
         enableSuggestions: !_manglish,
         style: const TextStyle(fontFamily: LitmaFonts.sans, fontFamilyFallback: ['Inter']),
-        decoration: const InputDecoration(isDense: true),
+        decoration: InputDecoration(
+          isDense: true,
+          suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 36),
+          suffixIcon: _text.text.isEmpty
+              ? null
+              : IconButton(
+                  icon: Icon(LucideIcons.x, size: 16, color: c.muted),
+                  tooltip: context.t('field.clear'),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: _clear,
+                ),
+        ),
         onChanged: _changed,
-        onSubmitted: (_) => _finishAll(),
+        onSubmitted: (_) {
+          _finishAll();
+          widget.onSubmitted?.call();
+        },
+      ),
       ),
       if (latin)
         Align(

@@ -184,6 +184,22 @@ class TextBlock extends Block {
     return after;
   }
 
+  /// Remove [from, to) of the text with its marks; inline pieces after it move back.
+  void removeRange(int from, int to) {
+    if (to <= from) return;
+    text = text.substring(0, from) + text.substring(to);
+    marks.removeRange(from, to);
+    final moved = <int, Json>{};
+    atoms.forEach((k, v) {
+      if (k < from) {
+        moved[k] = v;
+      } else if (k >= to) {
+        moved[k - (to - from)] = v;
+      }
+    });
+    atoms = moved;
+  }
+
   /// Append another block's content at the end of this one.
   void append(TextBlock other) {
     final base = text.length;

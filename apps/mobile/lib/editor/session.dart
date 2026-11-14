@@ -70,7 +70,7 @@ class EditorSession extends ChangeNotifier {
 
   BlockController controllerFor(TextBlock b) => _controllers.putIfAbsent(
         b,
-        () => BlockController(block: b, styler: styler, mode: mode, spelling: (w) => spelling?.call(w), onSplit: _onSplit, onMergeBack: _onMergeBack, onChanged: _onChanged),
+        () => BlockController(block: b, styler: styler, mode: mode, spelling: (w) => spelling?.call(w), onSplit: _onSplit, onMergeBack: _onMergeBack, onChanged: _onChanged, onSpanEdit: _onSpanEdit),
       );
 
   FocusNode focusFor(TextBlock b) => _focus.putIfAbsent(b, () {
@@ -78,6 +78,8 @@ class EditorSession extends ChangeNotifier {
         f.addListener(() {
           if (f.hasFocus && focused != b) {
             focused = b;
+            // the writer went to another line: a selection over several lines ends
+            if (!_syncing && _anchor != null) _anchor = _extent = null;
             notifyListeners();
           } else if (!f.hasFocus) {
             // left the line: a Manglish word still being typed is finished, as a space would
@@ -310,6 +312,7 @@ class EditorSession extends ChangeNotifier {
   }
 
   void _dropLine(TextBlock b) {
+    _lineKeys.remove(b);
     _controllers.remove(b)?.dispose();
     final f = _focus.remove(b);
     WidgetsBinding.instance.addPostFrameCallback((_) => f?.dispose());
@@ -318,6 +321,7 @@ class EditorSession extends ChangeNotifier {
   // ── typing ──
 
   void _onChanged(BlockController c, {required bool textChanged}) {
+    if (!_syncing) _followFieldSelection(c, textChanged: textChanged);
     if (!textChanged) {
       notifyListeners(); // selection moved: toolbar state, suggestions
       return;
@@ -365,9 +369,13 @@ class EditorSession extends ChangeNotifier {
     _afterChange();
   }
 
-  bool markActive(String type) => current?.markActive(type) ?? false;
+  bool markActive(String type) => spanMultiLine ? _spanHas(type) : (current?.markActive(type) ?? false);
 
   void toggleMark(String type) {
+    if (spanMultiLine) {
+      _markSpan(type);
+      return;
+    }
     final c = current;
     if (c == null) return;
     c.toggleMark(type);
@@ -746,6 +754,7 @@ class EditorSession extends ChangeNotifier {
 
   /// The selected text in the current line.
   String get selectedText {
+    if (hasSpan) return spanText;
     final c = current;
     if (c == null) return '';
     final s = c.blockSelection;
@@ -831,6 +840,237 @@ class EditorSession extends ChangeNotifier {
     _pushHistory();
   }
 
+  // ── selection across lines ──
+  //
+  // Each line is its own text field, so the fields' own selection stops at a line's end. A
+  // selection is kept here instead, from one place in the work to another: the editor paints it
+  // and its handles over the page (selection_layer.dart), and the line where it starts holds the
+  // part in that line as its field's selection, so the keyboard replaces the whole range when
+  // the writer types or presses Backspace (onSpanEdit). Undo takes it back in one step.
+
+  DocPoint? _anchor, _extent;
+  bool _syncing = false;
+  final _lineKeys = <TextBlock, GlobalKey>{};
+
+  /// Key on each line's field, so the selection layer can find where its text is drawn.
+  GlobalKey keyFor(TextBlock b) => _lineKeys.putIfAbsent(b, () => GlobalKey(debugLabel: 'line'));
+
+  /// The key of a line's field, if it has been built.
+  GlobalKey? keyOf(TextBlock b) => _lineKeys[b];
+
+  bool get hasSpan {
+    final a = _anchor, e = _extent;
+    return a != null && e != null && !(identical(a.line, e.line) && a.at == e.at);
+  }
+
+  /// The selection in reading order (start, end), or null.
+  (DocPoint, DocPoint)? get spanRange {
+    if (!hasSpan) return null;
+    final all = lines;
+    final a = _anchor!, e = _extent!;
+    if (_index(a.line, all) < 0 || _index(e.line, all) < 0) return null;
+    return _compare(a, e, all) <= 0 ? (a, e) : (e, a);
+  }
+
+  bool get spanMultiLine {
+    final r = spanRange;
+    return r != null && !identical(r.$1.line, r.$2.line);
+  }
+
+  int _index(TextBlock l, List<TextBlock> all) => all.indexWhere((x) => identical(x, l));
+
+  int _compare(DocPoint a, DocPoint b, List<TextBlock> all) {
+    final i = _index(a.line, all), j = _index(b.line, all);
+    return i != j ? i - j : a.at - b.at;
+  }
+
+  /// Each line in the selection with the part of it that is selected.
+  List<({TextBlock line, int from, int to})> get spanParts {
+    final r = spanRange;
+    if (r == null) return const [];
+    final all = lines;
+    final i = _index(r.$1.line, all), j = _index(r.$2.line, all);
+    return [
+      for (var k = i; k <= j; k++)
+        (line: all[k], from: k == i ? r.$1.at.clamp(0, all[k].text.length) : 0, to: k == j ? r.$2.at.clamp(0, all[k].text.length) : all[k].text.length),
+    ];
+  }
+
+  /// The selected text, lines joined with line breaks.
+  String get spanText => spanParts.map((p) => p.line.text.substring(p.from, p.to).replaceAll(hardBreakChar, '\n').replaceAll(atomChar, '')).join('\n');
+
+  /// Select from [anchor] to [extent] (either order). While a handle is being dragged [sync] is
+  /// false, and [syncSpan] follows when the finger lifts.
+  void setSpan(DocPoint anchor, DocPoint extent, {bool sync = true}) {
+    _anchor = DocPoint(anchor.line, anchor.at.clamp(0, anchor.line.text.length));
+    _extent = DocPoint(extent.line, extent.at.clamp(0, extent.line.text.length));
+    if (sync) _syncSpanToField();
+    notifyListeners();
+  }
+
+  void syncSpan() => _syncSpanToField();
+
+  void clearSpan() {
+    if (_anchor == null) return;
+    _anchor = _extent = null;
+    notifyListeners();
+  }
+
+  /// The whole work.
+  void selectAll() {
+    final all = lines;
+    if (all.isEmpty) return;
+    setSpan(DocPoint(all.first, 0), DocPoint(all.last, all.last.text.length));
+  }
+
+  /// The line where the selection was last moved to (on screen, under the writer's finger) holds
+  /// its part of the selection as its field's own selection, with the keyboard.
+  (TextBlock, int, int)? _synced;
+
+  void _syncSpanToField() {
+    final e = _extent;
+    if (e == null || !hasSpan) return;
+    ({TextBlock line, int from, int to})? part;
+    for (final p in spanParts) {
+      if (identical(p.line, e.line)) part = p;
+    }
+    if (part == null) return;
+    final line = part.line;
+    _syncing = true;
+    try {
+      focused = line;
+      controllerFor(line).select(part.from, part.to);
+      _synced = (line, part.from, part.to);
+    } finally {
+      _syncing = false;
+    }
+    final f = focusFor(line);
+    if (!f.hasFocus) WidgetsBinding.instance.addPostFrameCallback((_) => f.requestFocus());
+  }
+
+  /// A field's own selection changed (long press, double tap, a mouse, Shift + arrows): it becomes
+  /// the selection; a cursor ends it.
+  void _followFieldSelection(BlockController c, {required bool textChanged}) {
+    if (textChanged) {
+      _anchor = _extent = null; // an edit inside one line (a selection over several is handled in _onSpanEdit)
+      return;
+    }
+    final sel = c.blockSelection;
+    final synced = _synced;
+    // the field reporting back what this editor gave it
+    if (hasSpan && synced != null && identical(synced.$1, c.block) && sel.start == synced.$2 && sel.end == synced.$3) return;
+    if (!sel.isCollapsed) {
+      _anchor = DocPoint(c.block, sel.baseOffset);
+      _extent = DocPoint(c.block, sel.extentOffset);
+      _synced = (c.block, sel.start, sel.end);
+      return;
+    }
+    // a cursor in the focused line (a tap) ends the selection; a field losing focus doesn't
+    if (_anchor != null && (_focus[c.block]?.hasFocus ?? false)) _anchor = _extent = null;
+  }
+
+  /// Typing, Backspace or Enter with a selection over several lines.
+  bool _onSpanEdit(BlockController c, String inserted) {
+    if (!spanMultiLine) return false;
+    replaceSpan(inserted);
+    return true;
+  }
+
+  /// Replace the selection with [text] (nothing: delete it). Enter splits the line there.
+  void replaceSpan(String text) {
+    final r = spanRange;
+    if (r == null) return;
+    _beforeChange();
+    final (line, at) = _deleteRange(r.$1, r.$2);
+    _anchor = _extent = null;
+    if (text == '\n') {
+      _onSplit(controllerFor(line), at);
+      return;
+    }
+    if (text.isNotEmpty) {
+      if (text.contains('\n')) {
+        insertText(text);
+        return;
+      }
+      controllerFor(line).replaceRange(at, at, text);
+    }
+    _afterChange();
+  }
+
+  /// Remove the text from [s] to [e]: lines and pages wholly inside go, the start and end lines
+  /// join (like Google Docs). Dialogue and cast entries keep their shape and only lose text.
+  /// Returns where the cursor goes.
+  (TextBlock, int) _deleteRange(DocPoint s, DocPoint e) {
+    final all = lines;
+    final i = _index(s.line, all), j = _index(e.line, all);
+    for (var k = i; k <= j; k++) {
+      final l = all[k];
+      final from = k == i ? s.at.clamp(0, l.text.length) : 0;
+      final to = k == j ? e.at.clamp(0, l.text.length) : l.text.length;
+      l.removeRange(from, to);
+    }
+    final ti = topIndexOf(s.line), tj = topIndexOf(e.line);
+    if (tj > ti + 1) {
+      for (final b in document.blocks.sublist(ti + 1, tj)) {
+        if (b is TextBlock) _dropLine(b);
+        if (b is GroupBlock) b.textChildren.forEach(_dropLine);
+      }
+      document.blocks.removeRange(ti + 1, tj);
+    }
+    if (tj > ti) {
+      final first = document.blocks[ti], last = document.blocks[ti + 1];
+      if (first is TextBlock && last is TextBlock) {
+        first.append(last);
+        document.blocks.removeAt(ti + 1);
+        _dropLine(last);
+      } else if (last is TextBlock && last.isEmpty) {
+        document.blocks.removeAt(ti + 1);
+        _dropLine(last);
+      }
+    }
+    if (document.blocks.isEmpty) document.blocks.add(TextBlock('paragraph', {}));
+    // fields of the lines that changed show their new text
+    for (var k = i; k <= j; k++) {
+      _controllers[all[k]]?.reload(cursor: 0);
+    }
+    final at = s.at.clamp(0, s.line.text.length);
+    _syncing = true;
+    try {
+      focused = s.line;
+      controllerFor(s.line).reload(cursor: at);
+    } finally {
+      _syncing = false;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => focusFor(s.line).requestFocus());
+    return (s.line, at);
+  }
+
+  /// Delete the selection (the bar's Delete, Cut).
+  void deleteSpan() => replaceSpan('');
+
+  bool _spanHas(String type) {
+    for (final p in spanParts) {
+      for (var k = p.from; k < p.to; k++) {
+        if (p.line.text[k] == atomChar && p.line.atoms.containsKey(k)) continue;
+        if (!p.line.marks[k].has(type)) return false;
+      }
+    }
+    return true;
+  }
+
+  void _markSpan(String type) {
+    final on = !_spanHas(type);
+    _beforeChange();
+    for (final p in spanParts) {
+      for (var k = p.from; k < p.to; k++) {
+        if (p.line.text[k] == atomChar && p.line.atoms.containsKey(k)) continue;
+        p.line.marks[k] = on ? p.line.marks[k].add({'type': type}) : p.line.marks[k].remove(type);
+      }
+      _controllers[p.line]?.refresh();
+    }
+    _afterChange();
+  }
+
   // ── undo ──
 
   final _history = <String>[];
@@ -874,6 +1114,8 @@ class EditorSession extends ChangeNotifier {
   }
 
   void _restore(String snap) {
+    _anchor = _extent = null;
+    _lineKeys.clear();
     final focusIndex = focused == null ? 0 : lines.indexWhere((x) => identical(x, focused));
     for (final c in _controllers.values) {
       c.dispose();
@@ -943,4 +1185,11 @@ class EditorSession extends ChangeNotifier {
     }
     super.dispose();
   }
+}
+
+/// A place in the work: a line and a position in its text.
+class DocPoint {
+  const DocPoint(this.line, this.at);
+  final TextBlock line;
+  final int at;
 }

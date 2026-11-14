@@ -368,14 +368,9 @@ The downloads from getlitma.in stay as they are (Release → **Desktop app**). T
 from a separate workflow, **Desktop store builds**, run by hand. Each store is skipped with a warning
 until its secrets exist. A store copy is updated by its store, so Litma's own update card stays off in it.
 
-### 11.0 Put the workflow in place (once)
+### 11.0 The workflow
 
-The workflow file waits in `apps/desktop/store-workflow/` because only you write to `.github/workflows/`:
-```sh
-cd ~/Documents/Litma
-git mv apps/desktop/store-workflow/desktop-stores.yml .github/workflows/desktop-stores.yml
-git commit -m "Add the desktop store builds workflow" && git push
-```
+The workflow is `.github/workflows/desktop-stores.yml` (Actions → **Desktop store builds**, run by hand). The Mac App Store step runs `apps/desktop/scripts/build-mas.sh`.
 
 ### 11.1 Mac App Store (same listing as the iPhone app)
 

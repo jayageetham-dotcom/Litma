@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-14: Mac App Store signing
+
+The five Mac App Store secrets are set (Apple Distribution and Mac Installer certificates, Mac App Store profile for `in.getlitma.litma`). The first store build failed in electron-builder's own keychain step; `apps/desktop/scripts/build-mas.sh` now signs with a keychain of its own. The workflow update waits in `apps/desktop/store-workflow/` for the owner to move. Details in `desktop.md`.
+
 ## 2026-11-14: iPad screenshots for the App Store
 
 Phone app screenshot test renders eight iPad 13" shots (`ipad-0N-*`, 2064 x 2752); `scripts/store-ipad-screens.py` adds the iPhone set's captions and colours into `marketing/store/app-store/ipad/`. Needs a manual run of the Mobile workflow (the screens job), then the script. Details in `mobile.md`.
@@ -17,7 +21,7 @@ The work title (editor top bar, phone rename box) and the Book details Title, Su
 
 ## 2026-11-14: Desktop app for the stores
 
-Mac App Store (sharing the iPhone app's listing), Microsoft Store and Snap Store packages of the desktop app: `electron-builder.stores.yml`, `src/store.ts` (store copies don't self-update), workflow **Desktop store builds** waiting in `apps/desktop/store-workflow/` for the owner to move into `.github/workflows/`. Setup guide Part 11. Details and what is unverified in `desktop.md`.
+Mac App Store (sharing the iPhone app's listing), Microsoft Store and Snap Store packages of the desktop app: `electron-builder.stores.yml`, `src/store.ts` (store copies don't self-update), workflow **Desktop store builds** (`.github/workflows/desktop-stores.yml`). Setup guide Part 11. Details and what is unverified in `desktop.md`.
 
 ## 2026-11-14: Phone editing fixes, title in Manglish
 

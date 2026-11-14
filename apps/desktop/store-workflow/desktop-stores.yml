@@ -1,0 +1,259 @@
+name: 🏪 Desktop store builds
+
+# The desktop app for the app stores (apps/desktop/electron-builder.stores.yml):
+#   - Mac App Store: a signed .pkg, uploaded to App Store Connect with the API key the phone builds use.
+#     The Mac app has the iPhone app's ID (in.getlitma.litma), so it joins that listing (Add Platform → macOS).
+#   - Microsoft Store: .appx packages (x64, arm64) attached to the run, for an upload in Partner Center
+#     (the Store signs them). The first submission is always made by hand in Partner Center.
+#   - Snap Store: a .snap, uploaded to the stable channel.
+# Each store is skipped with a warning until its secrets or variables exist, so this never fails for a
+# store that isn't set up yet. Nothing here touches the website, the getlitma.in downloads or latest.json;
+# those stay with Release → desktop.yml. Run by hand: Actions → Desktop store builds.
+# Setup, step by step: docs/setup/google-and-supabase.md, Part 11.
+#
+# Mac App Store (secrets):  MAS_CSC_LINK, MAS_CSC_KEY_PASSWORD            Apple Distribution certificate (.p12, base64)
+#                           MAS_INSTALLER_CSC_LINK, MAS_INSTALLER_CSC_KEY_PASSWORD   Mac Installer Distribution (.p12, base64)
+#                           MAS_PROVISION_PROFILE_BASE64                   Mac App Store provisioning profile (base64)
+#                           ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64   (already set for the phone builds) for the upload
+# Microsoft Store (variables, from Partner Center → Product identity):
+#                           MSSTORE_IDENTITY_NAME, MSSTORE_PUBLISHER, MSSTORE_PUBLISHER_DISPLAY_NAME
+# Snap Store (secret):      SNAPCRAFT_STORE_CREDENTIALS (snapcraft export-login), after `snapcraft register litma`
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Tag or branch to build (default: the selected branch)"
+        required: false
+      upload:
+        description: "Upload to the Mac App Store and the Snap Store (off: only attach the packages to this run)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-stores
+  cancel-in-progress: false
+
+env:
+  # electron-builder fetches (and caches) its own Electron; npm ci needn't download it too
+  ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+  REF: ${{ inputs.ref || github.ref }}
+
+jobs:
+  web:
+    name: 🌐 Web app for the desktop
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.REF }}
+      - name: Version
+        id: v
+        run: echo "version=$(node -p "require('./apps/desktop/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Build (empty base path)
+        run: npm run build:desktop -w @litma/web
+        env:
+          LITMA_VERSION: ${{ steps.v.outputs.version }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://jdexadomaxjtxlvgtldu.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XH6LhcIvUP_ENNbZFrmj7g_Z-YjUzP4' }}
+          NEXT_PUBLIC_SITE_URL: https://getlitma.in
+      - uses: actions/upload-artifact@v6
+        with:
+          name: web-out
+          path: apps/web/out
+          retention-days: 3
+
+  mac:
+    name: 🍎 Mac App Store
+    needs: web
+    runs-on: macos-latest
+    steps:
+      - id: secrets
+        env:
+          APP: ${{ secrets.MAS_CSC_LINK }}
+          INST: ${{ secrets.MAS_INSTALLER_CSC_LINK }}
+          PROF: ${{ secrets.MAS_PROVISION_PROFILE_BASE64 }}
+          P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          echo "ok=$([ -n "$APP" ] && [ -n "$INST" ] && [ -n "$PROF" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+          echo "asc=$([ -n "$P8" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.secrets.outputs.ok != 'yes'
+        run: echo "::warning::Mac App Store secrets (MAS_CSC_LINK, MAS_INSTALLER_CSC_LINK, MAS_PROVISION_PROFILE_BASE64) are not set; skipping the Mac App Store build."
+      - if: steps.secrets.outputs.ok == 'yes'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.REF }}
+      - if: steps.secrets.outputs.ok == 'yes'
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - if: steps.secrets.outputs.ok == 'yes'
+        run: npm ci
+      - if: steps.secrets.outputs.ok == 'yes'
+        uses: actions/download-artifact@v7
+        with:
+          name: web-out
+          path: apps/web/out
+      - if: steps.secrets.outputs.ok == 'yes'
+        name: Keep the Electron download
+        uses: actions/cache@v5
+        with:
+          path: .electron-cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
+      - if: steps.secrets.outputs.ok == 'yes'
+        name: Build the Mac App Store package
+        working-directory: apps/desktop
+        # scripts/build-mas.sh makes its own keychain (electron-builder 25.1.8 can't unlock the one it
+        # makes from CSC_LINK), writes the provisioning profile, builds and signs; each upload needs a
+        # higher build number (CFBundleVersion) for the same version, so it uses the run number
+        env:
+          MAS_CSC_LINK: ${{ secrets.MAS_CSC_LINK }}
+          MAS_CSC_KEY_PASSWORD: ${{ secrets.MAS_CSC_KEY_PASSWORD }}
+          MAS_INSTALLER_CSC_LINK: ${{ secrets.MAS_INSTALLER_CSC_LINK }}
+          MAS_INSTALLER_CSC_KEY_PASSWORD: ${{ secrets.MAS_INSTALLER_CSC_KEY_PASSWORD }}
+          MAS_PROVISION_PROFILE_BASE64: ${{ secrets.MAS_PROVISION_PROFILE_BASE64 }}
+          BUILD_NUMBER: ${{ github.run_number }}
+          ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache/electron
+          ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-cache/builder
+        run: bash scripts/build-mas.sh
+      - if: steps.secrets.outputs.ok == 'yes'
+        uses: actions/upload-artifact@v6
+        with:
+          name: litma-mac-app-store
+          path: apps/desktop/release/**/Litma-mac-store.pkg
+      - if: steps.secrets.outputs.ok == 'yes' && inputs.upload && steps.secrets.outputs.asc == 'yes'
+        name: Upload to App Store Connect
+        env:
+          P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ISSUER: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$P8" | base64 -d > ~/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8
+          PKG=$(find apps/desktop/release -name 'Litma-mac-store.pkg' | head -1)
+          # if this step fails, the .pkg attached to the run can be sent with Apple's Transporter app
+          xcrun altool --upload-app --type macos --file "$PKG" --apiKey "$KEY_ID" --apiIssuer "$ISSUER"
+
+  windows:
+    name: 🪟 Microsoft Store
+    needs: web
+    runs-on: windows-latest
+    steps:
+      - id: vars
+        shell: bash
+        run: echo "ok=${{ vars.MSSTORE_IDENTITY_NAME != '' && vars.MSSTORE_PUBLISHER != '' && vars.MSSTORE_PUBLISHER_DISPLAY_NAME != '' && 'yes' || 'no' }}" >> "$GITHUB_OUTPUT"
+      - if: steps.vars.outputs.ok != 'yes'
+        shell: bash
+        run: echo "::warning::Microsoft Store variables (MSSTORE_IDENTITY_NAME, MSSTORE_PUBLISHER, MSSTORE_PUBLISHER_DISPLAY_NAME) are not set; skipping the Microsoft Store build."
+      - if: steps.vars.outputs.ok == 'yes'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.REF }}
+      - if: steps.vars.outputs.ok == 'yes'
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - if: steps.vars.outputs.ok == 'yes'
+        run: npm ci
+      - if: steps.vars.outputs.ok == 'yes'
+        uses: actions/download-artifact@v7
+        with:
+          name: web-out
+          path: apps/web/out
+      - if: steps.vars.outputs.ok == 'yes'
+        name: Keep the Electron download
+        uses: actions/cache@v5
+        with:
+          path: .electron-cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
+      - if: steps.vars.outputs.ok == 'yes'
+        name: Build the Microsoft Store packages
+        shell: bash
+        working-directory: apps/desktop
+        env:
+          ID: ${{ vars.MSSTORE_IDENTITY_NAME }}
+          PUB: ${{ vars.MSSTORE_PUBLISHER }}
+          PUBNAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+          ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache/electron
+          ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-cache/builder
+          # the Store signs the package; no certificate here
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          npm run build
+          node scripts/copy-web.mjs
+          npx electron-builder --config electron-builder.stores.yml --win appx --x64 --arm64 \
+            -c.appx.identityName="$ID" -c.appx.publisher="$PUB" -c.appx.publisherDisplayName="$PUBNAME"
+      - if: steps.vars.outputs.ok == 'yes'
+        uses: actions/upload-artifact@v6
+        with:
+          name: litma-microsoft-store
+          path: apps/desktop/release/**/Litma-win-store-*.appx
+
+  linux:
+    name: 🐧 Snap Store
+    needs: web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.REF }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v7
+        with:
+          name: web-out
+          path: apps/web/out
+      - name: Keep the Electron download
+        uses: actions/cache@v5
+        with:
+          path: .electron-cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
+      - name: Build the snap
+        working-directory: apps/desktop
+        env:
+          ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache/electron
+          ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-cache/builder
+        run: |
+          npm run build
+          node scripts/copy-web.mjs
+          npx electron-builder --config electron-builder.stores.yml --linux snap --x64
+      - uses: actions/upload-artifact@v6
+        with:
+          name: litma-snap
+          path: apps/desktop/release/**/Litma-linux-store.snap
+      - id: snapcred
+        env:
+          C: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: echo "ok=$([ -n "$C" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.snapcred.outputs.ok != 'yes'
+        run: echo "::warning::SNAPCRAFT_STORE_CREDENTIALS is not set; the snap is attached to this run but not uploaded."
+      - if: steps.snapcred.outputs.ok == 'yes' && inputs.upload
+        name: Find the snap
+        id: snapfile
+        run: echo "path=$(find apps/desktop/release -name 'Litma-linux-store.snap' | head -1)" >> "$GITHUB_OUTPUT"
+      - if: steps.snapcred.outputs.ok == 'yes' && inputs.upload
+        name: Upload to the Snap Store (stable)
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.snapfile.outputs.path }}
+          release: stable

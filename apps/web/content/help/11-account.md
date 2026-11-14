@@ -65,6 +65,8 @@ On the website or desktop app, open **Settings → Backup** and choose **Restore
 
 Open **Settings** and scroll to the end: **Delete account** is there on the website, the desktop app and the phone app. Type DELETE to confirm. Your account and everything in it are deleted at once and for good: works, books, Story World, versions, saved words, AI keys, assistant tokens, goals and your posts in Litma Community. Litma can't bring them back, so make a backup first (see [Back up your works](/help/?a=backup)) if you want to keep your writing.
 
+**What is kept:** nothing linked to you. Usage statistics recorded before you signed in carry no name or email and are removed within 90 days, like all statistics.
+
 Can't sign in any more? Write to support@getlitma.in from your account's email address and we'll delete it for you within 30 days.
 
 ## Credits and licences {#credits}

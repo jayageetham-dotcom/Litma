@@ -9,6 +9,11 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   Pixel 7 emulation (touch, phone layout); still try it in real iOS Safari, where the system
   keyboard may compose words differently.
 
+
+## 2026-11-14: Delete-account guide says what is kept
+
+- `apps/web/content/help/11-account.md#delete-account`: a "What is kept" line (statistics from before sign-in, no name, removed within 90 days), as Google Play's account-deletion link must say. Live after the push; no app change.
+
 ## 2026-11-13: Sign-in messages and help for blocks and the check
 
 - `lib/auth.tsx` `authMessage`: banned, leaked password, captcha; `app/auth/callback` runs `error_description` through it. Help guides `security-check`, `blocked`.

@@ -14,7 +14,7 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - **Release needed** for Litma Community (2026-11-09): `/community/` and `/community/guidelines/` run inside the app (no desktop-only code). Check both by loading and by the avatar menu and Settings links in a packaged build.
 - **Release needed** for the 2026-11-09 spelling engine, grammar fix cards, grouped rail, editor menus and the other web changes of that day (all in the shared web code).
 - Installers are unsigned until the signing secrets exist (see cross-platform.md).
-- **Store builds (2026-11-14):** the five `MAS_*` secrets are set. Desktop store builds run #2 passed (14 Nov); check the Mac App Store copy in TestFlight for Mac before submitting.
+- **Store builds (2026-11-14):** the five `MAS_*` secrets are set. Desktop store builds run #2 passed; 0.7.26 (4) submitted for Mac App Store review on 14 Nov; check the Mac App Store copy in TestFlight for Mac before submitting.
 - **Release needed** for the 2026-11-08 writing aids (reminders in the main process, notifications, folder backup, and the web features). Try on a Mac and Windows: notification permission, reminder with the window closed, choosing a Google Drive for desktop folder.
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.

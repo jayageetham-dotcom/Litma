@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-14: Mac app submitted to the App Store
+
+macOS App 0.7.26 (build 4, from **Desktop store builds**) submitted for review at 22:50 IST, manual release, same listing as the iPhone app (Apple ID 6834719757). Checked by the owner in TestFlight for Mac: installs, dictionary suggestions. iPhone 0.7.24 (6) still waiting for review. After approval: release both by hand; then the next iPhone build should be 0.7.26 (dictionary joiner fix, Manglish suggestions are web-only). Open: `STORE_LINKS` in `apps/web/src/lib/release.ts` has only `ios`/`android`; the download page could add a Mac App Store link (https://apps.apple.com/app/id6834719757 opens the Mac listing on a Mac) once the Mac app is live.
+
 ## 2026-11-14: Dictionary finds words typed with a stray joiner
 
 Owner on the iPhone (build 6): കാട് gave "No entry", and no suggestions while typing. The keyboard had put an invisible U+200C after ്. `spellings()` in `packages/shared/src/dict.ts` (synced to `supabase/functions/_shared`, so MCP `dictionary_lookup` too) and in the phone's `lib/data/dictionary.dart`: `lookup` and `suggest` try the word as typed, then with old-style chillu (consonant + ് + U+200D) made atomic and joiners removed. As typed first, because 756 dictionary words keep a joiner. Checked on the web side against the built data (കാട് + U+200C / U+200D → കാട്); phone test in `test/phases_test.dart` not run here (no Flutter). **Reaches the iPhone only with the next store build** (0.7.24 build 6 is in review without it); website with the push; desktop with a Release / store build.

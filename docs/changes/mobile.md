@@ -15,6 +15,12 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-14: App Store setup
+
+- `ios/Runner/Info.plist`: `ITSAppUsesNonExemptEncryption` = false (Litma uses only HTTPS from iOS), so App Store Connect stops asking the export-compliance question for each build.
+- App Store Connect app created (Apple ID 6834719757, name "Litma: Malayalam Writing", version 0.7.24, rated 13+ to match the Terms). Listing text and iPhone screenshots (1206 x 2622, from the Play ones) in `marketing/store/app-store/`; the iOS text leaves out read aloud (no Malayalam voice on iPhones yet).
+- Open: the `ASC_*` secrets and the first TestFlight build; iPad screenshots are required while `TARGETED_DEVICE_FAMILY` is "1,2" (iPhone-only first release suggested, not decided).
+
 ## 2026-11-14: Android build tools for the current Flutter
 
 - The first signed store build failed: Flutter stable (3.50 on CI) needs Android Gradle Plugin ≥ 9.1.1 and warns below Gradle 9.5.0. `android/settings.gradle.kts` AGP 9.1.0 → 9.1.1, `gradle/wrapper/gradle-wrapper.properties` Gradle 9.3.1 → 9.5.0 (the versions Flutter's error names; the sandbox could not reach Google's Maven to check for newer). **Unverified** until the next Mobile store builds run. CI uses floating `stable`, so a future Flutter may ask again.

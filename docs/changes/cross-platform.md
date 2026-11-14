@@ -11,6 +11,8 @@ the code, and what is still unverified.
 
 Apple and Google Play developer accounts bought. Setup guide Part 10 (phone stores, Mac signing); iOS store build now signs with the App Store Connect key (`mobile-release.yml`). Details in `mobile.md` and `desktop.md`.
 
+App Store Connect app made (Apple ID 6834719757, 13+); listing and iPhone screenshots in `marketing/store/app-store/`; `Info.plist` declares no non-exempt encryption. Open: `ASC_*` secrets, first TestFlight build, iPad or iPhone-only (see `mobile.md`).
+
 ## Open items
 
 ### Still open (after the 2026-11-07 work)

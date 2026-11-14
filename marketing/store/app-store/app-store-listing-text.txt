@@ -1,0 +1,68 @@
+LITMA ON THE APP STORE: TEXT FOR APP STORE CONNECT
+(Built from the Google Play listing. iPhone change: the read-aloud line is left out, because iPhones have no Malayalam voice yet.)
+
+=== App Information (left menu) ===
+Name:      Litma: Malayalam Writing
+Subtitle (30):  Novels, poems in Manglish
+Category:  Productivity   (secondary: Books)
+Privacy Policy URL:  https://getlitma.in/privacy/
+
+=== Version page: 1.0 ===
+PROMOTIONAL TEXT (170)
+Write Malayalam novels, stories, poems and screenplays. Type in Manglish and see Malayalam script, on pages that look like the printed book.
+
+KEYWORDS (94/100, comma-separated, no spaces)
+Manglish,novel,poem,screenplay,story,writer,dictionary,Kerala,kavitha,katha,book,editor,typing
+
+SUPPORT URL:    https://getlitma.in/help/
+MARKETING URL:  https://getlitma.in/
+COPYRIGHT:      2026 Jagath Jayakumar
+
+DESCRIPTION
+Litma is a writing desk for Malayalam literature. Write novels, short stories, poems, songs, screenplays, plays, essays, features and diaries, each with its own layout, on pages that look like the printed book.
+
+TYPE THE WAY YOU THINK
+• Type in Manglish and watch it turn into Malayalam script, with a row of spellings to pick from.
+• Or type straight in Malayalam with your phone's keyboard, or in English.
+• Works without a connection. Your writing is kept on the phone and syncs when you are back online.
+
+A HOME FOR EVERY WRITING TYPE
+• Novels and stories with chapters, drop caps and book-style paragraphs.
+• Poems and songs with stanzas, refrain and metre marks (വൃത്തം).
+• Screenplays and plays with scenes, acts, dialogue and a cast list.
+• Essays and features with footnotes and references.
+• A diary that adds today's date for each new entry.
+
+WORDS AT YOUR FINGERTIPS
+• A built-in Malayalam dictionary and thesaurus, with English meanings.
+• നാട്ടറിവ്: Malayalam words from Kerala's life, food, festivals, arts and seasons, gathered by theme.
+• Rhymes (പ്രാസം) for poets and lyricists.
+• A spelling check that knows how Malayalam words join.
+• Save the words you love and use them later.
+
+PLAN YOUR STORY
+• Story World (കഥാലോകം): characters, places, objects, a plot board and a timeline beside your text.
+• Version history, so you can go back to an earlier draft.
+• Writing goals, a daily reminder, a writing timer and your streak.
+
+FROM DRAFT TO BOOK
+• Gather works into a book with contents, details and a cover designed in the app.
+• Export to PDF or Word, or share a link so others can read your work.
+
+AN AI COMPANION, ON YOUR TERMS
+Ask for feedback, a grammar check or ideas using your own Claude, ChatGPT or Gemini key. Your writing goes to the AI only when you ask.
+
+PRIVATE BY DEFAULT
+Your writing stays private unless you share a link. No ads. You can switch off usage statistics, back up your works, or delete your account at any time from Settings.
+
+One account works on your phone, at getlitma.in and in the desktop apps for Mac, Windows and Linux.
+
+എഴുതൂ, മലയാളത്തിൽ.
+
+=== Screenshots ===
+iPhone 6.9" display: litma-ios-01 … 08 (1290 x 2796), in this order.
+
+=== App Review Information ===
+Sign-in required: yes. Demo account: an email and password for a test account with a few works in it.
+Notes:
+Litma is a Malayalam writing app. Sign in with the demo account above. On the desk, tap New work and pick a writing type (for example Novel). Set the input to Manglish and type "mazha" then a space: it becomes മഴ. The Dictionary tab looks up Malayalam words. AI features need the writer's own API key and are optional.

@@ -2,6 +2,10 @@
 
 One version number covers the website, the desktop app and the mobile app. Newest first.
 
+## 0.7.25 · 2026-11-14
+
+- Small fixes and improvements.
+
 ## 0.7.24 · 2026-11-14
 
 - Small fixes and improvements.

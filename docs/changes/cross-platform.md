@@ -72,8 +72,9 @@ Only the owner can do these (accounts, secrets, dashboards):
   upload keystore (first `.aab` uploaded by hand), service account, store forms, demo account for
   reviewers. Then fill `STORE_LINKS` and the `mobile` block of `latest.json`; until then the web's
   store buttons say "Coming soon". The iOS CI signing change (mobile.md 2026-11-14) is untested.
-- **Desktop signing:** macOS now possible with the Apple account (setup guide 10.5): `CSC_LINK`/`CSC_KEY_PASSWORD` and Apple notarisation (`APPLE_ID`,
-  `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`) for macOS, `WIN_CSC_LINK` for Windows. Unsigned
+- **Desktop signing:** macOS: first move `apps/desktop/download-workflow/desktop.yml` into
+  `.github/workflows/` (keychain fix), then add `CSC_LINK`/`CSC_KEY_PASSWORD` and `APPLE_ID`,
+  `APPLE_APP_SPECIFIC_PASSWORD` (setup guide 10.5) and run Release. Windows: `WIN_CSC_LINK`. Unsigned
   installers show security warnings.
 - **Optional branded MCP URL** (see CLAUDE.md).
 

@@ -1,0 +1,284 @@
+name: 🖥️ Desktop app
+
+# Builds Litma for macOS (.dmg, universal), Windows (.exe) and Linux (.AppImage) and publishes them:
+#   - attached to the GitHub release for the version
+#   - latest.json uploaded to getlitma.in/downloads/ (add/replace only), which
+#     the home page reads for its download buttons and installed desktop apps read to update themselves.
+# Normally run by the Release workflow. Can also run from a pushed tag (v1.2.3 or desktop-v1.2.3)
+# or by hand from the Actions tab.
+
+on:
+  push:
+    tags: ["v[0-9]*", "desktop-v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 0.2.0). Defaults to apps/desktop/package.json"
+        required: false
+      min_version:
+        description: "Oldest desktop version still allowed (older apps must update). Leave empty for none"
+        required: false
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      ref:
+        type: string
+        required: true
+      min_version:
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+env:
+  # npm ci would also download Electron itself from github.com, which sometimes answers 504.
+  # No step here runs Electron; electron-builder fetches (and caches) its own copy.
+  ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+  REF: ${{ inputs.ref || github.ref }}
+
+jobs:
+  web:
+    name: 🌐 Web app for the desktop
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.REF }}
+      - name: Version
+        id: v
+        run: |
+          V="${{ inputs.version }}"
+          if [ -z "$V" ] && [[ "$GITHUB_REF_NAME" =~ ^(desktop-)?v[0-9] ]]; then V="${GITHUB_REF_NAME#desktop-}"; V="${V#v}"; fi
+          if [ -z "$V" ]; then V=$(node -p "require('./apps/desktop/package.json').version"); fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Litma desktop $V"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Build (empty base path)
+        run: npm run build:desktop -w @litma/web
+        env:
+          LITMA_VERSION: ${{ steps.v.outputs.version }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://jdexadomaxjtxlvgtldu.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XH6LhcIvUP_ENNbZFrmj7g_Z-YjUzP4' }}
+          NEXT_PUBLIC_SITE_URL: https://getlitma.in
+      - uses: actions/upload-artifact@v6
+        with:
+          name: web-out
+          path: apps/web/out
+          retention-days: 3
+
+  package:
+    name: 📦 ${{ matrix.name }}
+    needs: web
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macOS, os: macos-latest, flag: --mac }
+          - { name: Windows, os: windows-latest, flag: --win }
+          - { name: Linux, os: ubuntu-latest, flag: --linux }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.REF }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v7
+        with:
+          name: web-out
+          path: apps/web/out
+      - name: Set version
+        shell: bash
+        run: npm pkg set version="${{ needs.web.outputs.version }}" -w @litma/desktop
+      # Electron's own download comes from github.com, which sometimes answers 504.
+      # Keep it between runs so most builds never download it at all.
+      - name: Keep the Electron download
+        uses: actions/cache@v5
+        with:
+          path: .electron-cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
+      - name: Build installer
+        shell: bash
+        working-directory: apps/desktop
+        run: |
+          npm run build
+          node scripts/copy-web.mjs
+          EXTRA=""
+          # An empty secret still arrives as an empty variable, which electron-builder reads as a
+          # certificate path. Remove empty ones so unsigned builds really are unsigned.
+          for v in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            [ -z "${!v}" ] && unset "$v"
+          done
+          if [ -z "${CSC_LINK:-}" ]; then
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+            # macOS: ad-hoc signature so the universal app (Apple silicon) launches; Windows: unsigned
+            [ "${{ matrix.flag }}" = "--mac" ] && EXTRA="-c.mac.identity=-"
+            echo "No signing certificate: building an unsigned installer"
+          fi
+          # macOS with the Developer ID certificate: sign from a keychain made by scripts/mac-keychain.sh,
+          # because electron-builder 25.1.8 can't unlock the one it makes from CSC_LINK. With APPLE_ID,
+          # APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID set, electron-builder also notarises the app.
+          if [ "${{ matrix.flag }}" = "--mac" ] && [ -n "${CSC_LINK:-}" ]; then
+            source scripts/mac-keychain.sh
+          fi
+          # Retry when a download from GitHub fails for a moment (504, reset connection).
+          for attempt in 1 2 3; do
+            if npx electron-builder --config electron-builder.yml ${{ matrix.flag }} $EXTRA; then exit 0; fi
+            [ "$attempt" = 3 ] && break
+            echo "::warning::electron-builder failed (attempt $attempt of 3). Trying again in 30 seconds."
+            sleep 30
+          done
+          echo "::error::electron-builder failed 3 times."
+          exit 1
+        env:
+          ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache/electron
+          ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-cache/builder
+          # optional signing (see apps/desktop/README.md); unsigned builds when these are empty
+          CSC_LINK: ${{ matrix.os == 'macos-latest' && secrets.CSC_LINK || secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.CSC_KEY_PASSWORD || secrets.WIN_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - uses: actions/upload-artifact@v6
+        with:
+          name: installer-${{ matrix.name }}
+          path: |
+            apps/desktop/release/Litma-mac.dmg
+            apps/desktop/release/Litma-win.exe
+            apps/desktop/release/Litma-linux.AppImage
+          if-no-files-found: error
+
+  publish:
+    name: 🚀 Publish
+    needs: [web, package]
+    runs-on: ubuntu-latest
+    env:
+      V: ${{ needs.web.outputs.version }}
+      # Installers are too big for the web host's quota, so they live on GitHub Releases of a
+      # small public repository (no code, just downloads). latest.json stays on the website.
+      RELEASES_REPO: ${{ vars.RELEASES_REPO || 'jayageetham-dotcom/litma-releases' }}
+    steps:
+      - name: Check the public downloads repository is set up
+        env:
+          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [ -z "$RELEASES_TOKEN" ]; then
+            echo "::error::Add a RELEASES_TOKEN secret (a fine-grained token with Contents: read and write on $RELEASES_REPO). See apps/desktop/README.md → Publishing."
+            exit 1
+          fi
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.REF }}
+          fetch-depth: 0
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: installer-*
+          path: downloads
+          merge-multiple: true
+      - name: Versioned files, release notes and latest.json
+        env:
+          MIN: ${{ inputs.min_version }}
+        run: |
+          mv downloads/Litma-mac.dmg "downloads/Litma-$V-mac.dmg"
+          mv downloads/Litma-win.exe "downloads/Litma-$V-win.exe"
+          mv downloads/Litma-linux.AppImage "downloads/Litma-$V-linux.AppImage"
+          mkdir -p manifest
+          # notes: only what the owner typed in the Release form (this version's section of CHANGELOG.md, minus the generic fallback line)
+          node -e '
+            const fs = require("fs"); const crypto = require("crypto");
+            const v = process.env.V;
+            const base = "https://github.com/" + process.env.RELEASES_REPO + "/releases/download/v" + v + "/";
+            const cl = fs.existsSync("CHANGELOG.md") ? fs.readFileSync("CHANGELOG.md", "utf8") : "";
+            const m = cl.match(new RegExp("## " + v.replace(/\./g, "\\.") + "[^\\n]*\\n([\\s\\S]*?)(?=\\n## |$)"));
+            const notes = (m ? m[1] : "").split("\n").map(s => s.replace(/^- /, "").trim()).filter((n) => n && n !== "Small fixes and improvements." && n !== "Maintenance release").slice(0, 12);
+            fs.writeFileSync("notes.md", notes.map(n => "- " + n).join("\n") || "- Small fixes and improvements.");
+            const file = (f) => ({ file: f, url: base + f, sha256: crypto.createHash("sha256").update(fs.readFileSync("downloads/" + f)).digest("hex"), size: fs.statSync("downloads/" + f).size });
+            const mac = file("Litma-" + v + "-mac.dmg"), win = file("Litma-" + v + "-win.exe"), linux = file("Litma-" + v + "-linux.AppImage");
+            const latest = {
+              version: v,
+              date: new Date().toISOString(),
+              notes,
+              mac: mac.url,
+              win: win.url,
+              linux: linux.url,
+              desktop: { version: v, minimumVersion: process.env.MIN || null, mac, win, linux },
+              mobile: { version: null, minimumVersion: null, ios: null, android: null }
+            };
+            fs.writeFileSync("manifest/latest.json", JSON.stringify(latest, null, 2) + "\n");
+          '
+          cat manifest/latest.json
+      - name: Public release with the installers
+        uses: softprops/action-gh-release@v3
+        with:
+          repository: ${{ env.RELEASES_REPO }}
+          token: ${{ secrets.RELEASES_TOKEN }}
+          tag_name: v${{ env.V }}
+          name: Litma ${{ env.V }}
+          body_path: notes.md
+          make_latest: true
+          files: |
+            downloads/Litma-${{ env.V }}-mac.dmg
+            downloads/Litma-${{ env.V }}-win.exe
+            downloads/Litma-${{ env.V }}-linux.AppImage
+            manifest/latest.json
+      - name: Release notes in this repository (no files)
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ env.V }}
+          name: Litma ${{ env.V }}
+          body_path: notes.md
+      # Same guard as deploy.yml: the web host also holds other sites.
+      - name: 🔒 Refuse to delete files on the server
+        run: |
+          if grep -nE '^[[:space:]]*mirror .*(--delete|[[:space:]]-e[[:space:]])' .github/workflows/desktop.yml; then
+            echo "::error::The FTP upload must never delete server files."
+            exit 1
+          fi
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: 📂 Put latest.json on the website (a few KB; the installers stay on GitHub)
+        env:
+          # same FTP account as deploy.yml (getlitma.in)
+          FTP_HOST: ${{ vars.LITMA_FTP_SERVER || secrets.LITMA_FTP_SERVER || 'ftp.getlitma.in' }}
+          FTP_USER: ${{ vars.LITMA_FTP_USERNAME || secrets.LITMA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.LITMA_FTP_PASSWORD }}
+          FTP_DIR: ${{ vars.LITMA_FTP_DIR || '/' }}
+        run: |
+          if [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then echo "::warning::getlitma.in FTP account not set up yet; apps will read latest.json from the GitHub release only."; exit 0; fi
+          for attempt in 1 2 3; do
+            if lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate no
+          set ssl:priority NORMAL:-VERS-TLS1.3
+          set ftp:passive-mode true
+          set net:timeout 60
+          set net:max-retries 8
+          set cmd:fail-exit true
+          mkdir -pf ${FTP_DIR%/}/downloads
+          put -O ${FTP_DIR%/}/downloads/ ./manifest/latest.json
+          bye
+          LFTP
+            then echo "Uploaded"; exit 0; fi
+            sleep 20
+          done
+          echo "::error::FTP upload failed after 3 attempts."
+          exit 1

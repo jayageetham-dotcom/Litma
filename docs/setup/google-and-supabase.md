@@ -353,14 +353,18 @@ Actions → **New repository secret**.
 
 Without it, the first launch of the Mac app needs right-click → Open.
 
-1. developer.apple.com → Certificates → **+** → **Developer ID Application** (follow the steps to make
-   a certificate request with Keychain Access). Download it, double-click to add it to Keychain.
-2. Keychain Access → My Certificates → that certificate → Export as `.p12` with a password. Then
-   `base64 -i Certificates.p12 | pbcopy`. Secrets: `CSC_LINK` (paste), `CSC_KEY_PASSWORD`.
+1. developer.apple.com → Certificates → **+** → **Developer ID Application** (if asked, the **G2
+   Sub-CA**) → upload a certificate request made with Keychain Access (as in 11.1, step 2) → Download →
+   double-click it.
+2. Keychain Access → login → My Certificates → right-click the **certificate** row **Developer ID
+   Application: … (D9U998359G)** (not the key under it) → Export as `.p12` with a password. Then
+   `base64 -i ~/Downloads/<file>.p12 | pbcopy`. Secrets: `CSC_LINK` (paste), `CSC_KEY_PASSWORD`.
 3. [account.apple.com](https://account.apple.com) → Sign-In and Security → App-Specific Passwords →
    make one called "Litma notarise". Secrets: `APPLE_ID` (your Apple ID email),
    `APPLE_APP_SPECIFIC_PASSWORD`. `APPLE_TEAM_ID` is already set (10.1).
-4. The next Actions → **Release** builds a signed, notarised Mac app.
+4. The next Actions → **Release** builds a signed, notarised Mac app. The macOS step signs from a
+   keychain made by `apps/desktop/scripts/mac-keychain.sh` (electron-builder 25.1.8 can't unlock its
+   own); if the certificate is wrong, its log says which secret to check. Then delete the `.p12`.
 
 ## Part 11. The desktop app in the Mac App Store, Microsoft Store and Snap Store
 

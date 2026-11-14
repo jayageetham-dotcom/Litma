@@ -18,6 +18,7 @@ import { createHash } from "node:crypto";
 import { createWriteStream, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { store } from "./store";
 
 // LITMA_UPDATE_FEED / LITMA_UPDATE_PLATFORM exist for testing the updater against a local server
 const FEED = process.env.LITMA_UPDATE_FEED || "https://getlitma.in/downloads";
@@ -64,6 +65,8 @@ function platformFile(): FileInfo | undefined {
 }
 
 export async function checkForUpdates(manual = false) {
+  // a store copy is updated by its store (store.ts)
+  if (store) return state;
   if (state.status === "downloading" || state.status === "ready") return state;
   broadcast({ status: "checking", current: app.getVersion() });
   try {
@@ -100,6 +103,7 @@ export async function checkForUpdates(manual = false) {
 }
 
 export async function downloadUpdate() {
+  if (store) return state;
   const f = platformFile();
   if (!f || (state.status !== "available" && state.status !== "error")) return state;
   const base = state.status === "available" ? state : null;
@@ -149,7 +153,7 @@ function macAppBundle(): string | null {
 }
 
 export function installUpdate() {
-  if (!downloaded || !existsSync(downloaded)) return false;
+  if (store || !downloaded || !existsSync(downloaded)) return false;
   if (process.platform === "win32") {
     spawn(downloaded, ["/S", "--force-run"], { detached: true, stdio: "ignore" }).unref();
     setTimeout(() => app.quit(), 300);
@@ -231,6 +235,7 @@ fi
 
 /** Background checks: soon after launch, then every few hours. Only in packaged builds. */
 export function startUpdateChecks() {
+  if (store) return;
   if (!app.isPackaged && !process.env.LITMA_UPDATE_FEED) return;
   setTimeout(() => checkForUpdates(false), 8000);
   setInterval(() => checkForUpdates(false), CHECK_EVERY_MS);

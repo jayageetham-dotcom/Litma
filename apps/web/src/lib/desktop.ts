@@ -8,6 +8,8 @@ export type DesktopUpdateState =
 export interface LitmaDesktop {
   platform: string;
   version: string;
+  /** set when an app store updates this copy (Mac App Store, Microsoft Store, Snap Store): no update card then */
+  store?: "mas" | "msstore" | "snap" | null;
   checkForUpdates?: () => Promise<DesktopUpdateState>;
   updateState?: () => Promise<DesktopUpdateState>;
   downloadUpdate?: () => Promise<DesktopUpdateState>;

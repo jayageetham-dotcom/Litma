@@ -21,8 +21,14 @@ const PUBLIC = ["/", "/login/", "/signup/", "/forgot-password/", "/reset-passwor
 
 export function UpdateNotice() {
   const [desk, setDesk] = useState(false);
+  const [store, setStore] = useState(false);
   const path = usePathname();
-  useEffect(() => setDesk(!!desktop()?.onUpdate), []);
+  useEffect(() => {
+    setDesk(!!desktop()?.onUpdate);
+    setStore(!!desktop()?.store);
+  }, []);
+  // a desktop copy from an app store is updated by that store
+  if (store) return null;
   if (desk) return <DesktopUpdate />;
   const p = path.endsWith("/") ? path : `${path}/`;
   return PUBLIC.includes(p) ? null : <WebUpdate />;
@@ -162,7 +168,7 @@ export function AboutLitma() {
             Litma {process.env.NEXT_PUBLIC_APP_VERSION}
             {d ? ` · ${t("update.desktopApp")}` : ""}
           </div>
-          <div className="text-xs text-muted">{d ? t("update.desktopAuto") : t("update.webAuto")}</div>
+          <div className="text-xs text-muted">{d?.store ? t("update.storeAuto", { store: t(`update.store_${d.store}`) }) : d ? t("update.desktopAuto") : t("update.webAuto")}</div>
         </div>
         {d?.checkForUpdates && (
           <button

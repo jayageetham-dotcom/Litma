@@ -12,6 +12,7 @@ import { app, BrowserWindow, ipcMain, Menu, nativeTheme, net, protocol, shell, t
 import { checkForUpdates, currentState, downloadUpdate, installUpdate, startUpdateChecks } from "./updater";
 import { markRang, setReminder, showNotification, startReminders, type ReminderState } from "./reminders";
 import { registerBackup } from "./backup";
+import { store } from "./store";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
@@ -211,7 +212,8 @@ function createWindow(url = `${ORIGIN}/desk/`) {
       sandbox: true,
       nodeIntegration: false,
       spellcheck: false, // Malayalam spell-check isn't available; underlines would cover every word
-      additionalArguments: [`--litma-version=${app.getVersion()}`],
+      // the preload tells the web app the version, and whether a store updates this copy (store.ts)
+      additionalArguments: [`--litma-version=${app.getVersion()}`, `--litma-store=${store ?? ""}`],
     },
   });
   if (saved.maximized) win.maximize();
@@ -231,7 +233,8 @@ function buildMenu() {
             label: app.name,
             submenu: [
               { role: "about" as const },
-              { label: "Check for Updates…", click: () => checkForUpdates(true) },
+              // a store copy is updated by its store
+              ...(store ? [] : [{ label: "Check for Updates…", click: () => checkForUpdates(true) }]),
               { type: "separator" as const },
               { role: "services" as const },
               { type: "separator" as const },
@@ -272,7 +275,7 @@ function buildMenu() {
     {
       role: "help",
       submenu: [
-        ...(mac ? [] : [{ label: "Check for updates…", click: () => checkForUpdates(true) }, { type: "separator" as const }]),
+        ...(mac || store ? [] : [{ label: "Check for updates…", click: () => checkForUpdates(true) }, { type: "separator" as const }]),
         { label: "Litma Help", accelerator: mac ? undefined : "F1", click: () => shell.openExternal(`${SITE}/help/`) },
         { type: "separator" },
         { label: `Litma ${app.getVersion()}`, enabled: false },
@@ -284,8 +287,9 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-// Windows shows notifications only for an app with an id (the installer's appId)
-if (process.platform === "win32") app.setAppUserModelId("com.jayageetham.litma");
+// Windows shows notifications only for an app with an id (the installer's appId); a Microsoft Store
+// package has its own id from the package, which must not be replaced
+if (process.platform === "win32" && !process.windowsStore) app.setAppUserModelId("com.jayageetham.litma");
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();

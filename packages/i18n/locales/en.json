@@ -299,7 +299,11 @@
     "desktopApp": "desktop app",
     "desktopAuto": "Checks for updates every few hours and installs them when you say so.",
     "webAuto": "The website updates itself; you'll see a reload prompt when a new version is live.",
-    "check": "Check for updates"
+    "check": "Check for updates",
+    "storeAuto": "Updates come from {store}, like your other apps.",
+    "store_mas": "the Mac App Store",
+    "store_msstore": "the Microsoft Store",
+    "store_snap": "the Snap Store"
   },
   "editor": {
     "insertPage": "Insert page",

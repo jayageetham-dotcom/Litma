@@ -14,7 +14,7 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - **Release needed** for Litma Community (2026-11-09): `/community/` and `/community/guidelines/` run inside the app (no desktop-only code). Check both by loading and by the avatar menu and Settings links in a packaged build.
 - **Release needed** for the 2026-11-09 spelling engine, grammar fix cards, grouped rail, editor menus and the other web changes of that day (all in the shared web code).
 - Installers are unsigned until the signing secrets exist (see cross-platform.md).
-- **Store builds (2026-11-14):** the five `MAS_*` secrets are set. Owner to move the updated `apps/desktop/store-workflow/desktop-stores.yml` into `.github/workflows/` (signing fix, README there), run **Desktop store builds** again; check the Mac App Store copy in TestFlight for Mac before submitting.
+- **Store builds (2026-11-14):** the five `MAS_*` secrets are set. Desktop store builds run #2 passed (14 Nov); check the Mac App Store copy in TestFlight for Mac before submitting.
 - **Release needed** for the 2026-11-08 writing aids (reminders in the main process, notifications, folder backup, and the web features). Try on a Mac and Windows: notification permission, reminder with the window closed, choosing a Google Drive for desktop folder.
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
@@ -24,9 +24,9 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 
 - First run of **Desktop store builds** failed while signing: `security set-key-partition-list … SecKeychainUnlock: The user name or passphrase you entered is not correct`. Cause: electron-builder 25.1.8 (`app-builder-lib/out/codeSign/macCodeSign.js`, `importCerts`) passes the `.p12` password as the password of the random-password keychain it creates from `CSC_LINK`.
 - New `apps/desktop/scripts/build-mas.sh`: makes its own keychain with a known password, imports both `.p12` files (and Apple's WWDR G3 intermediate), checks that an Apple Distribution and a Mac Installer identity are valid (clear error if not), writes the provisioning profile, builds, and runs electron-builder with `CSC_KEYCHAIN` and no `CSC_LINK`; removes keychain and profile on exit. The workflow step now only calls it, with `MAS_*` env and `BUILD_NUMBER`.
-- Updated workflow waits in `apps/desktop/store-workflow/desktop-stores.yml` for the owner to move (README there).
+- Owner moved the updated workflow into `.github/workflows/` (afd0f71); the `apps/desktop/store-workflow/` folder is gone.
 - **Same bug will hit `desktop.yml`** (getlitma.in downloads) once `CSC_LINK` / `CSC_KEY_PASSWORD` are set for Developer ID signing: give it the same treatment (or upgrade electron-builder) before adding those secrets.
-- **Unverified:** not run yet (bash -n only; no macOS here).
+- **Run #2 of Desktop store builds passed** (Mac App Store job green in 3m 45s; Microsoft Store skipped, Snap built but not uploaded, as expected). Still to check: the upload reached App Store Connect, and the TestFlight copy on a Mac (sign-in, `app://`, `/dict` fetch, export, print, backup folder in the sandbox).
 
 ## 2026-11-14: Store builds (Mac App Store, Microsoft Store, Snap Store)
 

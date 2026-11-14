@@ -9,7 +9,7 @@ the code, and what is still unverified.
 
 ## 2026-11-14: Mac App Store signing
 
-The five Mac App Store secrets are set (Apple Distribution and Mac Installer certificates, Mac App Store profile for `in.getlitma.litma`). The first store build failed in electron-builder's own keychain step; `apps/desktop/scripts/build-mas.sh` now signs with a keychain of its own. The workflow update waits in `apps/desktop/store-workflow/` for the owner to move. Details in `desktop.md`.
+The five Mac App Store secrets are set (Apple Distribution and Mac Installer certificates, Mac App Store profile for `in.getlitma.litma`). The first store build failed in electron-builder's own keychain step; `apps/desktop/scripts/build-mas.sh` now signs with a keychain of its own; run #2 passed. Next: TestFlight for Mac, then attach the build to the macOS version (manual release). Details in `desktop.md`.
 
 ## 2026-11-14: iPad screenshots for the App Store
 

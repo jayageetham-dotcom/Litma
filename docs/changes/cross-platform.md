@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-14: iPad screenshots for the App Store
+
+Phone app screenshot test renders eight iPad 13" shots (`ipad-0N-*`, 2064 x 2752); `scripts/store-ipad-screens.py` adds the iPhone set's captions and colours into `marketing/store/app-store/ipad/`. Needs a manual run of the Mobile workflow (the screens job), then the script. Details in `mobile.md`.
+
 ## 2026-11-14: Clear button and Esc in name fields
 
 The work title (editor top bar, phone rename box) and the Book details Title, Subtitle and Author fields get a × that empties them, and Esc puts back the text from before the writer clicked in (web, desktop, phone with a hardware keyboard). A work title left empty gets its old name back. New string `field.clear` (en + ml). Help: `01-getting-started.md` (Rename a work), `02-typing.md#manglish-fields`. Unverified: `npm run build` (couldn't run in the sandbox), phone `flutter analyze`/`flutter test`; desktop needs a Release.

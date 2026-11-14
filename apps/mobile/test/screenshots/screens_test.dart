@@ -107,9 +107,9 @@ class _NoNetTransliterator extends Transliterator {
 
 Future<Map<String, dynamic>> _json(String path) async => (jsonDecode(File(path).readAsStringSync()) as Map).cast<String, dynamic>();
 
-Future<void> shoot(WidgetTester tester, String name, Widget app, {Size size = const Size(390, 844), Brightness brightness = Brightness.light, Future<void> Function(WidgetTester)? then}) async {
-  tester.view.physicalSize = size * 3;
-  tester.view.devicePixelRatio = 3;
+Future<void> shoot(WidgetTester tester, String name, Widget app, {Size size = const Size(390, 844), double ratio = 3, Brightness brightness = Brightness.light, Future<void> Function(WidgetTester)? then}) async {
+  tester.view.physicalSize = size * ratio;
+  tester.view.devicePixelRatio = ratio;
   tester.platformDispatcher.platformBrightnessTestValue = brightness;
   addTearDown(tester.view.reset);
   addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
@@ -546,6 +546,57 @@ void main() {
         size: const Size(1000, 2050),
         then: loadCoverArt,
       );
+    });
+
+    // ── iPad 13" for the App Store (1032 x 1376 points at 2x = 2064 x 2752 pixels) ──
+    const ipad = Size(1032, 1376);
+    Future<void> loaded(WidgetTester t, [int ms = 300]) async {
+      await t.runAsync(() => Future<void>.delayed(Duration(milliseconds: ms)));
+      await settle(t, 25);
+    }
+
+    testWidgets('ipad desk', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      await shoot(t, 'ipad-01-desk', app(s, home: const DeskScreen()), size: ipad, ratio: 2, then: loaded);
+    });
+    testWidgets('ipad editor typing', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      await shoot(t, 'ipad-02-editor-typing', app(s, home: const EditorScreen(docId: 'w-story')), size: ipad, ratio: 2, then: (t) async {
+        await loaded(t, 200);
+        final last = find.byType(TextField).last;
+        await t.tap(last);
+        t.view.viewInsets = const FakeViewPadding(bottom: 400 * 2);
+        await settle(t, 5);
+        await t.enterText(last, '${(t.widget<TextField>(last).controller!.text)} nammude');
+        await settle(t, 10);
+      });
+    });
+    for (final (id, name) in [('w-novel', '03-editor-novel'), ('w-poem', '04-editor-poem')]) {
+      testWidgets('ipad $name', (t) async {
+        final s = await t.runAsync(() => services()) as Services;
+        await shoot(t, 'ipad-$name', app(s, home: EditorScreen(docId: id)), size: ipad, ratio: 2, then: (t) => loaded(t, 200));
+      });
+    }
+    testWidgets('ipad dictionary', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      await shoot(t, 'ipad-05-dictionary', app(s, home: const DictionaryScreen(initialWord: 'മഴ')), size: ipad, ratio: 2, then: (t) => loaded(t, 400));
+    });
+    testWidgets('ipad nattarivu', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      await shoot(t, 'ipad-06-nattarivu', app(s, home: const DictionaryScreen()), size: ipad, ratio: 2, then: (t) async {
+        await loaded(t);
+        await t.tap(find.text('നാട്ടറിവ്').first);
+        await loaded(t);
+      });
+    });
+    testWidgets('ipad story world', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      await shoot(t, 'ipad-07-story-world', app(s, home: StoryWorldScreen(docId: 'w-novel', kind: DocKind.novel, settings: const {}, onSettings: (_) {})), size: ipad, ratio: 2, then: loaded);
+    });
+    testWidgets('ipad cover designer', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      final book = await t.runAsync(() => sampledBook(s)) as Book;
+      await shoot(t, 'ipad-08-cover-designer', app(s, home: CoverDesignerScreen(book: book, onCover: (_) {})), size: ipad, ratio: 2, then: loadCoverArt);
     });
   });
 }

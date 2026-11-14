@@ -15,6 +15,12 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-14: iPad screenshots for the App Store
+
+- `test/screenshots/screens_test.dart`: `shoot` takes a `ratio` (default 3); new iPad 13" shots at 1032 x 1376 points x 2 = 2064 x 2752: `ipad-01-desk`, `02-editor-typing` (keyboard 400 pt), `03-editor-novel`, `04-editor-poem`, `05-dictionary`, `06-nattarivu`, `07-story-world`, `08-cover-designer`.
+- `scripts/store-ipad-screens.py` (Pillow, Inter Bold from `assets/fonts`): caption + colour per shot like the iPhone set, screen in a dark rounded frame, into `marketing/store/app-store/ipad/litma-ipad-0N-*.png`.
+- Unverified: the shots render only in CI (Mobile workflow → Run workflow, screens job). Look at each: the app has few tablet layouts (centred 760 pt editor sheet), so some screens may look wide and empty.
+
 ## 2026-11-14: Clear button and Esc in name fields
 
 - `lib/widgets/script_field.dart`: × suffix button (`_clear`, keeps the keyboard up), Esc on a hardware keyboard (iPad) restores the text from focus time (`_before`, `_escape` in a `Focus` wrapper; ignored when nothing changed, so Esc still closes the rename dialog). Used by the rename box and Book details.
@@ -39,7 +45,7 @@ Reaches writers only through store builds. Cross-app summary and open items:
 
 - `ios/Runner/Info.plist`: `ITSAppUsesNonExemptEncryption` = false (Litma uses only HTTPS from iOS), so App Store Connect stops asking the export-compliance question for each build.
 - App Store Connect app created (Apple ID 6834719757, name "Litma: Malayalam Writing", version 0.7.24, rated 13+ to match the Terms). Listing text and iPhone screenshots (1206 x 2622, from the Play ones) in `marketing/store/app-store/`; the iOS text leaves out read aloud (no Malayalam voice on iPhones yet).
-- Open: the `ASC_*` secrets and the first TestFlight build; iPad screenshots are required while `TARGETED_DEVICE_FAMILY` is "1,2" (iPhone-only first release suggested, not decided).
+- Open: the `ASC_*` secrets and the first TestFlight build; iPad screenshots are required while `TARGETED_DEVICE_FAMILY` is "1,2" (owner chose to ship iPad too: see the iPad screenshots entry above).
 
 ## 2026-11-14: Android build tools for the current Flutter
 

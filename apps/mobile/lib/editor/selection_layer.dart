@@ -193,6 +193,7 @@ class _SelectionLayerState extends State<SelectionLayer> {
             final r = s.spanRange;
             if (r == null) return;
             _fixed = start ? r.$2 : r.$1;
+            s.beginHandleDrag();
             setState(() => _dragging = true);
             HapticFeedback.selectionClick();
           },

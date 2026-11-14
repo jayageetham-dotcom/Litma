@@ -910,6 +910,25 @@ class EditorSession extends ChangeNotifier {
 
   void syncSpan() => _syncSpanToField();
 
+  /// A handle is grabbed: the line holding the keyboard lets go of its own selection quietly (the
+  /// long-pressed word), so nothing it reports while the finger moves or the page scrolls can shrink
+  /// or end the selection. Its echo of the cursor is expected, not a tap.
+  void beginHandleDrag() {
+    final f = focused;
+    final c = f == null ? null : _controllers[f];
+    if (f == null || c == null) return;
+    final at = c.blockSelection.extentOffset;
+    if (!c.blockSelection.isCollapsed) {
+      _syncing = true;
+      try {
+        c.placeCursor(at);
+      } finally {
+        _syncing = false;
+      }
+    }
+    _synced = (f, at, at);
+  }
+
   void clearSpan() {
     if (_anchor == null) return;
     _anchor = _extent = null;

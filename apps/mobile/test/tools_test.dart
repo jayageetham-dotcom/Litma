@@ -154,9 +154,14 @@ void main() {
     // the long press: the field selects the word "two"
     first.value = first.value.copyWith(selection: const TextSelection(baseOffset: 5, extentOffset: 8));
     expect(s.spanText, 'two');
-    // the end handle is dragged to "four|" and the finger lifts
+    // the end handle is grabbed and dragged to "four|"
     final r = s.spanRange!;
+    s.beginHandleDrag();
     s.setSpan(r.$1, DocPoint(line(2), 4), sync: false);
+    // the field echoes its cursor back while the finger moves: not a tap, the selection stays
+    first.value = first.value.copyWith(selection: TextSelection.collapsed(offset: first.selection.extentOffset));
+    expect(s.spanText, 'two\nthree\nfour');
+    // and the finger lifts
     s.syncSpan();
     expect(s.spanText, 'two\nthree\nfour');
     expect(first.blockSelection.isCollapsed, isTrue, reason: 'the first line let go of its word');

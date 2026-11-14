@@ -156,8 +156,11 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
       );
 
   void _after(Object? result) {
+    if (result is TrashedWork) {
+      unawaited(_trashId(result.id));
+      return;
+    }
     _desk.refresh();
-    if (result == 'trashed' && mounted) _toast(context.t('app.desk.trashed'));
   }
 
   void _toast(String text, {VoidCallback? undo}) {
@@ -170,14 +173,22 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     ));
   }
 
-  Future<void> _trash(LitmaDoc d) async {
+  Future<void> _trash(LitmaDoc d) => _trashId(d.id);
+
+  /// Trash a work from the desk (swipe, long press) or from inside the editor: off the list at once,
+  /// then the store, then a toast with Undo.
+  Future<void> _trashId(String id) async {
     final store = ref.read(servicesProvider).store;
-    _desk.drop(d.id);
+    _desk.drop(id);
     Haptics.soft();
-    await store.trashDoc(d.id);
+    try {
+      await store.trashDoc(id);
+    } catch (_) {
+      // kept in the outbox; the list already shows it gone
+    }
     if (!mounted) return;
     _toast(context.t('app.desk.trashed'), undo: () async {
-      await store.restoreDoc(d.id);
+      await store.restoreDoc(id);
       _desk.refresh();
     });
   }

@@ -12,9 +12,13 @@ Reaches writers only through store builds. Cross-app summary and open items:
   suggestion row, mid-line Manglish, desk keyboard, editor tools from #5, cover designer, book
   PDFs including the whole-book PDF, Book details, statistics reaching /admin/).
 - Writing aids (2026-11-08) need a CI run and a device check (see that entry). Still to do on the phone: spelling marks inside the text, restore from a backup, Drive backup without the share sheet.
-- **Bug (owner, 2026-11-14, seen on the iPad simulator):** in an open work, More → Move to trash should trash it, close the editor and show the desk refreshed without that work. It doesn't do all of that. Code: `lib/editor/editor_screen.dart` (`case 'trash'`: `store.trashDoc` then `nav.pop('trashed')`); check that the pop really closes the editor on iPad (a different route or sheet may be on top) and that the desk reloads its list on the `'trashed'` result. Fix later; check on iPhone and Android too.
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
+
+## 2026-11-14: Move to trash from the editor
+
+- Owner saw it on the iPad simulator: More → Move to trash left the work open (the editor waited for the last save and the server before closing) and the work was never trashed. Now the editor closes at once with a `TrashedWork(id)` result (`lib/editor/editor_screen.dart`, last save gets 2 s); the desk's `_after` takes it off the list, trashes it and shows the toast with Undo (`_trashId` in `lib/features/desk/desk_screen.dart`, shared with swipe to trash). An untouched new work is just discarded on close, as before.
+- **Unverified:** not run through `flutter analyze`/`flutter test` here (no Flutter in this sandbox); owner to hot-restart on the iPad simulator and check, CI on push.
 
 ## 2026-11-14: App Store setup
 

@@ -912,6 +912,13 @@ Future<void> showModeSheet(BuildContext context, EditorSession s) async {
   );
 }
 
+/// What the editor hands back when the writer moved the work to trash from its menu: the desk
+/// trashes it, takes it off the list and offers Undo.
+class TrashedWork {
+  const TrashedWork(this.id);
+  final String id;
+}
+
 class _MoreMenu extends ConsumerWidget {
   const _MoreMenu({required this.session, required this.onRename, required this.onRead});
   final EditorSession session;
@@ -939,11 +946,16 @@ class _MoreMenu extends ConsumerWidget {
           case 'mode':
             await showModeSheet(context, session);
           case 'trash':
+            // Close at once: the desk moves the work to trash (with Undo) and refreshes. Waiting on the
+            // network here left the editor open on a slow or missing connection. An untouched new work
+            // is simply discarded when the editor closes.
             final nav = Navigator.of(context);
-            final store = ref.read(servicesProvider).store;
-            await session.saver.flush();
-            await store.trashDoc(session.doc.id);
-            nav.pop('trashed');
+            if (session.pristine && session.doc.pristine) {
+              nav.pop();
+              return;
+            }
+            await session.saver.flush().timeout(const Duration(seconds: 2), onTimeout: () {});
+            nav.pop(TrashedWork(session.doc.id));
         }
       },
       itemBuilder: (context) => [

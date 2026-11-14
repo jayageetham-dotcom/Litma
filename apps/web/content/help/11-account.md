@@ -61,6 +61,19 @@ On the website and desktop app, open **Settings → Backup**:
 
 On the website or desktop app, open **Settings → Backup** and choose **Restore from a backup file**. Works that are no longer in Litma come back with their Story World. Works that are still there are left as they are, so restoring never changes or deletes anything.
 
+## Delete some of your data {#delete-data}
+
+You can remove parts of your data yourself and keep your account:
+
+- **Works:** move a work to the trash, then choose **Delete forever** or **Empty trash** (see [Move a work to the trash and back](/help/?a=trash)). This also removes its versions and Story World.
+- **Books:** delete a book from the Books tab on the desk. The works in it stay.
+- **Saved words:** choose **Remove from saved words** on a saved word.
+- **AI keys and assistant tokens:** **Remove** a key, or delete a token, in Settings.
+- **Community posts:** **Delete** on your own post. It disappears for everyone at once; Indian law asks Litma to keep a hidden copy for 180 days, then it is erased.
+- **Usage statistics:** switch **Usage statistics** off in Settings. Litma stops counting, and what was counted before is removed within 90 days.
+
+Anything else you want removed? Write to support@getlitma.in from your account's email address.
+
 ## Delete your account {#delete-account}
 
 Open **Settings** and scroll to the end: **Delete account** is there on the website, the desktop app and the phone app. Type DELETE to confirm. Your account and everything in it are deleted at once and for good: works, books, Story World, versions, saved words, AI keys, assistant tokens, goals and your posts in Litma Community. Litma can't bring them back, so make a backup first (see [Back up your works](/help/?a=backup)) if you want to keep your writing.

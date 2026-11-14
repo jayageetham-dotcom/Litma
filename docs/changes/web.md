@@ -12,6 +12,8 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
 
 ## 2026-11-14: Delete-account guide says what is kept
 
+- New section `11-account.md#delete-data` (`/help/?a=delete-data`): deleting works, books, saved words, keys, community posts (hidden copy 180 days) and statistics without closing the account; Google Play's "delete some data" link.
+
 - `apps/web/content/help/11-account.md#delete-account`: a "What is kept" line (statistics from before sign-in, no name, removed within 90 days), as Google Play's account-deletion link must say. Live after the push; no app change.
 
 ## 2026-11-13: Sign-in messages and help for blocks and the check

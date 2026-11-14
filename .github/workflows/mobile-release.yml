@@ -8,7 +8,9 @@
 #   PLAY_SERVICE_ACCOUNT_JSON  service account with release rights (optional: without it the .aab is
 #                              attached to the run for a manual upload)
 # iOS (TestFlight):
-#   APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64 (App Store Connect API key)
+#   APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64 (App Store Connect API key with the
+#   Admin role, so Xcode can create the distribution certificate on the runner)
+# Step by step: docs/setup/google-and-supabase.md, Part 10.
 name: Mobile store builds
 
 on:
@@ -125,7 +127,13 @@ jobs:
             <key>destination</key><string>upload</string>
           </dict></plist>
           PLIST
-          flutter build ipa --release --build-number=${{ github.run_number }} --export-options-plist=ExportOptions.plist \
-            || xcodebuild -exportArchive -archivePath build/ios/archive/Runner.xcarchive -exportOptionsPlist ExportOptions.plist \
-                 -exportPath build/ios/ipa -allowProvisioningUpdates \
-                 -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8 -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER"
+          # Build the Flutter part, then archive and export with the API key so Xcode can make the
+          # signing certificate and profile itself (a fresh runner has none). The team comes from the
+          # secret, not the Xcode project, which may still carry a personal team.
+          flutter build ios --release --no-codesign --build-number=${{ github.run_number }}
+          AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$HOME/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8" -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER")
+          xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath build/ios/archive/Runner.xcarchive \
+            DEVELOPMENT_TEAM="$TEAM" "${AUTH[@]}" archive
+          xcodebuild -exportArchive -archivePath build/ios/archive/Runner.xcarchive -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/ios/ipa "${AUTH[@]}"

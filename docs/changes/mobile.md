@@ -15,6 +15,11 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-14: Store builds, developer accounts bought
+
+- The owner has Apple and Google Play developer accounts. `docs/setup/google-and-supabase.md` Part 10 (with checklist and troubleshooting rows) walks through the App ID, App Store Connect app and API key, Play Console app, upload keystore, service account, store forms and the GitHub secrets.
+- `.github/workflows/mobile-release.yml` iOS job: `flutter build ios --no-codesign`, then `xcodebuild archive` and `-exportArchive` both with `-allowProvisioningUpdates` and the API key, and `DEVELOPMENT_TEAM` from `APPLE_TEAM_ID`. The old `flutter build ipa` archived without the key, so on a fresh runner it had no certificate to sign with. **Unverified:** runs only once the secrets exist; the Xcode project still has `DEVELOPMENT_TEAM = D9U998359G` (overridden in CI; check in Xcode whether that is the paid team).
+
 ## 2026-11-13: Sign-in messages
 
 - `authMessage` in `lib/data/auth.dart`: banned, leaked password, captcha (same wording as the web).

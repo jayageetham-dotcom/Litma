@@ -279,6 +279,89 @@ web host's firewall blocks data-centre callers on `getlitma.in/mcp`.
 
 ---
 
+## Part 10. App Store and Google Play (phone app), and Mac signing
+
+The phone app's bundle id is `in.getlitma.litma` on both stores. Store builds run in Actions →
+**Mobile store builds** (and from **Release**). Each platform is skipped with a warning until its
+secrets exist. All secrets below go in GitHub → the Litma repo → Settings → Secrets and variables →
+Actions → **New repository secret**.
+
+### 10.1 Apple: the App ID and Sign in with Apple
+
+1. [developer.apple.com/account](https://developer.apple.com/account) → Membership details: copy the
+   **Team ID** (10 letters and digits). Add it as secret `APPLE_TEAM_ID` (the Mac desktop signing
+   uses the same secret).
+2. Certificates, Identifiers & Profiles → Identifiers → **+** → App IDs → App → Bundle ID
+   **Explicit** `in.getlitma.litma`, description "Litma". Tick **Sign in with Apple**. Register.
+3. Supabase → Authentication → Providers → **Apple**: enable, Client IDs `in.getlitma.litma`
+   (Part 3.3).
+
+### 10.2 Apple: the app in App Store Connect
+
+1. [appstoreconnect.apple.com](https://appstoreconnect.apple.com) → Apps → **+** → New App: iOS,
+   name "Litma" (if taken, for example "Litma Malayalam Writing"), primary language Malayalam or
+   English, bundle id `in.getlitma.litma`, SKU `litma-ios`.
+2. Users and Access → **Integrations** → App Store Connect API → Team Keys → **+**: name "GitHub",
+   access **Admin** (Admin lets Xcode create the distribution certificate on GitHub's Mac). Download
+   the `.p8` file (only once). Note the **Key ID** and the **Issuer ID** at the top of the page.
+3. Secrets: `ASC_KEY_ID` (Key ID), `ASC_ISSUER_ID` (Issuer ID), `ASC_KEY_P8_BASE64`: on the Mac
+   run `base64 -i AuthKey_XXXX.p8 | pbcopy` and paste.
+4. Run Actions → **Mobile store builds**. The build appears in App Store Connect → TestFlight after
+   10 to 30 minutes. Answer the export compliance question (Litma uses only standard encryption:
+   HTTPS).
+5. Before review: App Privacy (data types match `/privacy/`: email, name, writing, usage
+   statistics that you can switch off; no tracking), privacy policy URL
+   `https://getlitma.in/privacy/`, support URL `https://getlitma.in/help/`, screenshots for 6.9"
+   and 13" iPad (the screenshots job's pictures can help), and a **demo account** for the reviewer
+   (Apple asks for one when an app needs sign-in).
+
+### 10.3 Google Play
+
+1. [play.google.com/console](https://play.google.com/console) → **Create app**: name "Litma",
+   default language, App, Free. Accept the declarations.
+2. The upload key, on the Mac (keep the `.jks` file and both passwords somewhere safe; a lost
+   upload key can be reset through Play support, but it takes days):
+   ```sh
+   keytool -genkey -v -keystore ~/litma-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   base64 -i ~/litma-upload.jks | pbcopy
+   ```
+   Secrets: `ANDROID_KEYSTORE_BASE64` (paste), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`
+   (`upload`), `ANDROID_KEY_PASSWORD` (the same as the store password if you pressed Enter).
+3. Run Actions → **Mobile store builds**. The run attaches `litma-android` (`app-release.aab`).
+   The **first** upload must be by hand: Play Console → Testing → Internal testing → Create new
+   release → upload that `.aab` (this also turns on Play App Signing). Google sign-in in the phone
+   app goes through the browser, so no SHA-1 fingerprint is needed.
+4. Automatic uploads after that: Google Cloud → IAM & Admin → Service Accounts → create
+   "play-upload" → Keys → Add key → JSON. Enable the **Google Play Android Developer API** in the
+   same Cloud project. Play Console → Users and permissions → Invite new users → the service
+   account's email → app permission for Litma with **Release to testing tracks** (and production
+   when you want it). Secret `PLAY_SERVICE_ACCOUNT_JSON`: the whole JSON file.
+5. App content in Play Console: privacy policy `https://getlitma.in/privacy/`, **Data safety** (as
+   in 10.2 step 5), account deletion URL `https://getlitma.in/help/?a=delete-account`, app access
+   (the demo account), content rating, target audience (not for children).
+6. A **personal** developer account made after November 2023 must run a closed test with at least
+   12 testers for 14 days before it may publish to production. An organisation account doesn't.
+
+### 10.4 After the apps are live
+
+- Put the store links in `STORE_LINKS` (`apps/web/src/lib/release.ts`) and the `mobile` block of
+  `latest.json` (`ios`, `android`), so the website's "Coming soon" buttons become real.
+- Each Actions → **Release** sends the phone build to TestFlight and Play internal testing; you
+  promote it to the stores from App Store Connect and Play Console.
+
+### 10.5 Mac desktop app: signing and notarisation (optional, same Apple account)
+
+Without it, the first launch of the Mac app needs right-click → Open.
+
+1. developer.apple.com → Certificates → **+** → **Developer ID Application** (follow the steps to make
+   a certificate request with Keychain Access). Download it, double-click to add it to Keychain.
+2. Keychain Access → My Certificates → that certificate → Export as `.p12` with a password. Then
+   `base64 -i Certificates.p12 | pbcopy`. Secrets: `CSC_LINK` (paste), `CSC_KEY_PASSWORD`.
+3. [account.apple.com](https://account.apple.com) → Sign-In and Security → App-Specific Passwords →
+   make one called "Litma notarise". Secrets: `APPLE_ID` (your Apple ID email),
+   `APPLE_APP_SPECIFIC_PASSWORD`. `APPLE_TEAM_ID` is already set (10.1).
+4. The next Actions → **Release** builds a signed, notarised Mac app.
+
 ## Checklist
 
 - [ ] Google consent screen: name, logo, links, domains, scopes (email, profile, openid, drive.file), published
@@ -294,6 +377,12 @@ web host's firewall blocks data-centre callers on `getlitma.in/mcp`.
 - [ ] Your account in `app_admins`
 - [ ] Turnstile widget, GitHub variable `TURNSTILE_SITE_KEY`, then Supabase Captcha protection on (3.5)
 - [ ] Supabase "Prevent use of leaked passwords" on (3.5)
+- [ ] Apple: App ID `in.getlitma.litma` with Sign in with Apple; secret `APPLE_TEAM_ID` (10.1)
+- [ ] App Store Connect app and API key; secrets `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_BASE64`; build in TestFlight (10.2)
+- [ ] Play Console app; upload key secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`; first `.aab` uploaded by hand (10.3)
+- [ ] Play service account; secret `PLAY_SERVICE_ACCOUNT_JSON` (10.3)
+- [ ] Store links in `STORE_LINKS` and `latest.json` once the apps are live (10.4)
+- [ ] Mac desktop signing: `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` (10.5)
 
 ## When something goes wrong
 
@@ -309,4 +398,6 @@ web host's firewall blocks data-centre callers on `getlitma.in/mcp`.
 | Deploy job says "No SUPABASE_ACCESS_TOKEN secret" | Part 5, step 3 |
 | Goals page shows no minutes or hours | Part 5, step 5: the `writing_stats_retention` migration hasn't run |
 | Writers' saved AI keys stopped working | `LITMA_KEYS_SECRET` was changed; set it back, or writers add their keys again |
+| iOS store build: "No Accounts" or "No signing certificate" | 10.2 step 2: the API key needs the **Admin** role, and `APPLE_TEAM_ID` must be the paid team's id |
+| Play upload: "Package not found" | 10.3 step 3: upload the first `.aab` by hand |
 | No **Save to Google Drive** button | Part 4, steps 4 and 5: the variable, then a new deploy |

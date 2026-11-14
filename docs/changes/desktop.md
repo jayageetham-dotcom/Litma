@@ -18,6 +18,11 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+
+## 2026-11-14: Mac signing steps
+
+- With the Apple developer account, the Mac app can be signed and notarised: steps in `docs/setup/google-and-supabase.md` 10.5 (secrets `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`, already read by `desktop.yml`). No code change.
+
 ## 2026-11-13: Delete account and CAPTCHA (web code, needs a Release)
 
 - Settings → Delete account and the sign-in check come from `apps/web`. The check loads `https://getlitma.in/captcha/` in an iframe (Turnstile won't run on app://litma); `.htaccess` lets `app:` frame that page only. Subframe navigation isn't blocked by `main.ts`. Unverified in a packaged app.

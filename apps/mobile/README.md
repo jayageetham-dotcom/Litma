@@ -1,6 +1,6 @@
 # Litma for iOS and Android (Flutter)
 
-**Store setup (owner):** Play Console app `in.getlitma.litma` and an upload keystore; App Store Connect app with the same bundle id and an API key; then add the secrets listed in `.github/workflows/mobile-release.yml` and fill the `mobile` block (store links) in `latest.json`.
+**Store setup (owner):** Play Console app `in.getlitma.litma` and an upload keystore; App Store Connect app with the same bundle id and an API key; then add the secrets listed in `.github/workflows/mobile-release.yml` (step by step: `docs/setup/google-and-supabase.md`, Part 10) and fill the `mobile` block (store links) in `latest.json`.
 
 A native app, not the website in a frame: the same account, works and writing types as the web and
 desktop apps, with Litma's look, native gestures and transitions, and full offline use.

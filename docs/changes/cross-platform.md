@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-14: Store setup
+
+Apple and Google Play developer accounts bought. Setup guide Part 10 (phone stores, Mac signing); iOS store build now signs with the App Store Connect key (`mobile-release.yml`). Details in `mobile.md` and `desktop.md`.
+
 ## Open items
 
 ### Still open (after the 2026-11-07 work)
@@ -29,10 +33,12 @@ Litma Community (2026-11-09):
 - Desktop gets the community only after a **Release**; the phone app links to the website until native screens exist.
 
 Only the owner can do these (accounts, secrets, dashboards):
-- **Phone app in the stores:** App Store Connect and Google Play Console accounts, then the store
-  secrets listed at the top of `.github/workflows/mobile-release.yml`; until then the web's store
-  buttons say "Coming soon".
-- **Desktop signing:** `CSC_LINK`/`CSC_KEY_PASSWORD` and Apple notarisation (`APPLE_ID`,
+- **Phone app in the stores (accounts bought 2026-11-14):** follow `docs/setup/google-and-supabase.md`
+  Part 10: App ID with Sign in with Apple, App Store Connect app + Admin API key, Play Console app,
+  upload keystore (first `.aab` uploaded by hand), service account, store forms, demo account for
+  reviewers. Then fill `STORE_LINKS` and the `mobile` block of `latest.json`; until then the web's
+  store buttons say "Coming soon". The iOS CI signing change (mobile.md 2026-11-14) is untested.
+- **Desktop signing:** macOS now possible with the Apple account (setup guide 10.5): `CSC_LINK`/`CSC_KEY_PASSWORD` and Apple notarisation (`APPLE_ID`,
   `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`) for macOS, `WIN_CSC_LINK` for Windows. Unsigned
   installers show security warnings.
 - **Optional branded MCP URL** (see CLAUDE.md).

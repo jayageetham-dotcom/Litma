@@ -261,6 +261,28 @@ class EditorSession extends ChangeNotifier {
       return;
     }
     final prev = document.blocks[i - 1];
+    if (prev is OpaqueBlock && prev.type == 'pageBreak' && b.isEmpty) {
+      final next = i + 1 < document.blocks.length ? document.blocks[i + 1] : null;
+      if (next == null || (next is OpaqueBlock && next.type == 'pageBreak')) {
+        // An empty page (an empty line between two breaks, or after the last one) goes away whole:
+        // the line, the break after it and the break before it, and the cursor goes to the end of
+        // the line before (as on the web, like Google Docs).
+        if (next != null) document.blocks.removeAt(i + 1);
+        document.blocks.removeAt(i);
+        _dropLine(b);
+        document.blocks.removeAt(i - 1);
+        if (li > 0) {
+          focusLine(all[li - 1]);
+        } else if (document.blocks.whereType<TextBlock>().isEmpty) {
+          final first = TextBlock('paragraph', {});
+          document.blocks.insert(0, first);
+          focusLine(first, at: 0);
+        }
+        _afterChange();
+        notifyListeners();
+        return;
+      }
+    }
     if (prev is OpaqueBlock) {
       // Backspace at the start of a page removes the page break before it (as on the web)
       document.blocks.removeAt(i - 1);

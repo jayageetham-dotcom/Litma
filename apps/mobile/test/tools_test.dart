@@ -94,6 +94,23 @@ void main() {
     await close(t, s, o);
   });
 
+  testWidgets('Backspace on an empty page removes the whole page, as on the web', (t) async {
+    final (s, o) = await open(t, DocKind.story, [p('ഒന്ന്'), {'type': 'pageBreak'}, p(''), {'type': 'pageBreak'}, p('രണ്ട്')]);
+    final blank = s.document.blocks[2] as TextBlock;
+    final c = s.controllerFor(blank)..placeCursor(0);
+    // Backspace at the start: the hidden first character goes
+    c.value = TextEditingValue(text: c.value.text.substring(1), selection: const TextSelection.collapsed(offset: 0));
+    expect((s.document.toJson()['content'] as List).map((b) => b['type']), ['paragraph', 'paragraph']);
+    expect(identical(s.focused, s.document.blocks[0]), isTrue, reason: 'the cursor goes to the end of the page before');
+    // an empty last page goes too
+    s.document = EditorDocument.fromJson({'type': 'doc', 'content': [p('ഒന്ന്'), {'type': 'pageBreak'}, p('')]});
+    final last = s.document.blocks[2] as TextBlock;
+    final c2 = s.controllerFor(last)..placeCursor(0);
+    c2.value = TextEditingValue(text: c2.value.text.substring(1), selection: const TextSelection.collapsed(offset: 0));
+    expect((s.document.toJson()['content'] as List).map((b) => b['type']), ['paragraph']);
+    await close(t, s, o);
+  });
+
   testWidgets('plays: Story World characters fill the cast list once', (t) async {
     final (s, o) = await open(t, DocKind.drama, [
       p('കഥാപാത്രങ്ങൾ', 'styledBlock', {'variant': 'subhead'}),

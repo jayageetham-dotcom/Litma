@@ -12,8 +12,13 @@ Reaches writers only through store builds. Cross-app summary and open items:
   suggestion row, mid-line Manglish, desk keyboard, editor tools from #5, cover designer, book
   PDFs including the whole-book PDF, Book details, statistics reaching /admin/).
 - Writing aids (2026-11-08) need a CI run and a device check (see that entry). Still to do on the phone: spelling marks inside the text, restore from a backup, Drive backup without the share sheet.
+- **Selection across lines (owner, 2026-11-14, iPhone and iPad):** selecting and deleting text over several lines is hard, because each line is its own text field (`lib/editor/block_controller.dart`), so the selection and its handles stop at the line's end. Writers expect Google Docs behaviour: drag the handles over many lines, then delete, cut, copy or format the whole range. Needs a selection layer that spans lines in `session.dart` (start/end line and offset, highlight painted per line, its own handles and selection bar, Backspace/typing replaces the range, undo as one step), or moving the editor to a document-wide text model. Web (ProseMirror) already does this.
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
+
+## 2026-11-14: Backspace removes an empty page
+
+- `lib/editor/session.dart` `_onMergeBack`: Backspace on an empty line right after a page break, with another break after it or nothing after it, removes the whole page (the line and both breaks) and puts the cursor at the end of the page before, like the web's `PageBreak` Backspace in `extensions/blocks.ts`. Before, only the break before was removed, so the empty line could still spill onto a page of its own. Test in `test/tools_test.dart`. **Unverified** here (no Flutter); CI and the owner's simulator.
 
 ## 2026-11-14: Move to trash from the editor
 

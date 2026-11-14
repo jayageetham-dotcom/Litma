@@ -6,8 +6,17 @@ import "@/lib/desktop";
 /** Public repository whose GitHub Releases hold the installers (see apps/desktop/README.md → Publishing). */
 export const RELEASES_REPO = "jayageetham-dotcom/litma-releases";
 export const RELEASES_PAGE = `https://github.com/${RELEASES_REPO}/releases`;
-/** Placeholder store links until the mobile app ships (the download page shows them as "Coming soon"). */
-export const STORE_LINKS = { ios: null as string | null, android: null as string | null };
+/** Store links. A null one shows as "Coming soon" (phones) or is left out (Windows). */
+export const STORE_LINKS = {
+  ios: null as string | null,
+  android: null as string | null,
+  /** Microsoft Store listing (Partner Center product "Litma", Store ID 9NKP5NXGX0J2); mode=direct opens the Store app */
+  windows: "https://apps.microsoft.com/detail/9NKP5NXGX0J2?referrer=appbadge&mode=direct" as string | null,
+};
+/** The stores' own badge files, unchanged, in public/brands (sources in its README; never redraw or edit them). */
+export const APP_STORE_BADGE = `${BASE}/brands/app-store-badge.svg`;
+export const GOOGLE_PLAY_BADGE = `${BASE}/brands/google-play-badge.png`;
+export const MS_STORE_BADGE = `${BASE}/brands/microsoft-store-badge.svg`;
 
 /** latest.json lives on the website; the desktop app (app://litma) has no copy of its own, so it asks the website. */
 const DOWNLOADS = process.env.NEXT_PUBLIC_DESKTOP === "1" && SITE_URL ? `${SITE_URL}/downloads` : `${BASE}/downloads`;

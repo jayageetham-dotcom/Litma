@@ -1,6 +1,6 @@
 # Litma · ലിറ്റ്മ
 
-A Malayalam writing desk for novels, short stories, poems, screenplays, features, essays, plays, lyrics and diaries, on real A4 pages, typed in **Manglish**, **Malayalam** or English, even offline. On the web, as a desktop app for macOS, Windows and Linux, and as a phone app for iPhone and Android (store release pending).
+A Malayalam writing desk for novels, short stories, poems, screenplays, features, essays, plays, lyrics and diaries, on real A4 pages, typed in **Manglish**, **Malayalam** or English, even offline. On the web, as a desktop app for macOS and Windows (a Linux AppImage is still built but not offered on the website for now), and as a phone app for iPhone and Android (store release pending).
 
 **Live:** https://getlitma.in · **MCP:** https://getlitma.in/mcp
 

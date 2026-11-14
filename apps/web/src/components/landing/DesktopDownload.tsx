@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
 import { ArrowRight, Download } from "lucide-react";
-import { AppleLogo, LinuxLogo, WindowsLogo } from "@/components/icons/Brands";
+import { AppleLogo, WindowsLogo } from "@/components/icons/Brands";
 import { downloadsFor, useInDesktopApp, usePlatform, useRelease } from "@/lib/release";
-import { StoreBadges } from "@/components/StoreBadges";
+import { StoreBadge, StoreBadges } from "@/components/StoreBadges";
 import { useT } from "@/i18n/react";
 
 /**
@@ -21,8 +21,6 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
   const items = [
     { id: "mac" as const, icon: AppleLogo, label: t("download.mac"), hint: t("download.macHint"), href: links.mac },
     { id: "win" as const, icon: WindowsLogo, label: t("download.windows"), hint: t("download.windowsHint"), href: links.win },
-    // Linux only for Linux visitors (first); everyone else finds it on /download
-    ...(platform === "linux" ? [{ id: "linux" as const, icon: LinuxLogo, label: t("download.linux"), hint: t("download.linuxHint"), href: links.linux }] : []),
   ].sort((a, b) => (a.id === platform ? -1 : b.id === platform ? 1 : 0));
 
   const buttons = (
@@ -32,9 +30,9 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
           <a
             key={it.id}
             href={it.href}
-            className={`btn justify-start !rounded-xl !px-4 !py-3 ${i === 0 && (platform === "mac" || platform === "win" || platform === "linux") ? "btn-primary" : "btn-outline"}`}
+            className={`btn justify-start !rounded-xl !px-4 !py-3 ${i === 0 && (platform === "mac" || platform === "win") ? "btn-primary" : "btn-outline"}`}
           >
-            <it.icon size={20} onDark={i === 0 && (platform === "mac" || platform === "win" || platform === "linux")} />
+            <it.icon size={20} onDark={i === 0 && (platform === "mac" || platform === "win")} />
             <span className="text-left">
               <span className="block">{it.label}</span>
               <span className="block text-xs font-normal opacity-75">{it.hint}</span>
@@ -73,9 +71,9 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
                 {t("download.kicker")}
               </p>
               <h2 className="text-5xl font-extrabold leading-[1.05] md:text-7xl" style={{ fontFamily: "var(--font-display)" }}>
-                {t("download.title")}.
+                {t("download.popTitle")}
               </h2>
-              <p className="mt-6 max-w-lg text-lg text-night-ink/85">{t("download.body")}</p>
+              <p className="mt-6 max-w-lg text-lg text-night-ink/85">{t("download.popBody")}</p>
               {release?.version && <p className="mt-3 font-mono text-sm text-night-ink/75">v{release.version}</p>}
             </div>
 
@@ -105,8 +103,17 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
                   </span>
                 );
               })}
+              {/* the stores' own badges, App Store first (Apple's guidelines); until a listing is live they open /download/ */}
+              <div className="pt-4">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-night-ink/85">{t("download.inStores")}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <StoreBadge store="ios" height={40} fallback="/download/" />
+                  <StoreBadge store="android" height={40} fallback="/download/" />
+                  <StoreBadge store="windows" height={40} fallback="/download/" />
+                </div>
+              </div>
               <Link href="/download/" className="inline-block pt-2 text-sm font-semibold text-night-ink/90 underline decoration-lime decoration-2 underline-offset-4 hover:text-lime">
-                {t("download.deskMore")}: iPhone, Android
+                {t("download.deskMore")}
               </Link>
             </div>
           </div>

@@ -16,6 +16,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-15: Store badge files copied in
+
+`npm run mobile:assets` now also copies `app-store-badge.svg`, `google-play-badge.png` and `microsoft-store-badge.svg` into `assets/brands/` (it copies every file in `apps/web/public/brands`). The phone app doesn't use them; nothing else changed for the phone.
+
 ## 2026-11-14: Dictionary: words typed with a stray joiner
 
 - `lib/data/dictionary.dart`: `spellings()` (port of `shared/dict.ts`), `lookup` → `_lookupExact` per spelling, `suggest` → `_suggestExact` per spelling. Fixes "No entry for കാട്" when the iPhone keyboard adds U+200C after ് (owner, TestFlight build 6), and the empty suggestion list while typing such words.

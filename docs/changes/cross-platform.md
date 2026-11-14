@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-15: Store badges on the website, Linux off the website
+
+Website only (no Release: the download page and the home download card are hidden inside the desktop app; the phone app opens the website). The stores' own badges (App Store, Google Play, Microsoft Store) from `public/brands/`; Windows visitors get the Microsoft Store first with the direct `.exe` under it; the home page's download card covers phones too. Linux removed from the website, help, privacy intro, README and store texts; the AppImage and Snap builds and workflows stay (owner). Details in `web.md`. Push after the Microsoft Store listing is published, or the Windows badge opens "not available" meanwhile.
+
 ## 2026-11-14: Mac app submitted to the App Store
 
 macOS App 0.7.26 (build 4, from **Desktop store builds**) submitted for review at 22:50 IST, manual release, same listing as the iPhone app (Apple ID 6834719757). Checked by the owner in TestFlight for Mac: installs, dictionary suggestions. iPhone 0.7.24 (6) still waiting for review. After approval: release both by hand; then the next iPhone build should be 0.7.26 (dictionary joiner fix, Manglish suggestions are web-only). Open: `STORE_LINKS` in `apps/web/src/lib/release.ts` has only `ios`/`android`; the download page could add a Mac App Store link (https://apps.apple.com/app/id6834719757 opens the Mac listing on a Mac) once the Mac app is live.
@@ -49,7 +53,7 @@ App Store Connect app made (Apple ID 6834719757, 13+); listing and iPhone screen
 
 ### Still open (after the 2026-11-07 work)
 
-Microsoft Store (2026-11-14): product Litma reserved (Store ID 9NKP5NXGX0J2, details in `desktop.md`). Variables set, packages built and submitted for certification on 15 Nov (publish held until "Publish now"); after approval publish and add the Microsoft Store link to `STORE_LINKS`.
+Microsoft Store (2026-11-14): product Litma reserved (Store ID 9NKP5NXGX0J2, details in `desktop.md`). Variables set, packages built and submitted for certification on 15 Nov (publish held until "Publish now"); after approval publish; the website already links to it (`STORE_LINKS.windows`, 15 Nov). When the App Store and Play listings are live, fill `STORE_LINKS.ios` / `.android` and the badges become links.
 
 Security (2026-11-13): owner to create the Turnstile widget, set `TURNSTILE_SITE_KEY`, then switch on Supabase Captcha protection and leaked-password protection (setup guide 3.5). Deleting an account also deletes its community posts, including removed ones kept for the IT Rules' 180 days; if that record must survive deletion, copy removed posts to a separate table first.
 

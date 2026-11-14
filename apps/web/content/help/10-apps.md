@@ -2,7 +2,7 @@
 id: apps
 title: Apps, offline and sync
 ml: ആപ്പുകൾ
-summary: The desktop app for Mac, Windows and Linux, the phone app, updates and writing without internet.
+summary: The desktop app for Mac and Windows, the phone app, updates and writing without internet.
 icon: monitor-smartphone
 tint: tangerine
 ---
@@ -19,17 +19,18 @@ The desktop app is Litma in its own window, with its own icon in the Dock or tas
 2. Choose the download button.
 3. Install it:
    - **Mac:** open the `.dmg` file and drag **Litma** into **Applications**. The first time, if your Mac asks, choose **Open**.
-   - **Windows:** run the `.exe` installer. If Windows SmartScreen appears, choose **More info → Run anyway**.
-   - **Linux:** make the `.AppImage` file executable (right-click → Properties → Allow executing) and open it.
+   - **Windows:** choose **Get it from Microsoft** and then **Get** in the Microsoft Store. Litma installs without a warning and the Store keeps it up to date. You can also download the `.exe` installer directly from the same page; if Windows SmartScreen appears for it, choose **More info → Run anyway**.
 4. Open Litma and sign in with the same account.
 
-> **Desktop:** Help is always one click away: choose **Help → Litma Help** in the menu bar (or press <kbd>F1</kbd> on Windows and Linux), or **Settings → Help and guide**. The guides open in your web browser.
+> **Desktop:** Help is always one click away: choose **Help → Litma Help** in the menu bar (or press <kbd>F1</kbd> on Windows), or **Settings → Help and guide**. The guides open in your web browser.
 
 ## Desktop app updates {#updates}
 
 The desktop app checks for a new version every few hours. When one is ready, a small card says **Litma (version) is available**. Choose **Update**: it downloads in the background, then choose **Restart and update**. Your works are not touched. **Later** hides the card for now.
 
 The website updates by itself. If a new version arrives while you are writing, a card offers **Reload now**; your writing is safe on the device.
+
+A copy from the Microsoft Store or the Mac App Store is updated by its store instead, so it shows no update card.
 
 The version you have is under **About** at the bottom of **Settings**.
 

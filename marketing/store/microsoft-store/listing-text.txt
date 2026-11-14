@@ -51,7 +51,7 @@ Ask for feedback, a grammar check or ideas using your own Claude, ChatGPT or Gem
 PRIVATE BY DEFAULT
 Your writing stays private unless you share a link. No ads. You can switch off usage statistics, back up your works, or delete your account at any time from Settings.
 
-One account works on Windows, at getlitma.in, on your phone, and on Mac and Linux.
+One account works on Windows, at getlitma.in, on your phone and on Mac.
 
 എഴുതൂ, മലയാളത്തിൽ.
 
@@ -112,7 +112,7 @@ DESCRIPTION
 എഴുത്ത് നിങ്ങളുടേത് മാത്രം
 ലിങ്ക് പങ്കിടാതെ നിങ്ങളുടെ എഴുത്ത് ആരും കാണില്ല. പരസ്യങ്ങളില്ല. ഉപയോഗ സ്ഥിതിവിവരങ്ങൾ ഓഫ് ചെയ്യാം, രചനകൾ ബാക്കപ്പ് ചെയ്യാം, എപ്പോൾ വേണമെങ്കിലും ക്രമീകരണങ്ങളിൽ നിന്ന് അക്കൗണ്ട് ഡിലീറ്റ് ചെയ്യാം.
 
-ഒരേ അക്കൗണ്ട് Windows-ലും getlitma.in-ലും ഫോണിലും Mac, Linux എന്നിവയിലും പ്രവർത്തിക്കും.
+ഒരേ അക്കൗണ്ട് Windows-ലും getlitma.in-ലും ഫോണിലും Mac-ലും പ്രവർത്തിക്കും.
 
 എഴുതൂ, മലയാളത്തിൽ.
 

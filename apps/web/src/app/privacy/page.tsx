@@ -10,7 +10,7 @@ const sections: LegalSection[] = [
     body: (
       <>
         <p>
-          Litma is a Malayalam writing app: the website at <a href="https://getlitma.in">getlitma.in</a>, the desktop app for macOS, Windows and Linux, and the phone app for iPhone and Android. This policy covers all of them. In this policy
+          Litma is a Malayalam writing app: the website at <a href="https://getlitma.in">getlitma.in</a>, the desktop app for macOS and Windows, and the phone app for iPhone and Android. This policy covers all of them. In this policy
           “Litma”, “we” and “us” mean the team that runs Litma, based in Kerala, India. You can reach us at <a href="mailto:support@getlitma.in">support@getlitma.in</a>.
         </p>
       </>

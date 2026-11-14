@@ -20,7 +20,7 @@ Litma is a place to write Malayalam novels, stories, poems, screenplays, plays a
 Litma works in three places, and they all share the same account and the same works:
 
 - **The website** at getlitma.in, in any modern browser.
-- **The desktop app** for Mac, Windows and Linux. See [Install the desktop app](#desktop-app).
+- **The desktop app** for Mac and Windows. See [Install the desktop app](#desktop-app).
 - **The phone app** for iPhone and Android. See [Litma on your phone](#phone-app).
 
 A change you make on one device shows up on the others. If you lose your connection, Litma keeps writing on the device and sends your changes later. See [Working offline](#offline).

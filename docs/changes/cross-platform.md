@@ -49,6 +49,8 @@ App Store Connect app made (Apple ID 6834719757, 13+); listing and iPhone screen
 
 ### Still open (after the 2026-11-07 work)
 
+Microsoft Store (2026-11-14): product Litma reserved (Store ID 9NKP5NXGX0J2, details in `desktop.md`). Variables set, packages built and submitted for certification on 15 Nov (publish held until "Publish now"); after approval publish and add the Microsoft Store link to `STORE_LINKS`.
+
 Security (2026-11-13): owner to create the Turnstile widget, set `TURNSTILE_SITE_KEY`, then switch on Supabase Captcha protection and leaked-password protection (setup guide 3.5). Deleting an account also deletes its community posts, including removed ones kept for the IT Rules' 180 days; if that record must survive deletion, copy removed posts to a separate table first.
 
 Reels (2026-11-09): reel 3 (launch ad) can be re-voiced with Despina (Gemini) when the TTS quota allows; post the reels with a track from Instagram's music picker; on the Mac, run the one-time setup in `docs/marketing/reels.md` (Whisper and yt-dlp could not reach their downloads from the cloud sandbox).

@@ -14,11 +14,16 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - **Release needed** for Litma Community (2026-11-09): `/community/` and `/community/guidelines/` run inside the app (no desktop-only code). Check both by loading and by the avatar menu and Settings links in a packaged build.
 - **Release needed** for the 2026-11-09 spelling engine, grammar fix cards, grouped rail, editor menus and the other web changes of that day (all in the shared web code).
 - The Mac download is signed and notarised (14 Nov). The Windows installer is still unsigned until `WIN_CSC_LINK` exists (a paid code-signing certificate).
+- **Microsoft Store (2026-11-14):** product Litma reserved (Store ID 9NKP5NXGX0J2); variables set, first appx build passed, submission 1 sent for certification (publish held). After it passes: Publish now, add the link to `STORE_LINKS`.
 - **Store builds (2026-11-14):** the five `MAS_*` secrets are set. Desktop store builds run #2 passed; 0.7.26 (4) submitted for Mac App Store review on 14 Nov; check the Mac App Store copy in TestFlight for Mac before submitting.
 - **Release needed** for the 2026-11-08 writing aids (reminders in the main process, notifications, folder backup, and the web features). Try on a Mac and Windows: notification permission, reminder with the window closed, choosing a Google Drive for desktop folder.
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+
+## 2026-11-14: Microsoft Store product reserved
+
+Owner registered a free Individual developer account (publisher display name **Litma**, contact support@getlitma.in) and reserved the product **Litma** (MSIX or PWA app). Product identity: Name `Litma.Litma`, Publisher `CN=65F97D31-CBDB-4940-BD50-27470F8E0B57`, PublisherDisplayName `Litma`, PFN `Litma.Litma_khazx26530b2y`, Store ID `9NKP5NXGX0J2` (https://apps.microsoft.com/detail/9NKP5NXGX0J2). No code change: `electron-builder.stores.yml` already uses displayName/applicationId `Litma`. Next: owner adds the repo variables `MSSTORE_IDENTITY_NAME`, `MSSTORE_PUBLISHER`, `MSSTORE_PUBLISHER_DISPLAY_NAME` (the cloud session's proxy blocks the Actions variables API), runs **Desktop store builds**, uploads both `.appx` in a submission. The first appx build passed (Desktop store builds, 14 Nov: artifact `litma-microsoft-store`, 240 MB, x64 + arm64). Partner Center validated both packages. Submission 1 (0.7.27.0) filled in on 15 Nov: free, all markets, Productivity, privacy URL, IARC 3+ (Users Interact), listings in en-IN and ml-IN from `marketing/store/microsoft-store/listing-text.txt` (Mac screenshots, poster and box art in that folder), runFullTrust justified, reviewer account jagath.gj+review@gmail.com under Credentials, publishing held until "Publish now". After certification: Publish now, then add the Microsoft Store link (https://apps.microsoft.com/detail/9NKP5NXGX0J2) to `STORE_LINKS`. The Community has no block-user feature (IARC answer "No"); stores may ask for it. The package declares `en-IN` and `ml-IN`, so Partner Center will ask for a listing in both; submission will ask to justify `runFullTrust`.
 
 ## 2026-11-14: Signed getlitma.in Mac download (prepared)
 

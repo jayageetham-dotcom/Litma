@@ -1,0 +1,140 @@
+LITMA ON THE MICROSOFT STORE: LISTING TEXT (Partner Center → Store listings)
+Product: Litma (Store ID 9NKP5NXGX0J2). Two listings: English (India) and Malayalam (India).
+
+SCREENSHOTS (both languages, Desktop)
+marketing/store/app-store/mac/litma-mac-01 … 08 (2880 x 1800, no Mac window frame).
+Upload all eight, in order, under Desktop.
+
+OTHER FIELDS (both languages)
+Product name:      Litma
+Copyright:         © 2026 Jagath Jayakumar
+Developed by:      Litma
+Store logos, trailers, short title, sort title, voice title, additional license terms: leave empty.
+
+
+==================== ENGLISH (INDIA) ====================
+
+DESCRIPTION
+Litma is a writing desk for Malayalam literature. Write novels, short stories, poems, songs, screenplays, plays, essays, features and diaries, each with its own layout, on pages that look like the printed book.
+
+TYPE THE WAY YOU THINK
+• Type in Manglish and watch it turn into Malayalam script, with a list of spellings to pick from.
+• Or type straight in Malayalam with the Windows Malayalam keyboard or Litma's built-in InScript keyboard, or in English.
+• Works without a connection. Your writing is kept on your PC and syncs when you are back online.
+
+A HOME FOR EVERY WRITING TYPE
+• Novels and stories with chapters, drop caps and book-style paragraphs.
+• Poems and songs with stanzas, refrain and metre marks (വൃത്തം).
+• Screenplays and plays with scenes, acts, dialogue and a cast list.
+• Essays and features with footnotes and references.
+• A diary that adds today's date for each new entry.
+
+WORDS AT YOUR FINGERTIPS
+• A built-in Malayalam dictionary and thesaurus, with English meanings.
+• നാട്ടറിവ്: Malayalam words from Kerala's life, food, festivals, arts and seasons, gathered by theme.
+• Rhymes (പ്രാസം) for poets and lyricists.
+• A spelling check that knows how Malayalam words join.
+• Save the words you love and use them later.
+
+PLAN YOUR STORY
+• Story World (കഥാലോകം): characters, places, objects, a plot board and a timeline beside your text.
+• Version history, so you can go back to an earlier draft.
+• Writing goals, a daily reminder, a writing timer and your streak.
+
+FROM DRAFT TO BOOK
+• Gather works into a book with contents, details and a cover designed in the app.
+• Export to PDF or Word, or share a link so others can read your work.
+
+AN AI COMPANION, ON YOUR TERMS
+Ask for feedback, a grammar check or ideas using your own Claude, ChatGPT or Gemini key. Your writing goes to the AI only when you ask.
+
+PRIVATE BY DEFAULT
+Your writing stays private unless you share a link. No ads. You can switch off usage statistics, back up your works, or delete your account at any time from Settings.
+
+One account works on Windows, at getlitma.in, on your phone, and on Mac and Linux.
+
+എഴുതൂ, മലയാളത്തിൽ.
+
+PRODUCT FEATURES (one per box)
+Type in Manglish and get Malayalam script
+Novels, stories, poems, screenplays, plays, essays and diaries, each with its own layout
+Malayalam dictionary, thesaurus, rhymes and spelling check
+Story World for characters, places, a plot board and a timeline
+Build a book with a cover, then export PDF or Word
+Works offline and syncs across Windows, web, phone and Mac
+
+SEARCH TERMS (7)
+Malayalam
+Manglish
+novel
+poem
+screenplay
+dictionary
+writing
+
+
+==================== MALAYALAM (INDIA) ====================
+
+DESCRIPTION
+മലയാള സാഹിത്യത്തിനുള്ള എഴുത്തുമേശയാണ് ലിറ്റ്മ. നോവൽ, ചെറുകഥ, കവിത, ഗാനം, തിരക്കഥ, നാടകം, ലേഖനം, ഫീച്ചർ, ഡയറി എന്നിങ്ങനെ ഓരോ സാഹിത്യരൂപവും അതിന്റേതായ ചിട്ടയിൽ, അച്ചടിച്ച പുസ്തകം പോലെ തോന്നുന്ന താളുകളിൽ എഴുതാം.
+
+മനസ്സിൽ തോന്നുന്നതുപോലെ ടൈപ്പ് ചെയ്യാം
+• മംഗ്ലീഷിൽ ടൈപ്പ് ചെയ്താൽ മലയാളം ലിപിയായി മാറും. ശരിയായ വാക്ക് തിരഞ്ഞെടുക്കാൻ നിർദേശങ്ങളുടെ പട്ടികയുമുണ്ട്.
+• Windows-ലെ മലയാളം കീബോർഡിലോ ലിറ്റ്മയിലെ ഇൻസ്ക്രിപ്റ്റ് കീബോർഡിലോ നേരിട്ട് മലയാളത്തിൽ എഴുതാം, ഇംഗ്ലീഷിലും എഴുതാം.
+• ഇന്റർനെറ്റ് ഇല്ലെങ്കിലും എഴുതാം. എഴുതിയതെല്ലാം കമ്പ്യൂട്ടറിൽ സുരക്ഷിതം, നെറ്റ് വരുമ്പോൾ തനിയെ സിങ്ക് ആകും.
+
+ഓരോ സാഹിത്യരൂപത്തിനും അതിന്റെ ഇടം
+• നോവലിനും കഥയ്ക്കും അധ്യായങ്ങൾ, വലിയ ആദ്യാക്ഷരം, പുസ്തകത്തിലെപ്പോലെ ഖണ്ഡികകൾ.
+• കവിതയ്ക്കും ഗാനത്തിനും ഖണ്ഡങ്ങൾ, പല്ലവി, വൃത്തം നോക്കാനുള്ള അടയാളങ്ങൾ.
+• തിരക്കഥയ്ക്കും നാടകത്തിനും രംഗങ്ങൾ, അങ്കങ്ങൾ, സംഭാഷണം, കഥാപാത്രപ്പട്ടിക.
+• ലേഖനത്തിനും ഫീച്ചറിനും അടിക്കുറിപ്പുകളും സൂചികകളും.
+• ഓരോ പുതിയ കുറിപ്പിനും ഇന്നത്തെ തീയതി ചേർക്കുന്ന ഡയറി.
+
+വാക്കുകൾ കൈയെത്തും ദൂരത്ത്
+• ഇംഗ്ലീഷ് അർഥങ്ങളോടുകൂടിയ മലയാളം നിഘണ്ടുവും പര്യായകോശവും.
+• നാട്ടറിവ്: കേരളത്തിന്റെ ജീവിതം, ഭക്ഷണം, ഉത്സവങ്ങൾ, കലകൾ, കാലങ്ങൾ എന്നിവയിലെ വാക്കുകൾ വിഷയം തിരിച്ച്.
+• കവികൾക്കും ഗാനരചയിതാക്കൾക്കും പ്രാസം കണ്ടെത്താൻ സഹായം.
+• മലയാളം വാക്കുകൾ ചേരുന്ന രീതി അറിയുന്ന അക്ഷരത്തെറ്റ് പരിശോധന.
+• ഇഷ്ടപ്പെട്ട വാക്കുകൾ സൂക്ഷിച്ചുവെച്ച് പിന്നീട് ഉപയോഗിക്കാം.
+
+കഥ ആസൂത്രണം ചെയ്യാം
+• കഥാലോകം: കഥാപാത്രങ്ങൾ, സ്ഥലങ്ങൾ, വസ്തുക്കൾ, കഥാഗതിയുടെ ബോർഡ്, കാലക്രമം എന്നിവ എഴുത്തിനരികിൽ തന്നെ.
+• പഴയ പതിപ്പുകൾ സൂക്ഷിക്കുന്നതിനാൽ മുൻ ഡ്രാഫ്റ്റിലേക്ക് മടങ്ങാം.
+• എഴുത്തിന്റെ ലക്ഷ്യങ്ങൾ, ദിവസേനയുള്ള ഓർമ്മപ്പെടുത്തൽ, ടൈമർ, തുടർച്ചയായി എഴുതിയ ദിവസങ്ങളുടെ എണ്ണം.
+
+ഡ്രാഫ്റ്റിൽ നിന്ന് പുസ്തകത്തിലേക്ക്
+• രചനകൾ ചേർത്ത് ഉള്ളടക്കവും വിവരങ്ങളും ആപ്പിൽ തന്നെ രൂപകൽപ്പന ചെയ്ത പുറംചട്ടയുമുള്ള പുസ്തകമാക്കാം.
+• PDF ആയോ Word ആയോ എടുക്കാം, അല്ലെങ്കിൽ മറ്റുള്ളവർക്ക് വായിക്കാൻ ലിങ്ക് പങ്കിടാം.
+
+നിങ്ങളുടെ നിയന്ത്രണത്തിൽ ഒരു AI കൂട്ടുകാരൻ
+നിങ്ങളുടെ സ്വന്തം Claude, ChatGPT അല്ലെങ്കിൽ Gemini കീ ഉപയോഗിച്ച് അഭിപ്രായം, വ്യാകരണ പരിശോധന, ആശയങ്ങൾ എന്നിവ ചോദിക്കാം. നിങ്ങൾ ചോദിക്കുമ്പോൾ മാത്രമേ എഴുത്ത് AI-ക്ക് പോകൂ.
+
+എഴുത്ത് നിങ്ങളുടേത് മാത്രം
+ലിങ്ക് പങ്കിടാതെ നിങ്ങളുടെ എഴുത്ത് ആരും കാണില്ല. പരസ്യങ്ങളില്ല. ഉപയോഗ സ്ഥിതിവിവരങ്ങൾ ഓഫ് ചെയ്യാം, രചനകൾ ബാക്കപ്പ് ചെയ്യാം, എപ്പോൾ വേണമെങ്കിലും ക്രമീകരണങ്ങളിൽ നിന്ന് അക്കൗണ്ട് ഡിലീറ്റ് ചെയ്യാം.
+
+ഒരേ അക്കൗണ്ട് Windows-ലും getlitma.in-ലും ഫോണിലും Mac, Linux എന്നിവയിലും പ്രവർത്തിക്കും.
+
+എഴുതൂ, മലയാളത്തിൽ.
+
+PRODUCT FEATURES (one per box)
+മംഗ്ലീഷിൽ ടൈപ്പ് ചെയ്താൽ മലയാളം ലിപി
+നോവൽ, കഥ, കവിത, തിരക്കഥ, നാടകം, ലേഖനം, ഡയറി: ഓരോന്നിനും അതിന്റേതായ ചിട്ട
+മലയാളം നിഘണ്ടു, പര്യായകോശം, പ്രാസം, അക്ഷരത്തെറ്റ് പരിശോധന
+കഥാപാത്രങ്ങൾക്കും സ്ഥലങ്ങൾക്കും കഥാഗതിക്കും കാലക്രമത്തിനും കഥാലോകം
+പുറംചട്ടയോടുകൂടിയ പുസ്തകം, PDF ആയോ Word ആയോ
+ഇന്റർനെറ്റ് ഇല്ലാതെയും എഴുതാം; Windows, വെബ്, ഫോൺ, Mac എന്നിവയിൽ സിങ്ക്
+
+SEARCH TERMS (7)
+മലയാളം
+മംഗ്ലീഷ്
+നോവൽ
+കവിത
+തിരക്കഥ
+നിഘണ്ടു
+Malayalam writing
+
+
+==================== SUBMISSION OPTIONS ====================
+
+Restricted capabilities (runFullTrust):
+Litma is a desktop app built with Electron (Win32). It needs full trust to run as a normal desktop program: to save writers' work and backups to a folder they choose, show writing reminders as notifications, print and export PDF and Word files, and open the web browser for sign-in.

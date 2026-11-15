@@ -407,7 +407,15 @@ function LikeButton({ on, n, onClick, disabled }: { on: boolean; n: number; onCl
 function ModMenu({ items }: { items: { label: string; run: () => void; danger?: boolean }[] }) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  // Open toward the side with room: the button wraps to the left edge on phones, where a menu
+  // anchored to its right edge would run off the screen.
+  const [alignLeft, setAlignLeft] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const toggle = () => {
+    const r = ref.current?.getBoundingClientRect();
+    if (r) setAlignLeft(r.right < Math.min(256, window.innerWidth - 16) + 8);
+    setOpen((o) => !o);
+  };
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
@@ -421,11 +429,11 @@ function ModMenu({ items }: { items: { label: string; run: () => void; danger?: 
   }, [open]);
   return (
     <div ref={ref} className="relative">
-      <button className="btn btn-ghost !px-3 text-sm" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} data-track="Moderate">
+      <button className="btn btn-ghost !px-3 text-sm" aria-haspopup="menu" aria-expanded={open} onClick={toggle} data-track="Moderate">
         <ShieldAlert size={14} /> {t("community.moderate")} <MoreHorizontal size={14} />
       </button>
       {open && (
-        <div role="menu" className="dialog absolute bottom-full right-0 z-30 mb-2 grid w-64 gap-0.5 rounded-2xl p-1.5">
+        <div role="menu" className={`dialog absolute bottom-full z-30 mb-2 grid w-64 max-w-[calc(100vw-2rem)] gap-0.5 rounded-2xl p-1.5 ${alignLeft ? "left-0" : "right-0"}`}>
           {items.map((it) => (
             <button
               key={it.label}

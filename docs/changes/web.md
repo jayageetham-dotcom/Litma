@@ -16,6 +16,7 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
 - `components/community/ThreadView.tsx`: **Block** (lucide `Ban`) on the opening post and replies by other writers, with a confirm; blocking the thread's writer goes back to the list, blocking a replier removes their replies and shows a note linking to Blocked writers.
 - `components/community/Community.tsx`: `?view=blocked` → `BlockedList` (avatar, name, Unblock); link "Blocked writers" under the categories.
 - Strings `community.block`, `unblock`, `blockDialog.*`, `blocked.*` (en + ml). Help `13-community.md#community-block`; guidelines "Reports and moderation"; privacy "Writers you block".
+- Moderate menu (`ModMenu` in `ThreadView.tsx`) opens to the left of its button when there is no room on the right; on phones the button wraps to the left edge and the menu ran off the screen (owner's screenshot).
 - Unverified: `next build` and a look in the browser (sandbox had no Linux SWC binary).
 
 ## 2026-11-15: Store badges, Microsoft Store first on Windows, Linux off the website

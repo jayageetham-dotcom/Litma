@@ -75,7 +75,10 @@ function fill(template: string, vars: Record<string, string>, html: boolean) {
  * Phone app (its own scheme): Supabase's verify link, which comes back into the app that asked.
  */
 function verifyUrl(tokenHash: string, type: string, redirectTo: string | undefined, siteUrl: string) {
-  const site = /^https?:\/\//.test(siteUrl) ? siteUrl.replace(/\/+$/, "") : "https://getlitma.in";
+  // The hook's site_url can be Supabase's own auth address (https://<ref>.supabase.co/auth/v1), not
+  // the project's Site URL: desktop sign-ups then got links to <ref>.supabase.co/auth/v1/auth/callback/,
+  // which answer "No API key found" (Nov 2026). Only a Litma address is used; otherwise getlitma.in.
+  const site = /^https?:\/\//.test(siteUrl) && !/supabase\.(co|in)|\/auth\/v1/.test(siteUrl) ? siteUrl.replace(/\/+$/, "") : "https://getlitma.in";
   let target: URL | null = null;
   try {
     if (!redirectTo) target = new URL(`${site}/auth/callback/`);

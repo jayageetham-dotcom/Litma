@@ -2,7 +2,7 @@
 id: community
 title: Litma Community
 ml: കൂട്ടായ്മ
-summary: Talk with other Malayalam writers: start a conversation, reply, like, report a post, and how moderation works.
+summary: Talk with other Malayalam writers: start a conversation, reply, like, report a post, block a writer, and how moderation works.
 icon: users
 tint: sky
 ---
@@ -33,6 +33,12 @@ Pick a category on the left (on a phone, swipe the row of categories), or type i
 ## Report a post {#community-report}
 
 If a post breaks the guidelines (hate, harassment, someone's private details, copied work, spam), choose **Report** under it, pick what is wrong and send. The writer never sees who reported it. Litma's moderators look at every report.
+
+## Block a writer {#community-block}
+
+If you don't want to see someone's posts, choose **Block** under any conversation or reply they wrote, then **Block** again. Their conversations and replies disappear for you everywhere in the community, and they aren't told. Blocking only changes what you see; if they broke the guidelines, report the post too so the moderators can act.
+
+To see who you've blocked, or to unblock someone, choose **Blocked writers** under the categories (getlitma.in/community/?view=blocked).
 
 ## How moderation works {#community-moderation}
 

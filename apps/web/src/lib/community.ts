@@ -6,6 +6,9 @@
  * whose row-level security and triggers do the real checks: who may post, author names, closed
  * threads, rate limits and moderation. Local mode (no Supabase) keeps a small forum in localStorage
  * with the local writer as an admin, so the screens can be tried and tested without a server.
+ *
+ * Blocking (migration 20261115120000_community_blocks.sql): a writer's blocked list hides those writers'
+ * threads and replies from them. In cloud mode the read policies do the hiding; local mode filters here.
  */
 import { getSupabase } from "./supabase/client";
 import { isSupabaseConfigured } from "./supabase/config";
@@ -94,6 +97,15 @@ export interface QueueItem {
   author_banned_until: string | null;
 }
 
+/** A writer the signed-in writer has blocked (name and picture as they were when blocked). */
+export interface Blocked {
+  blocked_id: string;
+  blocked_name: string;
+  blocked_avatar: string | null;
+  blocked_tint: string | null;
+  created_at: string;
+}
+
 /** What went wrong, as a key the page turns into words. */
 export type CommunityProblem = "slow_down" | "not_allowed" | "offline" | "not_found" | "failed";
 export class CommunityError extends Error {
@@ -128,7 +140,7 @@ export const PAGE = 30;
 
 const LOCAL_KEY = "litma:community";
 const LOCAL_ID = "local";
-type LocalDb = { threads: Thread[]; replies: Reply[]; likes: string[]; reports: (QueueItem & { reporter: string })[]; agreed: string | null };
+type LocalDb = { threads: Thread[]; replies: Reply[]; likes: string[]; reports: (QueueItem & { reporter: string })[]; agreed: string | null; blocked?: Blocked[] };
 const loadLocal = (): LocalDb => {
   try {
     const raw = localStorage.getItem(LOCAL_KEY);
@@ -136,6 +148,7 @@ const loadLocal = (): LocalDb => {
   } catch {}
   return { threads: [], replies: [], likes: [], reports: [], agreed: null };
 };
+const blockedIds = (db: LocalDb) => new Set((db.blocked ?? []).map((b) => b.blocked_id));
 const saveLocal = (db: LocalDb) => {
   try {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(db));
@@ -201,8 +214,10 @@ export const community = {
   async threads(category: Category | null, page = 0): Promise<Thread[]> {
     const sb = getSupabase();
     if (!sb) {
-      const list = loadLocal()
-        .threads.filter((t) => !t.deleted_at && (!category || t.category === category))
+      const db = loadLocal();
+      const hidden = blockedIds(db);
+      const list = db.threads
+        .filter((t) => !t.deleted_at && !hidden.has(t.author_id) && (!category || t.category === category))
         .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.last_activity_at.localeCompare(a.last_activity_at));
       return list.slice(page * PAGE, (page + 1) * PAGE);
     }
@@ -214,14 +229,21 @@ export const community = {
 
   async thread(id: string): Promise<Thread | null> {
     const sb = getSupabase();
-    if (!sb) return loadLocal().threads.find((t) => t.id === id && !t.deleted_at) ?? null;
+    if (!sb) {
+      const db = loadLocal();
+      return db.threads.find((t) => t.id === id && !t.deleted_at && !blockedIds(db).has(t.author_id)) ?? null;
+    }
     const row = await run(sb.from("community_threads").select(THREAD_COLS).eq("id", id).maybeSingle());
     return (row as unknown as Thread) ?? null;
   },
 
   async replies(threadId: string): Promise<Reply[]> {
     const sb = getSupabase();
-    if (!sb) return loadLocal().replies.filter((r) => r.thread_id === threadId && !r.deleted_at).sort((a, b) => a.created_at.localeCompare(b.created_at));
+    if (!sb) {
+      const db = loadLocal();
+      const hidden = blockedIds(db);
+      return db.replies.filter((r) => r.thread_id === threadId && !r.deleted_at && !hidden.has(r.author_id)).sort((a, b) => a.created_at.localeCompare(b.created_at));
+    }
     const rows = await run(sb.from("community_replies").select(REPLY_COLS).eq("thread_id", threadId).is("deleted_at", null).order("created_at").limit(1000));
     return (rows ?? []) as unknown as Reply[];
   },
@@ -336,6 +358,45 @@ export const community = {
     }
     const { error } = await sb.from("community_reports").insert({ thread_id: threadId, reply_id: replyId, reason, note: note.trim() || null });
     if (error && !/duplicate key/.test(error.message)) throw new CommunityError(problemOf(error), error.message);
+  },
+
+  // ── blocking ──
+
+  /** The writers this writer has blocked, most recent first. */
+  async blocked(): Promise<Blocked[]> {
+    const sb = getSupabase();
+    if (!sb) return [...(loadLocal().blocked ?? [])].sort((a, b) => b.created_at.localeCompare(a.created_at));
+    const rows = await run(sb.from("community_blocks").select("blocked_id, blocked_name, blocked_avatar, blocked_tint, created_at").order("created_at", { ascending: false }).limit(1000));
+    return (rows ?? []) as Blocked[];
+  },
+
+  /**
+   * Block a writer: their threads and replies disappear for this writer, and they aren't told.
+   * Blocking someone already blocked is fine.
+   */
+  async block(author: Author): Promise<void> {
+    const sb = getSupabase();
+    if (!sb) {
+      if (author.author_id === LOCAL_ID) throw new CommunityError("not_allowed");
+      const db = loadLocal();
+      if (!blockedIds(db).has(author.author_id))
+        db.blocked = [...(db.blocked ?? []), { blocked_id: author.author_id, blocked_name: author.author_name, blocked_avatar: author.author_avatar, blocked_tint: author.author_tint, created_at: now() }];
+      saveLocal(db);
+      return;
+    }
+    const { error } = await sb.from("community_blocks").insert({ blocked_id: author.author_id });
+    if (error && !/duplicate key/.test(error.message)) throw new CommunityError(problemOf(error), error.message);
+  },
+
+  async unblock(userId: string): Promise<void> {
+    const sb = getSupabase();
+    if (!sb) {
+      const db = loadLocal();
+      db.blocked = (db.blocked ?? []).filter((b) => b.blocked_id !== userId);
+      saveLocal(db);
+      return;
+    }
+    await run(sb.from("community_blocks").delete().eq("blocked_id", userId).eq("blocker_id", await uid()));
   },
 
   // ── admins ──

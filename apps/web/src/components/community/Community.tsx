@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookOpenCheck, Flag, Heart, Lock, MessageCircle, Pin, Plus, Scale, Search, ShieldAlert, UsersRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Ban, BookOpenCheck, Flag, Heart, Lock, MessageCircle, Pin, Plus, Scale, Search, ShieldAlert, UsersRound } from "lucide-react";
 import { matchesSearch } from "@litma/shared/search";
 import { useT } from "@/i18n/react";
 import { useUser } from "@/lib/auth";
@@ -10,7 +10,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { Skeleton, SkeletonLines } from "@/components/ui/Skeleton";
 import { Select } from "@/components/ui/Select";
 import { ColourField, LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
-import { CATEGORIES, LIMITS, PAGE, community, isCategory, isLocalCommunity, type Category, type Me, type QueueItem, type Thread } from "@/lib/community";
+import { CATEGORIES, LIMITS, PAGE, community, isCategory, isLocalCommunity, type Blocked, type Category, type Me, type QueueItem, type Thread } from "@/lib/community";
 import { AuthorAvatar, CategoryChip, DOT, PostField, display, problemText, useAgo } from "./bits";
 import { AgreeDialog } from "./Dialogs";
 import { BannedNote, ThreadView } from "./ThreadView";
@@ -19,6 +19,7 @@ import { BannedNote, ThreadView } from "./ThreadView";
  * /community/: the forum in the public pages' colourful style.
  *   ?c=<category>   one category      ?t=<id>   a conversation
  *   ?new=1          start one          ?view=reports   the moderators' queue
+ *   ?view=blocked   the writers this writer has blocked (unblock here)
  * Visitors who aren't signed in see what the community is and a way in; the conversations
  * themselves are for signed-in writers only.
  */
@@ -45,7 +46,7 @@ export function Community() {
   const view = params.get("view");
   const c = params.get("c");
   const category = isCategory(c) ? c : null;
-  const inner = !!threadId || isNew || view === "reports";
+  const inner = !!threadId || isNew || view === "reports" || view === "blocked";
 
   let body: React.ReactNode;
   if (user === undefined) body = <ListSkeleton />;
@@ -55,6 +56,7 @@ export function Community() {
   else if (threadId) body = <ThreadView key={threadId} id={threadId} me={me} onMe={loadMe} />;
   else if (isNew) body = <NewThread me={me} onMe={loadMe} initial={category} />;
   else if (view === "reports" && me.is_admin) body = <ReportsQueue />;
+  else if (view === "blocked") body = <BlockedList />;
   else body = <ThreadList me={me} category={category} />;
 
   return (
@@ -222,6 +224,9 @@ function ThreadList({ me, category }: { me: Me; category: Category | null }) {
             <BannedNote me={me} />
           </div>
         )}
+        <Link href="/community/?view=blocked" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-muted transition hover:text-ink lg:mt-6 lg:px-3">
+          <Ban size={15} /> {t("community.blocked.title")}
+        </Link>
       </aside>
 
       <div className="min-w-0">
@@ -487,6 +492,60 @@ function ReportsQueue() {
                   </button>
                 )}
               </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** The writers this writer has blocked, with Unblock. */
+function BlockedList() {
+  const t = useT();
+  const [items, setItems] = useState<Blocked[] | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    community
+      .blocked()
+      .then(setItems)
+      .catch((e) => (setError(problemText(t, e)), setItems([])));
+  }, [t]);
+  const unblock = async (b: Blocked) => {
+    try {
+      await community.unblock(b.blocked_id);
+      setItems((xs) => (xs ?? []).filter((x) => x.blocked_id !== b.blocked_id));
+    } catch (e) {
+      setError(problemText(t, e));
+    }
+  };
+  return (
+    <div className="mx-auto max-w-3xl">
+      <Link href="/community/" className="inline-flex items-center gap-1.5 text-sm font-bold text-muted transition hover:text-ink">
+        <ArrowLeft size={16} /> {t("community.back")}
+      </Link>
+      <h1 className="mt-5 text-4xl font-extrabold tracking-tight md:text-5xl" style={{ fontFamily: "var(--font-landing)" }}>
+        {t("community.blocked.title")}
+      </h1>
+      <p className="mt-3 max-w-2xl text-[16px] leading-relaxed text-muted">{t("community.blocked.intro")}</p>
+      {error && <p className="mt-4 text-sm font-semibold text-danger">{error}</p>}
+      {items === null ? (
+        <div className="mt-6">
+          <ListSkeleton />
+        </div>
+      ) : items.length === 0 ? (
+        <p className="mt-8 rounded-[1.75rem] border border-dashed border-line-strong bg-surface/70 px-6 py-14 text-center font-semibold">{t("community.blocked.empty")}</p>
+      ) : (
+        <ul className="mt-8 grid gap-3">
+          {items.map((b) => (
+            <li key={b.blocked_id} className="flex items-center gap-3 rounded-[1.4rem] border border-line bg-surface p-4">
+              <AuthorAvatar author={{ author_name: b.blocked_name, author_avatar: b.blocked_avatar, author_tint: b.blocked_tint }} size={36} />
+              <span className="min-w-0 flex-1 truncate font-bold" data-private>
+                {b.blocked_name}
+              </span>
+              <button className="btn btn-outline !py-1.5 text-sm" onClick={() => unblock(b)}>
+                {t("community.unblock")}
+              </button>
             </li>
           ))}
         </ul>

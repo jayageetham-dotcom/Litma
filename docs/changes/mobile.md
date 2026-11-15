@@ -16,6 +16,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-15: Community blocking (website)
+
+Nothing in the app: Settings → Litma Community opens the website, which now has Block and Blocked writers (see `web.md`). Only `assets/i18n` changed (new `community.*` strings from `npm run mobile:assets`). If Community ever gets native screens, they must offer Block and Blocked writers too.
+
 ## 2026-11-15: Store badge files copied in
 
 `npm run mobile:assets` now also copies `app-store-badge.svg`, `google-play-badge.png` and `microsoft-store-badge.svg` into `assets/brands/` (it copies every file in `apps/web/public/brands`). The phone app doesn't use them; nothing else changed for the phone.

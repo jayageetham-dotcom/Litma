@@ -2,11 +2,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Flag, Heart, Lock, MessageCircle, MoreHorizontal, Pencil, Pin, ShieldAlert, Trash2, UserX } from "lucide-react";
+import { ArrowLeft, Ban, Flag, Heart, Lock, MessageCircle, MoreHorizontal, Pencil, Pin, ShieldAlert, Trash2, UserX } from "lucide-react";
 import { useT } from "@/i18n/react";
 import { useConfirm } from "@/components/ui/Confirm";
 import { Skeleton, SkeletonLines } from "@/components/ui/Skeleton";
-import { CATEGORIES, LIMITS, community, isLocalCommunity, type Category, type Me, type ModAction, type Reply, type Thread } from "@/lib/community";
+import { CATEGORIES, LIMITS, community, isLocalCommunity, type Author, type Category, type Me, type ModAction, type Reply, type Thread } from "@/lib/community";
 import { AuthorAvatar, CategoryChip, PostBody, PostField, display, problemText, useAgo } from "./bits";
 import { AgreeDialog, BanDialog, ModerateDialog, ReportDialog } from "./Dialogs";
 import { Select } from "@/components/ui/Select";
@@ -27,6 +27,7 @@ export function ThreadView({ id, me, onMe }: { id: string; me: Me; onMe: () => v
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [modal, setModal] = useState<Modal>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [confirmDialog, ask] = useConfirm();
@@ -107,6 +108,24 @@ export function ThreadView({ id, me, onMe }: { id: string; me: Me; onMe: () => v
       } else {
         router.push("/community/");
       }
+    } catch (e) {
+      setError(problemText(t, e));
+    }
+  };
+
+  /** Block the writer of a post: everything they wrote disappears for this writer, and they aren't told. */
+  const blockWriter = async (author: Author) => {
+    if (!thread) return;
+    const ok = await ask({ title: t("community.blockDialog.title", { name: author.author_name }), body: t("community.blockDialog.body"), confirm: t("community.block"), danger: true });
+    if (!ok) return;
+    try {
+      await community.block(author);
+      if (author.author_id === thread.author_id) {
+        router.push("/community/");
+        return;
+      }
+      setReplies((rs) => rs.filter((r) => r.author_id !== author.author_id));
+      setNotice(t("community.blockDialog.done", { name: author.author_name }));
     } catch (e) {
       setError(problemText(t, e));
     }
@@ -201,6 +220,11 @@ export function ThreadView({ id, me, onMe }: { id: string; me: Me; onMe: () => v
               <Flag size={14} /> {t("community.report")}
             </button>
           )}
+          {!own(thread.author_id) && (
+            <button className="btn btn-ghost !px-3 text-sm" onClick={() => blockWriter(thread)} data-track="Block writer">
+              <Ban size={14} /> {t("community.block")}
+            </button>
+          )}
           {me.is_admin && (
             <ModMenu
               items={[
@@ -213,6 +237,15 @@ export function ThreadView({ id, me, onMe }: { id: string; me: Me; onMe: () => v
           )}
         </Actions>
       </article>
+
+      {notice && (
+        <p className="mt-6 flex items-center gap-2 rounded-2xl border border-line bg-subtle p-4 text-[15px]" role="status">
+          <Ban size={16} className="shrink-0 text-muted" /> {notice}{" "}
+          <Link href="/community/?view=blocked" className="font-semibold text-violet-text underline underline-offset-2">
+            {t("community.blocked.manage")}
+          </Link>
+        </p>
+      )}
 
       {/* replies */}
       <h2 className="mt-10 text-sm font-bold uppercase tracking-[0.18em] text-coral-text">{t("community.replies", { count: replies.filter((r) => !r.removed).length })}</h2>
@@ -246,6 +279,11 @@ export function ThreadView({ id, me, onMe }: { id: string; me: Me; onMe: () => v
               {!own(r.author_id) && !r.removed && (
                 <button className="btn btn-ghost !px-3 text-sm" onClick={() => setModal({ kind: "report", replyId: r.id })}>
                   <Flag size={14} /> {t("community.report")}
+                </button>
+              )}
+              {!own(r.author_id) && (
+                <button className="btn btn-ghost !px-3 text-sm" onClick={() => blockWriter(r)} data-track="Block writer">
+                  <Ban size={14} /> {t("community.block")}
                 </button>
               )}
               {me.is_admin && (

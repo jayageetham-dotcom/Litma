@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LegalPage, type LegalSection } from "@/components/legal/LegalPage";
 
 /** Keep in step with COMMUNITY_GUIDELINES_VERSION (lib/community.ts) when writers must agree again. */
-const UPDATED = "9 November 2026";
+const UPDATED = "15 November 2026";
 
 const sections: LegalSection[] = [
   {
@@ -88,6 +88,7 @@ const sections: LegalSection[] = [
       <>
         <ul>
           <li>Use Report on any post that breaks these guidelines. The writer does not see who reported it.</li>
+          <li>Use Block on a writer&apos;s post to stop seeing everything they write in the community. They are not told, and you can unblock them from Blocked writers. Blocking doesn&apos;t replace a report: report a post that breaks these guidelines so the moderators can act.</li>
           <li>Litma&apos;s moderators can close a conversation (no new replies), remove a conversation or a reply, pin a conversation, and stop a writer from posting for a time or for good. A closed or removed conversation shows the reason.</li>
           <li>We may act without a report, and we may remove anything that breaks the law or these guidelines without warning.</li>
           <li>Removed posts, and posts you delete, are hidden at once and kept for 180 days in case the law requires them (for example, an investigation), then deleted for good.</li>

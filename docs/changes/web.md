@@ -10,6 +10,14 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-15: Block a writer in Litma Community
+
+- `lib/community.ts`: `Blocked` type, `community.blocked()`, `block(author)`, `unblock(id)`; local mode keeps `blocked` in `litma:community` and filters threads and replies. In cloud mode the read policies hide the posts (migration `20261115120000_community_blocks.sql`).
+- `components/community/ThreadView.tsx`: **Block** (lucide `Ban`) on the opening post and replies by other writers, with a confirm; blocking the thread's writer goes back to the list, blocking a replier removes their replies and shows a note linking to Blocked writers.
+- `components/community/Community.tsx`: `?view=blocked` → `BlockedList` (avatar, name, Unblock); link "Blocked writers" under the categories.
+- Strings `community.block`, `unblock`, `blockDialog.*`, `blocked.*` (en + ml). Help `13-community.md#community-block`; guidelines "Reports and moderation"; privacy "Writers you block".
+- Unverified: `next build` and a look in the browser (sandbox had no Linux SWC binary).
+
 ## 2026-11-15: Store badges, Microsoft Store first on Windows, Linux off the website
 
 - **Badges:** `components/StoreBadges.tsx` is now `StoreBadge` (`store` = ios | android | windows, optional `fallback` link) + `StoreBadges` (phones). It draws the stores' own files, unchanged, from `public/brands/` (`app-store-badge.svg` from Apple's App Store Marketing Tools, `google-play-badge.png` from Google with its clear space (drawn 250/168 taller with negative margins), `microsoft-store-badge.svg` from get.microsoft.com; sources in `public/brands/README.md`). The owner first sent Spotify's CDN copies (`scdn.co`); the stores' own files were used instead. Without a store link a badge shows "Coming soon" under it, or opens `fallback`.

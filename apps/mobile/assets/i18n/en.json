@@ -1468,6 +1468,19 @@
     "edit": "Edit",
     "delete": "Delete",
     "report": "Report",
+    "block": "Block",
+    "unblock": "Unblock",
+    "blockDialog": {
+      "title": "Block {name}?",
+      "body": "You won't see their conversations or replies in Litma Community any more. They won't be told. You can unblock them any time from Blocked writers. If they broke the guidelines, please report the post too.",
+      "done": "{name} is blocked. You won't see what they write here."
+    },
+    "blocked": {
+      "title": "Blocked writers",
+      "intro": "You don't see conversations or replies from these writers. They aren't told that you blocked them. Unblock someone to see their posts again.",
+      "empty": "You haven't blocked anyone.",
+      "manage": "Blocked writers"
+    },
     "moderate": "Moderate",
     "save": "Save",
     "cancel": "Cancel",

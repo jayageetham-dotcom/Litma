@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-15: Block a writer in Litma Community
+
+For App Review (guideline 1.2: apps with user-generated content need a way to block abusive users; the iPhone and Mac apps open Community from Settings). Migration `20261115120000_community_blocks.sql`: table `community_blocks` (own rows only, name/picture copied from the profile by a trigger, max 1000, not yourself), and the `read threads` / `read replies` policies now hide posts by writers the reader blocked. Website: **Block** beside Report on every post that isn't yours, **Blocked writers** page (`/community/?view=blocked`) with Unblock. Help `13-community.md#community-block`, Community Guidelines and Privacy Policy updated (15 Nov). Phone/desktop: nothing to build: both open the website's Community. Checked: migration run against the live database inside a rolled-back transaction (block hides the thread and replies, unblock brings them back, self-block refused); `typecheck`, `i18n:check`, `mobile:assets`. Unverified: `next build` (couldn't run in the Linux sandbox; run it on the Mac) and the screens in a browser. Live after push (deploy job runs `db push`).
+
 ## 2026-11-15: Store badges on the website, Linux off the website
 
 Website only (no Release: the download page and the home download card are hidden inside the desktop app; the phone app opens the website). The stores' own badges (App Store, Google Play, Microsoft Store) from `public/brands/`; Windows visitors get the Microsoft Store first with the direct `.exe` under it; the home page's download card covers phones too. Linux removed from the website, help, privacy intro, README and store texts; the AppImage and Snap builds and workflows stay (owner). Details in `web.md`. Push after the Microsoft Store listing is published, or the Windows badge opens "not available" meanwhile.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalPage, type LegalSection } from "@/components/legal/LegalPage";
 
-const UPDATED = "13 November 2026";
+const UPDATED = "15 November 2026";
 
 const sections: LegalSection[] = [
   {
@@ -119,6 +119,9 @@ const sections: LegalSection[] = [
             <strong>Your likes and reports.</strong> Other writers see how many likes a post has, not who liked it. A writer never sees who reported their post; the moderators do.
           </li>
           <li>
+            <strong>Writers you block:</strong> who you have blocked and when, with the name and avatar they had then, so their posts can be hidden from you. Only you see this list; the writers you block are not told.
+          </li>
+          <li>
             <strong>Your agreement:</strong> the date and version of the Community Guidelines you agreed to.
           </li>
           <li>
@@ -126,8 +129,8 @@ const sections: LegalSection[] = [
           </li>
         </ul>
         <p>
-          A post you delete, or one the moderators remove, is hidden at once and kept for 180 days (the period India&apos;s IT Rules ask for), then deleted for good. Moderation records are kept for two years. Deleting your account deletes your posts, likes
-          and reports. We may share a post and the account details behind it with the authorities when a lawful order requires it.
+          A post you delete, or one the moderators remove, is hidden at once and kept for 180 days (the period India&apos;s IT Rules ask for), then deleted for good. Moderation records are kept for two years. Deleting your account deletes your posts, likes,
+          reports and the list of writers you blocked (and removes you from other writers' lists). We may share a post and the account details behind it with the authorities when a lawful order requires it.
         </p>
       </>
     ),

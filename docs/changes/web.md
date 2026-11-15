@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-15: Community sign-in button readable
+
+- `components/community/Community.tsx` `SignInCard`: the Sign in button on the dark card was white text on `.btn-outline`'s white surface; now transparent with a light border (owner's iPhone screenshot).
+
 ## 2026-11-15: Desk listed other writers' shared works
 
 - `lib/store.ts`: `myId()`; `listDocs`, `getDoc` and `prefetchDocs` add `.eq("user_id", me)` (the table's public policy returned every shared work). Kept copies of others' works leave the device cache at the next listing (`refreshKept`).

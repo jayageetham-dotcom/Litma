@@ -134,7 +134,7 @@ function SignInCard() {
           <Link href={`/signup/?next=${encodeURIComponent("/community/")}`} className="btn bg-lime !px-5 !py-3 font-bold text-on-pop hover:bg-lime/90">
             {t("community.signUp")} <ArrowRight size={16} />
           </Link>
-          <Link href={`/login/?next=${encodeURIComponent("/community/")}`} className="btn btn-outline !border-night-ink/30 !px-5 !py-3 !text-night-ink">
+          <Link href={`/login/?next=${encodeURIComponent("/community/")}`} className="btn btn-outline !border-night-ink/30 !bg-transparent !px-5 !py-3 !text-night-ink hover:!bg-night-ink/10">
             {t("community.signIn")}
           </Link>
         </div>

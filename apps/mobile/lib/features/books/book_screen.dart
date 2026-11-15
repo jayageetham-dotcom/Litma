@@ -399,6 +399,8 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                 _change({'structure': list});
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(context.t('app.books.removed')),
+                  duration: const Duration(seconds: 4),
+                  persist: false,
                   action: SnackBarAction(label: context.t('app.desk.undo'), onPressed: () => _change({'structure': items})),
                 ));
               },

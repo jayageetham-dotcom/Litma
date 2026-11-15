@@ -16,6 +16,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-15: Undo messages close by themselves
+
+- Owner on the iPhone: "Moved to the trash · Undo" stayed until Undo was tapped. Flutter now keeps a snack bar with an action until it is tapped unless `persist: false`. Set on the desk toast (`desk_screen.dart` `_toast`, 4 s), the book's "removed" toast (`book_screen.dart`, now 4 s) and the writing timer's "again" (`editor_screen.dart`, 8 s). Unverified here (no Flutter): `flutter analyze` must accept `persist` (Flutter ≥ 3.47 in pubspec.lock).
+
 ## 2026-11-15: Desk listed other writers' shared works
 
 - `lib/data/store.dart`: `_me`; `listDocs`, `getDoc` and `_prefetch` filter `user_id` (see cross-platform). `lib/data/fake.dart`: rows without `user_id` belong to the test writer. Test in `test/offline_test.dart`.

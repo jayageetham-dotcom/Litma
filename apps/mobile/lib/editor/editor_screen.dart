@@ -145,6 +145,7 @@ class _EditorState extends ConsumerState<_Editor> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('${context.t('goals.timer.doneTitle')}. ${context.t('goals.timer.doneBody', {'count': words, 'minutes': minutes})}'),
       duration: const Duration(seconds: 8),
+      persist: false,
       action: SnackBarAction(label: context.t('goals.timer.again', {'minutes': minutes}), onPressed: () => WritingTimer.instance.start(minutes, s.doc.id, s.words, title: context.t('goals.timer.doneTitle'), body: context.t('goals.timer.notifyBody', {'minutes': minutes}))),
     ));
   }

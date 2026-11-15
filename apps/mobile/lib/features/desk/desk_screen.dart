@@ -170,6 +170,8 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     m.showSnackBar(SnackBar(
       content: Text(text),
       duration: const Duration(seconds: 4),
+      // Flutter keeps a snack bar with an action until it is tapped unless persist is false.
+      persist: false,
       action: undo == null ? null : SnackBarAction(label: context.t('app.desk.undo'), onPressed: undo),
     ));
   }

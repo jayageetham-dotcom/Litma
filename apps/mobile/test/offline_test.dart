@@ -40,6 +40,13 @@ void main() {
     expect(plainTextOf((server.tables['documents']!.single['content'] as Map).cast()), '111222');
   });
 
+  test("another writer's shared work never shows on the desk or opens as the writer's own", () async {
+    final mine = await store.createDoc(DocKind.story);
+    await server.insert('documents', {'id': 'theirs', 'user_id': 'writer-2', 'title': 'Shared', 'kind': 'poem', 'content': _text('x'), 'settings': {}, 'is_public': true, 'share_id': 's1'});
+    expect((await store.listDocs()).map((d) => d.id), [mine.id]);
+    expect(await store.getDoc('theirs'), isNull);
+  });
+
   test('offline: changes wait on the phone, the work reopens, and everything syncs later', () async {
     final doc = await store.createDoc(DocKind.novel);
     await store.updateDoc(doc.id, {'content': _text('online')});

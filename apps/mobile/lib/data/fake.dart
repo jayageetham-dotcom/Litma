@@ -27,7 +27,8 @@ class FakeBackend implements Backend {
     if (!online) throw const OfflineException();
   }
 
-  bool _matches(Json r, Map<String, Object> eq) => eq.entries.every((e) => r[e.key] == e.value);
+  // Rows written without a user_id belong to the one test writer (the real server fills it from the session).
+  bool _matches(Json r, Map<String, Object> eq) => eq.entries.every((e) => r[e.key] == e.value || (e.key == 'user_id' && !r.containsKey('user_id')));
 
   Json _pick(Json r, String columns) =>
       columns == '*' ? {...r} : {for (final c in columns.split(',')) if (r.containsKey(c.trim())) c.trim(): r[c.trim()]};

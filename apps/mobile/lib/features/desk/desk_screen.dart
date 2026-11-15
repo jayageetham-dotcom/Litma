@@ -13,6 +13,7 @@ import '../../core/motion.dart';
 import '../../core/theme.dart';
 import '../../data/forms.dart';
 import '../../data/analytics.dart';
+import '../../data/backend.dart' show OfflineException;
 import '../../data/backup.dart';
 import '../../data/goals.dart';
 import '../goals/goals_screen.dart' show rescheduleReminders;
@@ -183,8 +184,14 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     Haptics.soft();
     try {
       await store.trashDoc(id);
-    } catch (_) {
+    } on OfflineException {
       // kept in the outbox; the list already shows it gone
+    } catch (_) {
+      // the server refused (not this writer's work, or gone): say so and show the list as it really is
+      if (!mounted) return;
+      _toast(context.t('app.desk.failed'));
+      _desk.refresh();
+      return;
     }
     if (!mounted) return;
     _toast(context.t('app.desk.trashed'), undo: () async {
@@ -195,7 +202,16 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
 
   Future<void> _restore(LitmaDoc d) async {
     _desk.drop(d.id);
-    await ref.read(servicesProvider).store.restoreDoc(d.id);
+    try {
+      await ref.read(servicesProvider).store.restoreDoc(d.id);
+    } on OfflineException {
+      // kept in the outbox
+    } catch (_) {
+      if (!mounted) return;
+      _toast(context.t('app.desk.failed'));
+      _desk.refresh();
+      return;
+    }
     if (mounted) _toast(context.t('app.desk.restored'));
   }
 

@@ -57,9 +57,15 @@ class Store {
 
   // ── works ──
 
+  /// The signed-in writer's id, for every read of `documents`: the table also lets anyone read works
+  /// shared by link, so a query without `user_id = me` lists other writers' shared works as if they were
+  /// the writer's own (Nov 2026: the reviewer account showed the owner's shared works and "trashed" one).
+  String get _me => offline.uid() ?? (throw const OfflineException());
+
   Future<List<LitmaDoc>> listDocs({bool trash = false}) => _read(
         () async {
-          final rows = await offline.remote((b) => b.select('documents', columns: listCols, eq: {'archived': trash}, order: 'updated_at'));
+          final me = _me;
+          final rows = await offline.remote((b) => b.select('documents', columns: listCols, eq: {'user_id': me, 'archived': trash}, order: 'updated_at'));
           final kept = {for (final k in await offline.all('documents')) k['id'] as String: k};
           final ids = rows.map((r) => r['id']).toSet();
           for (final k in kept.values) {
@@ -87,7 +93,8 @@ class Store {
       final stale = rows.where((r) => kept[r['id']]?['_content_at'] != r['updated_at']).take(60).toList();
       for (var i = 0; i < stale.length; i += 10) {
         final ids = [for (final r in stale.skip(i).take(10)) r['id'] as String];
-        final data = await offline.remote((b) => b.select('documents', columns: docCols, inColumn: 'id', inValues: ids));
+        final me = _me;
+        final data = await offline.remote((b) => b.select('documents', columns: docCols, eq: {'user_id': me}, inColumn: 'id', inValues: ids));
         for (final d in data) {
           await offline.merge('documents', d['id'] as String, {...d, '_server_at': d['updated_at'], '_content_at': d['updated_at']});
         }
@@ -101,7 +108,8 @@ class Store {
 
   Future<LitmaDoc?> getDoc(String id) => _read<LitmaDoc?>(
         () async {
-          final row = await offline.remote((b) => b.selectOne('documents', columns: docCols, eq: {'id': id}));
+          final me = _me;
+          final row = await offline.remote((b) => b.selectOne('documents', columns: docCols, eq: {'user_id': me, 'id': id}));
           if (row == null) {
             await offline.remove('documents', id);
             return null;

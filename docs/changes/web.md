@@ -10,6 +10,12 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-15: Desk listed other writers' shared works
+
+- `lib/store.ts`: `myId()`; `listDocs`, `getDoc` and `prefetchDocs` add `.eq("user_id", me)` (the table's public policy returned every shared work). Kept copies of others' works leave the device cache at the next listing (`refreshKept`).
+- `getShared` reads through the `shared_document` RPC (migration `20261115130000_shared_document.sql`): signed-in writers can no longer read others' shared works from the table.
+- Unverified: `next build`; open a shared link signed in and signed out after the migration runs.
+
 ## 2026-11-15: Block a writer in Litma Community
 
 - `lib/community.ts`: `Blocked` type, `community.blocked()`, `block(author)`, `unblock(id)`; local mode keeps `blocked` in `litma:community` and filters threads and replies. In cloud mode the read policies hide the posts (migration `20261115120000_community_blocks.sql`).

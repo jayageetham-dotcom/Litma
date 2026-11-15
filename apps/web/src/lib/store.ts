@@ -104,6 +104,17 @@ async function cloudWrite(op: Op, direct: () => Promise<unknown>): Promise<boole
 /** The signed-in writer, or the one remembered on this device when the session can't be refreshed offline. */
 const sessionUser = currentUser;
 
+/**
+ * The signed-in writer's id, for every read of `documents`. The table also lets anyone read works
+ * shared by link (policy "public documents readable"), so a query without `user_id = me` returns other
+ * writers' shared works too: they showed on the desk as the writer's own (Nov 2026).
+ */
+async function myId(): Promise<string> {
+  const u = await sessionUser();
+  if (!u) throw new OfflineError();
+  return u.id;
+}
+
 const excerptOf = (d: KeptDoc) => (d.plain_text ?? (d.content?.content ? plainText(d.content) : "")).replace(/\s+/g, " ").trim().slice(0, 220);
 const listed = (d: KeptDoc): LitmaDoc => {
   const { plain_text: _p, _server_at: _s, _content_at: _c, ...rest } = d;
@@ -131,7 +142,7 @@ async function prefetchDocs(rows: KeptDoc[]) {
     const stale = rows.filter((r) => kept.get(r.id)?._content_at !== r.updated_at).slice(0, 60);
     for (let i = 0; i < stale.length; i += 10) {
       const ids = stale.slice(i, i + 10).map((r) => r.id);
-      const data = (await remote(sb.from("documents").select(DOC_COLS).in("id", ids))) as LitmaDoc[];
+      const data = (await remote(sb.from("documents").select(DOC_COLS).eq("user_id", await myId()).in("id", ids))) as LitmaDoc[];
       for (const d of data) await cache.merge<KeptDoc>("documents", d.id, { ...d, _server_at: d.updated_at, _content_at: d.updated_at });
     }
   } catch {
@@ -179,7 +190,7 @@ export const store = {
         .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
     return cloudRead(
       async () => {
-        const rows = ((await remote(sb.from("documents").select(LIST_COLS).eq("archived", trash).order("updated_at", { ascending: false }))) ?? []) as KeptDoc[];
+        const rows = ((await remote(sb.from("documents").select(LIST_COLS).eq("user_id", await myId()).eq("archived", trash).order("updated_at", { ascending: false }))) ?? []) as KeptDoc[];
         await refreshKept<KeptDoc>(
           "documents",
           rows.map((r) => ({ ...r, archived: !!r.archived, _server_at: r.updated_at }) as KeptDoc),
@@ -201,7 +212,7 @@ export const store = {
     if (!sb) return lsGet<LitmaDoc[]>(LS_DOCS, []).find((d) => d.id === id) ?? null;
     return cloudRead(
       async () => {
-        const row = (await remote(sb.from("documents").select(DOC_COLS).eq("id", id).maybeSingle())) as LitmaDoc | null;
+        const row = (await remote(sb.from("documents").select(DOC_COLS).eq("user_id", await myId()).eq("id", id).maybeSingle())) as LitmaDoc | null;
         if (row) await cache.merge<KeptDoc>("documents", id, { ...row, _server_at: row.updated_at, _content_at: row.updated_at });
         else await cache.remove("documents", id);
         return row;
@@ -346,8 +357,11 @@ export const store = {
   async getShared(shareId: string): Promise<LitmaDoc | null> {
     const sb = getSupabase();
     if (!sb) return null;
-    const { data } = await sb.from("documents").select(DOC_COLS).eq("share_id", shareId).eq("is_public", true).maybeSingle();
-    return data as LitmaDoc | null;
+    // Through the function: signed-in writers can't read other writers' shared works from the table
+    // (migration 20261115130000_shared_document.sql).
+    const { data, error } = await sb.rpc("shared_document", { p_share: shareId });
+    if (error || !data) return null;
+    return data as LitmaDoc;
   },
 
   // ── profile ──

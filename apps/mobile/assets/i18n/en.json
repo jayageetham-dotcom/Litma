@@ -899,6 +899,7 @@
       "read": "Read",
       "open": "Open",
       "deleted": "Deleted forever",
+      "failed": "That didn't work. Please try again.",
       "pull": "Pull to refresh"
     },
     "editor": {

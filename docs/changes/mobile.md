@@ -16,6 +16,12 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-15: Desk listed other writers' shared works
+
+- `lib/data/store.dart`: `_me`; `listDocs`, `getDoc` and `_prefetch` filter `user_id` (see cross-platform). `lib/data/fake.dart`: rows without `user_id` belong to the test writer. Test in `test/offline_test.dart`.
+- `features/desk/desk_screen.dart`: trash/restore show `app.desk.failed` and refresh when the server refuses; only `OfflineException` is treated as queued.
+- Not run here (no Flutter): `flutter analyze && flutter test`. Reaches phones with the next store build; the server migration already stops 0.7.24 listing others' works.
+
 ## 2026-11-15: Community blocking (website)
 
 Nothing in the app: Settings → Litma Community opens the website, which now has Block and Blocked writers (see `web.md`). Only `assets/i18n` changed (new `community.*` strings from `npm run mobile:assets`). If Community ever gets native screens, they must offer Block and Blocked writers too.

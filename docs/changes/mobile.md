@@ -16,6 +16,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-16: പ്രാസം tab in the Dictionary
+
+The web and desktop Dictionary has Look up · നാട്ടറിവ് · പ്രാസം · Saved; the phone had no പ്രാസം tab (rhymes only in the editor's tools sheet). The rhyme sheet is now a reusable `RhymeFinderView` in `lib/editor/writing_aids.dart` (`inSheet: true` keeps the editor behaviour: title, pick inserts at the cursor and closes; `false` drops the title, uses `rhyme.openHint`, and doesn't pop). `lib/features/dictionary/dictionary_screen.dart` shows it as the third tab, same order as the web; a picked word opens in Look up; `rhyme_lookup` is tracked when the tab opens. No new strings. Unverified: `flutter analyze`, `flutter test` and the screenshots job (no Flutter SDK here), and the four tab labels fitting on a narrow phone. Needs a phone store build.
+
 ## 2026-11-16: Google sign-in left the sign-up screen on top (Android testers)
 
 Play closed-test testers: Google sign-in went to Supabase and came back to the same sign-up screen. Auth logs show every attempt succeeded (`/callback` 302, `/token` pkce 200), so the phone was signed in. `signInWithGoogle` returns as soon as the browser opens; the session arrives later through `in.getlitma.app://auth-callback`, `AuthGate` switched to the desk underneath, but nothing popped the pushed `AuthScreen` (only the password path pops, in `_submit`). Fix: `AuthScreen` listens to `auth.changes` and `popUntil(isFirst)` when a writer arrives (covers Google and email links); also disposes its controllers. File: `lib/features/auth/auth_screen.dart`. Unverified: `flutter analyze && flutter test` (no SDK in this session) and a real Android phone. Reaches testers with the next Play build.

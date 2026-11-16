@@ -12,7 +12,9 @@ import '../../core/search.dart';
 import '../../core/manglish.dart';
 import '../../core/motion.dart';
 import '../../core/theme.dart';
+import '../../data/analytics.dart';
 import '../../data/dictionary.dart';
+import '../../editor/writing_aids.dart' show RhymeFinderView;
 import '../../widgets/common.dart';
 import '../../core/keyboard.dart';
 
@@ -80,7 +82,7 @@ Color _tint(LitmaTokens c, String t) => switch (t) {
       _ => c.tintViolet,
     };
 
-/// The dictionary: Look up · നാട്ടറിവ് · Saved (the web's /dictionary/).
+/// The dictionary: Look up · നാട്ടറിവ് · പ്രാസം · Saved (the web's /dictionary/, same order).
 class DictionaryScreen extends ConsumerStatefulWidget {
   const DictionaryScreen({super.key, this.initialWord});
   final String? initialWord;
@@ -111,9 +113,12 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
           child: SegmentTabs(
-            labels: [context.t('saved.lookupTab'), context.t('nattarivu.title'), saved > 0 ? context.t('saved.tab', {'n': saved}) : context.t('saved.title')],
+            labels: [context.t('saved.lookupTab'), context.t('nattarivu.title'), context.t('rhyme.tab'), saved > 0 ? context.t('saved.tab', {'n': saved}) : context.t('saved.title')],
             index: _tab,
-            onChanged: (i) => setState(() => _tab = i),
+            onChanged: (i) {
+              if (i == 2) Analytics.track('rhyme_lookup');
+              setState(() => _tab = i);
+            },
           ),
         ),
         Expanded(
@@ -124,6 +129,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
               backChip: _fromCategory == null ? null : (label: _fromCategory!, onTap: () => setState(() => _tab = 1)),
             ),
             _NattarivuView(onWord: (w, cat) => _open(w, from: cat)),
+            RhymeFinderView(inSheet: false, onPick: _open),
             _SavedView(onWord: _open),
           ]),
         ),

@@ -77,19 +77,23 @@ String _rhymeLine(EditorSession s) {
 
 Future<void> showRhymeSheet(BuildContext context, WidgetRef ref, EditorSession s) {
   Analytics.track('rhyme_lookup');
-  return _sheet(context, _RhymeSheet(line: _rhymeLine(s), onPick: s.insertText));
+  return _sheet(context, RhymeFinderView(line: _rhymeLine(s), onPick: s.insertText));
 }
 
-class _RhymeSheet extends ConsumerStatefulWidget {
-  const _RhymeSheet({required this.line, required this.onPick});
+/// The rhyme finder (the web's components/RhymeFinder.tsx). In the editor's sheet ([inSheet]) a
+/// picked word goes into the writing and the sheet closes; in the Dictionary's പ്രാസം tab it opens
+/// the word's entry.
+class RhymeFinderView extends ConsumerStatefulWidget {
+  const RhymeFinderView({super.key, this.line = '', required this.onPick, this.inSheet = true});
   final String line;
   final void Function(String) onPick;
+  final bool inSheet;
 
   @override
-  ConsumerState<_RhymeSheet> createState() => _RhymeSheetState();
+  ConsumerState<RhymeFinderView> createState() => _RhymeFinderViewState();
 }
 
-class _RhymeSheetState extends ConsumerState<_RhymeSheet> {
+class _RhymeFinderViewState extends ConsumerState<RhymeFinderView> {
   final _field = TextEditingController();
   var _kind = RhymeKind.second;
   var _sameLength = false;
@@ -145,8 +149,8 @@ class _RhymeSheetState extends ConsumerState<_RhymeSheet> {
   Widget build(BuildContext context) {
     final c = context.c;
     final w = _word;
-    return ListView(shrinkWrap: true, padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
-      _title(context, context.t('rhyme.tab')),
+    return ListView(shrinkWrap: widget.inSheet, keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag, padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
+      if (widget.inSheet) _title(context, context.t('rhyme.tab')),
       TextField(
         controller: _field,
         style: _ml.copyWith(fontSize: 16),
@@ -192,12 +196,12 @@ class _RhymeSheetState extends ConsumerState<_RhymeSheet> {
       else if (_list != null && _list!.isEmpty)
         Text(context.t('rhyme.none'), style: TextStyle(color: c.muted))
       else if (_list != null) ...[
-        Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(context.t('rhyme.pickHint'), style: TextStyle(color: c.muted, fontSize: 12.5))),
+        Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(context.t(widget.inSheet ? 'rhyme.pickHint' : 'rhyme.openHint'), style: TextStyle(color: c.muted, fontSize: 12.5))),
         Wrap(spacing: 6, runSpacing: 6, children: [
           for (final r in _list!)
             ActionChip(
               onPressed: () {
-                Navigator.pop(context);
+                if (widget.inSheet) Navigator.pop(context);
                 widget.onPick(r.word);
               },
               side: BorderSide(color: r.sameMetre ? c.lineStrong : c.line),

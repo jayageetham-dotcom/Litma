@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-16: Phone Dictionary gets the പ്രാസം tab
+
+The owner noticed പ്രാസം missing outside the website. Web and desktop share `app/dictionary/page.tsx`, which has had the tab since 8 Nov (desktop releases since then include it); the phone's Dictionary didn't. Added it there (details in `mobile.md`), help guide `06-dictionary.md#rhymes` phone note and `apps/mobile/README.md` updated. Needs a phone store build; no desktop Release needed.
+
 ## 2026-11-16: Actions artifact storage full
 
 Release #34 failed in "Web app for the desktop" and "Phone app / android" at upload-artifact: "Artifact storage quota has been hit" (installers and web builds kept for GitHub's default 90 days). Every upload-artifact step now keeps files 2 days (`desktop.yml`, `desktop-stores.yml`, `mobile-release.yml`, `mobile.yml`), and the phone's .aab copy is `continue-on-error` so a full quota can't block the Play upload. The owner must delete old artifacts once (the quota is recalculated every 6 to 12 hours). Unverified until the next Release run.

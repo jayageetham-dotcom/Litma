@@ -8,7 +8,8 @@ export const RELEASES_REPO = "jayageetham-dotcom/litma-releases";
 export const RELEASES_PAGE = `https://github.com/${RELEASES_REPO}/releases`;
 /** Store links. A null one shows as "Coming soon" (phones) or is left out (Windows). */
 export const STORE_LINKS = {
-  ios: null as string | null,
+  /** App Store listing (Apple ID 6834719757; this address opens the visitor's own country's store) */
+  ios: "https://apps.apple.com/app/id6834719757" as string | null,
   android: null as string | null,
   /** Microsoft Store listing (Partner Center product "Litma", Store ID 9NKP5NXGX0J2); mode=direct opens the Store app */
   windows: "https://apps.microsoft.com/detail/9NKP5NXGX0J2?referrer=appbadge&mode=direct" as string | null,

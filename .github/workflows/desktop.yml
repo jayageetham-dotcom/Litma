@@ -220,7 +220,7 @@ jobs:
               win: win.url,
               linux: linux.url,
               desktop: { version: v, minimumVersion: process.env.MIN || null, mac, win, linux },
-              mobile: { version: null, minimumVersion: null, ios: null, android: null }
+              mobile: { version: null, minimumVersion: null, ios: "https://apps.apple.com/app/id6834719757", android: null }
             };
             fs.writeFileSync("manifest/latest.json", JSON.stringify(latest, null, 2) + "\n");
           '

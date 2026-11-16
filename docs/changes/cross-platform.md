@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-16: iPhone app live on the App Store
+
+iOS 0.7.24 approved (Ready for Distribution) after the 2.1 information request (recordings, demo account, Community blocking). `STORE_LINKS.ios` in `apps/web/src/lib/release.ts` and the `mobile.ios` link written to `latest.json` by `.github/workflows/desktop.yml` are now https://apps.apple.com/app/id6834719757 (country-neutral form of apps.apple.com/in/app/litma-malayalam-writing/id6834719757), so the App Store badge on the website opens the listing instead of "Coming soon". The phone's update prompt reads `mobile.ios` from latest.json after the next desktop Release. Mac 0.7.26 still waiting for review. Next phone build: the 15 Nov phone fixes (desk filter, trash error, Undo toasts) and the dictionary joiner fix.
+
 ## 2026-11-15: Desktop sign-up emails linked to the Supabase server
 
 Owner signing up in the Mac app (0.7.26): the confirmation link opened `https://<ref>.supabase.co/auth/v1/auth/callback/?…` and showed "No API key found". `verifyUrl` in `supabase/functions/litma-send-email/index.ts` built desktop (`app://`) links from the hook's `site_url`, which is Supabase's auth address, not the Site URL. Now only a non-Supabase `site_url` is used, else https://getlitma.in. Website (https redirect) and phone (own scheme) links were not affected. Checked the address logic with node; deploys with the push (deploy job). No app build needed.

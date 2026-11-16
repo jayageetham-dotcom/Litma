@@ -71,7 +71,7 @@ jobs:
         with:
           name: web-out
           path: apps/web/out
-          retention-days: 3
+          retention-days: 2
 
   mac:
     name: 🍎 Mac App Store
@@ -132,6 +132,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: litma-mac-app-store
+          retention-days: 2
           path: apps/desktop/release/**/Litma-mac-store.pkg
       - if: steps.secrets.outputs.ok == 'yes' && inputs.upload && steps.secrets.outputs.asc == 'yes'
         name: Upload to App Store Connect
@@ -201,6 +202,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: litma-microsoft-store
+          retention-days: 2
           path: apps/desktop/release/**/Litma-win-store-*.appx
 
   linux:
@@ -238,6 +240,7 @@ jobs:
       - uses: actions/upload-artifact@v6
         with:
           name: litma-snap
+          retention-days: 2
           path: apps/desktop/release/**/Litma-linux-store.snap
       - id: snapcred
         env:

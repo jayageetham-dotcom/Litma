@@ -79,7 +79,7 @@ jobs:
         with:
           name: phone-screens
           path: apps/mobile/test/screenshots/out/
-          retention-days: 14
+          retention-days: 2
       # The same pictures on the ci/phone-screens branch (one commit, replaced on every run), so they
       # can be looked at on GitHub or fetched with git where artifact downloads are blocked.
       - name: Put the pictures on the ci/phone-screens branch

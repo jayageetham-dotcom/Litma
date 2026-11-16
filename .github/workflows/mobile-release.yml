@@ -73,8 +73,11 @@ jobs:
           flutter build appbundle --release --build-number=${{ github.run_number }}
       - if: steps.secrets.outputs.signing == 'yes'
         uses: actions/upload-artifact@v5
+        # a copy to download by hand; a full artifact quota must not stop the Play upload
+        continue-on-error: true
         with:
           name: litma-android
+          retention-days: 2
           path: apps/mobile/build/app/outputs/bundle/release/app-release.aab
       - if: steps.secrets.outputs.signing == 'yes' && steps.secrets.outputs.play == 'yes'
         uses: r0adkll/upload-google-play@v1

@@ -78,7 +78,7 @@ jobs:
         with:
           name: web-out
           path: apps/web/out
-          retention-days: 3
+          retention-days: 2
 
   package:
     name: 📦 ${{ matrix.name }}
@@ -160,6 +160,7 @@ jobs:
       - uses: actions/upload-artifact@v6
         with:
           name: installer-${{ matrix.name }}
+          retention-days: 2
           path: |
             apps/desktop/release/Litma-mac.dmg
             apps/desktop/release/Litma-win.exe

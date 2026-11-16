@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-16: Actions artifact storage full
+
+Release #34 failed in "Web app for the desktop" and "Phone app / android" at upload-artifact: "Artifact storage quota has been hit" (installers and web builds kept for GitHub's default 90 days). Every upload-artifact step now keeps files 2 days (`desktop.yml`, `desktop-stores.yml`, `mobile-release.yml`, `mobile.yml`), and the phone's .aab copy is `continue-on-error` so a full quota can't block the Play upload. The owner must delete old artifacts once (the quota is recalculated every 6 to 12 hours). Unverified until the next Release run.
+
 ## 2026-11-16: Phone: Google sign-in stayed on the sign-up screen
 
 Phone only (Android testers reported it). Sign-in itself worked (auth logs: every attempt got a session); the pushed sign-up screen just never closed. `AuthScreen` now closes when a sign-in arrives. Details in `mobile.md`. Web and desktop not affected (their callback page navigates). Needs a new phone build (Play closed test, and the App Store with the next update).

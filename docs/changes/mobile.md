@@ -16,6 +16,10 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-16: Google sign-in left the sign-up screen on top (Android testers)
+
+Play closed-test testers: Google sign-in went to Supabase and came back to the same sign-up screen. Auth logs show every attempt succeeded (`/callback` 302, `/token` pkce 200), so the phone was signed in. `signInWithGoogle` returns as soon as the browser opens; the session arrives later through `in.getlitma.app://auth-callback`, `AuthGate` switched to the desk underneath, but nothing popped the pushed `AuthScreen` (only the password path pops, in `_submit`). Fix: `AuthScreen` listens to `auth.changes` and `popUntil(isFirst)` when a writer arrives (covers Google and email links); also disposes its controllers. File: `lib/features/auth/auth_screen.dart`. Unverified: `flutter analyze && flutter test` (no SDK in this session) and a real Android phone. Reaches testers with the next Play build.
+
 ## 2026-11-15: Undo messages close by themselves
 
 - Owner on the iPhone: "Moved to the trash · Undo" stayed until Undo was tapped. Flutter now keeps a snack bar with an action until it is tapped unless `persist: false`. Set on the desk toast (`desk_screen.dart` `_toast`, 4 s), the book's "removed" toast (`book_screen.dart`, now 4 s) and the writing timer's "again" (`editor_screen.dart`, 8 s). Unverified here (no Flutter): `flutter analyze` must accept `persist` (Flutter ≥ 3.47 in pubspec.lock).

@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-16: Phone: Google sign-in stayed on the sign-up screen
+
+Phone only (Android testers reported it). Sign-in itself worked (auth logs: every attempt got a session); the pushed sign-up screen just never closed. `AuthScreen` now closes when a sign-in arrives. Details in `mobile.md`. Web and desktop not affected (their callback page navigates). Needs a new phone build (Play closed test, and the App Store with the next update).
+
 ## 2026-11-16: Every help guide has its own page
 
 Search Console: /help/?a=open-claude was "Alternative page with proper canonical tag". All 74 guides lived at /help/?a=<id> and carried /help/'s canonical, so Google indexed none of them. Now `app/help/[id]` builds /help/<id>/ for every guide (generateStaticParams, dynamicParams = false): own title ("<guide> · Litma Help"), description and canonical, the guide's text in the static HTML, all listed in sitemap.xml. Old ?a= links forward on the client. CLAUDE.md's "no dynamic route segments" rule now allows exactly this kind (owner agreed). Links updated in the phone app (credits), terms, README, notices, setup guide and dictionary build. Checked: full `next build` in a scratch copy (75 folders under out/help: 74 guides + shots; canonical, title, description, sitemap). Live with the push; the desktop app opens help on the website, so no Release needed for it; the phone's credits link changes with the next store build (the old address still forwards).

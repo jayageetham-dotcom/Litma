@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -39,10 +41,26 @@ class AuthScreen extends ConsumerStatefulWidget {
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   late bool _signUp = widget.signUp;
 
+  StreamSubscription<Writer?>? _signedIn;
+
   @override
   void initState() {
     super.initState();
     Analytics.screen(widget.signUp ? '/signup/' : '/login/');
+    // Google sign-in (and an email link) finishes later, when the browser hands the session back
+    // through in.getlitma.app://auth-callback. Close this screen then, so the desk under it shows.
+    _signedIn = _auth.changes.listen((w) {
+      if (w != null && mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+    });
+  }
+
+  @override
+  void dispose() {
+    _signedIn?.cancel();
+    _name.dispose();
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
   }
   final _name = TextEditingController();
   final _email = TextEditingController();

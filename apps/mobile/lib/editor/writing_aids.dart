@@ -100,7 +100,11 @@ class _RhymeFinderViewState extends ConsumerState<RhymeFinderView> {
   var _sameMetre = false;
   List<Rhyme>? _list;
   var _busy = false;
+  var _start = 0;
   Timer? _debounce;
+
+  /// Rhymes shown at a time; "Next set" moves through the rest (as the web's RhymeFinder).
+  static const _page = 40;
 
   @override
   void initState() {
@@ -130,10 +134,11 @@ class _RhymeFinderViewState extends ConsumerState<RhymeFinderView> {
       return;
     }
     setState(() => _busy = true);
-    final r = await RhymeFinder(ref.read(servicesProvider).dictionary).find(w, _kind, sameLength: _sameLength, sameMetre: _sameMetre);
+    final r = await RhymeFinder(ref.read(servicesProvider).dictionary).find(w, _kind, max: 1000, sameLength: _sameLength, sameMetre: _sameMetre);
     if (!mounted) return;
     setState(() {
       _list = r;
+      _start = 0;
       _busy = false;
     });
   }
@@ -154,6 +159,8 @@ class _RhymeFinderViewState extends ConsumerState<RhymeFinderView> {
       TextField(
         controller: _field,
         style: _ml.copyWith(fontSize: 16),
+        autocorrect: false,
+        enableSuggestions: false,
         decoration: InputDecoration(prefixIcon: const Icon(LucideIcons.search, size: 18), hintText: context.t('rhyme.placeholder')),
         onChanged: (_) {
           _debounce?.cancel();
@@ -198,7 +205,7 @@ class _RhymeFinderViewState extends ConsumerState<RhymeFinderView> {
       else if (_list != null) ...[
         Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(context.t(widget.inSheet ? 'rhyme.pickHint' : 'rhyme.openHint'), style: TextStyle(color: c.muted, fontSize: 12.5))),
         Wrap(spacing: 6, runSpacing: 6, children: [
-          for (final r in _list!)
+          for (final r in _list!.skip(_start).take(_page))
             ActionChip(
               onPressed: () {
                 if (widget.inSheet) Navigator.pop(context);
@@ -211,6 +218,27 @@ class _RhymeFinderViewState extends ConsumerState<RhymeFinderView> {
               ])),
             ),
         ]),
+        if (_list!.length > _page)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(children: [
+              OutlinedButton.icon(
+                onPressed: () {
+                  Analytics.track('rhyme_next');
+                  setState(() => _start = _start + _page >= _list!.length ? 0 : _start + _page);
+                },
+                icon: const Icon(LucideIcons.refreshCw, size: 16),
+                label: Text(context.t('rhyme.next')),
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  context.t('rhyme.range', {'from': _start + 1, 'to': (_start + _page).clamp(0, _list!.length), 'total': _list!.length}),
+                  style: TextStyle(color: c.muted, fontSize: 12.5),
+                ),
+              ),
+            ]),
+          ),
         Padding(padding: const EdgeInsets.only(top: 14), child: Text(context.t('rhyme.source'), style: TextStyle(color: c.muted, fontSize: 11))),
       ],
     ]);

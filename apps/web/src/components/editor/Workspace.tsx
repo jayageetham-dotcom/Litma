@@ -209,6 +209,16 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   });
   useToolbarRefresh(editor);
 
+  // Phone keyboards capitalise the start of a sentence and autocorrect Latin words. In Manglish a
+  // capital has its own meaning (A is ആ, M is ം), so "amma" came out as ആമ്മ. Off while typing Manglish.
+  useEffect(() => {
+    const dom = editor?.view?.dom;
+    if (!dom) return;
+    const latin = mode === "manglish";
+    dom.setAttribute("autocapitalize", latin ? "off" : "sentences");
+    dom.setAttribute("autocorrect", latin ? "off" : "on");
+  }, [editor, mode]);
+
   // spelling marks: on or off per device (Check panel), redone when the writer keeps a word
   useEffect(() => {
     if (!editor) return;
@@ -681,6 +691,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             <div className="group/title relative max-w-xl">
             <input
               value={title}
+              autoCapitalize={mode === "manglish" ? "off" : "sentences"}
+              autoCorrect={mode === "manglish" ? "off" : "on"}
               onFocus={() => {
                 titleBefore.current = titleRef.current;
               }}

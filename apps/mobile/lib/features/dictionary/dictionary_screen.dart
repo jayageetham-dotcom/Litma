@@ -231,6 +231,7 @@ class LookupViewState extends ConsumerState<LookupView> {
             controller: _q,
             focusNode: _focus,
             textInputAction: TextInputAction.search,
+            autocorrect: false,
             onChanged: _typed,
             onSubmitted: search,
             style: const TextStyle(fontFamily: LitmaFonts.display, fontSize: 18),

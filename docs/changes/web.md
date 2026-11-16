@@ -10,6 +10,12 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-16: Rhymes "Next set"; no keyboard capitals in Manglish
+
+- `components/RhymeFinder.tsx`: ranks up to 1,000 rhymes and shows 40 at a time; a **Next set** button (RefreshCw) with "1–40 of N" moves through them and starts again after the last set. Strings `rhyme.next`, `rhyme.range`. Help `06-dictionary.md#rhymes`.
+- iPhone Safari capitalised the first word ("amma" → "Amma" → ആമ്മ; "mazha" → "Mazha" → ംഅഴ in the rhyme box). `Workspace.tsx` now sets `autocapitalize="off"` and `autocorrect="off"` on the editor while the mode is Manglish (back to sentences/on otherwise), same for the title box; the rhyme box and the dictionary's search box always have them off. Capitals typed on purpose keep their Manglish meaning (Aana → ആന).
+- Unverified: on a real iPhone; the "Next set" button in a browser (no dictionary data in local builds).
+
 ## 2026-11-16: Help guides on their own pages
 
 - `app/help/[id]/page.tsx`: one static page per guide (`allGuides`, `forPage(data, id)` sends only that guide's HTML; `describe()` makes the meta description). `components/help/HelpCenter.tsx`: `HelpView` (no query hooks, so guide pages render into the HTML) and `HelpCenter` (home/topics; forwards ?a=). `guideHref()` in `lib/help-types.ts`; `lib/help.ts` turns `(#id)` and `/help/?a=id` links into `/help/id/`. `app/sitemap.ts` lists every guide. `UpdateNotice` credits link → `credits/`.

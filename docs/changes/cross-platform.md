@@ -7,6 +7,12 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-16: Rhymes "Next set" everywhere; keyboard capitals off for Manglish
+
+- Rhyme finder (web, desktop, phone) shows 40 at a time with a **Next set** button and "1–40 of N", cycling through up to 1,000 ranked rhymes. MCP `find_rhymes` takes `offset` and returns `next_offset`. Help `06-dictionary.md#rhymes`.
+- Phone keyboards capitalised the first letter, and a capital means something in Manglish (Amma → ആമ്മ, Mazha → ംഅഴ). Off while typing Manglish in the web editor and title, the phone editor, and the rhyme and dictionary search boxes; phone editor also has smart quotes off in Manglish (owner saw ‘അമ്മ; not reproduced here).
+- Needs a desktop Release and a phone store build; MCP change deploys with the Supabase job.
+
 ## 2026-11-16: Phone Dictionary gets the പ്രാസം tab
 
 The owner noticed പ്രാസം missing outside the website. Web and desktop share `app/dictionary/page.tsx`, which has had the tab since 8 Nov (desktop releases since then include it); the phone's Dictionary didn't. Added it there (details in `mobile.md`), help guide `06-dictionary.md#rhymes` phone note and `apps/mobile/README.md` updated. Needs a phone store build; no desktop Release needed.

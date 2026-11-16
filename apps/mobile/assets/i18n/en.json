@@ -1197,7 +1197,9 @@
     "none": "No rhymes in the dictionary for this one. Try another kind of rhyme.",
     "pickHint": "Tap a word to put it in your text. Without a selection the finder follows the line you are on, or the line above when that one is empty.",
     "openHint": "Tap a word to see its meaning.",
-    "source": "Words from the dictionary, best known first."
+    "source": "Words from the dictionary, best known first.",
+    "next": "Next set",
+    "range": "{from}–{to} of {total}"
   },
   "check": {
     "spelling": "Spelling",

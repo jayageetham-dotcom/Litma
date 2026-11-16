@@ -44,6 +44,8 @@ In the editor the finder follows the line you are on. When that line is still em
 
 Tick **Same number of aksharas** or **Same laghu–guru pattern** to see only words that fit the same place in the line.
 
+The finder shows 40 words at a time, best known first. Tap **Next set** under them for the next 40; after the last set it starts again from the first.
+
 > **Phone:** In a work, tap the tools button and choose **Rhymes**. Tap a word to put it at the cursor. Or open **Dictionary** and the **പ്രാസം** tab; there a word opens its meaning.
 
 > **Good to know:** The rhyme finder works offline once you have used it, like the dictionary.

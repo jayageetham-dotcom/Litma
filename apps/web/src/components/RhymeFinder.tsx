@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { RefreshCw, Search } from "lucide-react";
 import { InkDots } from "@/components/ui/Skeleton";
 import { rhymes } from "@/lib/dictionary";
 import { manglishWord } from "@litma/shared/manglish";
@@ -10,6 +10,9 @@ import { track } from "@/lib/analytics";
 import { useT } from "@/i18n/react";
 
 const ml = { fontFamily: "'Noto Sans Malayalam', var(--font-ui)" } as const;
+
+/** Rhymes shown at a time; "Next set" moves through the rest. */
+const PAGE = 40;
 
 /** Malayalam as typed, or Manglish turned into Malayalam. */
 export function toMalayalamWord(raw: string): string {
@@ -46,6 +49,7 @@ export function RhymeFinder({
   const [sameMetre, setSameMetre] = useState(false);
   const [list, setList] = useState<Rhyme[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [start, setStart] = useState(0);
 
   useEffect(() => {
     if (external !== undefined) setTyped(external);
@@ -66,10 +70,11 @@ export function RhymeFinder({
     setBusy(true);
     const timer = setTimeout(() => {
       rhymes
-        .find(word, kind, { max: 80, sameLength, sameMetre })
+        .find(word, kind, { max: 1000, sameLength, sameMetre })
         .then((r) => {
           if (!live) return;
           setList(r);
+          setStart(0);
           track("rhyme_lookup", { kind });
         })
         .finally(() => live && setBusy(false));
@@ -95,6 +100,9 @@ export function RhymeFinder({
           onChange={(e) => setTyped(e.target.value)}
           placeholder={t("rhyme.placeholder")}
           aria-label={t("rhyme.placeholder")}
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
           data-private
           style={ml}
           lang="ml"
@@ -150,7 +158,7 @@ export function RhymeFinder({
           <>
             {pickHint && <p className="mb-2 text-xs text-muted">{pickHint}</p>}
             <div className={`flex flex-wrap ${compact ? "gap-1.5" : "gap-2"}`}>
-              {list.map((r) => (
+              {list.slice(start, start + PAGE).map((r) => (
                 <button
                   key={r.word}
                   type="button"
@@ -165,6 +173,24 @@ export function RhymeFinder({
                 </button>
               ))}
             </div>
+            {list.length > PAGE && (
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setStart((s) => (s + PAGE >= list.length ? 0 : s + PAGE));
+                    track("rhyme_next");
+                  }}
+                  className="btn btn-outline !gap-1.5 !rounded-full !px-3.5 !py-1.5 text-[13px]"
+                >
+                  <RefreshCw size={14} aria-hidden /> {t("rhyme.next")}
+                </button>
+                <span className="text-xs text-muted" aria-live="polite">
+                  {t("rhyme.range", { from: start + 1, to: Math.min(start + PAGE, list.length), total: list.length })}
+                </span>
+              </div>
+            )}
             <p className="mt-4 text-[11px] text-muted">{t("rhyme.source")}</p>
           </>
         ) : null}

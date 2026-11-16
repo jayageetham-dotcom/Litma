@@ -234,6 +234,9 @@ export function DictionaryView({
           value={q}
           placeholder="Malayalam, English or Manglish word"
           aria-label="Word to look up"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
           onChange={(e) => {
             const v = e.target.value;
             setQ(v);

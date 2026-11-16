@@ -21,6 +21,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
 
+## 2026-11-16: Rhymes "Next set" (shared web code)
+
+Comes with the web change (`RhymeFinder.tsx`); keyboard-capital fix doesn't matter on desktop keyboards. Needs a desktop Release.
+
 ## 2026-11-14: Microsoft Store product reserved
 
 Owner registered a free Individual developer account (publisher display name **Litma**, contact support@getlitma.in) and reserved the product **Litma** (MSIX or PWA app). Product identity: Name `Litma.Litma`, Publisher `CN=65F97D31-CBDB-4940-BD50-27470F8E0B57`, PublisherDisplayName `Litma`, PFN `Litma.Litma_khazx26530b2y`, Store ID `9NKP5NXGX0J2` (https://apps.microsoft.com/detail/9NKP5NXGX0J2). No code change: `electron-builder.stores.yml` already uses displayName/applicationId `Litma`. Next: owner adds the repo variables `MSSTORE_IDENTITY_NAME`, `MSSTORE_PUBLISHER`, `MSSTORE_PUBLISHER_DISPLAY_NAME` (the cloud session's proxy blocks the Actions variables API), runs **Desktop store builds**, uploads both `.appx` in a submission. The first appx build passed (Desktop store builds, 14 Nov: artifact `litma-microsoft-store`, 240 MB, x64 + arm64). Partner Center validated both packages. Submission 1 (0.7.27.0) filled in on 15 Nov: free, all markets, Productivity, privacy URL, IARC 3+ (Users Interact), listings in en-IN and ml-IN from `marketing/store/microsoft-store/listing-text.txt` (Mac screenshots, poster and box art in that folder), runFullTrust justified, reviewer account jagath.gj+review@gmail.com under Credentials, publishing held until "Publish now". After certification: Publish now, then add the Microsoft Store link (https://apps.microsoft.com/detail/9NKP5NXGX0J2) to `STORE_LINKS`. The Community has no block-user feature (IARC answer "No"); stores may ask for it. The package declares `en-IN` and `ml-IN`, so Partner Center will ask for a listing in both; submission will ask to justify `runFullTrust`.

@@ -493,6 +493,7 @@ const TOOLS: Tool[] = [
         kind: S("string", "Kind of rhyme (default second)", { enum: RHYME_KINDS }),
         same_metre: S("boolean", "Only words with the same laghu–guru pattern"),
         max: S("number", "How many (default 40, at most 100)"),
+        offset: S("number", "Skip this many of the best rhymes, to get the next set (e.g. 40 after a first call with max 40). Default 0."),
       },
       required: ["word"],
     },
@@ -503,8 +504,11 @@ const TOOLS: Tool[] = [
       if (!/[ഀ-ൿ]/.test(word)) return out("Give the word in Malayalam script (use transliterate for Manglish).", true);
       const key = rhymeKey(word, kind);
       if (!key) return out("This kind of rhyme needs a word of two aksharas or more.", true);
-      const list = await rhymes.find(word, kind, { max: Math.min(100, Math.max(1, Number(a.max) || 40)), sameMetre: !!a.same_metre });
-      return outJson({ word, metre: metrePattern(word), kind, key, rhymes: list.map((r) => ({ word: r.word, metre: r.metre })) });
+      const max = Math.min(100, Math.max(1, Number(a.max) || 40));
+      const offset = Math.min(2500, Math.max(0, Math.floor(Number(a.offset) || 0)));
+      const all = await rhymes.find(word, kind, { max: offset + max, sameMetre: !!a.same_metre });
+      const list = all.slice(offset);
+      return outJson({ word, metre: metrePattern(word), kind, key, offset, rhymes: list.map((r) => ({ word: r.word, metre: r.metre })), next_offset: list.length === max ? offset + max : null });
     },
   },
   {

@@ -16,6 +16,12 @@ Reaches writers only through store builds. Cross-app summary and open items:
 - The phone can't edit book pages that carry formatting (shown read-only with a note), and
   can't upload pictures (uploads are off everywhere for now).
 
+## 2026-11-16: Rhymes "Next set"; no keyboard capitals or smart quotes in Manglish
+
+- `lib/editor/writing_aids.dart` (`RhymeFinderView`): up to 1,000 rhymes, 40 at a time, **Next set** (`LucideIcons.refreshCw`) with the range, wraps to the first set; `rhyme_next` tracked. Rhyme box: no autocorrect or suggestions.
+- `lib/editor/page_view.dart`: line fields used `TextCapitalization.sentences`, so the keyboard made "amma" into "Amma" → ആമ്മ. In Manglish mode now no capitalisation, no autocorrect, smart quotes and dashes off (the owner saw ‘അമ്മ at the start of a short story; the curly quote's source isn't confirmed, smart punctuation is the likely one). Dictionary search box: autocorrect off.
+- Unverified: `flutter analyze`, `flutter test` (no SDK; CI blocked by GitHub billing), a real phone.
+
 ## 2026-11-16: പ്രാസം tab in the Dictionary
 
 The web and desktop Dictionary has Look up · നാട്ടറിവ് · പ്രാസം · Saved; the phone had no പ്രാസം tab (rhymes only in the editor's tools sheet). The rhyme sheet is now a reusable `RhymeFinderView` in `lib/editor/writing_aids.dart` (`inSheet: true` keeps the editor behaviour: title, pick inserts at the cursor and closes; `false` drops the title, uses `rhyme.openHint`, and doesn't pop). `lib/features/dictionary/dictionary_screen.dart` shows it as the third tab, same order as the web; a picked word opens in Look up; `rhyme_lookup` is tracked when the tab opens. No new strings. Unverified: `flutter analyze`, `flutter test` and the screenshots job (no Flutter SDK here), and the four tab labels fitting on a narrow phone. Needs a phone store build.

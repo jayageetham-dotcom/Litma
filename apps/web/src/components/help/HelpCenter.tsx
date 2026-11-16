@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpen, BookA, ChevronRight, Keyboard, LifeBuoy, Mail, MonitorSmartphone, PenLine, Rocket, Search, Settings, Share2, Sparkles, LayoutTemplate, Map as MapIcon, X, Target, type LucideIcon, UsersRound } from "lucide-react";
 import { ColourField, LandingFooter, LandingNav } from "@/components/landing/LandingChrome";
-import type { HelpArticle, HelpCategory, HelpData } from "@/lib/help-types";
+import { guideHref, type HelpArticle, type HelpCategory, type HelpData } from "@/lib/help-types";
 
 const ICONS: Record<string, LucideIcon> = {
   rocket: Rocket,
@@ -89,11 +89,25 @@ function search(data: HelpData, q: string): HelpArticle[] {
   return scored.sort((x, y) => y.s - x.s).map((x) => x.a);
 }
 
+/**
+ * /help/ (home, ?c=<topic>). Old guide addresses (/help/?a=<id>) forward to the guide's own page.
+ * It reads the query, so the static build renders it in the browser; guide pages use HelpView directly.
+ */
 export function HelpCenter({ data }: { data: HelpData }) {
   const params = useSearchParams();
   const router = useRouter();
-  const aId = params.get("a");
-  const cId = params.get("c");
+  const old = params.get("a");
+  const known = !!old && data.categories.some((c) => c.articles.some((a) => a.id === old));
+  useEffect(() => {
+    if (known) router.replace(`${guideHref(old!)}${window.location.hash}`);
+  }, [known, old, router]);
+  if (known) return <div className="landing min-h-dvh bg-mist" />;
+  return <HelpView data={data} cId={params.get("c")} />;
+}
+
+/** The help site's views. `aId`: the guide this page shows (its own page, rendered into the static HTML). */
+export function HelpView({ data, aId = null, cId = null }: { data: HelpData; aId?: string | null; cId?: string | null }) {
+  const router = useRouter();
   const all = useMemo(() => data.categories.flatMap((c) => c.articles), [data]);
   const article = aId ? all.find((a) => a.id === aId) ?? null : null;
   const category = data.categories.find((c) => c.id === (article?.category ?? cId)) ?? null;
@@ -159,7 +173,7 @@ function SearchBox({ data, go, big = false }: { data: HelpData; go: (href: strin
   const pick = (a: HelpArticle) => {
     setOpen(false);
     setQ("");
-    go(`/help/?a=${a.id}`);
+    go(guideHref(a.id));
   };
 
   return (
@@ -265,7 +279,7 @@ function HomeView({ data, go }: { data: HelpData; go: (href: string) => void }) 
             <div className="mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-2 text-sm">
               <span className="font-semibold text-muted">Popular:</span>
               {popular.map((a) => (
-                <Link key={a.id} href={`/help/?a=${a.id}`} scroll={false} className="rounded-full border border-line bg-surface/90 px-3.5 py-1.5 font-semibold transition hover:-translate-y-0.5 hover:border-violet hover:text-violet-text">
+                <Link key={a.id} href={guideHref(a.id)} scroll={false} className="rounded-full border border-line bg-surface/90 px-3.5 py-1.5 font-semibold transition hover:-translate-y-0.5 hover:border-violet hover:text-violet-text">
                   {a.title}
                 </Link>
               ))}
@@ -313,7 +327,7 @@ function CategoryCard({ c }: { c: HelpCategory }) {
       <ul className="relative z-10 mt-4 space-y-1">
         {first.map((a) => (
           <li key={a.id}>
-            <Link href={`/help/?a=${a.id}`} scroll={false} className="-mx-2 flex items-center gap-2 rounded-[10px] px-2 py-1.5 text-[15px] font-medium hover:bg-subtle">
+            <Link href={guideHref(a.id)} scroll={false} className="-mx-2 flex items-center gap-2 rounded-[10px] px-2 py-1.5 text-[15px] font-medium hover:bg-subtle">
               <ChevronRight size={15} className="shrink-0 text-muted" aria-hidden />
               <span className="truncate">{a.title}</span>
             </Link>
@@ -426,7 +440,7 @@ function CategoryView({ data, category: c, go }: { data: HelpData; category: Hel
             {c.articles.map((a, i) => (
               <li key={a.id}>
                 <Link
-                  href={`/help/?a=${a.id}`}
+                  href={guideHref(a.id)}
                   scroll={false}
                   className="group flex items-start gap-4 rounded-[1.5rem] border border-line bg-surface p-5 transition hover:-translate-y-0.5 hover:border-violet/40 hover:shadow-[var(--pop-chip-shadow)] md:p-6"
                 >
@@ -486,7 +500,7 @@ function ArticleView({ data, category: c, article: a, go }: { data: HelpData; ca
               {c.articles.map((x) => (
                 <li key={x.id}>
                   <Link
-                    href={`/help/?a=${x.id}`}
+                    href={guideHref(x.id)}
                     scroll={false}
                     aria-current={x.id === a.id ? "page" : undefined}
                     className={`block rounded-[10px] px-3 py-1.5 text-sm leading-snug ${x.id === a.id ? "bg-surface font-bold text-violet-text shadow-sm" : "text-muted hover:text-ink"}`}
@@ -509,7 +523,7 @@ function ArticleView({ data, category: c, article: a, go }: { data: HelpData; ca
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {prev ? (
-              <Link href={`/help/?a=${prev.id}`} scroll={false} className="group rounded-[1.5rem] border border-line bg-surface p-5 transition hover:border-violet/40 hover:shadow-[var(--pop-chip-shadow)]">
+              <Link href={guideHref(prev.id)} scroll={false} className="group rounded-[1.5rem] border border-line bg-surface p-5 transition hover:border-violet/40 hover:shadow-[var(--pop-chip-shadow)]">
                 <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-muted">
                   <ArrowLeft size={14} className="transition group-hover:-translate-x-1" aria-hidden /> Previous · {catOf(prev).title}
                 </span>
@@ -519,7 +533,7 @@ function ArticleView({ data, category: c, article: a, go }: { data: HelpData; ca
               <span />
             )}
             {next && (
-              <Link href={`/help/?a=${next.id}`} scroll={false} className="group rounded-[1.5rem] border border-line bg-surface p-5 text-right transition hover:border-violet/40 hover:shadow-[var(--pop-chip-shadow)]">
+              <Link href={guideHref(next.id)} scroll={false} className="group rounded-[1.5rem] border border-line bg-surface p-5 text-right transition hover:border-violet/40 hover:shadow-[var(--pop-chip-shadow)]">
                 <span className="flex items-center justify-end gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-muted">
                   Next · {catOf(next).title} <ArrowRight size={14} className="transition group-hover:translate-x-1" aria-hidden />
                 </span>
@@ -536,7 +550,7 @@ function ArticleView({ data, category: c, article: a, go }: { data: HelpData; ca
                 .filter((x) => x.id !== a.id)
                 .map((x) => (
                   <li key={x.id}>
-                    <Link href={`/help/?a=${x.id}`} scroll={false} className="flex items-center justify-between gap-3 px-5 py-3.5 font-semibold">
+                    <Link href={guideHref(x.id)} scroll={false} className="flex items-center justify-between gap-3 px-5 py-3.5 font-semibold">
                       {x.title} <ChevronRight size={16} className="shrink-0 text-muted" aria-hidden />
                     </Link>
                   </li>

@@ -10,6 +10,11 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-16: Help guides on their own pages
+
+- `app/help/[id]/page.tsx`: one static page per guide (`allGuides`, `forPage(data, id)` sends only that guide's HTML; `describe()` makes the meta description). `components/help/HelpCenter.tsx`: `HelpView` (no query hooks, so guide pages render into the HTML) and `HelpCenter` (home/topics; forwards ?a=). `guideHref()` in `lib/help-types.ts`; `lib/help.ts` turns `(#id)` and `/help/?a=id` links into `/help/id/`. `app/sitemap.ts` lists every guide. `UpdateNotice` credits link → `credits/`.
+- Checked with a full build in a scratch copy. Unverified in a browser: the ?a= forward and in-page "On this page" jumps on the new pages.
+
 ## 2026-11-15: Community sign-in button readable
 
 - `components/community/Community.tsx` `SignInCard`: the Sign in button on the dark card was white text on `.btn-outline`'s white surface; now transparent with a light border (owner's iPhone screenshot).

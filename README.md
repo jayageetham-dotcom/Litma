@@ -70,7 +70,7 @@ Pushing a tag yourself (`git tag v1.2.3 && git push --tags`) also builds and pub
 
 ## Credits
 
-All credits and licences for the open data, fonts and software Litma uses are kept in one place: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), and for writers the help guide **Credits and licences** (`/help/?a=credits`, linked from Settings → About and the Terms). Name a source only there, not in UI text, other guides or marketing.
+All credits and licences for the open data, fonts and software Litma uses are kept in one place: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), and for writers the help guide **Credits and licences** (`/help/credits/`, linked from Settings → About and the Terms). Name a source only there, not in UI text, other guides or marketing.
 
 ## Local development
 

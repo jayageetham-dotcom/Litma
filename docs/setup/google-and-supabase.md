@@ -337,7 +337,7 @@ Actions → **New repository secret**.
    account's email → app permission for Litma with **Release to testing tracks** (and production
    when you want it). Secret `PLAY_SERVICE_ACCOUNT_JSON`: the whole JSON file.
 5. App content in Play Console: privacy policy `https://getlitma.in/privacy/`, **Data safety** (as
-   in 10.2 step 5), account deletion URL `https://getlitma.in/help/?a=delete-account`, app access
+   in 10.2 step 5), account deletion URL `https://getlitma.in/help/delete-account/`, app access
    (the demo account), content rating, target audience (not for children).
 6. A **personal** developer account made after November 2023 must run a closed test with at least
    12 testers for 14 days before it may publish to production. An organisation account doesn't.

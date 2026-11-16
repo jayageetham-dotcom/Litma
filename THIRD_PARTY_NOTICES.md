@@ -1,7 +1,7 @@
 # Third-party notices
 
 Litma includes or is built from the work below. Thank you to everyone who made it. The same credits,
-in plain words for writers, are in the help site: getlitma.in/help/?a=credits
+in plain words for writers, are in the help site: getlitma.in/help/credits/
 (`apps/web/content/help/11-account.md#credits`).
 
 ## mlmorph (Malayalam spelling engine)

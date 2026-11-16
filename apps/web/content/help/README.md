@@ -26,7 +26,7 @@ new guides.
   sparkles, monitor-smartphone, settings, target, users (add more in `ICONS` in `components/help/HelpCenter.tsx`).
   `tint` is one of: violet, coral, sky, lime, tangerine (the home page's colours).
 - Text before the first `##` is the topic's introduction (shown on the topic page).
-- Each `## Title {#article-id}` starts a guide. The id goes in the address (`/help/?a=article-id`) and
+- Each `## Title {#article-id}` starts a guide. The id is the guide's own page (`/help/article-id/`, built by `app/help/[id]`; old `/help/?a=article-id` links forward there) and
   must be unique across all files (the build stops if two match). Don't change an id once it is
   live; links to it would break.
 - The first paragraph of a guide is its summary on cards and in search, so make it one or two

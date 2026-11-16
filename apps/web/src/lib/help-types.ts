@@ -31,3 +31,9 @@ export interface HelpData {
   categories: HelpCategory[];
   updated: string;
 }
+
+/**
+ * A guide's own page (/help/<id>/), built ahead of time so each guide has its own title, description and
+ * canonical address for search engines. The old /help/?a=<id> addresses forward here.
+ */
+export const guideHref = (id: string) => `/help/${id}/`;

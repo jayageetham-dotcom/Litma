@@ -155,7 +155,7 @@ function DesktopUpdate() {
 /** Settings → About: the version, and on the desktop a "Check for updates" button. */
 export function AboutLitma() {
   const t = useT();
-  const creditsHref = useHelpHref("?a=credits");
+  const creditsHref = useHelpHref("credits/");
   const [d, setD] = useState<ReturnType<typeof desktop>>(undefined);
   const [busy, setBusy] = useState(false);
   useEffect(() => setD(desktop()), []);

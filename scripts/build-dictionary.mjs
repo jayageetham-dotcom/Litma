@@ -322,7 +322,7 @@ async function main() {
       "  Creative Commons Attribution-ShareAlike 4.0, https://creativecommons.org/licenses/by-sa/4.0/",
       "",
       "The rhyme files (rhyme/) and word lists (words/) are made from the same headwords.",
-      "Credits: https://getlitma.in/help/?a=credits",
+      "Credits: https://getlitma.in/help/credits/",
       "",
     ].join("\n")
   );

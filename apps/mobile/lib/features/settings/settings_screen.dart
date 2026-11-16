@@ -202,7 +202,7 @@ class SettingsScreen extends ConsumerWidget {
               trailing: const Icon(LucideIcons.externalLink, size: 16),
               onTap: () {
                 Analytics.tap('legal.credits');
-                launchUrl(Uri.parse('${AppConfig.site}/help/?a=credits'), mode: LaunchMode.externalApplication);
+                launchUrl(Uri.parse('${AppConfig.site}/help/credits/'), mode: LaunchMode.externalApplication);
               },
             ),
             ListTile(

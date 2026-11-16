@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import MarkdownIt from "markdown-it";
-import type { HelpArticle, HelpCategory, HelpData } from "./help-types";
+import { guideHref, type HelpArticle, type HelpCategory, type HelpData } from "./help-types";
 
 /**
  * The help site's content: one Markdown file per category in apps/web/content/help (see the README there).
@@ -26,12 +26,13 @@ md.renderer.rules.image = (tokens, idx) => {
   );
 };
 
-/** Links to other articles are written `(#article-id)`; they become `/help/?a=article-id`. */
+/** Links to other articles are written `(#article-id)`; they become the guide's page, `/help/article-id/`. */
 const linkOpen = md.renderer.rules.link_open ?? ((tokens, idx, opts, _env, self) => self.renderToken(tokens, idx, opts));
 md.renderer.rules.link_open = (tokens, idx, opts, env, self) => {
   const t = tokens[idx];
   const href = t.attrGet("href") ?? "";
-  if (href.startsWith("#")) t.attrSet("href", `/help/?a=${href.slice(1)}`);
+  if (href.startsWith("#")) t.attrSet("href", guideHref(href.slice(1)));
+  else if (href.startsWith("/help/?a=")) t.attrSet("href", guideHref(href.slice("/help/?a=".length)));
   else if (/^https?:|^mailto:/.test(href)) {
     t.attrSet("target", "_blank");
     t.attrSet("rel", "noreferrer");
@@ -135,4 +136,18 @@ export function loadHelp(): HelpData {
       seen.add(a.id);
     }
   return { categories, updated: new Date().toISOString().slice(0, 10) };
+}
+
+/**
+ * What one page sends to the browser: every guide's title, lead and search text (for search and the
+ * lists), but the full text only of `keep` (the guide this page shows). Without this each of the guide
+ * pages would carry the whole help site.
+ */
+export function forPage(data: HelpData, keep?: string): HelpData {
+  return { ...data, categories: data.categories.map((c) => ({ ...c, articles: c.articles.map((a) => (a.id === keep ? a : { ...a, html: "" })) })) };
+}
+
+/** Every guide, for the guide pages and the sitemap. */
+export function allGuides(data: HelpData = loadHelp()) {
+  return data.categories.flatMap((c) => c.articles);
 }

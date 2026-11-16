@@ -65,7 +65,7 @@ On the website or desktop app, open **Settings → Backup** and choose **Restore
 
 You can remove parts of your data yourself and keep your account:
 
-- **Works:** move a work to the trash, then choose **Delete forever** or **Empty trash** (see [Move a work to the trash and back](/help/?a=trash)). This also removes its versions and Story World.
+- **Works:** move a work to the trash, then choose **Delete forever** or **Empty trash** (see [Move a work to the trash and back](/help/trash/)). This also removes its versions and Story World.
 - **Books:** delete a book from the Books tab on the desk. The works in it stay.
 - **Saved words:** choose **Remove from saved words** on a saved word.
 - **AI keys and assistant tokens:** **Remove** a key, or delete a token, in Settings.
@@ -76,7 +76,7 @@ Anything else you want removed? Write to support@getlitma.in from your account's
 
 ## Delete your account {#delete-account}
 
-Open **Settings** and scroll to the end: **Delete account** is there on the website, the desktop app and the phone app. Type DELETE to confirm. Your account and everything in it are deleted at once and for good: works, books, Story World, versions, saved words, AI keys, assistant tokens, goals and your posts in Litma Community. Litma can't bring them back, so make a backup first (see [Back up your works](/help/?a=backup)) if you want to keep your writing.
+Open **Settings** and scroll to the end: **Delete account** is there on the website, the desktop app and the phone app. Type DELETE to confirm. Your account and everything in it are deleted at once and for good: works, books, Story World, versions, saved words, AI keys, assistant tokens, goals and your posts in Litma Community. Litma can't bring them back, so make a backup first (see [Back up your works](/help/backup/)) if you want to keep your writing.
 
 **What is kept:** nothing linked to you. Usage statistics recorded before you signed in carry no name or email and are removed within 90 days, like all statistics.
 
@@ -106,7 +106,7 @@ AI suggestions come from the provider you choose (Claude, ChatGPT or Gemini) und
 ## Get help {#get-help}
 
 - **These guides:** on the website and desktop app, **Settings → Help and guide**, your picture → **Help and guide**, or **Help → Litma Help** in the desktop app's menu bar. On the phone, **Settings → Help and guide**. They open in your browser at getlitma.in/help.
-- **Can't sign in?** See [The quick security check](/help/?a=security-check) and [If your account is blocked](/help/?a=blocked).
+- **Can't sign in?** See [The quick security check](/help/security-check/) and [If your account is blocked](/help/blocked/).
 - **Write to us:** support@getlitma.in. Tell us what you were doing, what you expected and which device you use (website, desktop app or phone). A screenshot helps a lot.
 
 > **Tip:** If something looks wrong after an update, reload the page (or restart the desktop app). Your writing is saved on the device and in your account.

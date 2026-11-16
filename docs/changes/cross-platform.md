@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-16: Every help guide has its own page
+
+Search Console: /help/?a=open-claude was "Alternative page with proper canonical tag". All 74 guides lived at /help/?a=<id> and carried /help/'s canonical, so Google indexed none of them. Now `app/help/[id]` builds /help/<id>/ for every guide (generateStaticParams, dynamicParams = false): own title ("<guide> · Litma Help"), description and canonical, the guide's text in the static HTML, all listed in sitemap.xml. Old ?a= links forward on the client. CLAUDE.md's "no dynamic route segments" rule now allows exactly this kind (owner agreed). Links updated in the phone app (credits), terms, README, notices, setup guide and dictionary build. Checked: full `next build` in a scratch copy (75 folders under out/help: 74 guides + shots; canonical, title, description, sitemap). Live with the push; the desktop app opens help on the website, so no Release needed for it; the phone's credits link changes with the next store build (the old address still forwards).
+
 ## 2026-11-16: iPhone app live on the App Store
 
 iOS 0.7.24 approved (Ready for Distribution) after the 2.1 information request (recordings, demo account, Community blocking). `STORE_LINKS.ios` in `apps/web/src/lib/release.ts` and the `mobile.ios` link written to `latest.json` by `.github/workflows/desktop.yml` are now https://apps.apple.com/app/id6834719757 (country-neutral form of apps.apple.com/in/app/litma-malayalam-writing/id6834719757), so the App Store badge on the website opens the listing instead of "Coming soon". The phone's update prompt reads `mobile.ios` from latest.json after the next desktop Release. Mac 0.7.26 still waiting for review. Next phone build: the 15 Nov phone fixes (desk filter, trash error, Undo toasts) and the dictionary joiner fix.

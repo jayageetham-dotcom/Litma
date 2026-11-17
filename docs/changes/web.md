@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-17: Security audit fixes (server side)
+
+See `cross-platform.md`. Files: `supabase/migrations/20261117090000_security_hardening.sql`, `supabase/functions/litma-mcp/index.ts`, `litma-ai/index.ts`, `_shared/ratelimit.ts`. Typechecked with `deno check`; not run against the live project.
+
 ## 2026-11-16: Rhymes "Next set"; no keyboard capitals in Manglish
 
 - `components/RhymeFinder.tsx`: ranks up to 1,000 rhymes and shows 40 at a time; a **Next set** button (RefreshCw) with "1–40 of N" moves through them and starts again after the last set. Strings `rhyme.next`, `rhyme.range`. Help `06-dictionary.md#rhymes`.

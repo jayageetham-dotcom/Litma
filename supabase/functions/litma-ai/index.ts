@@ -12,6 +12,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 import { cors, preflight } from "../_shared/cors.ts";
 import { AI_ACTIONS, systemPrompt, userPrompt, type AIAction } from "../_shared/ai-prompts.ts";
 import { recordUsage } from "../_shared/usage.ts";
+import { hit, tooMany } from "../_shared/ratelimit.ts";
 
 type Provider = "anthropic" | "openai" | "gemini";
 const PROVIDERS: Provider[] = ["anthropic", "openai", "gemini"];
@@ -92,6 +93,8 @@ Deno.serve(async (req) => {
   const uid = await userId(req);
   if (!uid) return text("Sign in to use the AI companion.", 401);
   const op = b.op ?? "chat";
+  const wait = hit(op === "chat" ? "ai-chat" : "ai-keys", uid, op === "chat" ? 120 : 30, 600);
+  if (wait) return tooMany(wait);
 
   if (op === "keys") {
     const { data } = await admin.from("ai_keys").select("provider,last4,model,updated_at").eq("user_id", uid);
@@ -117,8 +120,8 @@ Deno.serve(async (req) => {
   const provider = (PROVIDERS.includes(b.provider as Provider) ? b.provider : "anthropic") as Provider;
   if (!b.action || !(b.action in AI_ACTIONS)) return text("Unknown action");
   const stored = await storedKey(uid, provider);
-  const envKey = { anthropic: "ANTHROPIC_API_KEY", openai: "OPENAI_API_KEY", gemini: "GEMINI_API_KEY" }[provider];
-  const apiKey = b.apiKey || stored?.key || Deno.env.get(envKey);
+  // only the writer's own key: never a server-wide key that every signed-in account could spend
+  const apiKey = b.apiKey || stored?.key;
   const names = { anthropic: "Anthropic (Claude)", openai: "OpenAI (GPT)", gemini: "Google (Gemini)" };
   if (!apiKey) return text(`Add your ${names[provider]} API key in Settings → AI to use it.`);
   const model = b.model || stored?.model || DEFAULT_MODEL[provider];

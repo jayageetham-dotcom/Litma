@@ -10,10 +10,16 @@ import { cors } from "./cors.ts";
 type Hit = { n: number; until: number };
 const buckets = new Map<string, Map<string, Hit>>();
 
-/** The caller's address from the edge headers, or "unknown". */
+/**
+ * The caller's address from the edge headers, or "unknown". The network edge sets cf-connecting-ip
+ * and x-real-ip itself; the first x-forwarded-for entry is whatever the caller wrote there, so a
+ * script could put a new address in every request and never reach a limit. It is the last resort.
+ */
 export function clientIp(req: Request): string {
-  const fwd = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return fwd || req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || "unknown";
+  const edge = req.headers.get("cf-connecting-ip")?.trim() || req.headers.get("x-real-ip")?.trim();
+  if (edge) return edge;
+  const fwd = req.headers.get("x-forwarded-for")?.split(",").map((s) => s.trim()).filter(Boolean);
+  return fwd?.length ? fwd[fwd.length - 1] : "unknown";
 }
 
 /** A short, one-way key for an IP address (never stored as it is). */

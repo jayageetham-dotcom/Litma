@@ -7,6 +7,14 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-17: Security audit (owner saw a new Apple sign-in from Congo)
+
+- That account was an ordinary new sign-up (Sign in with Apple, private-relay email, one visit, no writing, not an admin). No sign of a break-in: one admin (the owner), RLS on every table, admin and moderation functions check `app_admins`.
+- Fixed: visitors could list every shared work (text, user id, trashed ones) from `documents` with the public key. Migration `20261117090000_security_hardening.sql` drops the anon "public documents readable" policy (the reader already uses `shared_document()`), and revokes TRUNCATE/TRIGGER/REFERENCES from the API roles. **Applied to the database only after the owner approves it, or by the next `db push`.**
+- Fixed (Edge Functions, deploy with the Supabase job): MCP `get_book` looked up chapter titles without `user_id`; MCP had no rate limit (now per address, per user, and a tight one for wrong tokens; batches capped at 20); `litma-ai` fell back to server-wide `ANTHROPIC/OPENAI/GEMINI_API_KEY` secrets (removed, per the "no server-wide AI keys" rule) and had no rate limit; `_shared/ratelimit.ts` trusted the caller-written first `x-forwarded-for` entry, so limits could be dodged (now edge-set headers first).
+- Still open for the owner: turn on leaked-password protection (Auth → Providers → Email; Pro plan). Old website copies that read shared works directly as a visitor will show "not found" until they reload (the service worker updates them).
+- No app change: no desktop Release or phone build needed.
+
 ## 2026-11-16: Rhymes "Next set" everywhere; keyboard capitals off for Manglish
 
 - Rhyme finder (web, desktop, phone) shows 40 at a time with a **Next set** button and "1–40 of N", cycling through up to 1,000 ranked rhymes. MCP `find_rhymes` takes `offset` and returns `next_offset`. Help `06-dictionary.md#rhymes`.

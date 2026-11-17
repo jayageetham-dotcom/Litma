@@ -20,6 +20,7 @@ import { createSpeller, type EngineVerdict, type SpellEngine } from "../_shared/
 import { localDay, streak as streakOf, summarise, wordsThisWeek, type GoalPrefs } from "../_shared/goals.ts";
 import { metrePattern } from "../_shared/manglish.ts";
 import { transliteratePhrase } from "../_shared/google.ts";
+import { hit, ipKey, tooMany } from "../_shared/ratelimit.ts";
 
 const PROTOCOL = "2025-06-18";
 const SITE = (Deno.env.get("LITMA_SITE_URL") ?? "https://getlitma.in").replace(/\/$/, "");
@@ -569,7 +570,7 @@ const TOOLS: Tool[] = [
       if (!b) return out("Book not found.", true);
       const items = b.structure as Json[];
       const ids = items.filter((i) => i.type === "document").map((i) => i.documentId as string);
-      const { data: docs } = ids.length ? await db.from("documents").select("id,title,kind,word_count").in("id", ids) : { data: [] };
+      const { data: docs } = ids.length ? await db.from("documents").select("id,title,kind,word_count").eq("user_id", u).in("id", ids) : { data: [] };
       const byId = new Map((docs ?? []).map((d) => [d.id, d]));
       return outJson({
         id: b.id,
@@ -834,7 +835,25 @@ Deno.serve(async (req) => {
     return json(fail(null, -32700, "Parse error"), 400);
   }
   const msgs = Array.isArray(body) ? body : [body];
+  if (msgs.length > 20) return json(fail(null, -32600, "Too many messages in one batch"), 400);
+  // every caller's address gets a fair share; a wrong token is counted on its own, tighter limit,
+  // so nobody can guess tokens or hammer the token lookup
+  const ip = await ipKey(req);
+  const busy = hit("mcp-ip", ip, 300, 60);
+  if (busy) return tooMany(busy);
   const userId = await authenticate(req);
+  const sent = (req.headers.get("authorization") ?? "") !== "" || new URL(req.url).searchParams.has("key");
+  if (!userId && sent) {
+    const wait = hit("mcp-badtoken", ip, 20, 600);
+    if (wait) return tooMany(wait);
+  }
+  if (userId) {
+    const calls = msgs.filter((m) => m.method === "tools/call").length;
+    for (let i = 0; i < calls; i++) {
+      const wait = hit("mcp-user", userId, 600, 600);
+      if (wait) return tooMany(wait);
+    }
+  }
   if (msgs.some((m) => m.method === "tools/call") && !userId) {
     return json(fail((msgs[0] as Json).id ?? null, -32001, "Unauthorized: missing or invalid Litma token"), 401, { "WWW-Authenticate": 'Bearer realm="litma"' });
   }

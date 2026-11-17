@@ -914,6 +914,197 @@ export const NATTARIVU: NattarivuCategory[] = [
     `),
   },
   {
+    id: "moving",
+    ml: "ചലനങ്ങൾ",
+    en: "Ways of moving",
+    tint: "tangerine",
+    words: list(`
+      # നടത്തം | Walking
+      നടക്കുക | walk
+      ഉലാത്തുക | stroll, saunter, pace about
+      ഉലാവുക | wander about at leisure
+      പതുങ്ങുക | crouch, slink, creep up quietly
+      പമ്മുക | sneak, tiptoe stealthily
+      ഇഴയുക | crawl, creep, slither
+      മുടന്തുക | limp, hobble
+      ഞൊണ്ടുക | limp
+      ഇടറുക | stumble, falter, totter
+      തപ്പിത്തടയുക | grope, fumble one's way
+      # വേഗം | Speed
+      ഓടുക | run
+      പായുക | dash, rush, dart
+      കുതിക്കുക | leap, spring forward, bound
+      ചാടുക | jump
+      തുള്ളുക | hop, skip, jig about
+      # ശരീരം | The body
+      കുനിയുക | bend, stoop
+      ചരിയുക | lean, tilt
+      ഞെട്ടുക | start, flinch, jump with fright
+      വിറയ്ക്കുക | tremble, shiver
+      പിടയുക | writhe, flounder, twitch
+      ചുരുളുക | curl up, coil
+      ഉരുളുക | roll
+      ആടുക | sway, swing
+      # വെള്ളത്തിലും വായുവിലും | In water and air
+      നീന്തുക | swim
+      ഒഴുകുക | flow, drift
+      മുങ്ങുക | sink, dive under
+      പൊങ്ങുക | rise, float up
+      പറക്കുക | fly
+      വട്ടമിടുക | circle, wheel about
+    `),
+  },
+  {
+    id: "speaking",
+    ml: "സംസാരരീതികൾ",
+    en: "Ways of speaking",
+    tint: "violet",
+    words: list(`
+      # പതുക്കെ | Softly
+      മന്ത്രിക്കുക | whisper
+      കുശുകുശുക്കുക | whisper, gossip in low voices
+      പിറുപിറുക്കുക | mutter, mumble
+      മുറുമുറുക്കുക | grumble, mutter in protest
+      മൂളുക | hum, murmur
+      # ഉറക്കെ | Loudly
+      വിളിക്കുക | call
+      അലറുക | roar, bellow
+      ആക്രോശിക്കുക | yell, scream
+      നിലവിളിക്കുക | cry out, wail
+      കൂവുക | shout, hoot
+      # രീതികൾ | Manners
+      വിക്കുക | stammer, stutter
+      കൊഞ്ചുക | lisp sweetly, prattle like a child
+      ചിലയ്ക്കുക | chatter, twitter
+      പുലമ്പുക | babble, rave
+      കയർക്കുക | snap, speak angrily
+      ശകാരിക്കുക | scold
+      പരിഹസിക്കുക | mock, ridicule
+      കെഞ്ചുക | plead, beg
+      ഉരുവിടുക | recite, repeat aloud
+      # കരച്ചിലോടെ | Through tears
+      തേങ്ങുക | sob
+      വിതുമ്പുക | be on the verge of tears, whimper
+      ചിണുങ്ങുക | whine, whimper like a child
+    `),
+  },
+  {
+    id: "doubles",
+    ml: "ഇരട്ടവാക്കുകൾ",
+    en: "Double words",
+    tint: "coral",
+    words: list(`
+      # ശബ്ദം | Sound
+      കിലുകിലാ | jingling
+      ചിലുചിലെ | tinkling, like little bells
+      പടപട | thud, bang, crackle
+      ചടപട | clatter, crackle of firecrackers
+      ഗുളുഗുളു | gurgle, plop of things falling in water
+      കലപില | chatter, babble
+      # വേഗവും താളവും | Pace
+      ചറപറ | non-stop, incessantly
+      തുരുതുരെ | thick and fast, one after another
+      മെല്ലെമെല്ലെ | slowly, little by little
+      പയ്യെപ്പയ്യെ | gently, bit by bit
+      മന്ദമന്ദം | slowly, step by step
+      ഇടയ്ക്കിടെ | now and then
+      # കാഴ്ചയും സ്പർശവും | Look and feel
+      പളപള | glittering, dazzling
+      കറുകറുത്ത | jet black, pitch dark
+      വെളുവെളുത്ത | very white, pale
+      പതുപതുത്ത | soft, spongy, downy
+      വഴുവഴുപ്പ് | slipperiness, sliminess
+      # ഇടവും രീതിയും | Place and manner
+      അവിടവിടെ | here and there
+      കാകിരിപൂകിരി | higgledy-piggledy, any old how
+    `),
+  },
+  {
+    id: "smells",
+    ml: "ഗന്ധങ്ങൾ",
+    en: "Smells",
+    tint: "lime",
+    words: list(`
+      # മണം | Smell
+      മണം | smell
+      ഗന്ധം | smell, odour
+      വാസന | scent
+      # സുഗന്ധം | Fragrant
+      സുഗന്ധം | fragrance
+      സൗരഭ്യം | sweet scent, aroma
+      പരിമളം | fragrance, as of sandal or musk
+      നറുമണം | fresh, sweet fragrance
+      പൂമണം | scent of flowers
+      കസ്തൂരി | musk
+      # ദുർഗന്ധം | Foul
+      ദുർഗന്ധം | stench, bad smell
+      നാറ്റം | stink
+      ചീഞ്ഞനാറ്റം | stench of rot
+      കെട്ടമണം | stale, foul smell
+      ഉളുമ്പ് | fishy, raw smell
+      ചൂര് | reek, a strong animal or body smell
+      മുശിട് | body odour, musty smell
+      വാട | bad odour, stale smell
+      പുളിമണം | sour smell
+      എരിപ്പുമണം | acrid, burning smell
+      വിസ്രഗന്ധം | foul smell, as of raw flesh
+      # മണക്കൽ | Smelling
+      മണക്കുക | smell
+      മണത്തുനോക്കുക | sniff
+      മണംപിടിക്കുക | catch a scent, sniff out
+      മുകരുക | breathe in a scent
+      ഘ്രാണിക്കുക | smell (formal)
+      നാറുക | stink
+    `),
+  },
+  {
+    id: "eating",
+    ml: "തീറ്റയും കുടിയും",
+    en: "Ways of eating and drinking",
+    tint: "coral",
+    words: list(`
+      # തിന്നൽ | Eating
+      തിന്നുക | eat
+      കഴിക്കുക | eat, have
+      ഉണ്ണുക | eat a meal
+      കൊറിക്കുക | nibble, crunch one by one
+      നുണയുക | savour, melt on the tongue
+      നുണഞ്ഞിറക്കുക | savour and swallow
+      ചവയ്ക്കുക | chew
+      കടിക്കുക | bite
+      കരണ്ടുതിന്നുക | nibble away, gnaw
+      കാർന്നുതിന്നുക | gnaw, eat into
+      വിഴുങ്ങുക | swallow
+      വാരിവലിച്ചുതിന്നുക | wolf down, gorge
+      അയവിറക്കുക | chew the cud; mull over
+      നക്കുക | lick
+      രുചിക്കുക | taste
+      # കുടിക്കൽ | Drinking
+      കുടിക്കുക | drink
+      മോന്തുക | quaff, drink straight from the vessel
+      മൊത്തുക | sip with the vessel at the lips
+      വലിച്ചുകുടിക്കുക | drink up, slurp
+      ചപ്പുക | suck noisily, slurp
+      ഈമ്പുക | suck
+      ഉറുഞ്ചുക | suck in
+      # ശരീരം | The body
+      വിശക്കുക | be hungry
+      ദാഹിക്കുക | be thirsty
+      ഏമ്പക്കം | belch, burp
+      എക്കിൾ | hiccup
+      തികട്ടുക | come back up, regurgitate
+      ഓക്കാനിക്കുക | retch, feel sick
+      ചെടിപ്പ് | surfeit, being sick of too much
+      # രുചികൾ | Tastes
+      മധുരം | sweet
+      പുളി | sour
+      ഉപ്പ് | salt
+      എരിവ് | hot, pungent
+      കയ്പ് | bitter
+      ചവർപ്പ് | astringent, the taste of unripe fruit
+    `),
+  },
+  {
     id: "kinship",
     ml: "ബന്ധുക്കൾ",
     en: "Family and kinship",

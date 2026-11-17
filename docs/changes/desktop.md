@@ -21,6 +21,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
 
+## 2026-11-18: നാട്ടറിവ് restyle and new categories
+
+Shared web code only (see `cross-platform.md`); reaches the desktop app with the next Release.
+
 ## 2026-11-16: Rhymes "Next set" (shared web code)
 
 Comes with the web change (`RhymeFinder.tsx`); keyboard-capital fix doesn't matter on desktop keyboards. Needs a desktop Release.

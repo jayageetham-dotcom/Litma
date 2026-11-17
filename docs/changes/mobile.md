@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-18: Five new നാട്ടറിവ് categories
+
+See `cross-platform.md`. `assets/data/nattarivu.json` regenerated; `lib/features/dictionary/dictionary_screen.dart` `nattarivuIcons` gets footprints, messageCircle, repeat, wind, utensilsCrossed. Not checked with `flutter analyze` (no Flutter here); icon names assumed from lucide_icons_flutter 4.
+
 ## 2026-11-17: Phone build fix (duplicate autocorrect)
 
 `lib/editor/page_view.dart`: the 16 Nov Manglish change added `autocorrect:` while the field already had `autocorrect: false`, so Release v0.7.30's iOS and Android builds failed ("Duplicated named argument"). Kept the existing `autocorrect: false` (off in every mode, as before). Not checked with `flutter analyze` here (no Flutter in the cloud sandbox); the next Release builds it.

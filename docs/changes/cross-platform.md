@@ -7,6 +7,14 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-18: നാട്ടറിവ് looks like the phone; five new categories for writers
+
+- Web/desktop category page (`apps/web/src/components/Nattarivu.tsx`) now matches the phone: section headings in the category's tint as "ml · en", no divider lines, 15px meanings, slightly bigger words.
+- New categories in `packages/shared/src/nattarivu.ts` (synced to `_shared`, phone `assets/data/nattarivu.json` regenerated): `moving` ചലനങ്ങൾ (29), `speaking` സംസാരരീതികൾ (22), `doubles` ഇരട്ടവാക്കുകൾ (19), `smells` ഗന്ധങ്ങൾ (26), `eating` തീറ്റയും കുടിയും (35). Icons on web (`ICONS`) and phone (`nattarivuIcons`): Footprints, MessageCircle, Repeat, Wind, UtensilsCrossed.
+- Words checked against the dictionary through Litma MCP `dictionary_lookup` (the cloud sandbox can't build `public/dict`); the most basic verbs and tastes (നടക്കുക, ഓടുക, തിന്നുക, മധുരം…) were not looked up one by one. Missing words left out: കിലുകിലെ, പടപടാ, തുരുതുരാ, തണുതണുത്ത, മിന്നിമിന്നി, ചുവചുവന്ന, തിളതിളാ, കരിഞ്ചൂര്, കൊതിമണം, ഊതിക്കുടിക്കുക, മൊത്തിക്കുടിക്കുക, ഞൊട്ടിനുണയുക.
+- Kerala rivers and lakes (origin → mouth) were drafted but dropped on the owner's call: most names (പെരിയാർ, കബനി, വേമ്പനാട്ട് കായൽ) have no dictionary entry.
+- Help `06-dictionary.md#nattarivu` mentions the new topics. Needs a desktop Release and a phone store build; website with the push.
+
 ## 2026-11-17: Security audit (owner saw a new Apple sign-in from Congo)
 
 - That account was an ordinary new sign-up (Sign in with Apple, private-relay email, one visit, no writing, not an admin). No sign of a break-in: one admin (the owner), RLS on every table, admin and moderation functions check `app_admins`.

@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-18: നാട്ടറിവ് restyle and new categories
+
+See `cross-platform.md`. Files: `src/components/Nattarivu.tsx` (`HEADING` tint map, section heading, row sizes, five icons), `packages/shared/src/nattarivu.ts`, `content/help/06-dictionary.md`. Typecheck and build in this session; not looked at in a browser.
+
 ## 2026-11-17: Security audit fixes (server side)
 
 See `cross-platform.md`. Files: `supabase/migrations/20261117090000_security_hardening.sql`, `supabase/functions/litma-mcp/index.ts`, `litma-ai/index.ts`, `_shared/ratelimit.ts`. Typechecked with `deno check`; not run against the live project.

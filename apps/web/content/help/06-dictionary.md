@@ -54,6 +54,8 @@ The finder shows 40 words at a time, best known first. Tap **Next set** under th
 
 നാട്ടറിവ് gathers everyday Kerala words into topics: family, food, festivals, arts, seasons and months, the house, nature and more. Each word has a plain English meaning, so it helps when you are looking for the right word or checking one you half remember.
 
+Some topics are made for describing a scene: ways of moving, ways of speaking, double words (like പളപള and കലപില), smells, and ways of eating and drinking. Each topic is split into sections, with the section name in the topic's colour.
+
 ![നാട്ടറിവ് topics](shots/nattarivu.webp)
 
 1. Open the **Dictionary** and choose the **നാട്ടറിവ്** tab.

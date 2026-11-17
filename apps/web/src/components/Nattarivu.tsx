@@ -17,12 +17,15 @@ import {
   Fish,
   Flame,
   Flower2,
+  Footprints,
   Hand,
   House,
   Leaf,
+  MessageCircle,
   Mountain,
   Palette,
   PawPrint,
+  Repeat,
   Ruler,
   Search,
   Shirt,
@@ -32,7 +35,9 @@ import {
   TreeDeciduous,
   Turtle,
   Users,
+  UtensilsCrossed,
   Waves,
+  Wind,
   Wheat,
   type LucideIcon,
 } from "lucide-react";
@@ -47,6 +52,15 @@ const TILE: Record<NattarivuTint, string> = {
   sky: "bg-tint-sky/15 text-tint-sky",
   lime: "bg-tint-lime/15 text-tint-lime",
   tangerine: "bg-tint-tangerine/15 text-tint-tangerine",
+};
+
+/** Section headings in the category's own tint, as on the phone. */
+const HEADING: Record<NattarivuTint, string> = {
+  violet: "text-tint-violet",
+  coral: "text-tint-coral",
+  sky: "text-tint-sky",
+  lime: "text-tint-lime",
+  tangerine: "text-tint-tangerine",
 };
 
 /** An icon per category (ids from packages/shared/src/nattarivu.ts; old ids in MOVED resolve before this). */
@@ -76,6 +90,11 @@ const ICONS: Record<string, LucideIcon> = {
   body: Hand,
   feelings: Smile,
   sounds: AudioLines,
+  moving: Footprints,
+  speaking: MessageCircle,
+  doubles: Repeat,
+  smells: Wind,
+  eating: UtensilsCrossed,
   kinship: Users,
   measures: Ruler,
   arts: Drama,
@@ -174,26 +193,23 @@ export function NattarivuCategoryView({ category, onBack, onWord, onOpen }: { ca
       {words.length === 0 ? (
         <p className="mt-8 text-muted">{t("nattarivu.noMatch", { q: filter.trim() })}</p>
       ) : (
-        <div className="mt-6 space-y-8">
+        <div className="mt-6 space-y-7">
           {sections(words).map((sec) => (
             <section key={sec.key}>
               {sec.group && (
-                <h3 className="mb-2 flex items-baseline gap-2 border-b border-line pb-2">
-                  <span className="text-[1.15rem] font-bold" style={display}>
-                    {sec.group.ml}
-                  </span>
-                  <span className="text-sm text-muted">{sec.group.en}</span>
+                <h3 className={`mb-1 px-2 text-[15px] font-semibold leading-snug ${HEADING[category.tint]}`} style={display}>
+                  {sec.group.ml} · {sec.group.en}
                 </h3>
               )}
               <ul className="grid gap-x-6 sm:grid-cols-2">
                 {sec.words.map((w) => (
-                  <li key={w.ml} className="border-b border-line">
-                    <button type="button" onClick={() => onWord(w.ml)} title={t("nattarivu.open")} className="group flex w-full items-center gap-3 rounded-[10px] px-2 py-3 text-left hover:bg-subtle">
+                  <li key={w.ml}>
+                    <button type="button" onClick={() => onWord(w.ml)} title={t("nattarivu.open")} className="group flex w-full items-center gap-3 rounded-[10px] px-2 py-3.5 text-left hover:bg-subtle">
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[1.1rem] font-semibold leading-snug" style={display}>
+                        <span className="block text-[1.15rem] font-semibold leading-snug" style={display}>
                           {w.ml}
                         </span>
-                        <span className="block text-sm text-muted">{w.en}</span>
+                        <span className="mt-0.5 block text-[15px] text-muted">{w.en}</span>
                       </span>
                       <ChevronRight size={16} className="shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-100" aria-hidden />
                     </button>

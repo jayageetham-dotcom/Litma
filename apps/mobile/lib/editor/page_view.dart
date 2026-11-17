@@ -117,7 +117,6 @@ class EditableLine extends StatelessWidget {
           // In Manglish a capital has its own meaning (A is ആ), so the keyboard mustn't add one at the
           // start of a sentence ("amma" came out as ആമ്മ), nor autocorrect or curl quotes in Latin words.
           textCapitalization: c.mode == InputMode.manglish ? TextCapitalization.none : TextCapitalization.sentences,
-          autocorrect: c.mode != InputMode.manglish,
           smartQuotesType: c.mode == InputMode.manglish ? SmartQuotesType.disabled : null,
           smartDashesType: c.mode == InputMode.manglish ? SmartDashesType.disabled : null,
           // a bare line of text on the paper: no box, no fill (the theme's field borders don't apply)

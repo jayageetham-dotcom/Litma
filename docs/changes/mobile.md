@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-17: Phone build fix (duplicate autocorrect)
+
+`lib/editor/page_view.dart`: the 16 Nov Manglish change added `autocorrect:` while the field already had `autocorrect: false`, so Release v0.7.30's iOS and Android builds failed ("Duplicated named argument"). Kept the existing `autocorrect: false` (off in every mode, as before). Not checked with `flutter analyze` here (no Flutter in the cloud sandbox); the next Release builds it.
+
 ## Open items
 
 - Sessions without the Flutter SDK (the cloud sandbox can't download it) rely on CI: `flutter

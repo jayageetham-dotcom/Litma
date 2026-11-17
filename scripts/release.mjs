@@ -19,7 +19,8 @@ const opt = (name) => {
   return i >= 0 ? args[i + 1] : undefined;
 };
 const VALUED = new Set(["--notes", "--min-desktop"]);
-const bump = args.find((a, i) => !a.startsWith("--") && !VALUED.has(args[i - 1])) ?? "patch";
+// trimmed and lower-cased: the GitHub phone app sends the workflow's "patch" as "Patch"
+const bump = (args.find((a, i) => !a.startsWith("--") && !VALUED.has(args[i - 1])) ?? "patch").trim().toLowerCase().replace(/^v(?=\d)/, "");
 const dry = args.includes("--dry-run");
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;

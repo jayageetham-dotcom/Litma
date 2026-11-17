@@ -5,6 +5,10 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 ## Setup guide
 - `docs/setup/google-and-supabase.md`: the owner's step-by-step for Google Cloud (consent screen, web client, Drive API), Supabase (providers, URL configuration, hooks, secrets, migrations, cron, admins) and the GitHub secrets/variables, with links. Keep it true when a scope, redirect URL, secret, function or migration changes.
 
+## Project status file (owner's standing rule, every session)
+- The claude.ai project "Litma" holds `claude/project-status.md`: where Litma stands (versions, releases, store status, what's in flight, the next tasks with owner/Claude split, a one-line-per-day done log). Read it first in every session (Projects tool `project_read`), before the change logs below.
+- Before finishing **every** session, even a short one: update it and write it back with `project_write` to the same path (Last updated, Versions table, Now, Next, Done log). Keep it short; details stay in `docs/changes/`. If the Projects tool isn't available in a session, say so to the owner.
+
 ## Change log for Claude sessions (owner's standing rule)
 - `docs/changes/` holds what was done and what is still open: `cross-platform.md` (summary and **Open items**, read first), `web.md`, `desktop.md` (Electron), `mobile.md` (Flutter).
 - Read all four at the start of every session. Before finishing, add your changes (newest first, with file paths and what is unverified) to each app's file and the cross-platform summary, and update Open items.

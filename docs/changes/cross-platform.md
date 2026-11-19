@@ -7,6 +7,16 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-19: Spelling suggestions at the word; phone marks spelling in the text
+
+- Owner (iPhone screenshots): the phone app showed no spelling marks, and tapping a marked word on the website gave no suggestions. Now on every app a marked word the cursor is in (tapped, clicked, selected, or edited and checked again after the pause) shows its spellings: web/desktop in a small card under the word (`components/editor/SpellSuggest.tsx` `SpellSuggest`), web on phones and the Flutter app in the row above the keyboard where the Manglish spellings go (`SpellStrip` in the docked `ManglishPopup`; Flutter `_SpellRow` in `editor_screen.dart`). Choices: a spelling, **Ignore** (until the app is opened again; web `ignoreWord` in `lib/spell.ts`, phone `EditorSession.spellIgnored`), **Keep** (my words, as before), Esc on computers, or just keep typing (dialect words are a choice).
+- `issueAt(state)` in `extensions/writing-aids.ts` only returns a mark whose text is still what was checked, so suggestions are always for the complete word.
+- Flutter: the session checks every built line in the background (`_runSpelling`, 700 ms after typing, 24 lines a time), `BlockController` draws wavy lines (`spellIssues`, colours per kind from the theme) and moves them with edits; the phone now asks the `litma-spell` engine too (`lib/data/spell_engine.dart`, batched, cached, pauses a minute on failure) and has the "Check spelling?" kind; Check sheet has **Mark spelling in the text** (`litma:spell-marks`, on by default). Spacing (punctuation) marks are still web-only.
+- Wavy lines a little thicker on the web (1.5px) so they read on iPhone Safari.
+- New strings `check.suggestions`, `check.ignore`, `check.ignoreHint`, `check.keepHint`. Help `03-editor.md#spelling`.
+- Checked: web typecheck, i18n, local build, Playwright (desktop 1280px and iPhone 13 emulation: marks, card/strip, fix, Ignore). **Unverified:** Flutter (no SDK here; new tests in `test/editor_test.dart` "spelling marks"), real iOS Safari/Android Chrome.
+- Needs a desktop Release and a phone store build; website with the push.
+
 ## 2026-11-18: നാട്ടറിവ് looks like the phone; five new categories for writers
 
 - Web/desktop category page (`apps/web/src/components/Nattarivu.tsx`) now matches the phone: section headings in the category's tint as "ml · en", no divider lines, 15px meanings, slightly bigger words.
@@ -114,7 +124,7 @@ Security (2026-11-13): owner to create the Turnstile widget, set `TURNSTILE_SITE
 Reels (2026-11-09): reel 3 (launch ad) can be re-voiced with Despina (Gemini) when the TTS quota allows; post the reels with a track from Instagram's music picker; on the Mac, run the one-time setup in `docs/marketing/reels.md` (Whisper and yt-dlp could not reach their downloads from the cloud sandbox).
 
 
-Spelling engine (2026-11-09): Edge Function `litma-spell` (mlmorph) is deployed by the push as the last Supabase step (`--use-docker`, allowed to fail). Check the Actions log for "Deploy the spelling engine" and that litma-spell appears in the Supabase dashboard; if it fails, writers simply get the old spelling checks. Phone app: not yet using it (README). Desktop: next Release.
+Spelling engine (2026-11-09): Edge Function `litma-spell` (mlmorph) is deployed by the push as the last Supabase step (`--use-docker`, allowed to fail). Check the Actions log for "Deploy the spelling engine" and that litma-spell appears in the Supabase dashboard; if it fails, writers simply get the old spelling checks. Phone app: uses it since 2026-11-19 (marks in the text). Desktop: next Release.
 
 Grammar check (2026-11-09): the web/desktop Spelling and grammar panel checks grammar itself with fix cards; the push deploys the `litma-ai` function with the new `grammarCheck` action (until then the check answers "Unknown action"). The phone app still uses the old flow (see `apps/mobile/README.md`).
 

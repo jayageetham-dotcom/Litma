@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-19: Spelling marks in the text, suggestions above the keyboard
+
+`lib/editor/session.dart` (`spellCheck`, `recheckSpelling`, `ignoreSpelling`, `_runSpelling`), `lib/editor/block_controller.dart` (`spellIssues`, `spellAtCursor`, `fixSpelling`, wavy spans in `buildTextSpan`, marks moved in `_replace`), `lib/editor/editor_screen.dart` (`_SpellRow`, colours), `lib/editor/writing_aids.dart` (`setupSpellMarks`, `keepSpellingWord`, Mark spelling switch), `lib/data/spell.dart` (`SpellKind.suspect`, `EngineVerdict`, `engine:`), new `lib/data/spell_engine.dart`, `Services.speller` / `spellEngine`. Tests: `test/editor_test.dart` group "spelling marks". **Not checked with flutter analyze/test here** (no Flutter in the cloud sandbox); CI and the next Release build it. Still web-only: spacing (punctuation) marks.
+
 ## 2026-11-18: Five new നാട്ടറിവ് categories
 
 See `cross-platform.md`. `assets/data/nattarivu.json` regenerated; `lib/features/dictionary/dictionary_screen.dart` `nattarivuIcons` gets footprints, messageCircle, repeat, wind, utensilsCrossed. Not checked with `flutter analyze` (no Flutter here); icon names assumed from lucide_icons_flutter 4.

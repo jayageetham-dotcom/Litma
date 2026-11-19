@@ -50,6 +50,7 @@ import { ReplaceStep } from "@tiptap/pm/transform";
 import { Sheet } from "@/components/ui/Sheet";
 import { useKeyboardInset, useScreen } from "@/lib/useLayout";
 import { ManglishPopup } from "./ManglishPopup";
+import { SpellSuggest } from "./SpellSuggest";
 import { toMalayalam } from "@/components/ScriptField";
 import { AIPanel, HistoryPanel, InboxPanel, KeysPanel, OutlinePanel, PagePanel } from "./Panels";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -929,6 +930,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             </div>
             {/* phones show the suggestions on the keyboard strip instead (below) */}
             {editor && !keyboardStrip && <ManglishPopup editor={editor} />}
+            {editor && !keyboardStrip && <SpellSuggest editor={editor} />}
             {editor && usesCues && <CueSuggest editor={editor} names={castNames} />}
             {editor && template.footnotes && <FootnoteDialog editor={editor} bottomOffset={phone ? kb : 0} />}
             {notice && (

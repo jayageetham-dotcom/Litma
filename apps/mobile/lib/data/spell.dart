@@ -1,13 +1,26 @@
-/// Malayalam spelling check (first stage): a port of packages/shared/src/spell.ts (keep the two in
-/// step; same cases in test/spell_test.dart). Broken letters ("unicode"), a short list of common
-/// misspellings ("mistake"), and, when asked, words the dictionary doesn't have ("unknown": only a
-/// question, never called wrong; dialect and community words are often missing from dictionaries).
+/// Malayalam spelling check: a port of packages/shared/src/spell.ts (keep the two in step; same
+/// cases in test/spell_test.dart). Broken letters ("unicode"), a short list of common misspellings
+/// ("mistake"), likely typos the morphology engine (litma-spell, data/spell_engine.dart) knows close
+/// spellings for ("suspect", a question with fixes), and, when asked, words the dictionary doesn't
+/// have ("unknown": only a question, never called wrong; dialect and community words are often
+/// missing from dictionaries). Spacing around punctuation is web-only for now.
 /// Grammar goes to the AI companion (the "grammar" action).
 library;
 
 import 'dictionary.dart';
 
-enum SpellKind { unicode, mistake, unknown }
+enum SpellKind { unicode, mistake, suspect, unknown }
+
+/// What the morphology engine says about a word (shared/spell.ts `EngineVerdict`): "ok", a listed
+/// "mistake", a "suspect" (unknown, with close spellings it knows) or "unknown".
+class EngineVerdict {
+  const EngineVerdict(this.k, [this.fix = const []]);
+  final String k;
+  final List<String> fix;
+}
+
+/// Verdicts for the words, or null when the engine can't be reached (the check goes on without it).
+typedef SpellEngine = Future<Map<String, EngineVerdict>?> Function(List<String> words);
 
 class SpellIssue {
   const SpellIssue(this.from, this.to, this.text, this.kind, this.fix);
@@ -137,17 +150,28 @@ class Speller {
         return false;
       });
 
-  Future<List<SpellIssue>> check(String text, {bool unknown = false, Set<String> mine = const {}}) async {
+  Future<List<SpellIssue>> check(String text, {bool unknown = false, Set<String> mine = const {}, SpellEngine? engine}) async {
     final out = <SpellIssue>[];
     final joined = <(int, int)>[];
     for (final m in _colon.allMatches(text)) {
       joined.add((m.start, m.end));
       out.add(SpellIssue(m.start, m.end, m.group(0)!, SpellKind.unicode, ['${m.group(1)}ഃ${m.group(2)}']));
     }
-    for (final m in _word.allMatches(text)) {
+    final list = [
+      for (final m in _word.allMatches(text))
+        if (!joined.any((j) => m.start >= j.$1 && m.end <= j.$2) && !mine.contains(m.group(0))) m,
+    ];
+    // one request to the engine for the line's words (it caches; null when it can't be reached)
+    Map<String, EngineVerdict>? verdicts;
+    if (engine != null && list.isNotEmpty) {
+      try {
+        verdicts = await engine({for (final m in list) m.group(0)!}.toList());
+      } catch (_) {
+        verdicts = null;
+      }
+    }
+    for (final m in list) {
       final word = m.group(0)!;
-      if (joined.any((j) => m.start >= j.$1 && m.end <= j.$2)) continue;
-      if (mine.contains(word)) continue;
       final u = unicodeFix(word);
       if (u != null) {
         out.add(SpellIssue(m.start, m.end, word, SpellKind.unicode, [u]));
@@ -158,6 +182,20 @@ class Speller {
         out.add(SpellIssue(m.start, m.end, word, SpellKind.mistake, [mf.fix]));
         continue;
       }
+      final v = verdicts?[word];
+      if (v != null && v.k != 'ok') {
+        // the dictionary (or a word it comes from) knows it: never marked
+        if (v.k != 'mistake' && await isKnown(word)) continue;
+        if (v.k == 'mistake' && v.fix.isNotEmpty) {
+          out.add(SpellIssue(m.start, m.end, word, SpellKind.mistake, v.fix));
+          continue;
+        }
+        if (v.k == 'suspect' && v.fix.isNotEmpty) {
+          out.add(SpellIssue(m.start, m.end, word, SpellKind.suspect, v.fix.take(4).toList()));
+          continue;
+        }
+      }
+      if (v?.k == 'ok') continue;
       if (unknown && word.runes.length > 2 && !await isKnown(word)) out.add(SpellIssue(m.start, m.end, word, SpellKind.unknown, const []));
     }
     out.sort((a, b) => a.from.compareTo(b.from));

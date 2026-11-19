@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/akshara.dart';
 import '../core/manglish.dart';
 import '../data/forms.dart' show Json;
+import '../data/spell.dart';
 import 'document.dart';
 
 /// How typed text is treated (settings.inputMode on the web).
@@ -89,6 +90,8 @@ class BlockController extends TextEditingController {
   /// Reload from [block] after the editor changed it (split, merge, formatting, undo).
   void reload({int? cursor}) {
     _typedLatin = false;
+    // the editor changed the text (split, merge, undo): its spelling marks wait for a new check
+    if (block.text != spellCheckedText) spellIssues = const [];
     final at = (cursor ?? blockSelection.extentOffset).clamp(0, block.text.length);
     super.value = TextEditingValue(text: '$sentinel${block.text}', selection: TextSelection.collapsed(offset: at + 1));
   }
@@ -270,7 +273,22 @@ class BlockController extends TextEditingController {
       if (k >= to) moved[k + delta] = v;
     });
     block.atoms = moved;
+    // spelling marks after the change move with the text; a word that was edited waits for its new check
+    if (spellIssues.isNotEmpty) {
+      bool joins(String ch) => _wordChar.hasMatch(ch);
+      final glueEnd = ins.isNotEmpty && joins(ins[0]);
+      final glueStart = ins.isNotEmpty && joins(ins[ins.length - 1]);
+      spellIssues = [
+        for (final i in spellIssues)
+          if (i.to < from || (i.to == from && !glueEnd))
+            i
+          else if (i.from > to || (i.from == to && !glueStart))
+            SpellIssue(i.from + delta, i.to + delta, i.text, i.kind, i.fix),
+      ];
+    }
   }
+
+  static final _wordChar = RegExp('[\u0D00-\u0D7F\u200C\u200D]');
 
   /// Replace the Latin word ending at the cursor with [replacement] (a suggestion was picked).
   void replaceWordAtCursor(String word, String replacement, {bool addSpace = true}) {
@@ -306,6 +324,54 @@ class BlockController extends TextEditingController {
     final m = manglishTailRe.firstMatch(block.text.substring(0, s.extentOffset));
     return m?[0];
   }
+
+  // ── spelling marks ──
+
+  /// Spelling issues of this line (positions in the block's text), drawn as wavy lines. Set by the
+  /// session's background check; moved along when text before them changes.
+  List<SpellIssue> spellIssues = const [];
+
+  /// The text [spellIssues] were found in (null: check the line again).
+  String? spellCheckedText;
+
+  /// Line colour for each kind of issue (set by the editor from the theme).
+  Map<SpellKind, Color> spellColors = const {};
+
+  void setSpellIssues(List<SpellIssue> list) {
+    if (list.isEmpty && spellIssues.isEmpty) return;
+    spellIssues = list;
+    notifyListeners();
+  }
+
+  bool _spellValid(SpellIssue i) => i.from >= 0 && i.to <= block.text.length && i.from < i.to && block.text.substring(i.from, i.to) == i.text;
+
+  /// The marked word the cursor is in (tapped, just edited and checked again) or that holds the
+  /// whole selection, for the suggestion row above the keyboard.
+  SpellIssue? get spellAtCursor {
+    if (spellIssues.isEmpty || !selection.isValid) return null;
+    final s = blockSelection;
+    for (final i in spellIssues) {
+      if (s.start >= i.from && s.end <= i.to && _spellValid(i)) return i;
+    }
+    return null;
+  }
+
+  /// Put [text] in place of the marked word [i] (a suggestion was picked); the cursor goes after it.
+  void fixSpelling(SpellIssue i, String text) {
+    if (!_spellValid(i)) return;
+    _typedLatin = false;
+    final m = i.from < block.marks.length ? block.marks[i.from] : MarkSet.empty;
+    _replace(i.from, i.to, text, m);
+    super.value = TextEditingValue(text: '$sentinel${block.text}', selection: TextSelection.collapsed(offset: i.from + text.length + 1));
+    onChanged(this, textChanged: true);
+  }
+
+  TextStyle _spellStyle(TextStyle s, SpellIssue i) => s.copyWith(
+        decoration: s.decoration == null || s.decoration == TextDecoration.none ? TextDecoration.underline : TextDecoration.combine([s.decoration!, TextDecoration.underline]),
+        decorationStyle: i.kind == SpellKind.unknown ? TextDecorationStyle.dotted : TextDecorationStyle.wavy,
+        decorationColor: spellColors[i.kind] ?? const Color(0xFFD92D20),
+        decorationThickness: i.kind == SpellKind.unknown ? 1.4 : 1.8,
+      );
 
   // ── formatting ──
 
@@ -424,6 +490,15 @@ class BlockController extends TextEditingController {
       spans.add(TextSpan(text: first, style: marked.merge(dropCapStyle!.copyWith(color: own ? marked.color : dropCapStyle!.color))));
       i = first.length;
     }
+    // which spelling issue (if any) each character belongs to
+    List<SpellIssue?>? spell;
+    for (final issue in spellIssues) {
+      if (!_spellValid(issue)) continue;
+      spell ??= List<SpellIssue?>.filled(t.length, null);
+      for (var k = issue.from; k < issue.to; k++) {
+        spell[k] = issue;
+      }
+    }
     while (i < t.length) {
       if (t[i] == atomChar && block.atoms.containsKey(i)) {
         spans.add(atomSpan(block.atoms[i]!, base));
@@ -431,11 +506,13 @@ class BlockController extends TextEditingController {
         continue;
       }
       final m = block.marks[i];
+      final issue = spell?[i];
       var j = i + 1;
-      while (j < t.length && block.marks[j] == m && !(t[j] == atomChar && block.atoms.containsKey(j))) {
+      while (j < t.length && block.marks[j] == m && !(t[j] == atomChar && block.atoms.containsKey(j)) && identical(spell?[j], issue)) {
         j++;
       }
-      spans.add(TextSpan(text: t.substring(i, j), style: styler(m, base)));
+      final styled = styler(m, base);
+      spans.add(TextSpan(text: t.substring(i, j), style: issue == null ? styled : _spellStyle(styled, issue)));
       i = j;
     }
     // underline what the keyboard is still composing, like a native field

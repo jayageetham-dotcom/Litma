@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../core/manglish.dart';
 import '../data/models.dart';
+import '../data/spell.dart';
 import '../data/store.dart';
 import 'writing_timer.dart';
 import 'block_controller.dart';
@@ -68,10 +69,76 @@ class EditorSession extends ChangeNotifier {
           if (b is TextBlock) b else if (b is GroupBlock) ...b.textChildren,
       ];
 
-  BlockController controllerFor(TextBlock b) => _controllers.putIfAbsent(
-        b,
-        () => BlockController(block: b, styler: styler, mode: mode, spelling: (w) => spelling?.call(w), onSplit: _onSplit, onMergeBack: _onMergeBack, onChanged: _onChanged, onSpanEdit: _onSpanEdit),
-      );
+  BlockController controllerFor(TextBlock b) => _controllers.putIfAbsent(b, () {
+        // a line coming into view gets its spelling marks
+        _scheduleSpelling(const Duration(milliseconds: 300));
+        return BlockController(block: b, styler: styler, mode: mode, spelling: (w) => spelling?.call(w), onSplit: _onSplit, onMergeBack: _onMergeBack, onChanged: _onChanged, onSpanEdit: _onSpanEdit);
+      });
+
+  // ── spelling marks ──
+
+  /// Set by the editor screen: checks a line's text for spelling (null: marks off).
+  Future<List<SpellIssue>> Function(String text)? spellCheck;
+
+  /// Words left as written until the app is opened again ("Ignore" on a suggestion), in every work.
+  static final spellIgnored = <String>{};
+  Timer? _spellTimer;
+  int _spellRun = 0;
+
+  /// Check every line again (marks switched on or off, a word kept or ignored).
+  void recheckSpelling() {
+    _spellRun++;
+    for (final c in _controllers.values) {
+      c.spellCheckedText = null;
+      if (spellCheck == null) c.setSpellIssues(const []);
+    }
+    _scheduleSpelling(const Duration(milliseconds: 50));
+  }
+
+  /// Leave this word as written for the rest of the visit.
+  void ignoreSpelling(String word) {
+    spellIgnored.add(word);
+    for (final c in _controllers.values) {
+      if (c.spellIssues.any((i) => i.text == word)) c.setSpellIssues([for (final i in c.spellIssues) if (i.text != word) i]);
+    }
+    notifyListeners();
+  }
+
+  void _scheduleSpelling([Duration delay = const Duration(milliseconds: 700)]) {
+    if (spellCheck == null) return;
+    _spellTimer?.cancel();
+    _spellTimer = Timer(delay, _runSpelling);
+  }
+
+  /// Lines whose text changed since their last check (only lines that have been built), a few at
+  /// a time so the engine gets their words in one request.
+  Future<void> _runSpelling() async {
+    final check = spellCheck;
+    if (check == null) return;
+    final run = ++_spellRun;
+    final todo = [for (final c in _controllers.values) if (c.spellCheckedText != c.block.text) c];
+    var changed = false;
+    for (var i = 0; i < todo.length; i += 24) {
+      final part = todo.sublist(i, i + 24 < todo.length ? i + 24 : todo.length);
+      await Future.wait(part.map((c) async {
+        final text = c.block.text;
+        List<SpellIssue> found;
+        try {
+          found = await check(text);
+        } catch (_) {
+          return;
+        }
+        // the line changed or went away while it was being checked: it is done again later
+        if (run != _spellRun || c.block.text != text || !identical(_controllers[c.block], c)) return;
+        c.spellCheckedText = text;
+        final marks = [for (final f in found) if (!spellIgnored.contains(f.text)) f];
+        if (marks.isNotEmpty || c.spellIssues.isNotEmpty) changed = true;
+        c.setSpellIssues(marks);
+      }));
+      if (run != _spellRun) return;
+    }
+    if (changed) notifyListeners();
+  }
 
   FocusNode focusFor(TextBlock b) => _focus.putIfAbsent(b, () {
         final f = FocusNode(debugLabel: b.type);
@@ -332,6 +399,7 @@ class EditorSession extends ChangeNotifier {
   void _beforeChange() {}
 
   void _afterChange() {
+    _scheduleSpelling();
     if (pristine) pristine = false;
     words = countWords(document.plainText);
     _activeMinutes.add(DateTime.now().millisecondsSinceEpoch ~/ 60000);
@@ -1205,6 +1273,9 @@ class EditorSession extends ChangeNotifier {
   @override
   void dispose() {
     _historyTimer?.cancel();
+    _spellTimer?.cancel();
+    _spellRun++;
+    spellCheck = null;
     saver.dispose();
     for (final c in _controllers.values) {
       c.dispose();

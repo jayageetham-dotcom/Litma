@@ -110,7 +110,14 @@ Litma checks Malayalam spelling as you write, with its own Malayalam engine: it 
 
 ![The Check panel](shots/spelling.webp "Broken letters and common misspellings, each with its fix.")
 
-1. Choose **Spelling and grammar** on the right-hand rail. Litma marks these in your text:
+Marks appear in your text as you write. Click or tap a marked word (or select it) and its suggestions open right there: under the word on a computer, in the strip above the keyboard on a phone. Edit a marked word and, once you pause, the suggestions are for the whole new word.
+
+- Pick a spelling to put it in place of the word.
+- **Ignore** leaves the word as you wrote it. It isn't marked again until you open Litma again.
+- **Keep** leaves it for good: a kept word isn't marked again on this device.
+- Or just carry on typing. A dialect or regional word is often right as it is; the suggestion is only a choice. <kbd>Esc</kbd> closes the suggestions on a computer.
+
+1. Choose **Spelling and grammar** on the right-hand rail to see every mark in a list. Litma marks these in your text:
    - **Broken letters** (blue wavy line): Malayalam typed in an old or broken way that looks right but searches and sorts wrongly, like ന്‍ for ൻ or a colon for ഃ (ദു:ഖം for ദുഃഖം).
    - **Misspellings** (red wavy line): words often written wrongly (ഉൽഘാടനം for ഉദ്ഘാടനം), with the standard spelling.
    - **Check spelling?** (amber wavy line): a word the engine doesn't know that is close to words it does, like പോയീ (പോയി) or ഹ്രുദയം (ഹൃദയം). It's a question: if your word is right, choose **Keep**.
@@ -130,7 +137,7 @@ Names, dialect and words from every region and community are often unknown to an
 
 The check leaves dialect, regional words, names and dialogue as you wrote them. It uses your own AI key (Settings → Your AI keys). Without a key, choose **Check with Claude**: Claude checks the work on your own Claude plan and sends each fix to your **Assistant inbox**, where you accept or dismiss it ([connect Claude first](#open-claude)).
 
-> **Phone:** Tap the tools button and choose **Check**. The phone lists spelling with the fixes; the marks inside the text are on the website and desktop app, and the phone's grammar check still opens the AI companion.
+> **Phone:** The Litma phone app marks spelling in the text too; tap a marked word for its spellings above the keyboard. Tap the tools button and choose **Check** for the list and the switches. Spacing marks are on the website and desktop app for now, and the phone's grammar check still opens the AI companion.
 
 ## Read aloud {#read-aloud}
 

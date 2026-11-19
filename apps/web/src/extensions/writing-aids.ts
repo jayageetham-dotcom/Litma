@@ -57,6 +57,24 @@ export function spellIssues(state: EditorState): DocIssue[] {
     .sort((a, b) => a.pos - b.pos);
 }
 
+/**
+ * The marked word (or spacing mark) the cursor is in, or that holds the whole selection, while
+ * its text is still what was checked: a word being edited waits for its new check, so the
+ * suggestions are always for the complete word.
+ */
+export function issueAt(state: EditorState): DocIssue | null {
+  const deco = spellKey.getState(state)?.deco;
+  if (!deco) return null;
+  const { from, to } = state.selection;
+  for (const d of deco.find(Math.max(0, from - 1), to + 1)) {
+    if (from < d.from || to > d.to) continue;
+    const issue = d.spec.issue as DocIssue;
+    if (state.doc.textBetween(d.from, d.to, "\n", LEAF) !== issue.text) continue;
+    return { ...issue, pos: d.from, end: d.to };
+  }
+  return null;
+}
+
 /** Start the check over (after switching it on, or changing what it marks). */
 export function recheckSpelling(editor: Editor) {
   editor.view.dispatch(editor.state.tr.setMeta(spellKey, { reset: true }).setMeta("addToHistory", false));

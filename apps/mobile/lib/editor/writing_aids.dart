@@ -249,6 +249,32 @@ class _RhymeFinderViewState extends ConsumerState<RhymeFinderView> {
 
 const _myWordsKey = 'litma:my-words';
 const _unknownKey = 'litma:spell-unknown';
+const _marksKey = 'litma:spell-marks';
+
+/// Spelling marks in the text (on by default, per device, like the web's "Mark spelling in the
+/// text"): wavy lines under broken letters, misspellings and likely typos, with suggestions above
+/// the keyboard when the cursor is in a marked word. Call again after a setting or kept word changes.
+void setupSpellMarks(WidgetRef ref, EditorSession s) {
+  final services = ref.read(servicesProvider);
+  final p = services.prefs;
+  if (p.getBool(_marksKey) ?? true) {
+    final unknown = p.getBool(_unknownKey) ?? false;
+    final mine = (p.getStringList(_myWordsKey) ?? const []).toSet();
+    s.spellCheck = (text) => services.speller.check(text, unknown: unknown, mine: mine, engine: services.spellEngine.call);
+  } else {
+    s.spellCheck = null;
+  }
+  s.recheckSpelling();
+}
+
+/// "Keep": the word is never marked again on this device.
+Future<void> keepSpellingWord(WidgetRef ref, EditorSession s, String word) async {
+  final p = ref.read(servicesProvider).prefs;
+  final mine = (p.getStringList(_myWordsKey) ?? const []).toList();
+  if (!mine.contains(word)) mine.add(word);
+  await p.setStringList(_myWordsKey, mine.length > 5000 ? mine.sublist(mine.length - 5000) : mine);
+  setupSpellMarks(ref, s);
+}
 
 Future<void> showCheckSheet(BuildContext context, WidgetRef ref, EditorSession s) => _sheet(context, _CheckSheet(session: s));
 
@@ -269,6 +295,7 @@ class _CheckSheet extends ConsumerStatefulWidget {
 class _CheckSheetState extends ConsumerState<_CheckSheet> {
   List<_Found>? _found;
   late bool _unknown;
+  late bool _marks;
   late Set<String> _mine;
 
   @override
@@ -276,16 +303,18 @@ class _CheckSheetState extends ConsumerState<_CheckSheet> {
     super.initState();
     final p = ref.read(servicesProvider).prefs;
     _unknown = p.getBool(_unknownKey) ?? false;
+    _marks = p.getBool(_marksKey) ?? true;
     _mine = (p.getStringList(_myWordsKey) ?? const []).toSet();
     _check();
   }
 
   Future<void> _check() async {
     setState(() => _found = null);
-    final sp = Speller(ref.read(servicesProvider).dictionary);
+    final services = ref.read(servicesProvider);
     final out = <_Found>[];
     for (final l in widget.session.lines) {
-      for (final i in await sp.check(l.text, unknown: _unknown, mine: _mine)) {
+      for (final i in await services.speller.check(l.text, unknown: _unknown, mine: _mine, engine: services.spellEngine.call)) {
+        if (EditorSession.spellIgnored.contains(i.text)) continue;
         out.add(_Found(l, i));
       }
       if (out.length >= 300) break;
@@ -300,7 +329,7 @@ class _CheckSheetState extends ConsumerState<_CheckSheet> {
 
   Future<void> _keep(String word) async {
     _mine.add(word);
-    await ref.read(servicesProvider).prefs.setStringList(_myWordsKey, _mine.toList());
+    await keepSpellingWord(ref, widget.session, word);
     _check();
   }
 
@@ -313,12 +342,23 @@ class _CheckSheetState extends ConsumerState<_CheckSheet> {
       _title(context, context.t('check.spelling')),
       SwitchListTile(
         contentPadding: EdgeInsets.zero,
+        value: _marks,
+        title: Text(context.t('check.markOn')),
+        onChanged: (v) async {
+          await ref.read(servicesProvider).prefs.setBool(_marksKey, v);
+          setState(() => _marks = v);
+          setupSpellMarks(ref, widget.session);
+        },
+      ),
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
         value: _unknown,
         title: Text(context.t('check.unknown')),
         subtitle: Text(context.t('check.unknownHint')),
-        onChanged: (v) {
-          ref.read(servicesProvider).prefs.setBool(_unknownKey, v);
+        onChanged: (v) async {
+          await ref.read(servicesProvider).prefs.setBool(_unknownKey, v);
           setState(() => _unknown = v);
+          setupSpellMarks(ref, widget.session);
           _check();
         },
       ),
@@ -355,8 +395,8 @@ class _CheckSheetState extends ConsumerState<_CheckSheet> {
                 Expanded(child: Text(f.issue.text, style: _ml.copyWith(fontSize: 16))),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: f.issue.kind == SpellKind.unknown ? c.subtle : c.dangerSoft, borderRadius: BorderRadius.circular(99)),
-                  child: Text(context.t('check.kind.${f.issue.kind.name}'), style: TextStyle(fontSize: 11, color: f.issue.kind == SpellKind.unknown ? c.muted : c.danger)),
+                  decoration: BoxDecoration(color: switch (f.issue.kind) { SpellKind.unknown => c.subtle, SpellKind.suspect => c.highlightSoft, _ => c.dangerSoft }, borderRadius: BorderRadius.circular(99)),
+                  child: Text(context.t('check.kind.${f.issue.kind.name}'), style: TextStyle(fontSize: 11, color: switch (f.issue.kind) { SpellKind.unknown => c.muted, SpellKind.suspect => c.highlight, _ => c.danger })),
                 ),
               ]),
               const SizedBox(height: 6),

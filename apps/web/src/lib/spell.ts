@@ -66,9 +66,17 @@ export function addMyWord(w: string) {
   window.dispatchEvent(new Event(SPELL_EVENT));
 }
 
+/** Words left as written for this visit ("Ignore" on a suggestion): not marked again until the app reloads. */
+const ignored = new Set<string>();
+export function ignoreWord(w: string) {
+  ignored.add(w);
+  window.dispatchEvent(new Event(SPELL_EVENT));
+}
+
 /** The check the editor runs on each text block. */
 export function blockChecker(): (text: string) => Promise<SpellIssue[]> {
   const p = spellPrefs();
-  const mine = myWords();
-  return (text) => speller.check(text, { unknown: p.unknown, mine, engine: spellEngine, punctuation: p.punct });
+  const mine = new Set([...myWords(), ...ignored]);
+  const skip = new Set(ignored);
+  return async (text) => (await speller.check(text, { unknown: p.unknown, mine, engine: spellEngine, punctuation: p.punct })).filter((i) => i.kind === "punct" || !skip.has(i.text));
 }

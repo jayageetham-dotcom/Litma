@@ -13,6 +13,8 @@ import '../data/auth.dart';
 import '../data/dictionary.dart';
 import '../data/models.dart';
 import '../data/offline.dart';
+import '../data/spell.dart';
+import '../data/spell_engine.dart';
 import '../data/store.dart';
 
 /// Everything the app talks to, made once at start (Supabase in the app; fakes in tests and previews).
@@ -29,6 +31,10 @@ class Services {
   final Dictionary dictionary;
   late final AiApi ai = AiApi(auth);
   late final AccountApi account = AccountApi(auth);
+
+  /// The spelling check (word lists cached for the visit) and the litma-spell engine it asks.
+  late final Speller speller = Speller(dictionary);
+  late final SpellEngineClient spellEngine = SpellEngineClient(auth);
   StreamSubscription<List<ConnectivityResult>>? _net;
 
   /// Follow the phone's network: no network means offline at once; back online starts a sync.

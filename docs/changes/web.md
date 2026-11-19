@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-19: Spelling suggestions at the marked word
+
+`components/editor/SpellSuggest.tsx` (new): `SpellSuggest` card under a marked word on desktop/tablet (Workspace, beside `ManglishPopup`), `SpellStrip` row above the phone keyboard (rendered by the docked `ManglishPopup` when no Manglish word is being typed). `issueAt` in `extensions/writing-aids.ts`; `ignoreWord` + filtered `blockChecker` in `lib/spell.ts`. Wavy lines 1.5px (`styles/editor.scss`). Help `03-editor.md#spelling`. Tested with Playwright in local mode (desktop + iPhone 13 emulation); not on a real iPhone.
+
 ## 2026-11-18: നാട്ടറിവ് restyle and new categories
 
 See `cross-platform.md`. Files: `src/components/Nattarivu.tsx` (`HEADING` tint map, section heading, row sizes, five icons), `packages/shared/src/nattarivu.ts`, `content/help/06-dictionary.md`. Typecheck and build in this session; not looked at in a browser.

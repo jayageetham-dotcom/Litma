@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:litma/core/akshara.dart';
 import 'package:litma/core/manglish.dart';
 import 'package:litma/data/forms.dart';
+import 'package:litma/data/spell.dart';
 import 'package:litma/editor/block_controller.dart';
 import 'package:litma/editor/document.dart';
 
@@ -337,5 +338,52 @@ void main() {
     expect(cap('Hello'), 'H');
     expect(cap(' x'), '');
     expect(cap(''), '');
+  });
+
+  group('spelling marks', () {
+    // ദു:ഖം has a broken letter (a colon for ഃ): positions 4..9 of "അവൻ ദു:ഖം വന്നു"
+    BlockController marked() {
+      final c = _controller(TextBlock('paragraph', {}, text: 'അവൻ ദു:ഖം വന്നു'), mode: InputMode.malayalam);
+      c.setSpellIssues([const SpellIssue(4, 9, 'ദു:ഖം', SpellKind.unicode, ['ദുഃഖം'])]);
+      return c;
+    }
+
+    test('the word the cursor is in gives its suggestions', () {
+      final c = marked();
+      c.placeCursor(6);
+      expect(c.spellAtCursor?.text, 'ദു:ഖം');
+      c.placeCursor(9); // right after the word
+      expect(c.spellAtCursor?.text, 'ദു:ഖം');
+      c.placeCursor(12);
+      expect(c.spellAtCursor, isNull);
+    });
+
+    test('marks move with text typed before them, and an edited word waits for its check', () {
+      final c = marked();
+      c.placeCursor(0);
+      type(c, 'ഇ ');
+      expect(c.spellIssues.single.from, 6);
+      c.placeCursor(8);
+      expect(c.spellAtCursor?.text, 'ദു:ഖം');
+      c.placeCursor(11); // the end of the word
+      type(c, 'ം');
+      expect(c.spellIssues, isEmpty);
+    });
+
+    test('a space after the word keeps its mark', () {
+      final c = marked();
+      c.placeCursor(9);
+      type(c, ' ');
+      expect(c.spellIssues.single.text, 'ദു:ഖം');
+    });
+
+    test('picking a suggestion replaces the whole word', () {
+      final c = marked();
+      c.placeCursor(6);
+      c.fixSpelling(c.spellAtCursor!, 'ദുഃഖം');
+      expect(c.block.text, 'അവൻ ദുഃഖം വന്നു');
+      expect(c.blockSelection.extentOffset, 9);
+      expect(c.spellIssues, isEmpty);
+    });
   });
 }

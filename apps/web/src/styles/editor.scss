@@ -461,7 +461,7 @@ $mm: 3.7795275591px;
   .spell-mistake,
   .spell-unicode {
     text-decoration: underline wavy var(--danger);
-    text-decoration-thickness: 1px;
+    text-decoration-thickness: 1.5px;
     text-underline-offset: 4px;
     text-decoration-skip-ink: none;
   }
@@ -471,7 +471,7 @@ $mm: 3.7795275591px;
   // a likely typo (the engine knows close spellings): an amber wavy line, a question rather than an error
   .spell-suspect {
     text-decoration: underline wavy var(--highlight);
-    text-decoration-thickness: 1px;
+    text-decoration-thickness: 1.5px;
     text-underline-offset: 4px;
     text-decoration-skip-ink: none;
   }

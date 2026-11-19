@@ -6,6 +6,7 @@ import { transliterate } from "@/lib/functions";
 import { manglishKey, topCandidates, pageOf, MAX_CANDIDATES, PAGE_SIZE, type ComposeState, type CommitInfo } from "@/extensions/manglish";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useT } from "@/i18n/react";
+import { SpellStrip } from "./SpellSuggest";
 
 const cache = new Map<string, string[]>();
 
@@ -125,8 +126,9 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
   }, [st]);
 
   if (!st) {
-    // phones: keep the row while Manglish is on, so the strip above it doesn't jump at every word
-    return docked && editor.storage.manglish?.mode === "manglish" ? <div className="no-print h-11 border-t border-line bg-paper" aria-hidden /> : null;
+    // phones: the row shows spelling suggestions for a marked word the cursor is in; it stays while
+    // Manglish is on, so the strip above it doesn't jump at every word
+    return docked ? <SpellStrip editor={editor} placeholder={editor.storage.manglish?.mode === "manglish"} /> : null;
   }
   const all = st.candidates;
   const pick = (i: number) => editor.commands.commitManglish(i);

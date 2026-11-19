@@ -15,6 +15,7 @@ import '../core/motion.dart';
 import '../core/theme.dart';
 import '../data/forms.dart';
 import '../data/models.dart';
+import '../data/spell.dart';
 import '../features/reader/reader_screen.dart';
 import '../widgets/brand.dart';
 import '../widgets/script_field.dart';
@@ -137,6 +138,7 @@ class _EditorState extends ConsumerState<_Editor> {
     s.spelling = (word) => _best[word];
     s.reveal = _reveal;
     WritingTimer.instance.onDone = _timerDone;
+    setupSpellMarks(ref, s);
   }
 
   /// The writing timer ended while the work is open: a card with the words written.
@@ -310,7 +312,7 @@ class _EditorState extends ConsumerState<_Editor> {
               switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, a) => SizeTransition(sizeFactor: a, alignment: Alignment.topCenter, child: FadeTransition(opacity: a, child: child)),
               child: writing
-                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates, onLookUp: () => showLookUpSheet(context, s), onAi: () => showAiSheet(context, ref, s), onInbox: () {
+                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates, onKeepWord: (w) => keepSpellingWord(ref, s, w), onLookUp: () => showLookUpSheet(context, s), onAi: () => showAiSheet(context, ref, s), onInbox: () {
                       FocusScope.of(context).unfocus();
                       showInboxSheet(context, ref, s);
                     })
@@ -429,8 +431,11 @@ class _PageState extends State<_Page> {
     for (final (i, n) in notes.indexed) {
       numbers[n] = i + 1;
     }
+    final spellColors = {SpellKind.unicode: c.accent, SpellKind.mistake: c.danger, SpellKind.suspect: c.highlight, SpellKind.unknown: c.muted};
     Widget lineFor(TextBlock b) {
-      session.controllerFor(b).footnoteNumber = (atom) => numbers[atom];
+      session.controllerFor(b)
+        ..footnoteNumber = (atom) => numbers[atom]
+        ..spellColors = spellColors;
       return EditableLine(session: session, block: b, look: looks[b]!, prompt: promptFor(b));
     }
 
@@ -570,7 +575,8 @@ double _barOffset = 0;
 
 /// The keyboard accessory: suggestions for the Manglish word, then the writing tools.
 class _KeyboardBar extends StatefulWidget {
-  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates, required this.onLookUp, required this.onAi, required this.onInbox});
+  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates, required this.onKeepWord, required this.onLookUp, required this.onAi, required this.onInbox});
+  final void Function(String word) onKeepWord;
   final VoidCallback onLookUp;
   final VoidCallback onAi;
   final VoidCallback onInbox;
@@ -599,6 +605,8 @@ class _KeyboardBarState extends State<_KeyboardBar> {
     final s = widget.session;
     final word = widget.word;
     final candidates = widget.candidates;
+    // a marked word the cursor is in (no Manglish word being typed): its spellings take the row
+    final spell = word == null ? s.current?.spellAtCursor : null;
     final drama = s.kind == DocKind.drama || s.kind == DocKind.screenplay;
     return Material(
       color: c.surface,
@@ -655,9 +663,11 @@ class _KeyboardBarState extends State<_KeyboardBar> {
             duration: Motion.of(context, Motion.fast),
             curve: Motion.emphasized,
             alignment: Alignment.bottomCenter,
-            child: s.mode == InputMode.manglish
-                ? _Suggestions(session: s, word: word, candidates: candidates)
-                : const SizedBox(width: double.infinity),
+            child: spell != null
+                ? _SpellRow(session: s, issue: spell, onKeep: widget.onKeepWord)
+                : s.mode == InputMode.manglish
+                    ? _Suggestions(session: s, word: word, candidates: candidates)
+                    : const SizedBox(width: double.infinity),
           ),
         ]),
       ),
@@ -733,6 +743,73 @@ class _Suggestions extends StatelessWidget {
                 ),
               ),
             ]),
+    );
+  }
+}
+
+/// Spellings for a marked word the cursor is in (tapped, selected, or just edited and checked
+/// again), in the same row as the Manglish suggestions: pick one, or Ignore (left as written for
+/// this visit) or Keep (never marked again on this device). Typing on simply goes on: dialect and
+/// regional words are often "unknown", and leaving them is the writer's choice.
+class _SpellRow extends StatelessWidget {
+  const _SpellRow({required this.session, required this.issue, required this.onKeep});
+  final EditorSession session;
+  final SpellIssue issue;
+  final void Function(String word) onKeep;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final ctrl = session.current;
+    final fixes = issue.fix.take(6).toList();
+    Widget action(String label, String hint, VoidCallback onTap) => Pressable(
+          semanticLabel: hint,
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            alignment: Alignment.center,
+            child: Text(label, style: TextStyle(fontSize: 13.5, color: c.muted)),
+          ),
+        );
+    return Container(
+      key: ValueKey('spell/${issue.from}/${issue.text}'),
+      height: 46,
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: c.line))),
+      child: Row(children: [
+        Expanded(
+          child: fixes.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Align(alignment: Alignment.centerLeft, child: Text(context.t('check.kind.${issue.kind.name}'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.5, color: c.muted))),
+                )
+              : ListView.builder(
+                  key: ValueKey('spellstrip/${issue.text}'),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: fixes.length,
+                  itemBuilder: (context, i) => FadeSlideIn(
+                    key: ValueKey('${issue.text}/${fixes[i]}'),
+                    index: i < 4 ? i : 4,
+                    offset: 4,
+                    duration: Motion.medium,
+                    child: Pressable(
+                      semanticLabel: fixes[i],
+                      onTap: () => ctrl?.fixSpelling(issue, fixes[i]),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: i == 0 ? c.accentSoft : Colors.transparent, borderRadius: BorderRadius.circular(9)),
+                        child: Text(fixes[i], maxLines: 1, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 17, fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w500, color: i == 0 ? c.optionSelectedInk : c.ink)),
+                      ),
+                    ),
+                  ),
+                ),
+        ),
+        action(context.t('check.ignore'), context.t('check.ignoreHint'), () => session.ignoreSpelling(issue.text)),
+        if (issue.kind != SpellKind.unicode) action(context.t('check.keep'), context.t('check.keepHint'), () => onKeep(issue.text)),
+      ]),
     );
   }
 }

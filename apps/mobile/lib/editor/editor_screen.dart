@@ -434,7 +434,7 @@ class _PageState extends State<_Page> {
     final spellColors = {SpellKind.unicode: c.accent, SpellKind.mistake: c.danger, SpellKind.suspect: c.highlight, SpellKind.unknown: c.muted};
     Widget lineFor(TextBlock b) {
       session.controllerFor(b)
-        ..footnoteNumber = (atom) => numbers[atom]
+        ..footnoteNumber = ((atom) => numbers[atom])
         ..spellColors = spellColors;
       return EditableLine(session: session, block: b, look: looks[b]!, prompt: promptFor(b));
     }

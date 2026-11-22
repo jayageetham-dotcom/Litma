@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import type { Transaction } from "@tiptap/pm/state";
 import { transliterate } from "@/lib/functions";
@@ -7,6 +7,7 @@ import { manglishKey, topCandidates, pageOf, MAX_CANDIDATES, PAGE_SIZE, type Com
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useT } from "@/i18n/react";
 import { SpellStrip } from "./SpellSuggest";
+import { domId, ownAttr } from "./aria-owner";
 
 const cache = new Map<string, string[]>();
 
@@ -25,6 +26,30 @@ const ML_FONT = { fontFamily: "'Noto Sans Malayalam'" };
 const keep = (e: React.SyntheticEvent) => e.preventDefault();
 
 /**
+ * What a screen reader hears while a word is being typed in Manglish: the highlighted Malayalam
+ * spelling and its place in the list, once typing or arrowing pauses (an always-mounted polite
+ * live region, so it is announced reliably and not at every key).
+ */
+function ManglishAnnounce({ st }: { st: ComposeState | null }) {
+  const t = useT();
+  const [text, setText] = useState("");
+  const word = st?.candidates[st.index] ?? "";
+  const count = st?.candidates.length ?? 0;
+  const index = st?.index ?? 0;
+  useEffect(() => {
+    if (!word) return setText("");
+    const id = setTimeout(() => setText(t("manglish.announce", { word, n: index + 1, total: count })), 400);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [word, index, count]);
+  return (
+    <div className="sr-only" aria-live="polite" aria-atomic="true" data-private>
+      {text}
+    </div>
+  );
+}
+
+/**
  * Malayalam spellings for the word being typed in Manglish mode, best first. Desktop: a list under
  * the word, PAGE_SIZE at a time with a pager for more. Phones: all of them in a strip that scrolls sideways.
  * `docked` (phones) shows them as a strip on top of the keyboard, like a phone keyboard's own
@@ -39,6 +64,9 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
   const bar = useRef<HTMLDivElement>(null);
   const strip = useRef<HTMLDivElement>(null);
   const stripWord = useRef("");
+  const reactId = useId();
+  const listId = domId("mg-list", reactId);
+  const optId = (i: number) => `${domId("mg-opt", reactId)}-${i}`;
 
   useEffect(() => {
     const update = () => {
@@ -125,10 +153,29 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
     el.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [st]);
 
+  // screen readers: the editor keeps focus and points at the highlighted spelling (combobox-like)
+  const shownIndex = st ? st.index : -1;
+  const shown = !!st && (docked || !!pos);
+  useEffect(() => {
+    const dom = editor.view.dom as HTMLElement;
+    ownAttr(dom, "aria-controls", shown ? listId : null, "mg-");
+    ownAttr(dom, "aria-activedescendant", shown && shownIndex >= 0 ? optId(shownIndex) : null, "mg-");
+    return () => {
+      ownAttr(dom, "aria-controls", null, "mg-");
+      ownAttr(dom, "aria-activedescendant", null, "mg-");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, shown, shownIndex, listId]);
+
   if (!st) {
     // phones: the row shows spelling suggestions for a marked word the cursor is in; it stays while
     // Manglish is on, so the strip above it doesn't jump at every word
-    return docked ? <SpellStrip editor={editor} placeholder={editor.storage.manglish?.mode === "manglish"} /> : null;
+    return (
+      <>
+        <ManglishAnnounce st={null} />
+        {docked ? <SpellStrip editor={editor} placeholder={editor.storage.manglish?.mode === "manglish"} /> : null}
+      </>
+    );
   }
   const all = st.candidates;
   const pick = (i: number) => editor.commands.commitManglish(i);
@@ -139,7 +186,9 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
     // Phones: the original word in quotes on the left (keeps English), then every spelling in a row
     // that scrolls sideways, like a phone keyboard's own suggestions
     return (
-      <div className="no-print flex h-11 items-stretch gap-1 border-t border-line bg-paper px-1.5 py-1 text-ink" role="listbox" aria-label={t("manglish.suggestions")}>
+      <>
+      <ManglishAnnounce st={st} />
+      <div className="no-print flex h-11 items-stretch gap-1 border-t border-line bg-paper px-1.5 py-1 text-ink">
         <button
           type="button"
           onPointerDown={keep}
@@ -150,13 +199,16 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
         >
           “{st.word}”
         </button>
-        <div ref={strip} className="scrollbar-none flex min-w-0 flex-1 items-stretch gap-1 overflow-x-auto overscroll-x-contain">
+        <div ref={strip} id={listId} role="listbox" aria-label={t("manglish.suggestions")} className="scrollbar-none flex min-w-0 flex-1 items-stretch gap-1 overflow-x-auto overscroll-x-contain">
         {all.map((c, i) => {
           return (
             <button
               key={c + i}
+              id={optId(i)}
               type="button"
               role="option"
+              tabIndex={-1}
+              lang="ml"
               aria-selected={i === st.index}
               onPointerDown={keep}
               onMouseDown={keep}
@@ -170,14 +222,22 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
         })}
         </div>
       </div>
+      </>
     );
   }
 
-  if (!pos) return null;
+  if (!pos)
+    return (
+      <>
+        <ManglishAnnounce st={null} />
+      </>
+    );
   const pages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
   const page = Math.min(pageOf(st.index), pages - 1);
   const rows = all.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   return (
+    <>
+    <ManglishAnnounce st={st} />
     <div
       ref={bar}
       className="no-print fixed z-50 flex w-max min-w-[13rem] max-w-[calc(100vw-16px)] flex-col rounded-[12px] border border-line bg-paper p-1.5 text-ink shadow-lg"
@@ -186,6 +246,7 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
       onMouseDown={keep}
     >
       <div
+        id={listId}
         role="listbox"
         aria-label={t("manglish.suggestions")}
         className="flex flex-col gap-[2px]"
@@ -198,14 +259,18 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
           return (
             <button
               key={c + i}
+              id={optId(i)}
               type="button"
               role="option"
+              tabIndex={-1}
+              lang="ml"
               aria-selected={on}
               onClick={() => pick(i)}
               className={`flex h-9 shrink-0 items-center gap-2.5 whitespace-nowrap rounded-[6px] pl-1.5 pr-3 text-left text-[17px] ${on ? "bg-accent-soft text-accent" : "hover:bg-subtle"}`}
               style={ML_FONT}
             >
               <span
+                aria-hidden
                 className={`grid size-5 shrink-0 place-items-center rounded-[5px] text-[11px] font-semibold leading-none ${on ? "bg-accent text-accent-ink" : "bg-subtle text-muted"}`}
                 style={{ fontFamily: "var(--font-ui)" }}
               >
@@ -243,5 +308,6 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
         )}
       </div>
     </div>
+    </>
   );
 }

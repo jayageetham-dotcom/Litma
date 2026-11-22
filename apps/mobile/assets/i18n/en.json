@@ -260,6 +260,7 @@
   },
   "manglish": {
     "suggestions": "Malayalam suggestions",
+    "announce": "{word}, {n} of {total}",
     "escHint": "Esc keeps English",
     "keepEnglish": "Keep English",
     "keepEnglishAria": "Keep “{word}” in English",
@@ -268,6 +269,50 @@
     "prevPage": "Previous suggestions",
     "nextPage": "More suggestions",
     "pageHint": "Page Up / Page Down"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "close": "Close",
+    "group": {
+      "typing": "Typing",
+      "spelling": "Spelling",
+      "document": "Document",
+      "formatting": "Formatting",
+      "screenplay": "Screenplay"
+    },
+    "key": {
+      "spaceEnter": "Space · Enter · punctuation",
+      "pick": "1 – 6  or  ↑ ↓",
+      "pages": "Page Up · Page Down",
+      "spellOpen": "↓ ↑  or  Alt + ↓",
+      "emptyLine": "Enter on an empty line",
+      "castPick": "Alt + 1 … 7 (in a name)"
+    },
+    "do": {
+      "cycle": "Switch Manglish → മലയാളം → English",
+      "accept": "Accept the highlighted Malayalam word",
+      "pick": "Pick another suggestion",
+      "pages": "More suggestions",
+      "keepEnglish": "Keep the English word",
+      "convert": "Convert selected Manglish to Malayalam",
+      "spellOpen": "Move through the suggestions for a marked word",
+      "spellUse": "Use the highlighted suggestion",
+      "spellClose": "Close the suggestions",
+      "version": "Save a named version now",
+      "find": "Find and replace",
+      "print": "Print / save as PDF (A4)",
+      "focus": "Focus mode",
+      "dictionary": "Dictionary and thesaurus for the selected word",
+      "metre": "Show or hide metre marks (poems, lyrics)",
+      "list": "This list",
+      "bold": "Bold · italic · underline",
+      "undo": "Undo · redo",
+      "next": "Next element (scene → time → cast → action → dialogue)",
+      "tab": "Action ↔ dialogue; name → speech",
+      "switch": "Switch between action and dialogue",
+      "element": "Scene · Time · Cast · Action · Dialogue · Transition",
+      "cast": "Pick a character from the suggestions"
+    }
   },
   "saved": {
     "title": "Saved words",
@@ -1213,6 +1258,8 @@
     "fixAll_other": "Fix {count} letters and spacing marks",
     "keep": "Keep",
     "suggestions": "Spelling suggestions",
+    "announce": "{kind}: {word}. Down arrow (or Alt + Down) for suggestions, Enter to use one, Esc to close.",
+    "announceTouch": "{kind}: {word}. Suggestions are above the keyboard.",
     "ignore": "Ignore",
     "ignoreHint": "Leave it as written. It isn't marked again until you reopen Litma.",
     "keepHint": "Keep this word: it is never marked again on this device.",

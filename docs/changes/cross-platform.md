@@ -7,6 +7,12 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-22: Keyboard and screen readers for the spelling suggestions
+
+- Web and desktop: the card under a marked word (`SpellSuggest.tsx`) now works from the keyboard like the Manglish list: ↓/↑ through the spellings, Ignore and Keep, Enter uses the highlighted row, Esc closes, Alt+↓ always opens it. Screen readers get `aria-activedescendant`/`aria-controls` on the editor, a polite announcement (`check.announce`, en + ml) and `aria-invalid="spelling|grammar"` on every mark. Details in `web.md`. Desktop gets it with the next Release.
+- Phone: suggestion rows made screen-reader friendly (`lib/editor/suggestion_rows.dart`, new widget tests); on a branch until CI's flutter analyze/test pass. Details in `mobile.md`.
+- Web: Manglish list for screen readers, shortcuts list (?) in i18n with the spelling keys and proper dialog focus (`web.md`).
+
 ## 2026-11-22: Release also makes the desktop store builds
 
 - `release.yml` calls `desktop-stores.yml` (Mac App Store to TestFlight, Microsoft Store `.appx`, Snap) with the new tag; build number = Release run number, like the phone. Details in `desktop.md`. Setup guide Part 11, `CLAUDE.md`, `apps/desktop/README.md` updated.
@@ -120,6 +126,8 @@ App Store Connect app made (Apple ID 6834719757, 13+); listing and iPhone screen
 ## Open items
 
 ### Still open (after the 2026-11-07 work)
+
+Accessibility (2026-11-22): spelling card keyboard/screen-reader support needs a desktop Release and a real screen-reader try (VoiceOver, NVDA). Phone suggestion rows: merge their branch only after CI is green. Still to do: hardware-keyboard use of the phone row (it is hidden without the on-screen keyboard; owner's call), phone Manglish announcement, Focus mode button text into i18n.
 
 Microsoft Store (2026-11-14): product Litma reserved (Store ID 9NKP5NXGX0J2, details in `desktop.md`). Variables set, packages built and submitted for certification on 15 Nov (publish held until "Publish now"); after approval publish; the website already links to it (`STORE_LINKS.windows`, 15 Nov). When the App Store and Play listings are live, fill `STORE_LINKS.ios` / `.android` and the badges become links.
 

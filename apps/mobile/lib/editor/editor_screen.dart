@@ -27,6 +27,7 @@ import 'pages.dart';
 import 'saver.dart';
 import 'selection_layer.dart';
 import 'session.dart';
+import 'suggestion_rows.dart';
 import 'tools.dart';
 import 'work_tools.dart';
 import 'writing_aids.dart';
@@ -697,52 +698,15 @@ class _Suggestions extends StatelessWidget {
       decoration: BoxDecoration(border: Border(top: BorderSide(color: c.line))),
       child: w == null
           ? const SizedBox.shrink()
-          : Row(children: [
-              Pressable(
-                semanticLabel: context.t('manglish.keepEnglishAria', {'word': w}),
-                onTap: () {
-                  ctrl?.keepEnglish = w;
-                  ctrl?.replaceWordAtCursor(w, w);
-                },
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.3),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    alignment: Alignment.center,
-                    child: Text('“$w”', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15.5, color: c.muted)),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  // a fresh list (scrolled to the start) for every new word
-                  key: ValueKey('strip/$w'),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: list.length,
-                  itemBuilder: (context, i) {
-                    final cand = list[i];
-                    return FadeSlideIn(
-                      key: ValueKey('$w/$cand'),
-                      index: i < 4 ? i : 4,
-                      offset: 4,
-                      duration: Motion.medium,
-                      child: Pressable(
-                        semanticLabel: cand,
-                        onTap: () => ctrl?.replaceWordAtCursor(w, cand),
-                        child: AnimatedContainer(
-                          duration: Motion.of(context, Motion.fast),
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(color: i == 0 ? c.accentSoft : Colors.transparent, borderRadius: BorderRadius.circular(9)),
-                          child: Text(cand, maxLines: 1, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 17, fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w500, color: i == 0 ? c.optionSelectedInk : c.ink)),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ]),
+          : ManglishRow(
+              word: w,
+              candidates: list,
+              onKeepEnglish: () {
+                ctrl?.keepEnglish = w;
+                ctrl?.replaceWordAtCursor(w, w);
+              },
+              onPick: (cand) => ctrl?.replaceWordAtCursor(w, cand),
+            ),
     );
   }
 }
@@ -759,57 +723,12 @@ class _SpellRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.c;
     final ctrl = session.current;
-    final fixes = issue.fix.take(6).toList();
-    Widget action(String label, String hint, VoidCallback onTap) => Pressable(
-          semanticLabel: hint,
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            alignment: Alignment.center,
-            child: Text(label, style: TextStyle(fontSize: 13.5, color: c.muted)),
-          ),
-        );
-    return Container(
-      key: ValueKey('spell/${issue.from}/${issue.text}'),
-      height: 46,
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: c.line))),
-      child: Row(children: [
-        Expanded(
-          child: fixes.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Align(alignment: Alignment.centerLeft, child: Text(context.t('check.kind.${issue.kind.name}'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.5, color: c.muted))),
-                )
-              : ListView.builder(
-                  key: ValueKey('spellstrip/${issue.text}'),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: fixes.length,
-                  itemBuilder: (context, i) => FadeSlideIn(
-                    key: ValueKey('${issue.text}/${fixes[i]}'),
-                    index: i < 4 ? i : 4,
-                    offset: 4,
-                    duration: Motion.medium,
-                    child: Pressable(
-                      semanticLabel: fixes[i],
-                      onTap: () => ctrl?.fixSpelling(issue, fixes[i]),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: i == 0 ? c.accentSoft : Colors.transparent, borderRadius: BorderRadius.circular(9)),
-                        child: Text(fixes[i], maxLines: 1, style: TextStyle(fontFamily: LitmaFonts.display, fontSize: 17, fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w500, color: i == 0 ? c.optionSelectedInk : c.ink)),
-                      ),
-                    ),
-                  ),
-                ),
-        ),
-        action(context.t('check.ignore'), context.t('check.ignoreHint'), () => session.ignoreSpelling(issue.text)),
-        if (issue.kind != SpellKind.unicode) action(context.t('check.keep'), context.t('check.keepHint'), () => onKeep(issue.text)),
-      ]),
+    return SpellRow(
+      issue: issue,
+      onFix: (fix) => ctrl?.fixSpelling(issue, fix),
+      onIgnore: () => session.ignoreSpelling(issue.text),
+      onKeep: issue.kind == SpellKind.unicode ? null : () => onKeep(issue.text),
     );
   }
 }

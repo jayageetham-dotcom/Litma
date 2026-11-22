@@ -3,6 +3,13 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-22: Suggestion rows for screen readers (on a branch until CI passes)
+
+- New `lib/editor/suggestion_rows.dart`: `SpellRow` and `ManglishRow`, moved out of `editor_screen.dart` (`_SpellRow` and `_Suggestions` now only wire the session to them; look and behaviour unchanged). Each chip is one `Semantics(container, button, onTap, excludeSemantics)`: spellings get a Malayalam `attributedLabel` (`LocaleStringAttribute` ml) so TalkBack/VoiceOver use a Malayalam voice; Ignore and Keep are named by their word with the long text as the hint (before: the hint was the name); the Manglish spelling a space takes is `selected`. The spelling row is a `liveRegion` container labelled `check.announceTouch` (en + ml), so it is announced when it appears.
+- Test: `test/suggestion_rows_test.dart` (5 widget tests on the semantics tree: labels, Malayalam locale, hints, live region, no Keep for a broken letter, Malayalam UI, taps reach the callbacks).
+- **Not compiled here** (no Flutter in Claude's sandboxes or the Mac's shell). Pushed to a branch so "Mobile app checks" (flutter analyze + test) runs; merge to `main` only when it is green.
+- Not done: hardware keyboard (iPad with a keyboard). The keyboard bar, and so the row, only shows while the on-screen keyboard is up (`writing = keyboard && …` in `editor_screen.dart`), so with a hardware keyboard the row never appears. Showing it needs a layout change and a real device; owner's call. No live announcement for Manglish spellings on the phone yet (would need a pause like the web's, to avoid speaking at every letter).
+
 ## 2026-11-22: Fix the phone build (spelling colours)
 
 Release #41 (0.7.32) failed on Android: `lib/editor/editor_screen.dart` `..footnoteNumber = (atom) => numbers[atom] ..spellColors = …`: the arrow body swallowed the next cascade (`numbers[atom]..spellColors`). The closure is now in brackets. The 19 Nov commit was never checked by CI (Mobile app checks #98 failed in 4 s on Actions billing), so the rest of its phone code is checked only by reading; the next CI run is the real check.

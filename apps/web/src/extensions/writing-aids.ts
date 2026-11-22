@@ -119,7 +119,7 @@ export const WritingAids = Extension.create<object, WritingAidsStorage>({
             deco = deco.remove(deco.find(from, to));
             deco = deco.add(
               tr.doc,
-              meta.issues.map((i) => Decoration.inline(i.pos, i.end, { class: CLASS[i.kind], "data-spell": i.kind }, { issue: i, inclusiveStart: false, inclusiveEnd: false }))
+              meta.issues.map((i) => Decoration.inline(i.pos, i.end, { class: CLASS[i.kind], "data-spell": i.kind, "aria-invalid": i.kind === "punct" ? "grammar" : "spelling" }, { issue: i, inclusiveStart: false, inclusiveEnd: false }))
             );
           }
           if (tr.docChanged) {

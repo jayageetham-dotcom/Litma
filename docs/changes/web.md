@@ -10,6 +10,25 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-22: Manglish list for screen readers; shortcuts list in Malayalam
+
+- `src/components/editor/ManglishPopup.tsx`: option ids, `tabIndex=-1`, `lang="ml"`, number badges `aria-hidden`; the editor gets `aria-controls` (the listbox) and `aria-activedescendant` (the highlighted spelling) while a word is composed; `ManglishAnnounce` (always mounted, polite) says "അവൻ, 1 of 6" 400 ms after typing or arrowing stops (`manglish.announce`, en + ml). Phone strip: the keep-English button is no longer inside the listbox.
+- New `src/components/editor/aria-owner.ts` (`ownAttr`, `domId`): the Manglish list (`mg-…`) and the spelling card (`spell-…`) only remove editor attributes that carry their own prefix, so one never clears the other (`SpellSuggest.tsx` uses it too).
+- `src/components/editor/ShortcutsDialog.tsx`: every string in i18n (`shortcuts.*`, en + ml), "1 – 6" for Manglish, Page Up/Down row, new Spelling group (↓ ↑ or Alt + ↓, Enter, Esc). Dialog: `aria-labelledby` its title, focus moves to Close on open, Tab and Shift+Tab stay inside, Esc closes, focus goes back to the editor.
+- Checked: typecheck, i18n:check, local-mode build; Playwright: Manglish "avan" → activedescendant on അവൻ (lang ml) and the announcement, ↓ moves both, Space commits and clears them; spelling card still sets and clears its own; shortcuts dialog in en and ml (title, groups, focus on Close, Tab trap, Esc returns focus to the editor); the earlier spelling-card cases again.
+- Still English inline nearby: the editor's Focus mode button (`Workspace.tsx` title/aria-label).
+
+## 2026-11-22: Spelling suggestions from the keyboard; accessibility
+
+The owner found the spelling card couldn't be used from the keyboard (arrows moved the cursor, the first row only looked selected).
+
+- `src/components/editor/SpellSuggest.tsx`: new `useSpellKeys` (document keydown in capture, focus stays in the editor like the Manglish list). ↓/↑ move through spellings, then Ignore and Keep, wrapping; Enter uses the highlighted row; Esc closes; Alt+↓ always opens. Nothing is highlighted until an arrow is pressed, so Enter still makes a new line. If the cursor reached the word by arrow keys (a nav key within 400 ms), plain ↑/↓ keep moving the cursor and only Alt+↓ opens the list, so the card never traps a writer. Highlighted row: accent outline (the best spelling keeps its soft fill).
+- ARIA: `role="dialog"` removed (focus never moved there); one `listbox` labelled by the card's heading, with two `group`s (spellings; Ignore/Keep); options have ids, `tabIndex=-1`, `aria-selected` follows the highlight (was fixed on row 0); the editor gets `aria-controls` and `aria-activedescendant`. Malayalam options carry `lang="ml"`. `SpellAnnounce`: an always-mounted polite live region says the kind, the word and the keys (`check.announce`, en + ml). `SpellStrip` (phone strip) has the same keys, ids and announcement.
+- `src/extensions/writing-aids.ts`: marks carry `aria-invalid="spelling"` (`"grammar"` for spacing).
+- Help: `content/help/03-editor.md` (#spelling keyboard line, shortcuts table row).
+- Checked: typecheck, i18n:check, local-mode build; Playwright (Chromium, 1280 × 800) on a broken-chillu word: arrows, wrap, Enter fix, Enter-before-arrow = new line, Esc, arrival by arrows (↓ moved on to the next line), Alt+↓. Not tried with a real screen reader (VoiceOver/NVDA).
+- Found while checking, fixed in the next entry: `ShortcutsDialog.tsx` was inline English and said "1 – 7"; the Manglish list had the same screen-reader gap.
+
 ## 2026-11-19: Spelling suggestions at the marked word
 
 `components/editor/SpellSuggest.tsx` (new): `SpellSuggest` card under a marked word on desktop/tablet (Workspace, beside `ManglishPopup`), `SpellStrip` row above the phone keyboard (rendered by the docked `ManglishPopup` when no Manglish word is being typed). `issueAt` in `extensions/writing-aids.ts`; `ignoreWord` + filtered `blockChecker` in `lib/spell.ts`. Wavy lines 1.5px (`styles/editor.scss`). Help `03-editor.md#spelling`. Tested with Playwright in local mode (desktop + iPhone 13 emulation); not on a real iPhone.

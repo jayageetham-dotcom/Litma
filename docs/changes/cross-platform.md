@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-22: Release also makes the desktop store builds
+
+- `release.yml` calls `desktop-stores.yml` (Mac App Store to TestFlight, Microsoft Store `.appx`, Snap) with the new tag; build number = Release run number, like the phone. Details in `desktop.md`. Setup guide Part 11, `CLAUDE.md`, `apps/desktop/README.md` updated.
+
 ## 2026-11-19: Spelling suggestions at the word; phone marks spelling in the text
 
 - Owner (iPhone screenshots): the phone app showed no spelling marks, and tapping a marked word on the website gave no suggestions. Now on every app a marked word the cursor is in (tapped, clicked, selected, or edited and checked again after the pause) shows its spellings: web/desktop in a small card under the word (`components/editor/SpellSuggest.tsx` `SpellSuggest`), web on phones and the Flutter app in the row above the keyboard where the Manglish spellings go (`SpellStrip` in the docked `ManglishPopup`; Flutter `_SpellRow` in `editor_screen.dart`). Choices: a spelling, **Ignore** (until the app is opened again; web `ignoreWord` in `lib/spell.ts`, phone `EditorSession.spellIgnored`), **Keep** (my words, as before), Esc on computers, or just keep typing (dialect words are a choice).

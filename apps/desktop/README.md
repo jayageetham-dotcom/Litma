@@ -38,7 +38,7 @@ Without certificates the installers are unsigned:
 
 Besides the downloads from getlitma.in, the app can be packaged for the **Mac App Store**, the
 **Microsoft Store** and the **Snap Store** (`electron-builder.stores.yml`, which adds to
-`electron-builder.yml`; workflow **Desktop store builds**, run by hand; setup in
+`electron-builder.yml`; workflow **Desktop store builds**, run by every Release or by hand; setup in
 `docs/setup/google-and-supabase.md`, Part 11).
 
 - A store copy knows where it came from (`src/store.ts`: `process.mas`, `process.windowsStore`, `SNAP`).

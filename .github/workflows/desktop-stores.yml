@@ -8,7 +8,9 @@ name: 🏪 Desktop store builds
 #   - Snap Store: a .snap, uploaded to the stable channel.
 # Each store is skipped with a warning until its secrets or variables exist, so this never fails for a
 # store that isn't set up yet. Nothing here touches the website, the getlitma.in downloads or latest.json;
-# those stay with Release → desktop.yml. Run by hand: Actions → Desktop store builds.
+# those stay with Release → desktop.yml. Release calls this on every new version (so the Mac App Store
+# build in TestFlight keeps step with the iPhone build and gets the same build number); it can still be
+# run by hand: Actions → Desktop store builds (then give a build number above the last Mac build).
 # Setup, step by step: docs/setup/google-and-supabase.md, Part 11.
 #
 # Mac App Store (secrets):  MAS_CSC_LINK, MAS_CSC_KEY_PASSWORD            Apple Distribution certificate (.p12, base64)
@@ -29,6 +31,20 @@ on:
         description: "Upload to the Mac App Store and the Snap Store (off: only attach the packages to this run)"
         type: boolean
         default: true
+      build_number:
+        description: "Mac build number (CFBundleVersion). Must be higher than the last macOS build in TestFlight. Empty: this run's number"
+        required: false
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: false
+      upload:
+        type: boolean
+        default: true
+      build_number:
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -117,14 +133,15 @@ jobs:
         working-directory: apps/desktop
         # scripts/build-mas.sh makes its own keychain (electron-builder 25.1.8 can't unlock the one it
         # makes from CSC_LINK), writes the provisioning profile, builds and signs; each upload needs a
-        # higher build number (CFBundleVersion) for the same version, so it uses the run number
+        # higher build number (CFBundleVersion), so it uses the run number (from Release: the Release run's,
+        # the same number the phone builds get) unless one is given
         env:
           MAS_CSC_LINK: ${{ secrets.MAS_CSC_LINK }}
           MAS_CSC_KEY_PASSWORD: ${{ secrets.MAS_CSC_KEY_PASSWORD }}
           MAS_INSTALLER_CSC_LINK: ${{ secrets.MAS_INSTALLER_CSC_LINK }}
           MAS_INSTALLER_CSC_KEY_PASSWORD: ${{ secrets.MAS_INSTALLER_CSC_KEY_PASSWORD }}
           MAS_PROVISION_PROFILE_BASE64: ${{ secrets.MAS_PROVISION_PROFILE_BASE64 }}
-          BUILD_NUMBER: ${{ github.run_number }}
+          BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
           ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache/electron
           ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-cache/builder
         run: bash scripts/build-mas.sh

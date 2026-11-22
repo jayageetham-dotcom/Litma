@@ -14,12 +14,16 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - **Release needed** for Litma Community (2026-11-09): `/community/` and `/community/guidelines/` run inside the app (no desktop-only code). Check both by loading and by the avatar menu and Settings links in a packaged build.
 - **Release needed** for the 2026-11-09 spelling engine, grammar fix cards, grouped rail, editor menus and the other web changes of that day (all in the shared web code).
 - The Mac download is signed and notarised (14 Nov). The Windows installer is still unsigned until `WIN_CSC_LINK` exists (a paid code-signing certificate).
-- **Microsoft Store (2026-11-14):** product Litma reserved (Store ID 9NKP5NXGX0J2); variables set, first appx build passed, submission 1 sent for certification (publish held). After it passes: Publish now (the website already links to it, 15 Nov). Linux is off the website for now; the AppImage keeps building and updating existing copies.
+- **Microsoft Store (2026-11-14):** product Litma reserved (Store ID 9NKP5NXGX0J2); variables set, first appx build passed, submission 1 certified and **live in the Microsoft Store** (seen 22 Nov); the website links to it. Updates: upload the `.appx` from a Release run in Partner Center → Start update. Linux is off the website for now; the AppImage keeps building and updating existing copies.
 - **Store builds (2026-11-14):** the five `MAS_*` secrets are set. Desktop store builds run #2 passed; 0.7.26 (4) submitted for Mac App Store review on 14 Nov; check the Mac App Store copy in TestFlight for Mac before submitting.
 - **Release needed** for the 2026-11-08 writing aids (reminders in the main process, notifications, folder backup, and the web features). Try on a Mac and Windows: notification permission, reminder with the window closed, choosing a Google Drive for desktop folder.
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+
+## 2026-11-22: Release builds the desktop store packages too
+
+Owner asked why TestFlight showed macOS 0.7.27 but iOS 0.7.31: the Mac App Store build only came from **Desktop store builds**, run by hand (last on 15 Nov). `release.yml` now calls `desktop-stores.yml` (new `workflow_call`, input **stores**, on by default) with the new tag, so every Release uploads the Mac App Store build to TestFlight and attaches the Microsoft Store `.appx` and Snap. Build number is the Release run number (same as the phone). A manual run takes an optional `build_number` (CFBundleVersion must rise). Unverified until the first Release with it runs. Microsoft Store: Litma is live there (Partner Center shows "In Microsoft Store", 22 Nov). Each Release now attaches `litma-microsoft-store`; a Store update is still by hand (Partner Center → Start update → Packages → upload both `.appx`).
 
 ## 2026-11-19: Spelling suggestions at the marked word
 

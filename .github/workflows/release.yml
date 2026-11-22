@@ -5,6 +5,8 @@ name: 🏷️ Release
 #      commits "Release vX.Y.Z" to main and tags it vX.Y.Z
 #   2. deploys the website from that tag (it then shows the new version number)
 #   3. builds and publishes the desktop apps; installed apps find the update in latest.json
+#   4. builds the phone apps (TestFlight, Play) and the desktop store builds (Mac App Store to TestFlight,
+#      Microsoft Store packages, Snap), all with this run's number as the build number
 # Pushes made with the workflow token don't start other workflows, so this one calls them directly.
 
 on:
@@ -22,6 +24,10 @@ on:
         required: false
       desktop:
         description: "Build and publish the desktop apps"
+        type: boolean
+        default: true
+      stores:
+        description: "Desktop store builds: Mac App Store (to TestFlight), Microsoft Store packages, Snap"
         type: boolean
         default: true
       mobile:
@@ -99,4 +105,14 @@ jobs:
     uses: ./.github/workflows/mobile-release.yml
     with:
       ref: v${{ needs.version.outputs.version }}
+    secrets: inherit
+
+  stores:
+    name: 🏪 Desktop stores
+    needs: version
+    if: inputs.stores
+    uses: ./.github/workflows/desktop-stores.yml
+    with:
+      ref: v${{ needs.version.outputs.version }}
+      upload: true
     secrets: inherit

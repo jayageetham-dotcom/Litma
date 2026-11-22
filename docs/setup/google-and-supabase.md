@@ -369,12 +369,12 @@ Without it, the first launch of the Mac app needs right-click → Open.
 ## Part 11. The desktop app in the Mac App Store, Microsoft Store and Snap Store
 
 The downloads from getlitma.in stay as they are (Release → **Desktop app**). The store packages come
-from a separate workflow, **Desktop store builds**, run by hand. Each store is skipped with a warning
+from a separate workflow, **Desktop store builds**, which Release runs on every new version (tick **stores**, on by default). Each store is skipped with a warning
 until its secrets exist. A store copy is updated by its store, so Litma's own update card stays off in it.
 
 ### 11.0 The workflow
 
-The workflow is `.github/workflows/desktop-stores.yml` (Actions → **Desktop store builds**, run by hand). The Mac App Store step runs `apps/desktop/scripts/build-mas.sh`.
+The workflow is `.github/workflows/desktop-stores.yml` (Actions → **Desktop store builds**). Release calls it, so the Mac App Store build reaches TestFlight with each version, numbered like the phone builds (the Release run number). Run by hand only to rebuild: then fill **build_number** with a number above the last macOS build in TestFlight, or the upload is refused. The Mac App Store step runs `apps/desktop/scripts/build-mas.sh`.
 
 ### 11.1 Mac App Store (same listing as the iPhone app)
 

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { ArrowRight, Download } from "lucide-react";
 import { AppleLogo, WindowsLogo } from "@/components/icons/Brands";
-import { downloadsFor, useInDesktopApp, usePlatform, useRelease } from "@/lib/release";
+import { STORE_LINKS, downloadsFor, useInDesktopApp, usePlatform, useRelease } from "@/lib/release";
 import { StoreBadge, StoreBadges } from "@/components/StoreBadges";
 import { useT } from "@/i18n/react";
 
@@ -20,7 +20,10 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
   const links = downloadsFor(release);
   const items = [
     { id: "mac" as const, icon: AppleLogo, label: t("download.mac"), hint: t("download.macHint"), href: links.mac },
-    { id: "win" as const, icon: WindowsLogo, label: t("download.windows"), hint: t("download.windowsHint"), href: links.win },
+    // Windows: Litma is in the Microsoft Store, so there is always somewhere to get it (never "on its way")
+    links.win
+      ? { id: "win" as const, icon: WindowsLogo, label: t("download.windows"), hint: t("download.windowsHint"), href: links.win as string | null | undefined }
+      : { id: "win" as const, icon: WindowsLogo, label: t("download.windows"), hint: t("download.msStore"), href: STORE_LINKS.windows ?? links.win },
   ].sort((a, b) => (a.id === platform ? -1 : b.id === platform ? 1 : 0));
 
   const buttons = (

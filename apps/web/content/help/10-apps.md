@@ -47,7 +47,7 @@ The phone app is made for small screens, for iPhone and Android. It has the desk
 - Select text to get a small bar with Look up, Ask AI, bold, italic and Copy.
 - **Settings → Help and guide** opens these guides in your phone's browser.
 
-> **Note:** The phone app is on its way to the App Store and Google Play. Until then, the website works well in your phone's browser too.
+> **Note:** The iPhone and iPad app is on the [App Store](https://apps.apple.com/app/id6834719757). The Android app is on its way to Google Play; until then, the website works well in your phone's browser too.
 
 ## Working offline {#offline}
 

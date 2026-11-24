@@ -69,7 +69,9 @@ export default function DownloadPage() {
           <h1 className="mx-auto mt-6 max-w-4xl text-[2.8rem] font-extrabold leading-[1.05] tracking-tight md:text-7xl" style={{ fontFamily: "var(--font-display)" }}>
             {platform ? t("download.heroTitle", { platform: name[platform] }) : t("download.heroTitleAny")}
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted md:text-xl">{t("download.heroBody")}</p>
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted md:text-xl">
+            {t(platform === "ios" || platform === "android" ? "download.heroBodyMobile" : "download.heroBody")}
+          </p>
 
           <div className="mt-9 flex min-h-[72px] flex-col items-center gap-3">
             {inApp ? (
@@ -110,7 +112,8 @@ export default function DownloadPage() {
             ) : platform === "ios" || platform === "android" ? (
               <>
                 <StoreBadges only={platform} height={52} />
-                <p className="text-sm text-muted">{t("download.mobileSoon")}</p>
+                {/* a store that already lists Litma says so; the other still points to the browser */}
+                <p className="max-w-md text-sm text-muted">{t(STORE_LINKS[platform] ? "download.mobileLive" : "download.mobileSoon")}</p>
                 <Link href="/desk/" className="btn btn-outline mt-1">
                   <Globe size={16} aria-hidden /> {t("download.useWeb")}
                 </Link>

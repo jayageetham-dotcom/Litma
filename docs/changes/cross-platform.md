@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-24: Download page and cards match the stores
+
+- iPhone/iPad (App Store), Windows (Microsoft Store) and Mac (signed .dmg) never show "on its way" or "Coming soon" any more; Android still does until it leaves the closed test. Web only (`web.md`); the desktop app hides these pages, the phone app has none. Strings `download.mobileLive`, `download.heroBodyMobile` (en + ml, phone copy refreshed).
+
 ## 2026-11-24: Ranked offline Manglish suggestions (branch `offline-manglish`)
 
 - Offline suggestions now pick real words: `packages/shared/src/manglish-rank.ts` (sound skeleton indexed by consonant outline, scored by fit, plain reading, typed vowel lengths and word rank) over `/dict/manglish-words.txt` (150k most used words, ~1 MB compressed, built in the deploy job by `scripts/build-manglish-words.mjs` from Kavya Manohar's CC BY 4.0 word frequencies, pinned revision + sha256). Dakshina test: first right 17.8% → 71.7%, top 6 27.1% → 87.6%; on 300 words checked through Litma MCP `transliterate` (Google), ours 225 right vs Google's 216.

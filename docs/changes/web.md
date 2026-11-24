@@ -10,6 +10,14 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-24: No "on its way" for apps that are out (iPhone/iPad, Windows, Mac)
+
+- `/download/`: on iPhone/Android the hero says "made for your phone" (`download.heroBodyMobile`); a store that lists Litma shows `download.mobileLive` instead of `mobileSoon` (iPhone live; Android keeps "on its way" until `STORE_LINKS.android`); `download.iosReq` now "on the App Store".
+- `DesktopDownload` (home and desk cards): Windows falls back to the Microsoft Store listing when latest.json has no `.exe`.
+- `lib/release.ts` `downloadsFor`: Mac and Windows fall back to the public releases page (signed installers) when latest.json names no file, so they never show "The first release is on its way".
+- Help `10-apps.md` note: iPhone/iPad on the App Store, Android still coming.
+- Checked with Playwright (iPhone, Android, Mac, Windows user agents; also with a latest.json naming no files): only the Android card says "Coming soon".
+
 ## 2026-11-24: Ranked offline Manglish suggestions
 
 - `packages/shared/src/manglish-rank.ts` (new, synced to `supabase/functions/_shared`): `createManglishRanker` / `buildManglishRanker` (idle slices), `suggest(word, max)`, `lookup`, `scriptKey`, `latinKeys`, `outline`. Weights in `RANK_WEIGHTS`.

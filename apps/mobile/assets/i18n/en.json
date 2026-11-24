@@ -258,6 +258,9 @@
     "deskTitle": "Write in the Litma app",
     "deskBody": "Faster to open, its own window, and it keeps working when the connection drops.",
     "deskMore": "All downloads",
+    "deskBodyPhone": "Made for your phone, opens in a tap, and keeps working when the connection drops. Your works sync with your account.",
+    "iosRowHint": "On the App Store",
+    "androidRowHint": "On Google Play",
     "startedLink": "Here's how to install it"
   },
   "manglish": {

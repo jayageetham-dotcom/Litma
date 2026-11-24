@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { ArrowRight, Download } from "lucide-react";
-import { AppleLogo, WindowsLogo } from "@/components/icons/Brands";
+import { AndroidLogo, AppleLogo, WindowsLogo } from "@/components/icons/Brands";
 import { STORE_LINKS, downloadsFor, useInDesktopApp, usePlatform, useRelease } from "@/lib/release";
 import { StoreBadge, StoreBadges } from "@/components/StoreBadges";
 import { useT } from "@/i18n/react";
@@ -25,6 +25,14 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
       ? { id: "win" as const, icon: WindowsLogo, label: t("download.windows"), hint: t("download.windowsHint"), href: links.win as string | null | undefined }
       : { id: "win" as const, icon: WindowsLogo, label: t("download.windows"), hint: t("download.msStore"), href: STORE_LINKS.windows ?? links.win },
   ].sort((a, b) => (a.id === platform ? -1 : b.id === platform ? 1 : 0));
+
+  // phones: the store app for this phone, in the same rows as the computer downloads (the desk card)
+  const phone = platform === "ios" || platform === "android" ? platform : null;
+  const phoneItems = [
+    { id: "ios" as const, icon: AppleLogo, label: t("download.heroTitle", { platform: "iPhone & iPad" }), hint: t("download.iosRowHint"), href: STORE_LINKS.ios },
+    { id: "android" as const, icon: AndroidLogo, label: t("download.heroTitle", { platform: "Android" }), hint: t("download.androidRowHint"), href: STORE_LINKS.android },
+  ].filter((it) => it.id === phone);
+  const others = phone === "ios" ? "Mac, Windows, Android" : phone === "android" ? "Mac, Windows, iPhone" : "iPhone, Android";
 
   const buttons = (
     <div className={`flex flex-col gap-3 sm:flex-row ${variant === "section" ? "md:justify-end" : ""}`}>
@@ -183,13 +191,13 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
             <h2 className="text-xl font-bold leading-tight sm:text-2xl" style={{ fontFamily: "var(--font-display)" }}>
               {t("download.deskTitle")}
             </h2>
-            <p className="mt-2.5 max-w-md text-[15px] leading-relaxed text-muted">{t("download.deskBody")}</p>
+            <p className="mt-2.5 max-w-md text-[15px] leading-relaxed text-muted">{t(phone ? "download.deskBodyPhone" : "download.deskBody")}</p>
             <Link href="/download/" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline">
-              {t("download.deskMore")}: iPhone, Android <ArrowRight size={14} aria-hidden />
+              {t("download.deskMore")}: {others} <ArrowRight size={14} aria-hidden />
             </Link>
           </div>
           <div className="space-y-2.5">
-            {items.map((it) => {
+            {(phone ? phoneItems : items).map((it) => {
               const inner = (
                 <>
                   {/* logos always sit on white, so Apple's black mark shows in both themes */}
@@ -198,13 +206,14 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[15px] font-semibold">{it.label}</span>
-                    <span className="block text-[13px] text-muted">{it.href ? it.hint : release === undefined ? t("common.loading") : t("download.soon")}</span>
+                    <span className="block text-[13px] text-muted">{it.href || phone ? it.hint : release === undefined ? t("common.loading") : t("download.soon")}</span>
                   </span>
                 </>
               );
               const cls = "group flex items-center gap-3.5 rounded-xl border border-line bg-canvas/60 p-3 pr-4 text-ink transition-colors";
+              const store = /^https:\/\/(apps\.apple|play\.google|apps\.microsoft)/.test(it.href ?? "");
               return it.href ? (
-                <a key={it.id} href={it.href} className={`${cls} hover:border-accent hover:bg-accent-soft`}>
+                <a key={it.id} href={it.href} {...(store ? { target: "_blank", rel: "noreferrer" } : {})} className={`${cls} hover:border-accent hover:bg-accent-soft`}>
                   {inner}
                   <Download size={17} className="shrink-0 text-muted transition group-hover:translate-y-0.5 group-hover:text-accent" aria-hidden />
                 </a>
@@ -215,7 +224,7 @@ export function DesktopDownload({ variant = "section" }: { variant?: "section" |
                 </span>
               );
             })}
-            {release?.version && <p className="pl-1 text-xs text-muted">Version {release.version}</p>}
+            {!phone && release?.version && <p className="pl-1 text-xs text-muted">Version {release.version}</p>}
           </div>
         </div>
       </section>

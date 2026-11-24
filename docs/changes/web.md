@@ -10,6 +10,11 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-24: Desk download card on phones offers the phone app
+
+- `DesktopDownload` `variant="card"` (bottom of the desk): on iPhone/iPad it shows one row "Litma for iPhone & iPad · On the App Store" (same row style as Mac/Windows, opens the App Store in a new tab), on Android "Litma for Android · On Google Play" with the Soon badge until `STORE_LINKS.android`; phone body `download.deskBodyPhone`, hints `download.iosRowHint` / `androidRowHint` (en + ml); "All downloads" names the other platforms. Computers unchanged.
+- Checked with Playwright: iPhone light/dark, 320 px, Android, Mac (no overflow).
+
 ## 2026-11-24: "Suggest" for words not in the dictionary
 
 - `SpellSuggest.tsx` (card and phone strip): a mark of kind `unknown` with no fixes gets **Suggest** (`check.suggest`, `check.suggestHint`) before Ignore/Keep; it asks `similarWords()` (`lib/manglish-words.ts` → `ranker.similar`, sound-alike known words from `/dict/manglish-words.txt`) and shows them as ordinary fixes; none found shows `check.noSimilar`. Keyboard order: fixes, Suggest, Ignore, Keep.

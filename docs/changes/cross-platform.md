@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-24: Desk download card on phones
+
+- Website only (the desktop app hides the card; the phone app has none): iPhone visitors get the App Store row, Android the Google Play row (Soon). See `web.md`.
+
 ## 2026-11-24: Spelling "Suggest" for unknown words; phone "Deselect all"
 
 - Web, desktop and phone: a word marked "Not in the dictionary" gets **Suggest** next to Ignore and Keep, showing known words that sound like it (from the offline Manglish word list). Only on request. Phone selection bar: **Select all** turns into **Deselect all** once everything is selected (web has no Select all button). Strings `check.suggest`, `check.suggestHint`, `check.noSimilar`, `app.selection.deselectAll` (en + ml). Help `03-editor.md` updated. Needs desktop Release + phone store build; phone part waits for CI.

@@ -162,7 +162,7 @@ Litma uses the Malayalam voice of your device, so it costs nothing and your text
 
 1. Press <kbd>Ctrl</kbd> + <kbd>F</kbd> (<kbd>⌘</kbd> + <kbd>F</kbd> on a Mac).
 2. Type what to look for. Every match is highlighted and the count shows (1/3).
-3. Typed it in Manglish? Under the box, **In Malayalam** lists the words in your work that sound like it (`kada` → കടൽ, കടവ്). Click one to find it.
+3. Typed it in Manglish? Under the box, **In Malayalam** lists the words in your work that sound like it (`kada` → കടൽ, കടവ്). Typed it in Malayalam? **Sounds like** lists other spellings in your work that sound the same, and near misses (കത → കഥ). Click one to find it. A small typo still finds the word (`malayalm` → മലയാളം).
 4. Use the arrows (or <kbd>Enter</kbd>) to go from one to the next. Tick **Aa** to match capital letters exactly.
 5. To replace, type the new text in **Replace with** and choose **Replace** (this one) or **All**.
 

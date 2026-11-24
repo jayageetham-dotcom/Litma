@@ -1216,6 +1216,8 @@
   },
   "search": {
     "inMalayalam": "In Malayalam",
+    "soundsLike": "Sounds like",
+    "soundsLikeHint": "Other spellings in this work that sound the same, and near misses",
     "inMalayalamHint": "Words in this work that sound like what you typed. Tap one to find it."
   },
   "rhyme": {

@@ -3,6 +3,13 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-25: Story World names and remembered picks in Manglish (branch `manglish-names`)
+
+- Shared: `manglish-rank.ts` `setOwnWords` (own index, commonness above every listed word) and `ownWordsFrom` (Malayalam words in names); phone port in `lib/core/manglish_rank.dart`, checked by `__own__` vectors in `test/manglish_rank_test.dart`.
+- Web/desktop: `Workspace.tsx` loads the work's Story World names on open and when Story World closes → `setStoryNames` (`lib/manglish-words.ts`) and `setStoryWords` (`lib/spell.ts`, never marked). Picks: `CommitInfo.chosen` (a spelling other than the first, by click or arrows) → `rememberPick` (`litma:manglish-picks`, 1,000 newest, this device only); `withPick` puts it first in offline and Google lists.
+- Phone: `Transliterator.setStoryNames/storyWords/rememberPick/withPick` (same key in SharedPreferences), `editor_screen.dart` `_loadStoryNames` (on open and `session.storyClosed` from `openStoryWorld`), `_chose` from the strip; `setupSpellMarks` adds Story World names to "mine". Fix: offline, a space now takes the ranked first spelling (`_firstOffline`), not the letter reading. **Not compiled here.**
+- Help `02-typing.md`. Playwright (local): with a character കുഞ്ഞാറ്റ, "kunjaatta" → കുഞ്ഞാറ്റ first and the name isn't marked; a chosen spelling (വല്ലം for vellam) comes first next time.
+
 ## 2026-11-24: Spelling "Suggest" and "Deselect all" (on a branch until CI passes)
 
 - `lib/editor/suggestion_rows.dart` `SpellRow` is now stateful: optional `onSuggest`; for an `unknown` mark with no fixes it shows **Suggest**, then the sound-alike words (or `check.noSimilar`). Wired through `_KeyboardBar.onSuggestWord` → `Transliterator.similar` (waits for the word list) → `ManglishRanker.similar` (port of the web's, checked by `test/manglish_rank_test.dart` `__similar__` vectors). Two new widget tests in `test/suggestion_rows_test.dart`.

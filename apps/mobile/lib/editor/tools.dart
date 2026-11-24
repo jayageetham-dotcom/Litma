@@ -143,7 +143,7 @@ Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s
 
 void openStoryWorld(BuildContext context, EditorSession s) {
   FocusScope.of(context).unfocus();
-  Navigator.of(context).push(StoryWorldScreen.route(docId: s.doc.id, kind: s.kind, settings: s.settings, onSettings: s.updateSettings));
+  Navigator.of(context).push(StoryWorldScreen.route(docId: s.doc.id, kind: s.kind, settings: s.settings, onSettings: s.updateSettings)).then((_) => s.storyClosed?.call());
 }
 
 /// A sheet with the dictionary; tapping a word puts it into the writing (replacing a selection).

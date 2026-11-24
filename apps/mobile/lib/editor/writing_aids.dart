@@ -259,7 +259,8 @@ void setupSpellMarks(WidgetRef ref, EditorSession s) {
   final p = services.prefs;
   if (p.getBool(_marksKey) ?? true) {
     final unknown = p.getBool(_unknownKey) ?? false;
-    final mine = (p.getStringList(_myWordsKey) ?? const []).toSet();
+    // kept words, and the work's Story World names (the writer's own words)
+    final mine = {...(p.getStringList(_myWordsKey) ?? const []), ...services.transliterator.storyWords};
     s.spellCheck = (text) => services.speller.check(text, unknown: unknown, mine: mine, engine: services.spellEngine.call);
   } else {
     s.spellCheck = null;

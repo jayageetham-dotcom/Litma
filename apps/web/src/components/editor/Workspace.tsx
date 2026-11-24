@@ -39,7 +39,9 @@ import { TimerChip } from "./TimerChip";
 import { CheckPanel } from "./CheckPanel";
 import { ReadAloudPanel } from "./ReadAloudPanel";
 import { recheckSpelling } from "@/extensions/writing-aids";
-import { SPELL_EVENT, blockChecker, spellPrefs } from "@/lib/spell";
+import { SPELL_EVENT, blockChecker, setStoryWords, spellPrefs } from "@/lib/spell";
+import { setStoryNames } from "@/lib/manglish-words";
+import { ownWordsFrom } from "@litma/shared/manglish-rank";
 import { timerWords } from "@/lib/timer";
 import { buildExtensions } from "./extensions";
 import { MobileFormatStrip, MobileSelectionBar, Toolbar } from "./Toolbar";
@@ -167,6 +169,31 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       .then((items) => setCastNames(items.filter((i) => i.kind === "character" && i.name).map((i) => i.name)))
       .catch(() => {});
   }, [usesCues, storyOpen, initial.id]);
+  // the work's Story World names become the writer's own words: first in Manglish suggestions when
+  // they fit, never marked by the spelling check (refreshed when Story World closes)
+  useEffect(() => {
+    if (storyOpen) return;
+    let live = true;
+    store
+      .listStory(initial.id)
+      .then((items) => {
+        if (!live) return;
+        const names = items.map((i) => i.name).filter(Boolean);
+        setStoryNames(names);
+        setStoryWords(ownWordsFrom(names));
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [storyOpen, initial.id]);
+  useEffect(
+    () => () => {
+      setStoryNames([]);
+      setStoryWords([]);
+    },
+    [initial.id]
+  );
   /** New documents stay "pristine" until the writer types; pristine documents are discarded on close. */
   const pristine = useRef(!!initial.settings.pristine);
   const docRef = useRef<LitmaDoc>(initial);

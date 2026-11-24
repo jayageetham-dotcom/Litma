@@ -227,6 +227,21 @@ class _Entry {
   final double f;
 }
 
+/// Malayalam words in names or phrases ("ഹന്ന ജോസഫ്" → ഹന്ന, ജോസഫ്), for [ManglishRanker.setOwnWords].
+/// Same as the web's `ownWordsFrom`.
+List<String> ownWordsFrom(Iterable<String> texts) {
+  final out = <String>{};
+  for (final t in texts) {
+    for (final w in t.replaceAll(RegExp('[\u200c\u200d]'), '').split(RegExp('[^\u0D00-\u0D7F]+'))) {
+      if (w.runes.length >= 2) out.add(w);
+    }
+  }
+  return out.toList();
+}
+
+/// Commonness given to the writer's own words: above every listed word (the most used has 0).
+const double _own = 2;
+
 /// One word per line, most used first.
 List<String> parseWordList(String text) => text.split('\n').map((w) => w.trim()).where((w) => w.isNotEmpty).toList();
 
@@ -238,6 +253,22 @@ final RegExp _yStart = RegExp(r'^y(?=[aeiou])');
 class ManglishRanker {
   ManglishRanker._(this._idx, this.size);
   final Map<String, List<_Entry>> _idx;
+  Map<String, List<_Entry>> _ownIdx = {};
+
+  List<_Entry> _bucket(String o) => [...?_ownIdx[o], ...?_idx[o]];
+
+  /// The writer's own words (Story World names…): suggested first when they fit what was typed.
+  /// Replaces the previous set.
+  void setOwnWords(Iterable<String> words) {
+    final next = <String, List<_Entry>>{};
+    for (final w in words) {
+      final s = scriptKey(w);
+      if (s.isEmpty) continue;
+      final b = next.putIfAbsent(outline(s), () => []);
+      if (!b.any((e) => e.w == w)) b.add(_Entry(w, s, _own));
+    }
+    _ownIdx = next;
+  }
 
   /// How many words the list holds.
   final int size;
@@ -276,7 +307,7 @@ class ManglishRanker {
     final lens = latinLengths(word);
     final scores = <String, double>{};
     for (final o in keys.map(outline).toSet()) {
-      for (final e in _idx[o] ?? const <_Entry>[]) {
+      for (final e in _bucket(o)) {
         if (scores.containsKey(e.w)) continue;
         final es = e.s.replaceAll(_yStart, '');
         var d = double.infinity;
@@ -306,7 +337,7 @@ class ManglishRanker {
     final s = scriptKey(w);
     if (s.isEmpty) return const [];
     final scores = <String, double>{};
-    for (final e in _idx[outline(s)] ?? const <_Entry>[]) {
+    for (final e in _bucket(outline(s))) {
       if (e.w == w || scores.containsKey(e.w)) continue;
       final d = _skelDist(s, e.s);
       if (d > _maxSkel) continue;

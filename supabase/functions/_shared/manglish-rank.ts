@@ -231,7 +231,23 @@ export interface ManglishRanker {
    * the dictionary doesn't know. Close words only; most used first among equals.
    */
   similar(word: string, max?: number): string[];
+  /**
+   * The writer's own words (Story World names, invented places…): suggested first when they fit
+   * what was typed, ahead of common words. Replaces the previous set.
+   */
+  setOwnWords(words: string[]): void;
 }
+
+/** Malayalam words in a name or phrase ("ഹന്ന ജോസഫ്" → ഹന്ന, ജോസഫ്), for setOwnWords. */
+export function ownWordsFrom(texts: string[]): string[] {
+  const out = new Set<string>();
+  for (const t of texts)
+    for (const w of (t ?? "").replace(/[\u200c\u200d]/g, "").split(/[^\u0D00-\u0D7F]+/)) if ([...w].length >= 2) out.add(w);
+  return [...out];
+}
+
+/** Commonness given to the writer's own words: above every listed word (the most used has 0). */
+const OWN = 2;
 
 /** One word per line, most used first (ZWJ/ZWNJ ignored; blank lines skipped). */
 export function parseWordList(text: string): string[] {
@@ -253,6 +269,8 @@ function addWords(idx: Map<string, Entry[]>, words: string[], start: number, end
 
 function makeRanker(idx: Map<string, Entry[]>, size: () => number): ManglishRanker {
   const W = RANK_WEIGHTS;
+  let own = new Map<string, Entry[]>();
+  const buckets = (o: string) => [...(own.get(o) ?? []), ...(idx.get(o) ?? [])];
   function lookup(word: string, max = 8) {
     const keys = latinKeys(word);
     const literal = manglishWord(word);
@@ -261,7 +279,7 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number): ManglishRank
     const lens = latinLengths(word);
     const seen = new Map<string, number>();
     for (const o of new Set(keys.map(outline))) {
-      for (const e of idx.get(o) ?? []) {
+      for (const e of buckets(o)) {
         if (seen.has(e.w)) continue;
         const es = e.s.replace(/^y(?=[aeiou])/, ""); // യു… is typed u…
         let d = Infinity;
@@ -303,8 +321,8 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number): ManglishRank
     const s = scriptKey(w);
     if (!s) return [];
     const found: { word: string; score: number }[] = [];
-    for (const e of idx.get(outline(s)) ?? []) {
-      if (e.w === w) continue;
+    for (const e of buckets(outline(s))) {
+      if (e.w === w || found.some((x) => x.word === e.w)) continue;
       const d = skelDist(s, e.s);
       if (d > W.maxSkel) continue;
       const l = lev(w, e.w);
@@ -320,6 +338,18 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number): ManglishRank
     lookup,
     suggest,
     similar,
+    setOwnWords(words: string[]) {
+      const next = new Map<string, Entry[]>();
+      for (const w of words) {
+        const s = scriptKey(w);
+        if (!s) continue;
+        const o = outline(s);
+        let b = next.get(o);
+        if (!b) next.set(o, (b = []));
+        if (!b.some((e) => e.w === w)) b.push({ w, s, f: OWN });
+      }
+      own = next;
+    },
   };
 }
 

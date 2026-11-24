@@ -73,10 +73,17 @@ export function ignoreWord(w: string) {
   window.dispatchEvent(new Event(SPELL_EVENT));
 }
 
+/** The open work's Story World names: the writer's own words, never marked as unknown. */
+let storyWords = new Set<string>();
+export function setStoryWords(words: string[]) {
+  storyWords = new Set(words);
+  window.dispatchEvent(new Event(SPELL_EVENT));
+}
+
 /** The check the editor runs on each text block. */
 export function blockChecker(): (text: string) => Promise<SpellIssue[]> {
   const p = spellPrefs();
-  const mine = new Set([...myWords(), ...ignored]);
+  const mine = new Set([...myWords(), ...ignored, ...storyWords]);
   const skip = new Set(ignored);
   return async (text) => (await speller.check(text, { unknown: p.unknown, mine, engine: spellEngine, punctuation: p.punct })).filter((i) => i.kind === "punct" || !skip.has(i.text));
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'manglish.dart';
 import 'manglish_rank.dart';
@@ -39,6 +40,48 @@ class Transliterator {
   ManglishRanker? _ranker;
   Future<void>? _loading;
 
+  /// The open work's Story World names (the writer's own words): first in suggestions when they
+  /// fit, and never marked by the spelling check.
+  List<String> storyWords = const [];
+  void setStoryNames(Iterable<String> names) {
+    storyWords = ownWordsFrom(names);
+    _ranker?.setOwnWords(storyWords);
+  }
+
+  /// Where the writer's own picks are kept on this phone (SharedPreferences); set by Services.
+  SharedPreferences? prefs;
+  static const _picksKey = 'litma:manglish-picks';
+  static const _maxPicks = 1000;
+  Map<String, String>? _picks;
+  Map<String, String> get _readPicks {
+    if (_picks != null) return _picks!;
+    try {
+      final raw = prefs?.getString(_picksKey);
+      _picks = raw == null ? <String, String>{} : (jsonDecode(raw) as Map).map((k, v) => MapEntry('$k', '$v'));
+    } catch (_) {
+      _picks = <String, String>{};
+    }
+    return _picks!;
+  }
+
+  /// The writer chose [choice] for the Manglish [word] (not the first spelling): offer it first next time.
+  void rememberPick(String word, String choice) {
+    if (word.isEmpty || !RegExp('[\u0D00-\u0D7F]').hasMatch(choice)) return;
+    final p = _readPicks;
+    p.remove(word); // newest last, so the oldest go first when the list is full
+    p[word] = choice;
+    while (p.length > _maxPicks) {
+      p.remove(p.keys.first);
+    }
+    prefs?.setString(_picksKey, jsonEncode(p));
+  }
+
+  /// [list] with the writer's own earlier pick for [word] first (if any).
+  List<String> withPick(String word, List<String> list) {
+    final pick = _readPicks[word];
+    return pick == null ? list : [pick, ...list.where((w) => w != pick)];
+  }
+
   /// Start loading the word list once; until it is ready the letter readings are offered.
   void _loadWords() {
     final source = wordList;
@@ -48,6 +91,7 @@ class Transliterator {
         final text = await source();
         if (text != null && text.isNotEmpty) {
           _ranker = await ManglishRanker.build(parseWordList(text));
+          _ranker!.setOwnWords(storyWords);
           return;
         }
       } catch (_) {
@@ -62,11 +106,11 @@ class Transliterator {
   List<String> offline(String word) {
     _loadWords();
     final r = _ranker;
-    if (r == null) return manglishCandidates(word);
+    if (r == null) return withPick(word, manglishCandidates(word)).take(offlineMax).toList();
     try {
-      return r.suggest(word, max: offlineMax);
+      return withPick(word, r.suggest(word, max: offlineMax)).take(offlineMax).toList();
     } catch (_) {
-      return manglishCandidates(word);
+      return withPick(word, manglishCandidates(word)).take(offlineMax).toList();
     }
   }
 
@@ -83,7 +127,7 @@ class Transliterator {
 
   Future<List<String>> candidates(String word, {int num = maxCandidates}) async {
     final hit = _cache['$num/$word'];
-    if (hit != null) return hit;
+    if (hit != null) return withPick(word, hit);
     final local = manglishWord(word);
     try {
       final r = await _client
@@ -96,7 +140,9 @@ class Transliterator {
       // Google's ranking first; the offline spellings only fill gaps, never more than [num]
       final out = <String>{...list.map((e) => e.trim()).where((e) => e.isNotEmpty), local, ...offline(word)}.take(num).toList();
       if (_cache.length > 400) _cache.clear();
-      return _cache['$num/$word'] = out;
+      _cache['$num/$word'] = out;
+      // the writer's own earlier pick beats Google's order
+      return withPick(word, out);
     } catch (_) {
       return offline(word);
     }

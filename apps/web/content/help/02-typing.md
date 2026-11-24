@@ -34,6 +34,8 @@ If you go back and type a word between other words, it turns into Malayalam when
 
 > **Offline:** Without a connection Litma still turns Manglish into Malayalam and offers the real words that fit what you typed, most used first (`enthaanu` → എന്താണ്, `vellam` → വെള്ളം). A word Litma doesn't know, like a name or a word you made up, keeps its plain spelling first, so you are never pushed to change it. The word list loads the first time you type Manglish and stays on your device.
 
+> **Your own words:** Names you give characters and places in [Story World](#story-world) come first when you type them (`kunjaatta` → കുഞ്ഞാറ്റ once a character has that name), and the spelling check never marks them. When you pick a spelling other than the first, Litma remembers it on this device and offers it first the next time you type that word, online or offline.
+
 > **Phone:** On the phone the spellings sit in a strip above the keyboard that you can scroll sideways. A space takes the first one; tap any other to use it. The first item in quotes keeps the English word.
 
 ![Manglish suggestions in the phone app](shots/phone-editor.webp)

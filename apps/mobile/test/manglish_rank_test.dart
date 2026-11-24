@@ -58,6 +58,18 @@ void main() {
     expect(ranker.suggest('hello123'), manglishCandidates('hello123'));
   });
 
+  test("the writer's own words (Story World names) come first when they fit, as on the web", () {
+    final own = (vectors['__own__'] as Map).cast<String, dynamic>();
+    final names = (own['names'] as List).cast<String>();
+    expect(ownWordsFrom(names), (own['words'] as List).cast<String>());
+    final r = ManglishRanker.of(parseWordList(File('test/manglish_rank_words.txt').readAsStringSync()))..setOwnWords(ownWordsFrom(names));
+    for (final e in (own['suggest'] as Map).cast<String, dynamic>().entries) {
+      expect(r.suggest(e.key, max: 8), (e.value as List).cast<String>(), reason: e.key);
+    }
+    expect(r.similar('ഹന'), (own['similar'] as List).cast<String>());
+    expect(r.suggest('kunjaatta').first, 'കുഞ്ഞാറ്റ');
+  });
+
   test('enthaanu gives എന്താണ് first, like Google', () {
     expect(ranker.suggest('enthaanu').first, 'എന്താണ്');
   });

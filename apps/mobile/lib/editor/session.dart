@@ -38,6 +38,9 @@ class EditorSession extends ChangeNotifier {
 
   /// Set by the editor screen: the best spelling it is showing for a Manglish word.
   String? Function(String word)? spelling;
+
+  /// Set by the editor screen: Story World was closed (names may have changed).
+  VoidCallback? storyClosed;
   late final DocSaver saver;
 
   /// New works stay pristine until the writer types; pristine works are discarded on close.

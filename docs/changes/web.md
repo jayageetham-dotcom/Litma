@@ -10,6 +10,12 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-24: "Suggest" for words not in the dictionary
+
+- `SpellSuggest.tsx` (card and phone strip): a mark of kind `unknown` with no fixes gets **Suggest** (`check.suggest`, `check.suggestHint`) before Ignore/Keep; it asks `similarWords()` (`lib/manglish-words.ts` → `ranker.similar`, sound-alike known words from `/dict/manglish-words.txt`) and shows them as ordinary fixes; none found shows `check.noSimilar`. Keyboard order: fixes, Suggest, Ignore, Keep.
+- `packages/shared/src/manglish-rank.ts`: `similar(word, max)` (same outline, skeleton distance ≤ 1.5, edit distance ≤ 2, rank by fit and use).
+- Playwright (local mode with a tiny fake `dict/words`): കര്യം marked, Suggest → കാര്യം first, picked → text fixed; desktop card and phone strip at 320/375/390 px (no sideways page scroll; on 320 the "Not in the dictionary" label ends in an ellipsis so Suggest/Ignore/Keep fit). Desk page checked at 320/390 px: no overflow.
+
 ## 2026-11-24: No "on its way" for apps that are out (iPhone/iPad, Windows, Mac)
 
 - `/download/`: on iPhone/Android the hero says "made for your phone" (`download.heroBodyMobile`); a store that lists Litma shows `download.mobileLive` instead of `mobileSoon` (iPhone live; Android keeps "on its way" until `STORE_LINKS.android`); `download.iosReq` now "on the App Store".

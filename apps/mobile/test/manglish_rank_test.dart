@@ -20,6 +20,13 @@ void main() {
     }
   });
 
+  test('spelling suggestions for unknown words match the web', () {
+    final similar = (vectors['__similar__'] as Map).cast<String, dynamic>();
+    for (final e in similar.entries) {
+      expect(ranker.similar(e.key), (e.value as List).cast<String>(), reason: e.key);
+    }
+  });
+
   test('Manglish skeletons and suggestions match the web', () {
     for (final e in vectors.entries) {
       if (e.key.startsWith('__')) continue;

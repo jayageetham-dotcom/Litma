@@ -1200,6 +1200,7 @@
       "copy": "Copy",
       "paste": "Paste",
       "selectAll": "Select all",
+      "deselectAll": "Deselect all",
       "start": "Start of selection",
       "end": "End of selection"
     }
@@ -1265,6 +1266,9 @@
     "ignore": "Ignore",
     "ignoreHint": "Leave it as written. It isn't marked again until you reopen Litma.",
     "keepHint": "Keep this word: it is never marked again on this device.",
+    "suggest": "Suggest",
+    "suggestHint": "Show known words that sound like this one.",
+    "noSimilar": "No close words found",
     "offHint": "Marks letters typed in an old or broken way (ന്‍ for ൻ, a colon for ഃ), common misspellings, likely typos with their correct spelling, and spacing around punctuation.",
     "kind": {
       "unicode": "Broken letter",

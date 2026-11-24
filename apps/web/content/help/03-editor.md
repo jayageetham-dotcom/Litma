@@ -74,7 +74,7 @@ In novels and stories, paragraphs start with a small indent like a printed book.
 
 Drag over the words you want, or press <kbd>Shift</kbd> with the arrow keys. A selection can run over as many lines and pages as you like. Typing replaces it, and <kbd>Backspace</kbd> removes it.
 
-> **Phone:** Press and hold a word to select it. Drag the round handles to take in more, over as many lines and pages as you like. The page scrolls when you drag near the top or bottom. The bar above the selection has **Cut**, **Copy**, **Paste**, **Delete**, bold, italic and **Select all**. Typing or <kbd>Backspace</kbd> replaces the whole selection, and **Undo** brings it back.
+> **Phone:** Press and hold a word to select it. Drag the round handles to take in more, over as many lines and pages as you like. The page scrolls when you drag near the top or bottom. The bar above the selection has **Cut**, **Copy**, **Paste**, **Delete**, bold, italic and **Select all**. Once the whole work is selected, the same button says **Deselect all**. Typing or <kbd>Backspace</kbd> replaces the whole selection, and **Undo** brings it back.
 
 ## Pages and Insert page {#pages}
 
@@ -115,6 +115,7 @@ Marks appear in your text as you write. Click or tap a marked word (or select it
 - Pick a spelling to put it in place of the word.
 - **Ignore** leaves the word as you wrote it. It isn't marked again until you open Litma again.
 - **Keep** leaves it for good: a kept word isn't marked again on this device.
+- **Suggest** appears on a word marked "Not in the dictionary", which has no spellings of its own. It shows known words that sound like yours (കര്യം → കാര്യം). Nothing is shown until you ask, so a name or a word you made up is never pushed to change.
 - Or just carry on typing. A dialect or regional word is often right as it is; the suggestion is only a choice. <kbd>Esc</kbd> closes the suggestions on a computer.
 - With the keyboard: <kbd>↓</kbd> and <kbd>↑</kbd> move through the suggestions, <kbd>Enter</kbd> uses the highlighted one, <kbd>Esc</kbd> closes them. If you reached the word with the arrow keys, the arrows keep moving the cursor; press <kbd>Alt</kbd> + <kbd>↓</kbd> to go into the suggestions. Screen readers say what is marked and read each suggestion as you move.
 

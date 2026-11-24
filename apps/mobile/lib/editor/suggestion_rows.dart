@@ -109,17 +109,59 @@ class ManglishRow extends StatelessWidget {
 /// this visit) or Keep (never marked again on this device; [onKeep] null hides it). Typing on
 /// simply goes on: dialect and regional words are often "unknown", and leaving them is the
 /// writer's choice. Screen readers hear what is marked when the row appears (a live region).
-class SpellRow extends StatelessWidget {
-  const SpellRow({super.key, required this.issue, required this.onFix, required this.onIgnore, this.onKeep});
+class SpellRow extends StatefulWidget {
+  const SpellRow({super.key, required this.issue, required this.onFix, required this.onIgnore, this.onKeep, this.onSuggest});
   final SpellIssue issue;
   final ValueChanged<String> onFix;
   final VoidCallback onIgnore;
   final VoidCallback? onKeep;
 
+  /// Known words that sound like an unknown word (the offline word list). Offered as "Suggest"
+  /// only when the word has no spellings of its own, and only shown on request, so names and
+  /// made-up words are never pushed to change.
+  final Future<List<String>> Function()? onSuggest;
+
+  @override
+  State<SpellRow> createState() => _SpellRowState();
+}
+
+class _SpellRowState extends State<SpellRow> {
+  /// Words "Suggest" found for this mark (null: not asked, or still looking).
+  List<String>? _similar;
+  bool _asked = false;
+
+  @override
+  void didUpdateWidget(SpellRow old) {
+    super.didUpdateWidget(old);
+    if (old.issue.text != widget.issue.text || old.issue.from != widget.issue.from) {
+      _similar = null;
+      _asked = false;
+    }
+  }
+
+  Future<void> _suggest() async {
+    final ask = widget.onSuggest;
+    if (ask == null) return;
+    final text = widget.issue.text;
+    setState(() => _asked = true);
+    final words = await ask();
+    if (!mounted || widget.issue.text != text) return;
+    setState(() => _similar = words);
+  }
+
+  SpellIssue get issue => widget.issue;
+  ValueChanged<String> get onFix => widget.onFix;
+  VoidCallback get onIgnore => widget.onIgnore;
+  VoidCallback? get onKeep => widget.onKeep;
+
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    final fixes = issue.fix.take(6).toList();
+    final own = issue.fix.take(6).toList();
+    final fixes = own.isNotEmpty ? own : (_similar ?? const <String>[]);
+    final canSuggest = widget.onSuggest != null && issue.kind == SpellKind.unknown && own.isEmpty && !_asked;
+    // asked and nothing close came back: say so instead of the kind of mark
+    final none = _asked && _similar != null && _similar!.isEmpty;
     final kind = context.t('check.kind.${issue.kind.name}');
     Widget action(Key key, String label, String hint, VoidCallback onTap) => _Button(
           key: key,
@@ -151,7 +193,9 @@ class SpellRow extends StatelessWidget {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       // already said by the row's own label
-                      child: ExcludeSemantics(child: Text(kind, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.5, color: c.muted))),
+                      child: none
+                          ? Text(context.t('check.noSimilar'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.5, color: c.muted))
+                          : ExcludeSemantics(child: Text(kind, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.5, color: c.muted))),
                     ),
                   )
                 : ListView.builder(
@@ -178,6 +222,18 @@ class SpellRow extends StatelessWidget {
                     ),
                   ),
           ),
+          if (canSuggest)
+            _Button(
+              key: const ValueKey('spell-suggest'),
+              label: context.t('check.suggest'),
+              hint: context.t('check.suggestHint'),
+              onTap: _suggest,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                alignment: Alignment.center,
+                child: Text(context.t('check.suggest'), style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: c.accent)),
+              ),
+            ),
           action(const ValueKey('spell-ignore'), context.t('check.ignore'), context.t('check.ignoreHint'), onIgnore),
           if (onKeep != null) action(const ValueKey('spell-keep'), context.t('check.keep'), context.t('check.keepHint'), onKeep!),
         ]),

@@ -313,7 +313,7 @@ class _EditorState extends ConsumerState<_Editor> {
               switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, a) => SizeTransition(sizeFactor: a, alignment: Alignment.topCenter, child: FadeTransition(opacity: a, child: child)),
               child: writing
-                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates, onKeepWord: (w) => keepSpellingWord(ref, s, w), onLookUp: () => showLookUpSheet(context, s), onAi: () => showAiSheet(context, ref, s), onInbox: () {
+                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates, onKeepWord: (w) => keepSpellingWord(ref, s, w), onSuggestWord: (w) => ref.read(servicesProvider).transliterator.similar(w), onLookUp: () => showLookUpSheet(context, s), onAi: () => showAiSheet(context, ref, s), onInbox: () {
                       FocusScope.of(context).unfocus();
                       showInboxSheet(context, ref, s);
                     })
@@ -576,8 +576,10 @@ double _barOffset = 0;
 
 /// The keyboard accessory: suggestions for the Manglish word, then the writing tools.
 class _KeyboardBar extends StatefulWidget {
-  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates, required this.onKeepWord, required this.onLookUp, required this.onAi, required this.onInbox});
+  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates, required this.onKeepWord, required this.onSuggestWord, required this.onLookUp, required this.onAi, required this.onInbox});
   final void Function(String word) onKeepWord;
+  /// Known words that sound like an unknown word (spelling "Suggest").
+  final Future<List<String>> Function(String word) onSuggestWord;
   final VoidCallback onLookUp;
   final VoidCallback onAi;
   final VoidCallback onInbox;
@@ -665,7 +667,7 @@ class _KeyboardBarState extends State<_KeyboardBar> {
             curve: Motion.emphasized,
             alignment: Alignment.bottomCenter,
             child: spell != null
-                ? _SpellRow(session: s, issue: spell, onKeep: widget.onKeepWord)
+                ? _SpellRow(session: s, issue: spell, onKeep: widget.onKeepWord, onSuggest: widget.onSuggestWord)
                 : s.mode == InputMode.manglish
                     ? _Suggestions(session: s, word: word, candidates: candidates)
                     : const SizedBox(width: double.infinity),
@@ -716,10 +718,11 @@ class _Suggestions extends StatelessWidget {
 /// this visit) or Keep (never marked again on this device). Typing on simply goes on: dialect and
 /// regional words are often "unknown", and leaving them is the writer's choice.
 class _SpellRow extends StatelessWidget {
-  const _SpellRow({required this.session, required this.issue, required this.onKeep});
+  const _SpellRow({required this.session, required this.issue, required this.onKeep, this.onSuggest});
   final EditorSession session;
   final SpellIssue issue;
   final void Function(String word) onKeep;
+  final Future<List<String>> Function(String word)? onSuggest;
 
   @override
   Widget build(BuildContext context) {
@@ -729,6 +732,7 @@ class _SpellRow extends StatelessWidget {
       onFix: (fix) => ctrl?.fixSpelling(issue, fix),
       onIgnore: () => session.ignoreSpelling(issue.text),
       onKeep: issue.kind == SpellKind.unicode ? null : () => onKeep(issue.text),
+      onSuggest: onSuggest == null ? null : () => onSuggest!(issue.text),
     );
   }
 }

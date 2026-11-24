@@ -70,6 +70,17 @@ class Transliterator {
     }
   }
 
+  /// Known words that sound like a Malayalam word the dictionary doesn't know (spelling "Suggest").
+  Future<List<String>> similar(String word) async {
+    _loadWords();
+    try {
+      await _loading;
+    } catch (_) {
+      /* not reachable */
+    }
+    return _ranker?.similar(word) ?? const [];
+  }
+
   Future<List<String>> candidates(String word, {int num = maxCandidates}) async {
     final hit = _cache['$num/$word'];
     if (hit != null) return hit;

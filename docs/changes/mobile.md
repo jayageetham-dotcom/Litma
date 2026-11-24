@@ -3,6 +3,12 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-24: Spelling "Suggest" and "Deselect all" (on a branch until CI passes)
+
+- `lib/editor/suggestion_rows.dart` `SpellRow` is now stateful: optional `onSuggest`; for an `unknown` mark with no fixes it shows **Suggest**, then the sound-alike words (or `check.noSimilar`). Wired through `_KeyboardBar.onSuggestWord` → `Transliterator.similar` (waits for the word list) → `ManglishRanker.similar` (port of the web's, checked by `test/manglish_rank_test.dart` `__similar__` vectors). Two new widget tests in `test/suggestion_rows_test.dart`.
+- Selection bar (`lib/editor/selection_layer.dart`): when the whole work is selected (`EditorSession.allSelected`) the last button is **Deselect all** (`app.selection.deselectAll`), which calls `deselectAll()` (clears the span, collapses the field's own selection).
+- **Not compiled here.**
+
 ## 2026-11-24: Ranked offline Manglish suggestions (on a branch until CI passes)
 
 - `lib/core/manglish_rank.dart` (new): port of `packages/shared/src/manglish-rank.ts` (`ManglishRanker.of/build`, `suggest`, `lookup`, `scriptKey`, `latinKeys`). Ties keep list order like the web's stable sort.

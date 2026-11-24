@@ -135,6 +135,8 @@ try {
   const out = Object.fromEntries(inputs.map((w) => [w, { keys: r.latinKeys(w), suggest: ranker.suggest(w, 8) }]));
   const scripts = ranker.lookup("enthaanu", 3).map((x) => x.word);
   out.__script__ = Object.fromEntries(scripts.map((w) => [w, { key: r.scriptKey(w), lengths: r.scriptLengths(w) }]));
+  // spelling "Suggest": known words that sound like an unknown Malayalam word
+  out.__similar__ = Object.fromEntries(["കര്യം", "മലയാലം", "വെല്ലം", "സന്തോശം", "പരഞ്ഞു", "എന്താനു", "ചക്കപ്പഴക്കുഴി"].map((w) => [w, ranker.similar(w, 6)]));
   writeFileSync(join(mobile, "test/manglish_rank_vectors.json"), JSON.stringify(out) + "\n");
 } catch (e) {
   console.warn(`mobile: ranked Manglish examples not refreshed (this Node can't load TypeScript: ${e.message})`);

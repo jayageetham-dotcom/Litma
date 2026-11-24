@@ -226,6 +226,11 @@ export interface ManglishRanker {
   lookup(word: string, max?: number): { word: string; score: number }[];
   /** The offline suggestion list: known words first, then the letter readings (never dropped). */
   suggest(word: string, max?: number): string[];
+  /**
+   * Known words that sound like a Malayalam word (കര്യം → കാര്യം): spelling suggestions for a word
+   * the dictionary doesn't know. Close words only; most used first among equals.
+   */
+  similar(word: string, max?: number): string[];
 }
 
 /** One word per line, most used first (ZWJ/ZWNJ ignored; blank lines skipped). */
@@ -293,12 +298,28 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number): ManglishRank
     }
     return out.slice(0, max);
   }
+  function similar(word: string, max = 6) {
+    const w = word.replace(/[\u200c\u200d]/g, "");
+    const s = scriptKey(w);
+    if (!s) return [];
+    const found: { word: string; score: number }[] = [];
+    for (const e of idx.get(outline(s)) ?? []) {
+      if (e.w === w) continue;
+      const d = skelDist(s, e.s);
+      if (d > W.maxSkel) continue;
+      const l = lev(w, e.w);
+      if (l > 2) continue;
+      found.push({ word: e.w, score: -W.skel * d - W.lit * l + W.freq * e.f });
+    }
+    return found.sort((a, b) => b.score - a.score).slice(0, max).map((x) => x.word);
+  }
   return {
     get size() {
       return size();
     },
     lookup,
     suggest,
+    similar,
   };
 }
 

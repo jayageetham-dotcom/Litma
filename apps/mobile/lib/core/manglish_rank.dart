@@ -299,6 +299,30 @@ class ManglishRanker {
     return list.take(max).toList();
   }
 
+  /// Known words that sound like a Malayalam word (കര്യം → കാര്യം): spelling suggestions for a
+  /// word the dictionary doesn't know. Same as the web's `similar`.
+  List<String> similar(String word, {int max = 6}) {
+    final w = word.replaceAll(RegExp('[\u200c\u200d]'), '');
+    final s = scriptKey(w);
+    if (s.isEmpty) return const [];
+    final scores = <String, double>{};
+    for (final e in _idx[outline(s)] ?? const <_Entry>[]) {
+      if (e.w == w || scores.containsKey(e.w)) continue;
+      final d = _skelDist(s, e.s);
+      if (d > _maxSkel) continue;
+      final l = _lev(w, e.w);
+      if (l > 2) continue;
+      scores[e.w] = -_wSkel * d - _wLit * l + _wFreq * e.f;
+    }
+    final list = scores.keys.toList();
+    final order = {for (var i = 0; i < list.length; i++) list[i]: i};
+    list.sort((a, b) {
+      final c = scores[b]!.compareTo(scores[a]!);
+      return c != 0 ? c : order[a]!.compareTo(order[b]!);
+    });
+    return list.take(max).toList();
+  }
+
   /// The offline suggestion list: known words first, then the letter readings (never dropped).
   List<String> suggest(String word, {int max = 6}) {
     final out = <String>[];

@@ -52,5 +52,15 @@ export function offlineCandidates(word: string, max = 6): string[] {
   }
 }
 
+/** Known words that sound like a Malayalam word (spelling suggestions for an unknown word). */
+export async function similarWords(word: string, max = 6): Promise<string[]> {
+  try {
+    await loadManglishWords();
+    return ranker ? ranker.similar(word, max) : [];
+  } catch {
+    return [];
+  }
+}
+
 /** True once ranked suggestions are available (for tests). */
 export const manglishWordsReady = () => ranker !== null;

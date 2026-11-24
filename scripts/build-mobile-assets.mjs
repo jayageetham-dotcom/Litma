@@ -124,4 +124,20 @@ try {
   console.warn(`mobile: Manglish examples not refreshed (this Node can't load TypeScript: ${e.message})`);
 }
 
+// Ranked offline Manglish suggestions: the web's answers for test/manglish_rank_inputs.txt with the small
+// word list test/manglish_rank_words.txt (a sample of /dict/manglish-words.txt, most used first);
+// test/manglish_rank_test.dart checks lib/core/manglish_rank.dart gives the same lists
+try {
+  const r = await import(join(root, "packages/shared/src/manglish-rank.ts"));
+  const read = (f) => readFileSync(join(mobile, "test", f), "utf8");
+  const ranker = r.createManglishRanker(r.parseWordList(read("manglish_rank_words.txt")));
+  const inputs = read("manglish_rank_inputs.txt").split("\n").filter(Boolean);
+  const out = Object.fromEntries(inputs.map((w) => [w, { keys: r.latinKeys(w), suggest: ranker.suggest(w, 8) }]));
+  const scripts = ranker.lookup("enthaanu", 3).map((x) => x.word);
+  out.__script__ = Object.fromEntries(scripts.map((w) => [w, { key: r.scriptKey(w), lengths: r.scriptLengths(w) }]));
+  writeFileSync(join(mobile, "test/manglish_rank_vectors.json"), JSON.stringify(out) + "\n");
+} catch (e) {
+  console.warn(`mobile: ranked Manglish examples not refreshed (this Node can't load TypeScript: ${e.message})`);
+}
+
 console.log(`mobile: ${keys.length} colour tokens → lib/core/tokens.g.dart; ${locales.length} locales → assets/i18n`);

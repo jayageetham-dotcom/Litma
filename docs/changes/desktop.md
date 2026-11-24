@@ -6,6 +6,8 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 
 ## Open items
 
+- **Release needed** for ranked offline Manglish suggestions (2026-11-24, shared web code; the word list comes from the website's `/dict/` and is kept on disk by `kept()`).
+
 - **Release needed** for the 2026-11-22 accessibility work: spelling suggestions from the keyboard and for screen readers, Manglish list for screen readers, shortcuts list in Malayalam (`SpellSuggest.tsx`, `ManglishPopup.tsx`, `ShortcutsDialog.tsx`; no desktop-only code).
 
 - **Release needed** for the 2026-11-07 web changes (print view without the white strip on top,

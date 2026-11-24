@@ -1,4 +1,4 @@
-import { scriptKey, latinKeys, outline } from "./skeleton.ts";
+import { scriptKey, latinKeys, outline, scriptLengths, latinLengths, scriptDoubles, latinDoubles } from "./skeleton.ts";
 import { manglishWord, manglishCandidates, COMMON } from "/home/claude/litma/packages/shared/src/manglish.ts";
 
 export interface Entry { w: string; s: string; f: number } // word, skeleton, log-frequency rank score
@@ -47,7 +47,7 @@ function lev(a: string, b: string): number {
   return prev[B.length];
 }
 
-export const W = { skel: 2.0, lit: 0.3, freq: 0.2, maxSkel: 1.5 };
+export const W = { skel: 2.0, lit: 0.6, freq: 0.2, maxSkel: 1.5, len: 0.6, dbl: 0, chillu: 0 };
 
 export interface Scored { w: string; score: number }
 
@@ -55,14 +55,18 @@ export interface Scored { w: string; score: number }
 export function lookup(idx: Index, word: string, max = 8): Scored[] {
   const keys = latinKeys(word);
   const literal = manglishWord(word);
+  const lens = latinLengths(word), dbls = latinDoubles(word);
   const seen = new Map<string, Scored>();
   for (const o of new Set(keys.map(outline))) {
     for (const e of idx.get(o) ?? []) {
       if (seen.has(e.w)) continue;
       let d = Infinity;
-      for (const k of keys) d = Math.min(d, skelDist(k, e.s) + (VOW.has(k[0]) === VOW.has(e.s[0]) ? 0 : 1));
+      const es = e.s.replace(/^y(?=[aeiou])/, "");
+      for (const k of keys) d = Math.min(d, skelDist(k, e.s) + (VOW.has(k[0]) === VOW.has(es[0]) ? 0 : 1));
       if (d > W.maxSkel) continue;
-      const score = -W.skel * d - W.lit * lev(literal, e.w) + W.freq * e.f;
+      const score = -W.skel * d - W.lit * lev(literal, e.w) + W.freq * e.f
+        - W.len * lev(lens, scriptLengths(e.w)) - W.dbl * Math.abs(dbls - scriptDoubles(e.w))
+        + (/[ൺൻർൽൾ][ക-ഹ]/.test(e.w) ? W.chillu : 0);
       seen.set(e.w, { w: e.w, score });
     }
   }

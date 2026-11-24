@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'manglish.dart';
+import 'manglish_rank.dart';
 
 /// Supabase project (the same as the website and the desktop app). The publishable key is meant
 /// to be public; both can be overridden at build time:
@@ -29,8 +30,45 @@ class Transliterator {
   /// The strip above the keyboard scrolls sideways to show them all.
   static const maxCandidates = 18;
 
-  /// Offline candidates (the engine's likely spellings), immediately.
-  List<String> offline(String word) => manglishCandidates(word);
+  /// How many offline spellings are offered (Google's list, when it comes, can be longer).
+  static const offlineMax = 8;
+
+  /// Where the word list behind ranked offline suggestions comes from (the website's
+  /// /dict/manglish-words.txt, kept on the phone once loaded); set by Services.
+  Future<String?> Function()? wordList;
+  ManglishRanker? _ranker;
+  Future<void>? _loading;
+
+  /// Start loading the word list once; until it is ready the letter readings are offered.
+  void _loadWords() {
+    final source = wordList;
+    if (_loading != null || source == null) return;
+    _loading = () async {
+      try {
+        final text = await source();
+        if (text != null && text.isNotEmpty) {
+          _ranker = await ManglishRanker.build(parseWordList(text));
+          return;
+        }
+      } catch (_) {
+        /* not reachable yet */
+      }
+      _loading = null; // try again next time
+    }();
+  }
+
+  /// Offline candidates, immediately: real words that fit first (once the word list is loaded),
+  /// then the engine's letter readings.
+  List<String> offline(String word) {
+    _loadWords();
+    final r = _ranker;
+    if (r == null) return manglishCandidates(word);
+    try {
+      return r.suggest(word, max: offlineMax);
+    } catch (_) {
+      return manglishCandidates(word);
+    }
+  }
 
   Future<List<String>> candidates(String word, {int num = maxCandidates}) async {
     final hit = _cache['$num/$word'];
@@ -40,15 +78,16 @@ class Transliterator {
       final r = await _client
           .get(Uri.parse('${AppConfig.functionsUrl}/litma-transliterate?text=${Uri.encodeQueryComponent(word)}&num=$num'), headers: {'apikey': AppConfig.supabaseAnonKey})
           .timeout(const Duration(seconds: 3));
-      if (r.statusCode != 200) return manglishCandidates(word);
+      if (r.statusCode != 200) return offline(word);
       final j = jsonDecode(r.body) as Map<String, dynamic>;
       final list = ((j['candidates'] as List?) ?? const []).cast<String>();
-      // Google's ranking first; the offline guess only fills a gap, never more than [num]
-      final out = <String>{...list.map((e) => e.trim()).where((e) => e.isNotEmpty), local}.take(num).toList();
+      if (j['source'] == 'offline') return offline(word); // Google didn't answer: keep the ranked list
+      // Google's ranking first; the offline spellings only fill gaps, never more than [num]
+      final out = <String>{...list.map((e) => e.trim()).where((e) => e.isNotEmpty), local, ...offline(word)}.take(num).toList();
       if (_cache.length > 400) _cache.clear();
       return _cache['$num/$word'] = out;
     } catch (_) {
-      return manglishCandidates(word);
+      return offline(word);
     }
   }
 }

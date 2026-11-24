@@ -7,6 +7,14 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-24: Ranked offline Manglish suggestions (branch `offline-manglish`)
+
+- Offline suggestions now pick real words: `packages/shared/src/manglish-rank.ts` (sound skeleton indexed by consonant outline, scored by fit, plain reading, typed vowel lengths and word rank) over `/dict/manglish-words.txt` (150k most used words, ~1 MB compressed, built in the deploy job by `scripts/build-manglish-words.mjs` from Kavya Manohar's CC BY 4.0 word frequencies, pinned revision + sha256). Dakshina test: first right 17.8% → 71.7%, top 6 27.1% → 87.6%; on 300 words checked through Litma MCP `transliterate` (Google), ours 225 right vs Google's 216.
+- Writers are never forced: no close real word → plain reading first; plain reading always in the first six; capitals/`~`/`_`, COMMON words, word pieces, digits and punctuation keep today's lists. Online, Google's list still comes first (offline spellings fill in after it).
+- Web/desktop: `apps/web/src/lib/manglish-words.ts` (loads on first Manglish word, index built in idle slices). Phone: `lib/core/manglish_rank.dart` + `Transliterator.offline` (word list via `Dictionary.text`, kept on the phone). Details in `web.md`, `mobile.md`. Research scripts: `scripts/manglish-lab/`.
+- Credits: THIRD_PARTY_NOTICES.md + help `11-account.md#credits`; help `02-typing.md` Offline note rewritten.
+- **Needs:** website deploy (builds the word list), desktop Release, phone store build. Phone code **not compiled here**: merge only after "Mobile app checks" is green.
+
 ## 2026-11-22: Keyboard and screen readers for the spelling suggestions
 
 - Web and desktop: the card under a marked word (`SpellSuggest.tsx`) now works from the keyboard like the Manglish list: ↓/↑ through the spellings, Ignore and Keep, Enter uses the highlighted row, Esc closes, Alt+↓ always opens it. Screen readers get `aria-activedescendant`/`aria-controls` on the editor, a polite announcement (`check.announce`, en + ml) and `aria-invalid="spelling|grammar"` on every mark. Details in `web.md`. Desktop gets it with the next Release.
@@ -124,6 +132,8 @@ Apple and Google Play developer accounts bought. Setup guide Part 10 (phone stor
 App Store Connect app made (Apple ID 6834719757, 13+); listing and iPhone screenshots in `marketing/store/app-store/`; `Info.plist` declares no non-exempt encryption. Open: `ASC_*` secrets, first TestFlight build, iPad or iPhone-only (see `mobile.md`).
 
 ## Open items
+
+- Ranked offline Manglish (2026-11-24, branch `offline-manglish`): phone part needs CI (flutter analyze + `test/manglish_rank_test.dart`); owner to compare with Google on real writing; next: Story World names and the writer's own picks as suggestions.
 
 ### Still open (after the 2026-11-07 work)
 

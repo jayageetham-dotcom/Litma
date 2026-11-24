@@ -7,6 +7,7 @@ next-env.d.ts
 .DS_Store
 out
 .dict-cache
+.manglish-cache
 apps/web/public/dict
 apps/web/public/track-labels.json
 apps/desktop/dist

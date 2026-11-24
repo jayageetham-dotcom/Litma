@@ -32,7 +32,7 @@ If you go back and type a word between other words, it turns into Malayalam when
 
 > **Tip:** Spell the way it sounds. Double letters make long or doubled sounds: `kaalam` → കാലം, `amma` → അമ്മ. Common spellings work as you'd expect: `nammude` → നമ്മുടെ, `veedu` → വീട്, `aanu` → ആണ്. Capitals mark the harder sounds when you want to be exact: `Ta` → ട, `La` → ള, `Na` → ണ, `Ra` → റ.
 
-> **Offline:** Without a connection Litma still turns Manglish into Malayalam, and the list offers the other likely spellings (for example പറ beside പര) so you can pick the right one.
+> **Offline:** Without a connection Litma still turns Manglish into Malayalam and offers the real words that fit what you typed, most used first (`enthaanu` → എന്താണ്, `vellam` → വെള്ളം). A word Litma doesn't know, like a name or a word you made up, keeps its plain spelling first, so you are never pushed to change it. The word list loads the first time you type Manglish and stays on your device.
 
 > **Phone:** On the phone the spellings sit in a strip above the keyboard that you can scroll sideways. A space takes the first one; tap any other to use it. The first item in quotes keeps the English word.
 

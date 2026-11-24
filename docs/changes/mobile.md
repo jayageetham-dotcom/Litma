@@ -3,6 +3,13 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-24: Ranked offline Manglish suggestions (on a branch until CI passes)
+
+- `lib/core/manglish_rank.dart` (new): port of `packages/shared/src/manglish-rank.ts` (`ManglishRanker.of/build`, `suggest`, `lookup`, `scriptKey`, `latinKeys`). Ties keep list order like the web's stable sort.
+- `lib/core/config.dart` `Transliterator`: `wordList` loader, `offline(word)` gives ranked spellings once the list is loaded (else `manglishCandidates`); Google's answers first, then offline ones; an Edge Function "offline" answer keeps the ranked list. `lib/app/providers.dart` wires `wordList` to `Dictionary.text('manglish-words', timeout: 90 s)` (kept on the phone). `lib/editor/editor_screen.dart` uses `transliterator.offline` for the instant strip, so a space offline now takes the best real word.
+- Test: `test/manglish_rank_test.dart` against `test/manglish_rank_vectors.json` (written by `npm run mobile:assets` from `test/manglish_rank_words.txt` + `test/manglish_rank_inputs.txt`).
+- **Not compiled here.** Merge only after "Mobile app checks" is green.
+
 ## 2026-11-22: Suggestion rows for screen readers (on a branch until CI passes)
 
 - New `lib/editor/suggestion_rows.dart`: `SpellRow` and `ManglishRow`, moved out of `editor_screen.dart` (`_SpellRow` and `_Suggestions` now only wire the session to them; look and behaviour unchanged). Each chip is one `Semantics(container, button, onTap, excludeSemantics)`: spellings get a Malayalam `attributedLabel` (`LocaleStringAttribute` ml) so TalkBack/VoiceOver use a Malayalam voice; Ignore and Keep are named by their word with the long text as the hint (before: the hint was the name); the Manglish spelling a space takes is `selected`. The spelling row is a `liveRegion` container labelled `check.announceTouch` (en + ml), so it is announced when it appears.

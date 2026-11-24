@@ -32,7 +32,7 @@ function squeeze(s: string): string {
 
 /** Consonant outline used as the index key (vowels are scored, not matched). */
 export function outline(skel: string): string {
-  return skel.replace(/[aeiouy]/g, "").replace(/g/g, "k").replace(/b/g, "p");
+  return skel.replace(/[aeiouy]/g, "").replace(/g/g, "k").replace(/b/g, "p").replace(/z/g, "r");
 }
 
 /** Skeleton of a word in Malayalam script. */
@@ -70,11 +70,11 @@ export function scriptKey(w: string): string {
 // Manglish → skeleton. Longest match first; a few spellings branch (ee: ഈ or ഏ, oo: ഊ or ഓ).
 const LAT: [string, string[]][] = [
   ["chh", ["c"]], ["ksh", ["ks"]], ["nch", ["nc"]], ["nth", ["nt"]],
-  ["ng", ["ng", "n"]], ["nk", ["nk"]], ["nj", ["J"]], ["ny", ["J", "ny"]], ["cch", ["c"]],
+  ["ng", ["ng", "n"]], ["nk", ["nk"]], ["nj", ["J", "nc"]], ["ny", ["J", "ny"]], ["cch", ["c"]],
   ["th", ["t"]], ["dh", ["t"]], ["kh", ["k"]], ["gh", ["g"]], ["ch", ["c"]], ["jh", ["j"]],
   ["sh", ["s"]], ["zh", ["z"]], ["ph", ["p"]], ["bh", ["b"]],
   ["aa", ["a"]], ["ee", ["i", "e"]], ["ii", ["i"]], ["oo", ["u", "o"]], ["uu", ["u"]],
-  ["ae", ["e"]], ["ai", ["ai"]], ["ei", ["ai"]], ["ou", ["au"]], ["au", ["au"]], ["oa", ["o"]],
+  ["ae", ["e"]], ["ai", ["ai"]], ["ei", ["ai"]], ["ou", ["au"]], ["au", ["au", "o"]], ["oa", ["o"]],
   ["x", ["ks"]], ["q", ["k"]], ["f", ["p"]], ["w", ["v"]], ["z", ["s", "z"]], ["d", ["t"]],
   ["a", ["a"]], ["e", ["e"]], ["i", ["i"]], ["o", ["o"]], ["u", ["u"]],
   ["k", ["k"]], ["g", ["g"]], ["c", ["c", "k"]], ["j", ["j"]], ["t", ["t"]], ["n", ["n"]],
@@ -84,7 +84,14 @@ const LAT: [string, string[]][] = [
 
 /** Skeletons a Manglish word may stand for (a handful at most). */
 export function latinKeys(word: string, limit = 16): string[] {
-  const w = word.toLowerCase().replace(/[^a-z]/g, "").replace(/c[ck](?!h)/g, "k").replace(/y(?![aeiou])/g, "i");
+  const w = word
+    .toLowerCase()
+    .replace(/[^a-z]/g, "")
+    .replace(/c[ck](?!h)/g, "k")
+    .replace(/c(?=[eiy])/g, "s") // English: officer, license, cylinder
+    .replace(/tion/g, "shan")
+    .replace(/(?<=[^aeiou][^aeiou]?)e$/, "") // silent final e: license, union(e)
+    .replace(/y(?![aeiou])/g, "i");
   let acc = [""];
   let i = 0;
   while (i < w.length) {
@@ -98,4 +105,35 @@ export function latinKeys(word: string, limit = 16): string[] {
     i += hit[0].length;
   }
   return [...new Set(acc.map(squeeze))];
+}
+
+const LONG_SIGN = new Set(["ാ", "ീ", "ൂ", "േ", "ോ", "ആ", "ഈ", "ഊ", "ഏ", "ഓ", "ൈ", "ൗ", "ഐ", "ഔ"]);
+const SHORT_SIGN = new Set(["ി", "ു", "െ", "ൊ", "ൃ", "അ", "ഇ", "ഉ", "എ", "ഒ"]);
+/** Vowel lengths in script, e.g. താരാ → "SL" (short a, long aa), final ് ignored. */
+export function scriptLengths(w: string): string {
+  const ch = [...w];
+  let out = "";
+  for (let i = 0; i < ch.length; i++) {
+    const c = ch[i];
+    if (LONG_SIGN.has(c)) out += "L";
+    else if (SHORT_SIGN.has(c)) out += "S";
+    else if (CONS[c]) {
+      const nx = ch[i + 1];
+      if (!nx || (!LONG_SIGN.has(nx) && !SHORT_SIGN.has(nx) && nx !== VIRAMA && !(nx in SIGN))) out += "S"; // inherent a
+    }
+  }
+  return out.replace(/S$/, ""); // a final short vowel is often dropped or added
+}
+/** Vowel lengths the writer typed (aa, ee, oo… are long). */
+export function latinLengths(word: string): string {
+  const w = word.toLowerCase().replace(/[^a-z]/g, "");
+  const out = [...w.matchAll(/[aeiou]+/g)].map((m) => (m[0].length > 1 && !/^(ai|au|ou|ei|ia|io|iu|ua|ue|ui|eo|ea|oe)$/.test(m[0]) ? "L" : "S")).join("");
+  return out.replace(/S$/, "");
+}
+/** Doubled consonants: typed (kk, nn, cch…) and written (ക്ക, ന്ന…). */
+export function latinDoubles(word: string): number {
+  return (word.toLowerCase().match(/([bcdfgjklmnprstvwyz])\1|cch|tth|chch|thth/g) || []).length;
+}
+export function scriptDoubles(w: string): number {
+  return (w.match(/([\u0D15-\u0D39])\u0D4D\1/g) || []).length;
 }

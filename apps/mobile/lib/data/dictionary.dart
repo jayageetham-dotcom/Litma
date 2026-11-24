@@ -90,9 +90,9 @@ class Dictionary {
   final _texts = <String, Future<String?>>{};
 
   /// A text file under /dict (the spelling word lists, `words/<shard>.txt`), kept on the phone once used.
-  Future<String?> text(String path) => _texts.putIfAbsent(path, () async {
+  Future<String?> text(String path, {Duration timeout = const Duration(seconds: 12)}) => _texts.putIfAbsent(path, () async {
         try {
-          final r = await _client.get(Uri.parse('${AppConfig.site}/dict/$path.txt')).timeout(const Duration(seconds: 12));
+          final r = await _client.get(Uri.parse('${AppConfig.site}/dict/$path.txt')).timeout(timeout);
           if (r.statusCode == 200) {
             final t = utf8.decode(r.bodyBytes);
             unawaited(offline.put('dict', 'txt:$path', {'v': t}).catchError((_) {}));

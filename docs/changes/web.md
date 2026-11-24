@@ -10,6 +10,14 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-24: Ranked offline Manglish suggestions
+
+- `packages/shared/src/manglish-rank.ts` (new, synced to `supabase/functions/_shared`): `createManglishRanker` / `buildManglishRanker` (idle slices), `suggest(word, max)`, `lookup`, `scriptKey`, `latinKeys`, `outline`. Weights in `RANK_WEIGHTS`.
+- `apps/web/src/lib/manglish-words.ts` (new): fetches `/dict/manglish-words.txt` on the first Manglish word (kept by the service worker's runtime cache and the desktop's `kept()`), `offlineCandidates(word, OFFLINE_MAX=8)`; falls back to `manglishCandidates` until ready or on error.
+- `extensions/manglish.ts` uses `offlineCandidates` for the instant list; `lib/functions.ts` offline fallback too; `ManglishPopup.tsx` appends offline spellings after Google's.
+- Data: `scripts/build-manglish-words.mjs` (deploy job step + cache `.manglish-cache`); `apps/web/public/dict` stays uncommitted.
+- Tested: typecheck, build (local mode), i18n:check, sync:shared; Playwright in local mode: "ente enthaanu vellam kerala chakkappazhakkuzhi sheri officer" → എന്റെ എന്താണ് വെള്ളം കേരള ചക്കപ്പഴക്കുഴി ശരി ഓഫിസർ. Not tried: iOS Safari, real slow phones (index build ~0.6 s on a laptop, in idle slices).
+
 ## 2026-11-22: Manglish list for screen readers; shortcuts list in Malayalam
 
 - `src/components/editor/ManglishPopup.tsx`: option ids, `tabIndex=-1`, `lang="ml"`, number badges `aria-hidden`; the editor gets `aria-controls` (the listbox) and `aria-activedescendant` (the highlighted spelling) while a word is composed; `ManglishAnnounce` (always mounted, polite) says "അവൻ, 1 of 6" 400 ms after typing or arrowing stops (`manglish.announce`, en + ml). Phone strip: the keep-English button is no longer inside the listbox.

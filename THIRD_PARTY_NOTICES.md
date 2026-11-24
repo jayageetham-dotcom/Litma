@@ -64,6 +64,18 @@ to the public at `https://getlitma.in/dict/` under the same licences: ODbL 1.0
 
 Opposites are looked up from Datamuse (https://www.datamuse.com/api/).
 
+## Malayalam word frequencies (offline Manglish suggestions)
+
+`scripts/build-manglish-words.mjs` downloads "Word Frequency Profile of Malayalam" by Kavya Manohar
+(words and their counts from AI4Bharat's IndicCorp) at build time, pinned by revision and sha256, and
+keeps the 150,000 most used well-formed words as `/dict/manglish-words.txt` (not stored in this
+repository). Licence: Creative Commons Attribution 4.0 (https://creativecommons.org/licenses/by/4.0/).
+https://huggingface.co/datasets/kavyamanohar/Malayalam-word-freq
+
+The ranking was tested (not shipped) with the Dakshina dataset (Google Research, CC BY-SA 4.0,
+https://github.com/google-research-datasets/dakshina) and AI4Bharat's Aksharantar dataset
+(CC BY / CC0, https://huggingface.co/datasets/ai4bharat/Aksharantar).
+
 ## Fonts
 
 - Karumbi, Dyuthi, Uroob, Meera, Rachana (bundled in `apps/web/public/fonts/smc/`, and in the phone

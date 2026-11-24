@@ -29,7 +29,7 @@ docs/changes       what changed in each app and what is still open (for maintain
 | Desktop app: Electron, serving its own copy of the web build | the writer's Mac, Windows or Linux computer (installers on `litma-releases`) |
 | Phone app: Flutter, native editor, SQLite copy for offline | iPhone and Android (App Store / Google Play, once the store accounts are set up) |
 | Accounts, documents, versions, AI inbox, writing stats | Supabase project `jdexadomaxjtxlvgtldu` (Postgres + RLS, Auth, Storage, Realtime) |
-| Manglish: offline engine first, Google Input Tools predictions on top | `packages/shared/src/manglish.ts` (Dart port in `apps/mobile/lib/core/manglish.dart`) + Edge Function `litma-transliterate` |
+| Manglish: offline engine first (letter rules + real words ranked from a 150k-word list), Google Input Tools predictions on top | `packages/shared/src/manglish.ts` + `manglish-rank.ts` (Dart ports in `apps/mobile/lib/core/`), word list `scripts/build-manglish-words.mjs` → `/dict/manglish-words.txt`, Edge Function `litma-transliterate` |
 | AI companion (Claude / GPT / Gemini, streamed, writer's own key) | Edge Function `litma-ai` (signed-in users only) |
 | MCP server | Edge Function `litma-mcp`, exposed at `getlitma.in/mcp` by `apps/web/public/mcp.php` (a relay with no secrets) |
 | Usage statistics and the admin dashboard | Edge Functions `litma-track`, `litma-admin` |
@@ -199,7 +199,9 @@ The suggestion list also offers റ for r, ള for l, ണ for n, long ഏ/ഓ, �
 
 For exact control, capitals and marks spell letter by letter: `T` ട, `D` ഡ, `N` ണ, `L` ള, `R` റ, `S` ശ, `E` ഏ, `O` ഓ, `A` ആ; `_` breaks a cluster and keeps d as ദ between vowels (`u_dayam` ഉദയം), `~` adds a chandrakkala (`naad~` നാട്).
 
-The website's and phone's engines must agree: `npm run mobile:assets` writes the web engine's answers to `apps/mobile/test/manglish_vectors.json` and `manglish_candidates.json`, and `flutter test` checks the Dart port against them.
+The website's and phone's engines must agree: `npm run mobile:assets` writes the web engine's answers to `apps/mobile/test/manglish_vectors.json`, `manglish_candidates.json` and `manglish_rank_vectors.json`, and `flutter test` checks the Dart ports against them.
+
+Offline, `manglish-rank.ts` turns the letter readings into real words: a 150k-word list (`/dict/manglish-words.txt`, most used first) is indexed by a loose sound skeleton and candidates are scored by fit, closeness to the plain reading, typed vowel lengths and how common they are. A word that fits no real word keeps its plain reading first, and the plain reading always stays in the first six.
 
 ## AI: every writer brings their own
 

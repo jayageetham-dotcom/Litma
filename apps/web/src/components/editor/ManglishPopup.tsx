@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import type { Transaction } from "@tiptap/pm/state";
 import { transliterate } from "@/lib/functions";
+import { offlineCandidates, OFFLINE_MAX } from "@/lib/manglish-words";
 import { manglishKey, topCandidates, pageOf, MAX_CANDIDATES, PAGE_SIZE, type ComposeState, type CommitInfo } from "@/extensions/manglish";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useT } from "@/i18n/react";
@@ -15,7 +16,8 @@ async function fetchCandidates(word: string): Promise<string[] | null> {
   if (cache.has(word)) return cache.get(word)!;
   const j = await transliterate(word, MAX_CANDIDATES);
   if (!j.candidates?.length || j.source === "offline") return null;
-  const list = topCandidates(j.candidates);
+  // Google's spellings first, then the offline ones it doesn't have
+  const list = topCandidates([...j.candidates, ...offlineCandidates(word, OFFLINE_MAX)]);
   cache.set(word, list);
   return list;
 }

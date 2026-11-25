@@ -122,7 +122,7 @@ Marks appear in your text as you write. Click or tap a marked word (or select it
 1. Choose **Spelling and grammar** on the right-hand rail to see every mark in a list. Litma marks these in your text:
    - **Broken letters** (blue wavy line): Malayalam typed in an old or broken way that looks right but searches and sorts wrongly, like ന്‍ for ൻ or a colon for ഃ (ദു:ഖം for ദുഃഖം).
    - **Misspellings** (red wavy line): words often written wrongly (ഉൽഘാടനം for ഉദ്ഘാടനം), with the standard spelling.
-   - **Check spelling?** (amber wavy line): a word the engine doesn't know that is close to words it does, like പോയീ (പോയി) or ഹ്രുദയം (ഹൃദയം). It's a question: if your word is right, choose **Keep**.
+   - **Check spelling?** (amber wavy line): a word the engine doesn't know that is close to words it does, like പോയീ (പോയി) or ഹ്രുദയം (ഹൃദയം), or one letter away from a common word, like പുസ്ടകം (പുസ്തകം). This works offline too. The most likely spelling is listed first. It's a question: if your word is right, choose **Keep**.
    - **Spacing**: a space before a comma or full stop, no space after one, two spaces between words, or two commas.
 2. Click a fix in the list to use it, or **Keep** to leave the word as it is. A kept word isn't marked again on this device. **Fix all** puts every broken letter and spacing mark right at once.
 3. Untick **Mark spelling in the text** or **Mark spacing around punctuation** to hide those marks.

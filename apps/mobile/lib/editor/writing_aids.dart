@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../app/providers.dart';
 import '../core/i18n.dart';
 import '../core/manglish.dart';
+import '../core/manglish_rank.dart';
 import '../core/metre.dart';
 import '../core/speech.dart';
 import '../core/theme.dart';
@@ -261,7 +262,19 @@ void setupSpellMarks(WidgetRef ref, EditorSession s) {
     final unknown = p.getBool(_unknownKey) ?? false;
     // kept words, and the work's Story World names (the writer's own words)
     final mine = {...(p.getStringList(_myWordsKey) ?? const []), ...services.transliterator.storyWords};
-    s.spellCheck = (text) => services.speller.check(text, unknown: unknown, mine: mine, engine: services.spellEngine.call);
+    // the offline word list ranks the fixes and catches typos the engine has nothing for; until it
+    // has loaded the check runs without it, and checks again once it is there
+    Future<List<SpellIssue>> Function(String) make(ManglishRanker? r) => (text) => services.speller.check(text,
+        unknown: unknown, mine: mine, engine: services.spellEngine.call, rankFixes: r?.rankFixes, closeWords: r?.closeWords);
+    s.spellCheck = make(services.transliterator.ranker);
+    if (services.transliterator.ranker == null) {
+      services.transliterator.wordsReady().then((_) {
+        final r = services.transliterator.ranker;
+        if (r == null || s.spellCheck == null) return;
+        s.spellCheck = make(r);
+        s.recheckSpelling();
+      });
+    }
   } else {
     s.spellCheck = null;
   }
@@ -314,7 +327,8 @@ class _CheckSheetState extends ConsumerState<_CheckSheet> {
     final services = ref.read(servicesProvider);
     final out = <_Found>[];
     for (final l in widget.session.lines) {
-      for (final i in await services.speller.check(l.text, unknown: _unknown, mine: _mine, engine: services.spellEngine.call)) {
+      final r = services.transliterator.ranker;
+      for (final i in await services.speller.check(l.text, unknown: _unknown, mine: _mine, engine: services.spellEngine.call, rankFixes: r?.rankFixes, closeWords: r?.closeWords)) {
         if (EditorSession.spellIgnored.contains(i.text)) continue;
         out.add(_Found(l, i));
       }

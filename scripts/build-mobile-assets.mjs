@@ -137,6 +137,14 @@ try {
   out.__script__ = Object.fromEntries(scripts.map((w) => [w, { key: r.scriptKey(w), lengths: r.scriptLengths(w) }]));
   // spelling "Suggest": known words that sound like an unknown Malayalam word
   out.__similar__ = Object.fromEntries(["കര്യം", "മലയാലം", "വെല്ലം", "സന്തോശം", "പരഞ്ഞു", "എന്താനു", "ചക്കപ്പഴക്കുഴി"].map((w) => [w, ranker.similar(w, 6)]));
+  // spelling: fixes ranked by use and sound, and common words one letter from an unknown word
+  out.__spell__ = {
+    rank: Object.fromEntries(
+      [["വെരും", ["വെറും", "വേരും"]], ["ഒറുപാട്", ["ഒരുപാട്", "ഒറ്റുപാട്"]], ["കാര്യമ്", ["കാര്യം", "കാര്യമായ"]], ["പറന്നു", []]].map(([w, f]) => [w, { fixes: f, ranked: ranker.rankFixes(w, f, 4) }])
+    ),
+    close: Object.fromEntries(["ണൽകാൻ", "പുസ്ടകം", "കര്യം", "മലയാലം", "ചക്കപ്പഴക്കുഴി", "ഹന്ന", "എന്നു"].map((w) => [w, ranker.closeWords(w)])),
+    rankOf: Object.fromEntries(["എന്ന", "കാര്യം", "ചക്കപ്പഴക്കുഴി"].map((w) => [w, ranker.rankOf(w)])),
+  };
   // the writer's own words (Story World names) come first when they fit
   const names = ["ഹന്ന ജോസഫ്", "കുഞ്ഞാറ്റ", "തെക്കുംകൂർ"];
   ranker.setOwnWords(r.ownWordsFrom(names));

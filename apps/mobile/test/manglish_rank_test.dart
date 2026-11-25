@@ -70,6 +70,20 @@ void main() {
     expect(r.suggest('kunjaatta').first, 'കുഞ്ഞാറ്റ');
   });
 
+  test('spelling help (ranked fixes, close common words, word ranks) matches the web', () {
+    final sp = (vectors['__spell__'] as Map).cast<String, dynamic>();
+    for (final e in (sp['rank'] as Map).cast<String, dynamic>().entries) {
+      final v = (e.value as Map).cast<String, dynamic>();
+      expect(ranker.rankFixes(e.key, (v['fixes'] as List).cast<String>()), (v['ranked'] as List).cast<String>(), reason: e.key);
+    }
+    for (final e in (sp['close'] as Map).cast<String, dynamic>().entries) {
+      expect(ranker.closeWords(e.key), (e.value as List).cast<String>(), reason: e.key);
+    }
+    for (final e in (sp['rankOf'] as Map).cast<String, dynamic>().entries) {
+      expect(ranker.rankOf(e.key), e.value, reason: e.key);
+    }
+  });
+
   test('enthaanu gives എന്താണ് first, like Google', () {
     expect(ranker.suggest('enthaanu').first, 'എന്താണ്');
   });

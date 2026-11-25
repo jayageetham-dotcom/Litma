@@ -101,6 +101,19 @@ class Transliterator {
     }();
   }
 
+  /// The word list once loaded (for the spelling check), or null.
+  ManglishRanker? get ranker => _ranker;
+
+  /// Start loading the word list if needed; completes when it is ready (or couldn't load).
+  Future<void> wordsReady() async {
+    _loadWords();
+    try {
+      await _loading;
+    } catch (_) {
+      /* not reachable */
+    }
+  }
+
   /// Offline candidates, immediately: real words that fit first (once the word list is loaded),
   /// then the engine's letter readings.
   List<String> offline(String word) {

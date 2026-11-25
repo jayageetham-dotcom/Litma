@@ -107,5 +107,8 @@ export async function similarWords(word: string, max = 6): Promise<string[]> {
   }
 }
 
+/** The word list for the spelling check (fix ranking, typo catching), or null until it has loaded. */
+export const spellWords = () => ranker;
+
 /** True once ranked suggestions are available (for tests). */
 export const manglishWordsReady = () => ranker !== null;

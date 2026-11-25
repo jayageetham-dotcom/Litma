@@ -239,6 +239,9 @@ List<String> ownWordsFrom(Iterable<String> texts) {
   return out.toList();
 }
 
+/// How common a fix must be (its place in the list) to turn an unknown word into "Check spelling?".
+const int _closeTop = 30000;
+
 /// Commonness given to the writer's own words: above every listed word (the most used has 0).
 const double _own = 2;
 
@@ -251,8 +254,45 @@ final RegExp _capital = RegExp('[A-Z]');
 final RegExp _yStart = RegExp(r'^y(?=[aeiou])');
 
 class ManglishRanker {
-  ManglishRanker._(this._idx, this.size);
+  ManglishRanker._(this._idx, this.size, this._ranks);
   final Map<String, List<_Entry>> _idx;
+  final Map<String, int> _ranks;
+
+  /// Where a word stands in the list (0 = most used), or -1 when it isn't listed.
+  int rankOf(String word) => _ranks[word] ?? -1;
+
+  /// Spelling fixes for a likely typo: the engine's fixes and the known words that sound like it,
+  /// the common and close ones first. Same as the web's `rankFixes`.
+  List<String> rankFixes(String word, List<String> fixes, {int max = 4}) {
+    final cands = [...fixes];
+    for (final s in similar(word, max: 3)) {
+      if (!cands.contains(s)) cands.add(s);
+    }
+    final scored = [
+      for (var i = 0; i < cands.length; i++)
+        (
+          c: cands[i],
+          i: i,
+          score: 0.2 * (_ranks[cands[i]] != null ? -math.log(_ranks[cands[i]]! + 1) : -14) - _lev(word, cands[i]) - 0.3 * (fixes.contains(cands[i]) ? fixes.indexOf(cands[i]) : 2),
+        ),
+    ];
+    scored.sort((a, b) {
+      final c = b.score.compareTo(a.score);
+      return c != 0 ? c : a.i.compareTo(b.i);
+    });
+    return scored.take(max).map((x) => x.c).toList();
+  }
+
+  /// Common words one letter away from a word nobody knows (ണൽകാൻ → നൽകാൻ), so it can be asked
+  /// about as a likely typo; empty when nothing is that close. Same as the web's `closeWords`.
+  List<String> closeWords(String word) {
+    final w = word.replaceAll(RegExp('[\u200c\u200d]'), '');
+    if (_ranks.containsKey(w) || w.runes.length < 3) return const [];
+    return similar(w, max: 3).where((c) {
+      final r = _ranks[c];
+      return r != null && r < _closeTop && _lev(w, c) <= 1;
+    }).toList();
+  }
   Map<String, List<_Entry>> _ownIdx = {};
 
   List<_Entry> _bucket(String o) => [...?_ownIdx[o], ...?_idx[o]];
@@ -276,23 +316,26 @@ class ManglishRanker {
   /// Build in one go (tests).
   factory ManglishRanker.of(List<String> words) {
     final idx = <String, List<_Entry>>{};
-    _add(idx, words, 0, words.length);
-    return ManglishRanker._(idx, words.length);
+    final ranks = <String, int>{};
+    _add(idx, words, 0, words.length, ranks);
+    return ManglishRanker._(idx, words.length, ranks);
   }
 
   /// Build a slice at a time, yielding to the app between slices so typing never waits.
   static Future<ManglishRanker> build(List<String> words, {int slice = 4000}) async {
     final idx = <String, List<_Entry>>{};
+    final ranks = <String, int>{};
     for (var i = 0; i < words.length; i += slice) {
-      _add(idx, words, i, i + slice);
+      _add(idx, words, i, i + slice, ranks);
       await Future<void>.delayed(Duration.zero);
     }
-    return ManglishRanker._(idx, words.length);
+    return ManglishRanker._(idx, words.length, ranks);
   }
 
-  static void _add(Map<String, List<_Entry>> idx, List<String> words, int start, int end) {
+  static void _add(Map<String, List<_Entry>> idx, List<String> words, int start, int end, Map<String, int> ranks) {
     for (var i = start; i < end && i < words.length; i++) {
       final w = words[i];
+      ranks.putIfAbsent(w, () => i);
       final s = scriptKey(w);
       if (s.isEmpty) continue;
       idx.putIfAbsent(outline(s), () => []).add(_Entry(w, s, -math.log(i + 1)));

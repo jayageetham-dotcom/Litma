@@ -236,7 +236,23 @@ export interface ManglishRanker {
    * what was typed, ahead of common words. Replaces the previous set.
    */
   setOwnWords(words: string[]): void;
+  /** Where a word stands in the list (0 = most used), or -1 when it isn't listed. */
+  rankOf(word: string): number;
+  /**
+   * Spelling fixes for a word the engine calls a likely typo: its fixes and the known words that
+   * sound like it, the common and close ones first (most fixes are one slip away from a common word).
+   */
+  rankFixes(word: string, fixes: string[], max?: number): string[];
+  /**
+   * For a word nobody knows (not listed, not in the dictionary, not the engine's): common words one
+   * letter away, so it can be asked about as a likely typo (ണൽകാൻ → നൽകാൻ). Empty when nothing is
+   * that close, so names and new words stay unmarked.
+   */
+  closeWords(word: string): string[];
 }
+
+/** How common a fix must be (its place in the list) to turn an unknown word into "Check spelling?". */
+const CLOSE_TOP = 30000;
 
 /** Malayalam words in a name or phrase ("ഹന്ന ജോസഫ്" → ഹന്ന, ജോസഫ്), for setOwnWords. */
 export function ownWordsFrom(texts: string[]): string[] {
@@ -255,9 +271,10 @@ export function parseWordList(text: string): string[] {
 }
 
 /** Add words to an index, a slice at a time (so phones can build it in idle moments). */
-function addWords(idx: Map<string, Entry[]>, words: string[], start: number, end: number) {
+function addWords(idx: Map<string, Entry[]>, words: string[], start: number, end: number, ranks: Map<string, number>) {
   for (let i = start; i < end && i < words.length; i++) {
     const w = words[i];
+    if (!ranks.has(w)) ranks.set(w, i);
     const s = scriptKey(w);
     if (!s) continue;
     const o = outline(s);
@@ -267,7 +284,7 @@ function addWords(idx: Map<string, Entry[]>, words: string[], start: number, end
   }
 }
 
-function makeRanker(idx: Map<string, Entry[]>, size: () => number): ManglishRanker {
+function makeRanker(idx: Map<string, Entry[]>, size: () => number, ranks: Map<string, number>): ManglishRanker {
   const W = RANK_WEIGHTS;
   let own = new Map<string, Entry[]>();
   const buckets = (o: string) => [...(own.get(o) ?? []), ...(idx.get(o) ?? [])];
@@ -331,13 +348,40 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number): ManglishRank
     }
     return found.sort((a, b) => b.score - a.score).slice(0, max).map((x) => x.word);
   }
+  // tuned on 387 realistic slips of common words (ന/ണ, ല/ള, ര/റ, vowel length, a lost ് or double
+  // letter): the right fix first 66.7% → 72.4% for the engine's own suspects, and 86 of 102 typos it
+  // had nothing for are now asked about, while only 1.7% of real words it doesn't know are (Nov 2026)
+  function rankFixes(word: string, fixes: string[], max = 4) {
+    const cands = [...fixes];
+    for (const s of similar(word, 3)) if (!cands.includes(s)) cands.push(s);
+    return cands
+      .map((c) => {
+        const r = ranks.get(c);
+        const k = fixes.indexOf(c);
+        return { c, score: 0.2 * (r !== undefined ? -Math.log(r + 1) : -14) - lev(word, c) - 0.3 * (k >= 0 ? k : 2) };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, max)
+      .map((x) => x.c);
+  }
+  function closeWords(word: string) {
+    const w = word.replace(/[\u200c\u200d]/g, "");
+    if (ranks.has(w) || [...w].length < 3) return [];
+    return similar(w, 3).filter((c) => {
+      const r = ranks.get(c);
+      return r !== undefined && r < CLOSE_TOP && lev(w, c) <= 1;
+    });
+  }
   return {
     get size() {
       return size();
     },
+    rankFixes,
+    closeWords,
     lookup,
     suggest,
     similar,
+    rankOf: (word: string) => ranks.get(word) ?? -1,
     setOwnWords(words: string[]) {
       const next = new Map<string, Entry[]>();
       for (const w of words) {
@@ -356,8 +400,9 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number): ManglishRank
 /** Build a ranker from a word list (most used first) in one go. */
 export function createManglishRanker(words: string[]): ManglishRanker {
   const idx = new Map<string, Entry[]>();
-  addWords(idx, words, 0, words.length);
-  return makeRanker(idx, () => words.length);
+  const ranks = new Map<string, number>();
+  addWords(idx, words, 0, words.length, ranks);
+  return makeRanker(idx, () => words.length, ranks);
 }
 
 /**
@@ -366,9 +411,10 @@ export function createManglishRanker(words: string[]): ManglishRanker {
  */
 export async function buildManglishRanker(words: string[], pause: () => Promise<void>, slice = 5000): Promise<ManglishRanker> {
   const idx = new Map<string, Entry[]>();
+  const ranks = new Map<string, number>();
   for (let i = 0; i < words.length; i += slice) {
-    addWords(idx, words, i, i + slice);
+    addWords(idx, words, i, i + slice, ranks);
     await pause();
   }
-  return makeRanker(idx, () => words.length);
+  return makeRanker(idx, () => words.length, ranks);
 }

@@ -10,6 +10,12 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-26 (evening): Metre panel no longer overflows (branch `fix-metre-overflow`)
+
+- Owner's photos (16-inch MacBook, docked panel): in free verse the panel's lines ran off its edge and the whole editor scrolled sideways (page 1886 px in a 1728 px window). Causes: with no gana groups every syllable fell into one unbreakable row; and each chip's screen-reader text (`sr-only`, absolutely positioned) had no positioned parent, so it stretched the page.
+- Web `components/editor/MetrePanel.tsx`: free-verse syllables stand alone (narrow gaps), groups wrap, chips are `relative`, the panel and its lines are `min-w-0` with `overflow-x-clip`. Phone `lib/editor/metre_view.dart`: same grouping, groups are `Wrap`s.
+- Checked: page width = window at 1280, 1512 and 1728 px with the panel open; 15 public and app pages at 1728, 1512, 390 and 320 px have no sideways scroll; metre panel tests (tap selects the syllable, 390/320 px) pass. The toolbar still scrolls sideways under ~1600 px by design.
+
 ## 2026-11-26: Ignore kept with the work (branch `claude/keep-ignores`)
 
 - `lib/spell.ts` `setWorkIgnored`, `Workspace.tsx` effect per work id (`updateSettingsRef`). See cross-platform.md.

@@ -213,14 +213,15 @@ class _Line extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    // syllables by gana group, with a little space between groups
+    // syllables by gana group, with a little space between groups; with no metre (free verse)
+    // every syllable stands alone so the line wraps anywhere; an uncounted ് stays with the one before
     final groups = <(int, List<CheckedSyllable>)>[];
     for (final s in line.syllables) {
-      final key = s.counted ? s.group : (groups.isEmpty ? 0 : groups.last.$1);
-      if (groups.isNotEmpty && groups.last.$1 == key) {
+      final joins = groups.isNotEmpty && (s.counted ? s.group >= 0 && groups.last.$1 == s.group : true);
+      if (joins) {
         groups.last.$2.add(s);
       } else {
-        groups.add((key, [s]));
+        groups.add((s.counted ? s.group : -1, [s]));
       }
     }
     final off = line.expected != null && line.expected != line.count;
@@ -232,9 +233,9 @@ class _Line extends StatelessWidget {
         borderRadius: BorderRadius.circular(LitmaRadius.md),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Wrap(spacing: 8, runSpacing: 6, children: [
+        Wrap(spacing: groups.any((g) => g.$1 >= 0) ? 8 : 2, runSpacing: 6, children: [
           for (final g in groups)
-            Row(mainAxisSize: MainAxisSize.min, children: [for (final s in g.$2) _Chip(s: s, onTap: () => onPick(s.start, s.end))]),
+            Wrap(spacing: 0, runSpacing: 6, children: [for (final s in g.$2) _Chip(s: s, onTap: () => onPick(s.start, s.end))]),
         ]),
         const SizedBox(height: 6),
         Text.rich(TextSpan(children: [

@@ -272,6 +272,9 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   // ── persistence ──
   const persist = useCallback(async (patch: Partial<LitmaDoc>) => {
+    // known at once, so a save that starts meanwhile builds on these settings, not older ones
+    // (an Ignore pressed before a new work's first save stayed lost otherwise)
+    if (patch.settings) docRef.current = { ...docRef.current, settings: patch.settings };
     const queued = await store.updateDoc(docRef.current.id, patch);
     docRef.current = { ...docRef.current, ...patch };
     return queued;

@@ -83,12 +83,12 @@ class EditorSession extends ChangeNotifier {
   /// Set by the editor screen: checks a line's text for spelling (null: marks off).
   Future<List<SpellIssue>> Function(String text)? spellCheck;
 
-  /// Words left as written in this visit ("Ignore" on a suggestion); the open work also keeps its own
-  /// (`settings.spellIgnored`, saved with it, as on the web), see [isSpellIgnored].
-  static final spellIgnored = <String>{};
+  /// Words ignored in this work since it opened (also saved in `settings.spellIgnored`, kept with the
+  /// work on every device, as on the web); other works still mark them.
+  final _ignoredNow = <String>{};
 
-  /// Ignored in this work (kept with it on every device) or earlier in this visit.
-  bool isSpellIgnored(String word) => spellIgnored.contains(word) || ((settings['spellIgnored'] as List?)?.contains(word) ?? false);
+  /// Ignored in this work.
+  bool isSpellIgnored(String word) => _ignoredNow.contains(word) || ((settings['spellIgnored'] as List?)?.contains(word) ?? false);
   Timer? _spellTimer;
   int _spellRun = 0;
 
@@ -104,7 +104,7 @@ class EditorSession extends ChangeNotifier {
 
   /// Leave this word as written in this work, kept with it (a reopen or another device keeps it).
   void ignoreSpelling(String word) {
-    spellIgnored.add(word);
+    _ignoredNow.add(word);
     final kept = [...((settings['spellIgnored'] as List?)?.cast<String>() ?? const <String>[])];
     if (!kept.contains(word)) {
       kept.add(word);

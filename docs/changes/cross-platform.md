@@ -9,7 +9,7 @@ the code, and what is still unverified.
 
 ## 2026-11-26: Ignore kept with the work (branch `claude/keep-ignores`)
 
-- Owner: fixed and ignored spellings came back after a refresh. Fixes were saved (the same word elsewhere in a lyric stays marked); Ignore lived only in memory. Now Ignore is saved in the work's `settings.spellIgnored` (shared `DocSettings`, last 1,000 words): web `lib/spell.ts` `setWorkIgnored` (Workspace loads and saves it), phone `EditorSession.isSpellIgnored` / `ignoreSpelling` (marks and the Check sheet). Strings `check.ignoreHint` (en + ml), help `03-editor.md`. Not yet: MCP `check_spelling` doesn't read a work's ignored words.
+- Owner: fixed and ignored spellings came back after a refresh. Fixes were saved (the same word elsewhere in a lyric stays marked); Ignore lived only in memory. Now Ignore is saved in the work's `settings.spellIgnored` (shared `DocSettings`, last 1,000 words): web `lib/spell.ts` `setWorkIgnored` (Workspace loads and saves it), phone `EditorSession.isSpellIgnored` / `ignoreSpelling` (marks and the Check sheet). Strings `check.ignoreHint` (en + ml), help `03-editor.md`. Verifier: MERGE; after it, the web's `persist` sets the new settings before saving (a new work's first save could drop an Ignore) and the phone's ignores are per work (no shared set). Open: MCP `check_spelling` doesn't read a work's ignored words; two devices saving settings at once, last writer wins (as before).
 
 ## 2026-11-26: Menu placement, quotative endings, Manglish capitals everywhere (branch `claude/menu-place-quotative`)
 

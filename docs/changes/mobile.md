@@ -5,7 +5,7 @@ Reaches writers only through store builds. Cross-app summary and open items:
 
 ## 2026-11-26: Manglish capitals online (branch `claude/menu-place-quotative`)
 
-- `lib/core/manglish.dart` `exactReading` (port of the web's), used by `manglish_rank.dart` (`suggest`) and `config.dart` `Transliterator.candidates` (exact reading before Google's list). Vectors regenerated (`Ammu kaLam paNi NaLLa iPhone` added). Needs Mobile app checks; a store build for writers to get it (the server change already helps the phone's online list).
+- `lib/core/manglish.dart` `foldCaps` + `exactReading` (ports of the web's): `manglish_rank.dart` (`suggest`, `lookup` fold first), `config.dart` `Transliterator.candidates` (exact reading before Google's list; folded fallbacks), `block_controller.dart` and `dictionary_screen.dart` fallbacks fold capitals. Test: plain reading in the first six compares after `foldCaps`. Vectors regenerated (`Ammu kaLam paNi NaLLa iPhone` added). Needs Mobile app checks; a store build for writers to get it (the server change already helps the phone's online list).
 
 ## 2026-11-26: Right-click menu branch (PR #19), nothing to port
 

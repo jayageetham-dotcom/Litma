@@ -7,6 +7,14 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-26: Monorepo for more Litma products (branch `monorepo`, on `metre-checker`)
+
+- The repo was already an npm-workspaces monorepo; added room for products outside Litma's shared version. `apps/keyboard/README.md` (Litma Malayalam Keyboard: owner decisions, layout `android/` Kotlin, `ios/` Swift + XcodeGen, `data/` engine data not committed).
+- `.github/workflows/engine-data.yml` (new, reusable): builds `manglish-words.txt` with the deploy's cache key and uploads artifact `engine-data`. `deploy.yml` still builds it inline (unchanged, to avoid an untested change to the live deploy); keep both in step.
+- `.github/workflows/keyboard.yml` (new): runs only on keyboard / Manglish engine paths; Android (Gradle) and iOS (XcodeGen, macOS runner) jobs skip until their projects exist.
+- `deploy.yml` `paths-ignore`: `apps/keyboard/**`, `keyboard.yml`, `engine-data.yml`, so keyboard work never deploys getlitma.in. `release.mjs` and the root `workspaces` list are explicit, so the keyboard is never bumped by Litma's Release; `desktop.yml`'s tag filter `v[0-9]*` doesn't match `keyboard-v*`.
+- `CLAUDE.md`: "Products in this repo" section (rules for adding a product).
+
 ## 2026-11-26: CI green on `metre-checker` (repo public)
 
 - First real CI run of all six engine branches and of `main`'s PR #15 code: `flutter analyze` failed on `main` and every branch (AttributedString, SemanticsNode no longer come with material in the current Flutter) → `import 'package:flutter/semantics.dart'` in `lib/editor/suggestion_rows.dart` and `test/suggestion_rows_test.dart`. Three screen-reader tests read the chips before their fade-in had started (one long pump) → `settle()` steps the clock in frames. `.github/workflows/mobile.yml` also runs on changes to `shared/manglish-rank.ts`, `metre.ts`, `search.ts` (and any `packages/shared` file in PRs).
@@ -190,6 +198,9 @@ Apple and Google Play developer accounts bought. Setup guide Part 10 (phone stor
 App Store Connect app made (Apple ID 6834719757, 13+); listing and iPhone screenshots in `marketing/store/app-store/`; `Info.plist` declares no non-exempt encryption. Open: `ASC_*` secrets, first TestFlight build, iPad or iPhone-only (see `mobile.md`).
 
 ## Open items
+
+- Keyboard: Android and iOS projects in `apps/keyboard` (Swift/Kotlin Manglish ranker ports with the shared vector tests), handwriting prototype (ML Kit Malayalam model: availability, quality, iOS keyboard memory), `keyboard-release.yml` for store builds, bundle ids.
+- Make `deploy.yml` call `engine-data.yml` instead of building the word list inline (needs a watched deploy).
 
 - Engine branches (24–26 Nov, stacked: `offline-manglish` → `manglish-names` → `forgiving-search` → `spelling-suggestions` → `better-rhymes` → `metre-checker`): CI green on `metre-checker` (26 Nov, holds all six and fixes `main`'s phone build); merge that one PR; owner to compare Manglish with Google on real writing.
 - Metre checker: try it on real poems by writers from different traditions; Malayalam metres are sung and loose, so collect stanzas the checker gets wrong and add them to `apps/mobile/test/metre_inputs.txt` (with the right answer in `metre.ts`). Not covered yet: ഓമനക്കുട്ടൻ, മാവേലി and other metres whose definition sources disagree on; മിശ്രകാകളി-style lines where some ganas have four matras.

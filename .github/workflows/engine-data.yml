@@ -1,0 +1,56 @@
+# Builds the data Litma's language engines share, once, for any product that needs it.
+#
+# Today: the offline Manglish word list (manglish-words.txt, most used first), the same file
+# the website ships at /dict/manglish-words.txt and the phone app's ranker reads.
+# Products call this workflow and download the "engine-data" artifact, so the keyboard,
+# the phone app and anything later all rank Manglish from the very same list.
+#
+# The website's deploy (deploy.yml) still builds the list inline with the same cache key;
+# keep the two in step (script, cache key) until the deploy calls this workflow too.
+name: Engine data
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: false
+        default: ""
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: 🔤 Build shared engine data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: 🔤 Cache Malayalam word frequencies
+        uses: actions/cache@v5
+        with:
+          path: .manglish-cache
+          key: manglish-words-bb8f0ad
+
+      - name: 🔤 Build the offline Manglish word list
+        run: node scripts/build-manglish-words.mjs --cache .manglish-cache
+
+      - name: 📦 Collect
+        run: |
+          mkdir -p engine-data
+          cp apps/web/public/dict/manglish-words.txt engine-data/
+          wc -l engine-data/manglish-words.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: engine-data
+          path: engine-data/
+          retention-days: 14

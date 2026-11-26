@@ -7,6 +7,11 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-26: CI green on `metre-checker` (repo public)
+
+- First real CI run of all six engine branches and of `main`'s PR #15 code: `flutter analyze` failed on `main` and every branch (AttributedString, SemanticsNode no longer come with material in the current Flutter) → `import 'package:flutter/semantics.dart'` in `lib/editor/suggestion_rows.dart` and `test/suggestion_rows_test.dart`. Three screen-reader tests read the chips before their fade-in had started (one long pump) → `settle()` steps the clock in frames. `.github/workflows/mobile.yml` also runs on changes to `shared/manglish-rank.ts`, `metre.ts`, `search.ts` (and any `packages/shared` file in PRs).
+- Mobile app checks on `metre-checker` (`3d7128d`): analyze clean, all tests pass (metre, Manglish ranking, search, spelling, suggestion rows…). The lower branches don't carry these fixes: merge `metre-checker` (it holds all six), not them one by one.
+
 ## 2026-11-26: Metre checker (branch `metre-checker`)
 
 - `packages/shared/src/metre.ts` (new): syllable scan with laghu/guru (`scanLine`: chillus incl. the old ZWJ forms and ൻ്റ, conjuncts across spaces, ം ഃ, a word-final ് optional), `readings` (each optional ് counted or not), `checkStanza` → metre, fit (exact / likely / close / none), every line's syllables with weight, gana group and wrong marks, expected aksharas. 28 Sanskrit sama metres, വിയോഗിനി and പുഷ്പിതാഗ്ര, two ഉപജാതി mixes, അനുഷ്ടുപ്പ്, 11 Malayalam metres. Definitions checked against Vrittamanjari and the MIT `kavyanarthaki` table (its രഥോദ്ധത and മന്ദാക്രാന്ത rows are wrong; കുസുമമഞ്ജരി left out as sources disagree); nothing copied, so no credit line.
@@ -186,7 +191,7 @@ App Store Connect app made (Apple ID 6834719757, 13+); listing and iPhone screen
 
 ## Open items
 
-- Engine branches (24–26 Nov, stacked: `offline-manglish` → `manglish-names` → `forgiving-search` → `spelling-suggestions` → `better-rhymes` → `metre-checker`): the phone code of each is untested until Actions runs (flutter analyze + flutter test, including `manglish_rank_test`, `search_test`, `metre_test`); owner to compare Manglish with Google on real writing.
+- Engine branches (24–26 Nov, stacked: `offline-manglish` → `manglish-names` → `forgiving-search` → `spelling-suggestions` → `better-rhymes` → `metre-checker`): CI green on `metre-checker` (26 Nov, holds all six and fixes `main`'s phone build); merge that one PR; owner to compare Manglish with Google on real writing.
 - Metre checker: try it on real poems by writers from different traditions; Malayalam metres are sung and loose, so collect stanzas the checker gets wrong and add them to `apps/mobile/test/metre_inputs.txt` (with the right answer in `metre.ts`). Not covered yet: ഓമനക്കുട്ടൻ, മാവേലി and other metres whose definition sources disagree on; മിശ്രകാകളി-style lines where some ganas have four matras.
 
 ### Still open (after the 2026-11-07 work)

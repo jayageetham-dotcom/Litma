@@ -3,6 +3,11 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-26: Phone build and tests fixed (CI green on `metre-checker`)
+
+- First real CI run of all six engine branches and of `main`'s PR #15 code: `flutter analyze` failed on `main` and every branch (AttributedString, SemanticsNode no longer come with material in the current Flutter) → `import 'package:flutter/semantics.dart'` in `lib/editor/suggestion_rows.dart` and `test/suggestion_rows_test.dart`. Three screen-reader tests read the chips before their fade-in had started (one long pump) → `settle()` steps the clock in frames. `.github/workflows/mobile.yml` also runs on changes to `shared/manglish-rank.ts`, `metre.ts`, `search.ts` (and any `packages/shared` file in PRs).
+- Mobile app checks on `metre-checker` (`3d7128d`): analyze clean, all tests pass (metre, Manglish ranking, search, spelling, suggestion rows…). The lower branches don't carry these fixes: merge `metre-checker` (it holds all six), not them one by one.
+
 ## 2026-11-26: Metre checker (branch `metre-checker`)
 
 - `lib/core/metre_check.dart` (port of `shared/metre.ts`), `lib/editor/metre_view.dart`, tile in `tools.dart` (poems, lyrics), `test/metre_test.dart` with `metre_vectors.json`/`metre_inputs.txt`; `lib/core/metre.dart` word-final ് laghu (+ `tools_test.dart`); `lib/core/manglish_rank.dart` y before a consonant (+ vectors, three words added to `manglish_rank_words.txt`). **Not compiled here: run Mobile app checks.**

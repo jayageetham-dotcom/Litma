@@ -34,8 +34,9 @@ List<String> lineTexts(int n) => [for (var i = 0; i < n; i++) i == 6 ? 'പോ�
 /// "word<i>x" in line i.
 const wordFrom = 7, wordTo = 13;
 
-/// Bugs found by the audit: their tests are skipped until the app is fixed (see the work file).
-const knownBug = true;
+/// Bugs found by the audit (26 Nov): fixed by the lead the same day; flip to true only to skip a test
+/// again for a bug found later (and say why in its `skip:` comment).
+const knownBug = false;
 
 /// Steps the clock in frames (taps start timers; one long pump would skip the frames between).
 Future<void> frames(WidgetTester t, [int n = 8]) async {

@@ -66,13 +66,16 @@ DocPoint? pointAt(EditorSession s, Offset global) {
 
 /// Where the selection is drawn, in the layer's coordinates.
 class _Geometry {
-  const _Geometry(this.rects, this.start, this.end);
+  const _Geometry(this.rects, this.start, this.end, {this.lineAbove});
   final List<Rect> rects;
   final Rect? start;
   final Rect? end;
 
+  /// The line before the selection's first line, so the bar can keep it clear.
+  final Rect? lineAbove;
+
   bool same(_Geometry? o) {
-    if (o == null || o.start != start || o.end != end || o.rects.length != rects.length) return false;
+    if (o == null || o.start != start || o.end != end || o.lineAbove != lineAbove || o.rects.length != rects.length) return false;
     for (var i = 0; i < rects.length; i++) {
       if (o.rects[i] != rects[i]) return false;
     }
@@ -102,7 +105,13 @@ _Geometry? _geometry(EditorSession s, RenderBox layer) {
     if (i == 0) start = toLayer(r.getLocalRectForCaret(TextPosition(offset: p.from + 1)));
     if (i == parts.length - 1) end = toLayer(r.getLocalRectForCaret(TextPosition(offset: p.to + 1)));
   }
-  return _Geometry(rects, start, end);
+  Rect? lineAbove;
+  final i = s.lines.indexOf(parts.first.line);
+  if (i > 0) {
+    final box = s.keyOf(s.lines[i - 1])?.currentContext?.findRenderObject();
+    if (box is RenderBox && box.attached && box.hasSize) lineAbove = layer.globalToLocal(box.localToGlobal(Offset.zero)) & box.size;
+  }
+  return _Geometry(rects, start, end, lineAbove: lineAbove);
 }
 
 /// A selection that can run over many lines and pages, drawn over the page: the highlight, two
@@ -167,7 +176,8 @@ class _SelectionLayerState extends State<SelectionLayer> {
             Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _HighlightPainter(g.rects, c.accent.withValues(alpha: 0.24))))),
             if (g.start != null) _handle(g.start!, start: true, color: c.accent),
             if (g.end != null) _handle(g.end!, start: false, color: c.accent),
-            if (!_dragging && (g.start != null || g.end != null)) _bar(g, size),
+            // no bar while the selection is scrolled out of sight (it would float over other text)
+            if (!_dragging && (g.start != null || g.end != null) && g.rects.any((r) => r.bottom > 0 && r.top < size.height)) _bar(g, size),
           ]);
         },
       ),
@@ -180,12 +190,22 @@ class _SelectionLayerState extends State<SelectionLayer> {
 
   Widget _handle(Rect caret, {required bool start, required Color color}) {
     const touch = 44.0;
+    final height = caret.height + _knob * 2 + 10;
+    // Only the knob under the line takes touches; the caret line over the text lets taps through,
+    // so the text beside a selection's ends stays tappable (audit, 26 Nov).
     return Positioned(
       left: caret.center.dx - touch / 2,
       top: caret.top,
       width: touch,
-      height: caret.height + _knob * 2 + 10,
-      child: Semantics(
+      height: height,
+      child: Stack(fit: StackFit.expand, children: [
+        IgnorePointer(child: CustomPaint(painter: _HandlePainter(color: color, caretHeight: caret.height))),
+        Positioned(
+          left: 0,
+          right: 0,
+          top: caret.height,
+          bottom: 0,
+          child: Semantics(
         label: context.t(start ? 'app.selection.start' : 'app.selection.end'),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -200,9 +220,10 @@ class _SelectionLayerState extends State<SelectionLayer> {
           onPanUpdate: (d) => _drag(d.globalPosition, caret.height),
           onPanEnd: (_) => _endDrag(),
           onPanCancel: _endDrag,
-          child: CustomPaint(painter: _HandlePainter(color: color, caretHeight: caret.height)),
         ),
-      ),
+          ),
+        ),
+      ]),
     );
   }
 
@@ -237,7 +258,10 @@ class _SelectionLayerState extends State<SelectionLayer> {
     const height = 44.0;
     final anchor = g.start ?? g.end!;
     final below = g.end ?? anchor;
-    final above = anchor.top - height - 12;
+    // above the selection with the whole line before it kept clear (the owner's screenshot, 26 Nov:
+    // the bar hid that line), or under the end knob when there is no room
+    final clear = g.lineAbove == null ? anchor.top - anchor.height * 0.4 : g.lineAbove!.top.clamp(anchor.top - anchor.height * 2.2, anchor.top).toDouble();
+    final above = clear - height - 6;
     final top = above >= 8 ? above : (below.bottom + _knob * 2 + 16).clamp(8.0, (layer.height - height - 8).clamp(8.0, double.infinity));
     final maxWidth = (layer.width - 16).clamp(120.0, 560.0);
     final left = (anchor.left - 24).clamp(8.0, (layer.width - maxWidth - 8).clamp(8.0, double.infinity));

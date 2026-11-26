@@ -12,12 +12,16 @@ on:
       - "packages/shared/src/manglish.ts"
       - "packages/shared/src/forms.ts"
       - "packages/shared/src/nattarivu.ts"
+      - "packages/shared/src/manglish-rank.ts"
+      - "packages/shared/src/metre.ts"
+      - "packages/shared/src/search.ts"
       - "apps/web/public/brands/**"
       - "scripts/build-mobile-assets.mjs"
       - ".github/workflows/mobile.yml"
   pull_request:
     paths:
       - "apps/mobile/**"
+      - "packages/shared/src/**"
       - "packages/i18n/**"
       - "packages/tokens/**"
       - "scripts/build-mobile-assets.mjs"

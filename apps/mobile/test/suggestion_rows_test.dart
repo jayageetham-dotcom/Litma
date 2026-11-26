@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:ui' show LocaleStringAttribute;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:litma/core/i18n.dart';
 import 'package:litma/core/theme.dart';

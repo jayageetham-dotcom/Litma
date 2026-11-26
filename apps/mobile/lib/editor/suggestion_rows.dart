@@ -3,6 +3,7 @@
 import 'dart:ui' show LocaleStringAttribute;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../core/i18n.dart';
 import '../core/motion.dart';

@@ -7,6 +7,7 @@ import { addMyWord, ignoreWord } from "@/lib/spell";
 import { similarWords } from "@/lib/manglish-words";
 import { useT } from "@/i18n/react";
 import { domId, ownAttr } from "./aria-owner";
+import { CONTEXT_MENU_EVENT } from "./EditorContextMenu";
 
 const ML_FONT = { fontFamily: "'Noto Sans Malayalam'" };
 const keep = (e: React.SyntheticEvent) => e.preventDefault();
@@ -19,6 +20,13 @@ const keyOf = (i: DocIssue) => `${i.pos}:${i.end}:${i.text}`;
 function useSpellAt(editor: Editor) {
   const [issue, setIssue] = useState<DocIssue | null>(null);
   const [closed, setClosed] = useState("");
+  // Litma's right-click menu shows the fixes itself while it is open
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    const on = (e: Event) => setMenuOpen(!!(e as CustomEvent<{ open: boolean }>).detail?.open);
+    window.addEventListener(CONTEXT_MENU_EVENT, on);
+    return () => window.removeEventListener(CONTEXT_MENU_EVENT, on);
+  }, []);
   useEffect(() => {
     const read = () => {
       const st = manglishKey.getState(editor.state);
@@ -36,7 +44,7 @@ function useSpellAt(editor: Editor) {
       editor.off("blur", read);
     };
   }, [editor]);
-  const shown = issue && keyOf(issue) !== closed ? issue : null;
+  const shown = issue && keyOf(issue) !== closed && !menuOpen ? issue : null;
   return { issue: shown, close: () => issue && setClosed(keyOf(issue)) };
 }
 

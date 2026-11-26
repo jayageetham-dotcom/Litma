@@ -73,6 +73,7 @@ import { BASE, appUrl } from "@/lib/config";
 import { DocSaver, clearJournal, readJournal, type SaveStatus } from "@/lib/autosave";
 import { SYNC_EVENT, hasPending, type SyncState } from "@/lib/offline";
 import { ShortcutsDialog } from "./ShortcutsDialog";
+import { EditorContextMenu } from "./EditorContextMenu";
 import { SavedWordsPanel } from "./SavedWordsPanel";
 import { DictionaryPanel } from "./DictionaryPanel";
 import { StoryPanel } from "./StoryPanel";
@@ -967,6 +968,15 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             {/* phones show the suggestions on the keyboard strip instead (below) */}
             {editor && !keyboardStrip && <ManglishPopup editor={editor} />}
             {editor && !keyboardStrip && <SpellSuggest editor={editor} />}
+            {editor && !phone && (
+              <EditorContextMenu
+                editor={editor}
+                onLookUp={() => openPanel("dict")}
+                onRhymes={() => openPanel("rhyme")}
+                onAskAI={() => openPanel("ai")}
+                onShortcuts={() => setShowKeys(true)}
+              />
+            )}
             {editor && usesCues && <CueSuggest editor={editor} names={castNames} />}
             {editor && template.footnotes && <FootnoteDialog editor={editor} bottomOffset={phone ? kb : 0} />}
             {notice && (

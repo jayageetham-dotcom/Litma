@@ -74,6 +74,17 @@ In novels and stories, paragraphs start with a small indent like a printed book.
 
 Drag over the words you want, or press <kbd>Shift</kbd> with the arrow keys. A selection can run over as many lines and pages as you like. Typing replaces it, and <kbd>Backspace</kbd> removes it.
 
+### The right-click menu
+
+On a computer (in the browser and the desktop app), right-click in your text for Litma's own menu:
+
+- On a marked word, its spellings come first, with **Ignore** and **Keep**.
+- **Cut**, **Copy**, **Paste**, **Paste without formatting**, **Delete** and **Select all**.
+- **Look up in dictionary**, **Find rhymes** and **Ask AI** for the word under the pointer or your selection.
+- **Bold**, **Italic**, **Underline**, **Clear formatting** and **Keyboard shortcuts**.
+
+Each item shows its shortcut. Use <kbd>↓</kbd> <kbd>↑</kbd> and <kbd>Enter</kbd> to choose with the keyboard, and <kbd>Esc</kbd> to close. The menu key or <kbd>Shift</kbd> + <kbd>F10</kbd> opens it at the cursor. <kbd>Shift</kbd> + right-click opens the browser's own menu instead. If the browser asks before letting a page read the clipboard, allow it, or press <kbd>Ctrl</kbd> + <kbd>V</kbd>.
+
 > **Phone:** Press and hold a word to select it. Drag the round handles to take in more, over as many lines and pages as you like. The page scrolls when you drag near the top or bottom. The bar above the selection has **Cut**, **Copy**, **Paste**, **Delete**, bold, italic and **Select all**. Once the whole work is selected, the same button says **Deselect all**. Typing or <kbd>Backspace</kbd> replaces the whole selection, and **Undo** brings it back.
 
 ## Pages and Insert page {#pages}

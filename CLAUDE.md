@@ -2,6 +2,12 @@
 
 Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js 15 **static export**, served at the domain root (empty basePath), React 19 + Tailwind v4 + SCSS + Tiptap 2), `apps/desktop` (Electron, macOS + Windows), `apps/mobile` (Flutter, iOS + Android), shared `packages/*`. Backend: Supabase project `jdexadomaxjtxlvgtldu`. Hosted on cPanel at **https://getlitma.in** (moved from https://www.jayageetham.com/litma, Nov 2026), deployed by `.github/workflows/deploy.yml` (FTPS to the getlitma.in FTP account: variable `LITMA_FTP_USERNAME`, secret `LITMA_FTP_PASSWORD`; the upload is skipped with a warning until both exist). The old address gets `deploy/legacy-litma/.htaccess` (301 to the same path on getlitma.in, 308 for `/mcp`) via Actions → **Redirect the old Litma address**, run once after getlitma.in is live. The desktop app, the MCP function and Supabase auth still accept the old address so apps from before the move keep working. The native phone app is being built in phases (see `apps/mobile/README.md`).
 
+## Products in this repo (monorepo, Nov 2026)
+- **Litma** (web, desktop, phone): one version, released by Actions → Release (tags `vX.Y.Z`).
+- **Litma Malayalam Keyboard** (`apps/keyboard`, native Swift + Kotlin, separate store listings): its own versions (tags `keyboard-vX.Y.Z`) and checks (`keyboard.yml`); see `apps/keyboard/README.md`. Not an npm workspace, not bumped by `scripts/release.mjs`.
+- Shared engine data (the Manglish word list) for any product: reusable workflow `engine-data.yml` (artifact `engine-data`).
+- A new product gets its own folder under `apps/`, its own workflow with `paths:` filters, a line in `deploy.yml`'s `paths-ignore`, and its own tag prefix. Never make Litma's Release or deploy run for another product, or the other way round.
+
 ## Setup guide
 - `docs/setup/google-and-supabase.md`: the owner's step-by-step for Google Cloud (consent screen, web client, Drive API), Supabase (providers, URL configuration, hooks, secrets, migrations, cron, admins) and the GitHub secrets/variables, with links. Keep it true when a scope, redirect URL, secret, function or migration changes.
 

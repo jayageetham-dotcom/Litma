@@ -16,6 +16,10 @@ on:
       - "apps/desktop/**"
       - "apps/mobile/**"
       - ".github/workflows/desktop.yml"
+      # other Litma products have their own workflows (apps/keyboard → keyboard.yml)
+      - "apps/keyboard/**"
+      - ".github/workflows/keyboard.yml"
+      - ".github/workflows/engine-data.yml"
       # Instagram reels and posters aren't part of the site
       - "marketing/**"
   workflow_dispatch:

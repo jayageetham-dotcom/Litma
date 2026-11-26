@@ -12,6 +12,7 @@ A Malayalam writing desk for novels, short stories, poems, screenplays, features
 apps/web           Next.js static site (served at the root of getlitma.in)
 apps/desktop       Electron app for macOS, Windows and Linux (bundles apps/web)
 apps/mobile        Flutter app for iOS and Android (native, offline; see its README)
+apps/keyboard      Litma Malayalam Keyboard: separate product, native Swift + Kotlin, own versions (see its README)
 packages/shared    dependency-free TypeScript shared with the Edge Functions (writing types, Manglish, dictionary, serializers)
 packages/i18n      UI strings: locales/en.json, locales/ml.json (+ more languages), plain JSON for every app
 packages/keyboards Malayalam keyboard layouts (Enhanced InScript) as JSON

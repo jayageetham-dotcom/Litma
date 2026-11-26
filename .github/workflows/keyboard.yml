@@ -1,0 +1,101 @@
+# Checks the Litma Malayalam Keyboard (apps/keyboard): a separate product with its own
+# store listings and versions (tags keyboard-vX.Y.Z), native on each platform:
+#   apps/keyboard/android  Kotlin InputMethodService (Gradle)
+#   apps/keyboard/ios      Swift keyboard extension + container app (XcodeGen project.yml)
+#
+# Runs only when the keyboard or the engine it shares with Litma changes, so keyboard work
+# never deploys getlitma.in or starts a Litma release. Each platform job does nothing until
+# that platform's project exists in the repo.
+name: Keyboard checks
+
+on:
+  push:
+    paths:
+      - "apps/keyboard/**"
+      - "packages/shared/src/manglish.ts"
+      - "packages/shared/src/manglish-rank.ts"
+      - "packages/keyboards/**"
+      - "scripts/build-manglish-words.mjs"
+      - ".github/workflows/keyboard.yml"
+      - ".github/workflows/engine-data.yml"
+  pull_request:
+    paths:
+      - "apps/keyboard/**"
+      - "packages/shared/src/manglish.ts"
+      - "packages/shared/src/manglish-rank.ts"
+      - "packages/keyboards/**"
+      - "scripts/build-manglish-words.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  data:
+    uses: ./.github/workflows/engine-data.yml
+
+  android:
+    name: 🤖 Android keyboard
+    needs: data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Is there an Android project yet?
+        id: has
+        run: |
+          if [ -f apps/keyboard/android/settings.gradle.kts ] || [ -f apps/keyboard/android/settings.gradle ]; then
+            echo "yes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No Android keyboard project yet (apps/keyboard/android). Nothing to check."
+          fi
+
+      - uses: actions/download-artifact@v4
+        if: steps.has.outputs.yes == 'true'
+        with:
+          name: engine-data
+          path: apps/keyboard/data
+
+      - uses: actions/setup-java@v4
+        if: steps.has.outputs.yes == 'true'
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.has.outputs.yes == 'true'
+
+      - name: Build and test
+        if: steps.has.outputs.yes == 'true'
+        working-directory: apps/keyboard/android
+        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug
+
+  ios:
+    name: 🍎 iOS keyboard
+    needs: data
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Is there an iOS project yet?
+        id: has
+        run: |
+          if [ -f apps/keyboard/ios/project.yml ]; then
+            echo "yes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No iOS keyboard project yet (apps/keyboard/ios). Nothing to check."
+          fi
+
+      - uses: actions/download-artifact@v4
+        if: steps.has.outputs.yes == 'true'
+        with:
+          name: engine-data
+          path: apps/keyboard/data
+
+      - name: Generate the Xcode project, build and test
+        if: steps.has.outputs.yes == 'true'
+        working-directory: apps/keyboard/ios
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          xcodebuild test -scheme LitmaKeyboard -destination 'platform=iOS Simulator,name=iPhone 16' CODE_SIGNING_ALLOWED=NO | tail -50

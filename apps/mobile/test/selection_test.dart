@@ -35,7 +35,7 @@ List<String> lineTexts(int n) => [for (var i = 0; i < n; i++) i == 6 ? 'പോ�
 const wordFrom = 7, wordTo = 13;
 
 /// Bugs found by the audit: their tests are skipped until the app is fixed (see the work file).
-const knownBug = false;
+const knownBug = true;
 
 /// Steps the clock in frames (taps start timers; one long pump would skip the frames between).
 Future<void> frames(WidgetTester t, [int n = 8]) async {
@@ -125,9 +125,12 @@ void main() {
   testWidgets('owner, 26 Nov: a word picked by long press, then a tap on the page below the text, ends the selection', (t) async {
     final s = await openEditor(t);
     final last = s.lines.last;
+    // the writer is typing in this line (it holds the keyboard), then long-presses a word in it
+    await t.tapAt(lineRect(t, s, last).centerRight - const Offset(4, 0));
+    await frames(t, 5);
     await t.longPressAt(charAt(s, last, wordFrom + 2));
     await frames(t);
-    debugPrint('long press: field selection=${s.controllerFor(last).blockSelection} focused=${identical(s.focused, last)} hasFocus=${s.focusFor(last).hasFocus} hasSpan=${s.hasSpan}');
+    debugPrint('long press (focused line): field selection=${s.controllerFor(last).blockSelection} hasSpan=${s.hasSpan}');
     expect(s.hasSpan, isTrue, reason: 'the long press selected a word');
     expect(barButton('Copy'), findsOneWidget, reason: 'the selection bar shows');
     // the paper under the last line: this lands on the line that already holds the keyboard
@@ -135,6 +138,24 @@ void main() {
     await frames(t);
     expect(s.hasSpan, isFalse);
     expect(barButton('Copy'), findsNothing, reason: 'the bar goes with it');
+    expect(s.controllerFor(last).blockSelection.isCollapsed, isTrue, reason: 'no hidden selection is left in the field');
+    await closeEditor(t);
+  });
+
+  testWidgets('a long press on a line that does not hold the keyboard shows the selection',
+      skip: knownBug, // BUG (tester, 26 Nov; CI log: field selection 7..13, focused, hasSpan=false): the field
+      // reports the long-pressed word first, then gets focus; the focus listener in session.focusFor
+      // ("the writer went to another line") then clears _anchor/_extent. The word stays selected in the
+      // field with a clear highlight: no highlight, handles or bar, and typing replaces a word the writer
+      // can't see. Remove the skip once fixed.
+      (t) async {
+    final s = await openEditor(t);
+    final last = s.lines.last;
+    await t.longPressAt(charAt(s, last, wordFrom + 2));
+    await frames(t);
+    expect(s.hasSpan, isTrue);
+    expect(s.spanText, 'word7x');
+    expect(barButton('Copy'), findsOneWidget);
     await closeEditor(t);
   });
 
@@ -244,6 +265,8 @@ void main() {
     expect(s.hasSpan, isTrue, reason: 'Copy keeps the selection');
     await tapBar(t, find.descendant(of: find.byType(SelectionLayer), matching: find.byIcon(LucideIcons.bold)));
     expect(line.marks.sublist(wordFrom, wordTo).every((m) => m.has('bold')), isTrue);
+    // Bold ends a one-line selection (a separate test below): select the word again for Cut
+    await selectInLine(t, s, line, wordFrom, wordTo);
     await tapBar(t, barButton('Cut'));
     expect(line.text, 'line 3  end');
     expect(s.hasSpan, isFalse);
@@ -254,6 +277,24 @@ void main() {
     await selectInLine(t, s, s.lines[2], 0, 5);
     await tapBar(t, barButton('Delete'));
     expect(s.lines[2].text, '2 word2x end');
+    await closeEditor(t);
+  });
+
+  testWidgets('Bold or Italic from the bar keeps a one-line selection',
+      skip: knownBug, // BUG (tester, 26 Nov; CI: after Bold the bar was gone): session.toggleMark on a one-line
+      // selection calls BlockController.toggleMark, which reports onChanged(textChanged: true), and
+      // session._followFieldSelection then clears the span. Highlight, handles and bar vanish while the
+      // field still holds the word (invisible), so Italic next is impossible and typing replaces it.
+      // The keyboard strip's B / I / U and the Format sheet go the same way.
+      (t) async {
+    final s = await openEditor(t);
+    final line = s.lines[3];
+    await selectInLine(t, s, line, wordFrom, wordTo);
+    await tapBar(t, find.descendant(of: find.byType(SelectionLayer), matching: find.byIcon(LucideIcons.bold)));
+    expect(s.hasSpan, isTrue);
+    expect(barButton('Copy'), findsOneWidget);
+    await tapBar(t, find.descendant(of: find.byType(SelectionLayer), matching: find.byIcon(LucideIcons.italic)));
+    expect(line.marks.sublist(wordFrom, wordTo).every((m) => m.has('italic')), isTrue);
     await closeEditor(t);
   });
 
@@ -317,9 +358,10 @@ void main() {
     t.view.viewInsets = const FakeViewPadding(bottom: 300 * 3);
     await frames(t);
     expect(s.focusFor(line).hasFocus, isTrue);
-    debugPrint('keyboard strip: focused=${identical(s.focused, line)} insets=${t.view.viewInsets.bottom} tools=${find.byTooltip('Bold').evaluate().length}');
     final hide = find.byTooltip('Hide keyboard');
-    await t.ensureVisible(hide);
+    // the strip is a lazy sideways list: scroll it until the last tool is built
+    final strip = find.ancestor(of: find.byTooltip('Undo'), matching: find.byType(Scrollable)).first;
+    await t.dragUntilVisible(hide, strip, const Offset(-200, 0));
     await frames(t, 3);
     await t.tap(hide);
     await frames(t);

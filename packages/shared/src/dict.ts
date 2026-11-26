@@ -3,6 +3,8 @@
  * Data: Olam open datasets sharded by scripts/build-dictionary.mjs into /dict/{index,en/*,ml/*}.json
  */
 
+import { firstAksharaLength } from "./akshara.ts";
+
 export interface Sense {
   p: string;
   en: string[][];
@@ -81,6 +83,18 @@ export function mlShardName(k: string, mlSplit: string[]): string {
   if (!mlSplit.includes(f)) return f;
   return `${f}-${chars[1] ? hex(chars[1]) : "_"}`;
 }
+
+
+/** Word endings → the dictionary form they come from (verbs to -ുക, plurals to -ൻ, a doubled final consonant). */
+const FORM_RULES: [RegExp, string][] = [
+  [/യ(?:ിൽ|ിലെ|ിലും|ിലേക്ക്|ുടെ|ും|െ|ോട്|്ക്ക്|്ക്കും|ാണ്)$/, ""], // മഴയിൽ → മഴ, കഥയുടെ → കഥ
+  [/ഞ്ഞു?$/, "യുക"], // മുറിഞ്ഞു → മുറിയുക, കരഞ്ഞ → കരയുക
+  [/(?:ുന്നു|ുന്നതും|ുന്നത്|ുന്ന|ുമ്പോൾ|ുകയും|ുകയാണ്|ുകയായിരുന്നു|ുമെന്ന്|ും|ാൻ|ണം|ാം)$/, "ുക"], // കാണുന്നു → കാണുക
+  [/ിച്ചു$|ിച്ച$|ിച്ച്$/, "ിക്കുക"], // സഹായിച്ചു → സഹായിക്കുക
+  [/ാർ$/, "ാരൻ"], // തടവുകാർ → തടവുകാരൻ
+  [/ർ$/, "ൻ"],
+  [/([ക-ഹ])്\1െ$/, "$1്"], // കോഴിക്കോട്ടെ → കോഴിക്കോട്
+];
 
 export function createDictionary(fetchJson: DictFetch) {
   const cache = new Map<string, Promise<unknown | null>>();
@@ -289,7 +303,42 @@ export function createDictionary(fetchJson: DictFetch) {
     return first;
   }
 
-  return { index, getEn, getMl, suggest, lookup, opposites };
+  /**
+   * The dictionary word to open for a Malayalam word that has no entry of its own, such as a rhyme
+   * like കാണുന്നു or മുറിഞ്ഞു: the word or its plain form when {@link lookup} finds one, then the
+   * verb or noun it is a form of (കാണുക, മുറിയുക, തടവുകാരൻ, കോഴിക്കോട്), then the longest
+   * headword it starts with that covers most of it. Null when none is close enough (better no
+   * meaning than a wrong one: കോഴിക്കോട്ടെ is not കോഴി).
+   */
+  async function headFor(word: string): Promise<string | null> {
+    const w = word.trim();
+    if (!ML_RE.test(w)) return null;
+    if (await getMl(w)) return w;
+    // a particle at the end (കഥകളൊക്കെ, ചിലരൊക്കെ): look up the word before it
+    const bare = w.replace(/([ളരലനണ])ൊക്കെ$/, (_, c: string) => CHILLU[c]).replace(/ൊക്കെ$/, "്");
+    if (bare !== w) return headFor(bare);
+    for (const [end, add] of FORM_RULES) {
+      const m = end.exec(w);
+      if (!m || m.index < 2) continue;
+      const cand = w.slice(0, m.index) + add.replace("$1", m[1] ?? "");
+      if (cand !== w && (await getMl(cand))) return cand;
+    }
+    const r = await lookup(w);
+    if (r.head) return r.head;
+    const ends: number[] = [];
+    for (let i = 0; i < w.length; ) {
+      i += firstAksharaLength(w.slice(i)) || 1;
+      ends.push(i);
+    }
+    const least = Math.max(2, Math.ceil(ends.length * 0.6));
+    for (let k = ends.length - 1; k >= least; k--) {
+      const base = w.slice(0, ends[k - 1]);
+      for (const cand of [base, base + "്", base + "ം"]) if (await getMl(cand)) return cand;
+    }
+    return null;
+  }
+
+  return { index, getEn, getMl, suggest, lookup, opposites, headFor };
 }
 
 export const isMalayalam = (s: string) => ML_RE.test(s);

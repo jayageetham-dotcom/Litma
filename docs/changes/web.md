@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
+
+- Rhyme files gain the common forms (`scripts/build-rhymes.mjs`, deploy order in `deploy.yml`, `build-dictionary.mjs` keeps the word list). `lib/dictionary.ts` exports `headFor`; the Dictionary's പ്രാസം tab opens a form's base word. See cross-platform.md.
+
 ## 2026-11-25: Better spelling suggestions (branch `spelling-suggestions`)
 
 - `packages/shared/src/manglish-rank.ts`: `rankOf`, `rankFixes` (engine fixes + sound-alike words, scored by use, closeness and the engine's order), `closeWords` (common words, top 30,000, one letter from a word that isn't listed; empty for names and new words). `spell.ts` `SpellOptions.words`: suspects' fixes ranked; an unknown word with close common words (and not in the dictionary) becomes "Check spelling?", with or without the engine. Phone: `lib/core/manglish_rank.dart` (same), `lib/data/spell.dart` `check(rankFixes:, closeWords:)`, `Transliterator.ranker`/`wordsReady`, `writing_aids.dart` (re-checks once the list has loaded). Vectors `__spell__` in `test/manglish_rank_test.dart`.

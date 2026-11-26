@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
+
+- Rhymes come from the website's files, so the phone gets the new words with no store build. `lib/data/dictionary.dart` `headFor` + `_formRules` (port of shared `dict.ts`), `dictionary_screen.dart` `_openRhyme` (the പ്രാസം tab opens a form's base word; needs a store build). Test in `test/phases_test.dart`. **Not compiled here.**
+
 ## 2026-11-25: Better spelling suggestions (branch `spelling-suggestions`)
 
 - `packages/shared/src/manglish-rank.ts`: `rankOf`, `rankFixes` (engine fixes + sound-alike words, scored by use, closeness and the engine's order), `closeWords` (common words, top 30,000, one letter from a word that isn't listed; empty for names and new words). `spell.ts` `SpellOptions.words`: suspects' fixes ranked; an unknown word with close common words (and not in the dictionary) becomes "Check spelling?", with or without the engine. Phone: `lib/core/manglish_rank.dart` (same), `lib/data/spell.dart` `check(rankFixes:, closeWords:)`, `Transliterator.ranker`/`wordsReady`, `writing_aids.dart` (re-checks once the list has loaded). Vectors `__spell__` in `test/manglish_rank_test.dart`.

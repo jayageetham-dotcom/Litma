@@ -7,6 +7,14 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
+
+- `scripts/build-rhymes.mjs`: the top 60,000 words of `/dict/manglish-words.txt` join the rhyme files when they start with a dictionary headword (≥ 2 aksharas) and with no left-out headword; scored by use (4 − log10(rank+1)), a known headword that is also common rises, a headword nobody writes (not in the list) drops by 2. Fairness: `FORM_AVOID` (caste, community and religion-group names, caste surnames, abuse) now removes such words from all rhyme files, headwords included; ordinary look-alikes (കുറവ്, പണിക്ക്, അരയന്നം, പിള്ളേർ, കൊല്ലം) checked as kept. Real Olam build here: 24,813 forms added (212,651 words, 2,492 files, 18 → 20 MB). Rhymes for പറഞ്ഞു 14 → 103, കണ്ണീരിൽ 2 → 54, പോകുന്നു 31 → 832; odd fragments (ഉന്നു, കൂന്നു) left the top.
+- `deploy.yml`: the Manglish word list is built before the dictionary step; `build-dictionary.mjs` keeps `manglish-words.txt` when it clears `dict/`.
+- `shared/dict.ts` `headFor` (+ phone `Dictionary.headFor`, test in `test/phases_test.dart`): a rhyme form opens the word it comes from (കാണുന്നു → കാണുക, മുറിഞ്ഞു → മുറിയുക, മഴയിൽ → മഴ, കോഴിക്കോട്ടെ → കോഴിക്കോട്), null rather than a short wrong prefix. Used by the Dictionary's പ്രാസം tab (web `app/dictionary/page.tsx`, phone `_openRhyme`). 170 of 300 sampled forms open an entry (was 93 of 400 through plain lookup).
+- Every app reads the same `/dict/rhyme` files from the website (phone network-first), so writers get the rhymes with the next website deploy; no desktop Release or store build is needed for the rhymes. The phone's tap-to-meaning needs the next store build. Help `06-dictionary.md#rhymes`.
+- Playwright (local, real dictionary): പ്രാസം tab and editor Rhymes panel at 390 and 1440 px; clicking നിറഞ്ഞു opens നിറയുക. **Phone code not compiled here.**
+
 ## 2026-11-25: Better spelling suggestions (branch `spelling-suggestions`)
 
 - `packages/shared/src/manglish-rank.ts`: `rankOf`, `rankFixes` (engine fixes + sound-alike words, scored by use, closeness and the engine's order), `closeWords` (common words, top 30,000, one letter from a word that isn't listed; empty for names and new words). `spell.ts` `SpellOptions.words`: suspects' fixes ranked; an unknown word with close common words (and not in the dictionary) becomes "Check spelling?", with or without the engine. Phone: `lib/core/manglish_rank.dart` (same), `lib/data/spell.dart` `check(rankFixes:, closeWords:)`, `Transliterator.ranker`/`wordsReady`, `writing_aids.dart` (re-checks once the list has loaded). Vectors `__spell__` in `test/manglish_rank_test.dart`.

@@ -25,6 +25,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
 
+## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
+
+- No desktop code. The desktop app reads `/dict/rhyme` from the website, so it gets the new rhymes with the website deploy; the പ്രാസം tab's base-word opening comes with the next Release.
+
 ## 2026-11-22: Release builds the desktop store packages too
 
 Owner asked why TestFlight showed macOS 0.7.27 but iOS 0.7.31: the Mac App Store build only came from **Desktop store builds**, run by hand (last on 15 Nov). `release.yml` now calls `desktop-stores.yml` (new `workflow_call`, input **stores**, on by default) with the new tag, so every Release uploads the Mac App Store build to TestFlight and attaches the Microsoft Store `.appx` and Snap. Build number is the Release run number (same as the phone). A manual run takes an optional `build_number` (CFBundleVersion must rise). Unverified until the first Release with it runs. Microsoft Store: Litma is live there (Partner Center shows "In Microsoft Store", 22 Nov). Each Release now attaches `litma-microsoft-store`; a Store update is still by hand (Partner Center → Start update → Packages → upload both `.appx`).

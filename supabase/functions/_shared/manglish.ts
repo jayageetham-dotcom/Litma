@@ -345,8 +345,7 @@ export function aksharas(line: string): Akshara[] {
     const next = merged[k + 1]?.text;
     // short syllable followed by a conjunct (C്C…) is guru
     if (!long && next && next.length > 2 && next[1] === VIRAMA && ML_CONS.test(next[2] ?? "")) long = true;
-    // syllable whose own text ends in virama before a consonant (e.g. "ക്" closing) is guru
-    if (!long && t.endsWith(VIRAMA)) long = true;
+    // a word-final ് (samvruthokaram: അത്, പാട്ട്) is a short syllable: laghu (see metre.ts)
     merged[k].long = long;
   }
   return merged;

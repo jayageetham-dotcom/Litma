@@ -29,11 +29,13 @@ import {
   Bookmark,
   Files,
   Repeat2,
+  AudioLines,
   SpellCheck,
   Target,
   Volume2,
 } from "lucide-react";
 import { RhymePanel } from "./RhymePanel";
+import { MetrePanel } from "./MetrePanel";
 import { GoalPanel } from "./GoalPanel";
 import { TimerChip } from "./TimerChip";
 import { CheckPanel } from "./CheckPanel";
@@ -46,7 +48,7 @@ import { timerWords } from "@/lib/timer";
 import { buildExtensions } from "./extensions";
 import { MobileFormatStrip, MobileSelectionBar, Toolbar } from "./Toolbar";
 import { keepSelectionNow } from "@/extensions/keep-selection";
-import { useT } from "@/i18n/react";
+import { useT, type MessageKey } from "@/i18n/react";
 import { TextSelection, type Transaction } from "@tiptap/pm/state";
 import { ReplaceStep } from "@tiptap/pm/transform";
 import { Sheet } from "@/components/ui/Sheet";
@@ -78,13 +80,15 @@ import { CueSuggest } from "./CueSuggest";
 import { StoryWorld } from "@/components/story/StoryWorld";
 import { TypewriterIcon } from "@/components/icons/Typewriter";
 
-type PanelId = "ai" | "dict" | "saved" | "rhyme" | "check" | "read" | "goals" | "inbox" | "story" | "history" | "keys" | "page";
+type PanelId = "ai" | "dict" | "saved" | "rhyme" | "metre" | "check" | "read" | "goals" | "inbox" | "story" | "history" | "keys" | "page";
 /** `tint`: the soft home-page colour of each tool's icon in the rail (icons only; labels stay neutral). */
-const PANELS: { id: PanelId; label: string; short: string; icon: React.ComponentType<{ size?: number }>; tint: string }[] = [
+/** `labelKey` / `shortKey`: the name from the strings files (newer panels); the rest are still inline. */
+const PANELS: { id: PanelId; label: string; short: string; labelKey?: MessageKey; shortKey?: MessageKey; icon: React.ComponentType<{ size?: number }>; tint: string }[] = [
   { id: "ai", short: "AI", label: "AI companion", icon: Sparkles, tint: "text-tint-violet" },
   { id: "dict", short: "Dictionary", label: "Dictionary & thesaurus", icon: BookA, tint: "text-tint-tangerine" },
   { id: "saved", short: "Saved", label: "Saved words", icon: Bookmark, tint: "text-tint-coral" },
   { id: "rhyme", short: "Rhymes", label: "Rhymes (പ്രാസം)", icon: Repeat2, tint: "text-tint-sky" },
+  { id: "metre", short: "Metre", label: "Metre (വൃത്തം)", labelKey: "metre.panel", shortKey: "metre.tile", icon: AudioLines, tint: "text-tint-violet" },
   { id: "check", short: "Check", label: "Spelling and grammar", icon: SpellCheck, tint: "text-tint-coral" },
   { id: "read", short: "Listen", label: "Read aloud", icon: Volume2, tint: "text-tint-lime" },
   { id: "goals", short: "Goals", label: "Goal and timer", icon: Target, tint: "text-tint-tangerine" },
@@ -668,6 +672,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       <>
         {id === "ai" && <AIPanel key={aiStart ?? "ai"} editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} start={aiStart ?? undefined} onStarted={() => setAiStart(null)} />}
         {id === "rhyme" && <RhymePanel editor={editor} />}
+        {id === "metre" && <MetrePanel editor={editor} marks={!!settings.showMetre} onMarks={(on) => updateSettings({ showMetre: on })} />}
         {id === "check" && <CheckPanel editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} />}
         {id === "read" && <ReadAloudPanel editor={editor} />}
         {id === "goals" && <GoalPanel docId={initial.id} words={stats.words} settings={settings} onChange={updateSettings} />}
@@ -681,6 +686,10 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       </>
     );
   const panelMode = phone ? "sheet" : screen === "wide" ? "dock" : "drawer";
+  const panelLabel = (id: PanelId) => {
+    const p = PANELS.find((x) => x.id === id)!;
+    return p.labelKey ? t(p.labelKey) : p.label;
+  };
   const openPanel = (id: PanelId | null) => {
     setPhoneSheet(null);
     setPanel(id);
@@ -973,14 +982,14 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             </Sheet>
           )}
           {!focus && panel && editor && panelMode === "drawer" && (
-            <Sheet mode="drawer" title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+            <Sheet mode="drawer" title={panelLabel(panel)} onClose={() => setPanel(null)}>
               {panelBody(panel)}
             </Sheet>
           )}
         </div>
 
         {!focus && panel && editor && panelMode === "dock" && (
-          <Sheet mode="dock" title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+          <Sheet mode="dock" title={panelLabel(panel)} onClose={() => setPanel(null)}>
             {panelBody(panel)}
           </Sheet>
         )}
@@ -994,11 +1003,11 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
               {(() => {
                 const tool = (id: PanelId) => {
                   const p = PANELS.find((x) => x.id === id)!;
-                  return <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} />;
+                  return <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={panelLabel(p.id)} icon={p.icon} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} />;
                 };
                 const groups: [string, React.ReactNode[]][] = [
                   [t("app.tools.groupWrite"), [<RailBtn key="outline" active={outline} onClick={() => setOutline((o) => !o)} label="Outline" hint="Chapters and headings" icon={ListTree} tint="text-tint-sky" />, tool("story"), tool("dict")]],
-                  [t("app.tools.groupWords"), [tool("saved"), tool("rhyme"), tool("check"), tool("keys")]],
+                  [t("app.tools.groupWords"), [tool("saved"), tool("rhyme"), ...(template.metre ? [tool("metre")] : []), tool("check"), tool("keys")]],
                   [t("app.tools.groupPlan"), [tool("ai"), tool("inbox"), tool("goals")]],
                   [t("app.tools.groupPage"), [tool("page"), <RailBtn key="typewriter" active={typewriter} onClick={() => setTypewriter((tw) => !tw)} label="Typewriter scrolling" hint="While you type, keep the line you are writing in the middle of the screen" icon={TypewriterIcon} tint="text-tint-lime" />]],
                   [
@@ -1037,7 +1046,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
       {/* ── Phone: bottom sheets ── */}
       {phone && panel && editor && (
-        <Sheet mode="sheet" bottomOffset={kb} title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+        <Sheet mode="sheet" bottomOffset={kb} title={panelLabel(panel)} onClose={() => setPanel(null)}>
           {panelBody(panel)}
         </Sheet>
       )}
@@ -1059,10 +1068,10 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           {(() => {
             const panel = (id: PanelId) => {
               const p = PANELS.find((x) => x.id === id)!;
-              return <Tile key={p.id} icon={p.icon} label={p.short} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />;
+              return <Tile key={p.id} icon={p.icon} label={p.shortKey ? t(p.shortKey) : p.short} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />;
             };
             const groups: [string, React.ReactNode[]][] = [
-              [t("app.tools.groupWords"), [panel("saved"), panel("rhyme"), panel("check"), panel("keys")]],
+              [t("app.tools.groupWords"), [panel("saved"), panel("rhyme"), ...(template.metre ? [panel("metre")] : []), panel("check"), panel("keys")]],
               [t("app.tools.groupPlan"), [panel("ai"), panel("inbox"), panel("goals")]],
               [t("app.tools.groupPage"), [
                 panel("page"),

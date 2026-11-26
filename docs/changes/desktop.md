@@ -25,6 +25,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
 
+## 2026-11-26: Metre checker (branch `metre-checker`)
+
+- No desktop code. The metre panel and the Manglish fix come to the desktop app with the next Release.
+
 ## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
 
 - No desktop code. The desktop app reads `/dict/rhyme` from the website, so it gets the new rhymes with the website deploy; the പ്രാസം tab's base-word opening comes with the next Release.

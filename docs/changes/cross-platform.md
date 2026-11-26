@@ -7,6 +7,17 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-26: Metre checker (branch `metre-checker`)
+
+- `packages/shared/src/metre.ts` (new): syllable scan with laghu/guru (`scanLine`: chillus incl. the old ZWJ forms and ൻ്റ, conjuncts across spaces, ം ഃ, a word-final ് optional), `readings` (each optional ് counted or not), `checkStanza` → metre, fit (exact / likely / close / none), every line's syllables with weight, gana group and wrong marks, expected aksharas. 28 Sanskrit sama metres, വിയോഗിനി and പുഷ്പിതാഗ്ര, two ഉപജാതി mixes, അനുഷ്ടുപ്പ്, 11 Malayalam metres. Definitions checked against Vrittamanjari and the MIT `kavyanarthaki` table (its രഥോദ്ധത and മന്ദാക്രാന്ത rows are wrong; കുസുമമഞ്ജരി left out as sources disagree); nothing copied, so no credit line.
+- Tested on public-domain verse: വീണപൂവ് → വസന്തതിലകം exact (with യെ for യേ → close, the syllable marked), അദ്ധ്യാത്മരാമായണം → കേക, അയോദ്ധ്യാകാണ്ഡം → കാകളി, കുചേലവൃത്തം → നതോന്നത, Raghuvamsha → അനുഷ്ടുപ്പ്, Kumarasambhava → ഉപജാതി, Meghaduta → മന്ദാക്രാന്ത, ശാർദ്ദൂലവിക്രീഡിതം; prose → none. 2,000 random stanzas from common words: 97.8% none, under 1% named "likely".
+- Phone: `lib/core/metre_check.dart` (port), `test/metre_test.dart` + `test/metre_vectors.json` (from `test/metre_inputs.txt` via `scripts/build-mobile-assets.mjs`), `lib/editor/metre_view.dart`, tools sheet tile (poems, lyrics). **Not compiled here.**
+- Web/desktop: `components/editor/MetrePanel.tsx`, rail Words group and phone More tile (poems, lyrics; `labelKey`/`shortKey` on `PANELS` so its name comes from i18n). Strings `metre.*` (en + ml). MCP `check_metre` (deno check passes). Help `04-writing-types.md#metre` with `shots/metre.webp`, `03-editor.md` phone tools list.
+- `aksharas()` (shared + phone `lib/core/metre.dart`): a word-final ് is laghu, not guru (marks and rhyme metres); rhyme keys unchanged. `tools_test.dart` cases added.
+- Offline Manglish: a y before a consonant or at the end reads as യ് or the ai vowel (`latinKeys`, shared + phone): പെയ്തു, നെയ്തു, ചെയ്തു, നായ് now first (were പത്തു, നൈറ്റ്…). Dakshina test 71.4% → 71.9% first (top 6 87.2% same); the 300-word Google check unchanged (224 vs Google 215). Vectors and the small test word list updated.
+- Playwright (local): panel at 1440 (light, dark), 390, 375 and 320 px; tapping a marked syllable selects it; the marks switch works; typing in a poem with the panel open; no Metre tool in a novel; Rhymes, desk, dictionary and help pages load without errors.
+- Writers get it with the website deploy; the desktop app needs a Release and the phone app a store build.
+
 ## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
 
 - `scripts/build-rhymes.mjs`: the top 60,000 words of `/dict/manglish-words.txt` join the rhyme files when they start with a dictionary headword (≥ 2 aksharas) and with no left-out headword; scored by use (4 − log10(rank+1)), a known headword that is also common rises, a headword nobody writes (not in the list) drops by 2. Fairness: `FORM_AVOID` (caste, community and religion-group names, caste surnames, abuse) now removes such words from all rhyme files, headwords included; ordinary look-alikes (കുറവ്, പണിക്ക്, അരയന്നം, പിള്ളേർ, കൊല്ലം) checked as kept. Real Olam build here: 24,813 forms added (212,651 words, 2,492 files, 18 → 20 MB). Rhymes for പറഞ്ഞു 14 → 103, കണ്ണീരിൽ 2 → 54, പോകുന്നു 31 → 832; odd fragments (ഉന്നു, കൂന്നു) left the top.
@@ -175,7 +186,8 @@ App Store Connect app made (Apple ID 6834719757, 13+); listing and iPhone screen
 
 ## Open items
 
-- Ranked offline Manglish (2026-11-24, branch `offline-manglish`): phone part needs CI (flutter analyze + `test/manglish_rank_test.dart`); owner to compare with Google on real writing; next: Story World names and the writer's own picks as suggestions.
+- Engine branches (24–26 Nov, stacked: `offline-manglish` → `manglish-names` → `forgiving-search` → `spelling-suggestions` → `better-rhymes` → `metre-checker`): the phone code of each is untested until Actions runs (flutter analyze + flutter test, including `manglish_rank_test`, `search_test`, `metre_test`); owner to compare Manglish with Google on real writing.
+- Metre checker: try it on real poems by writers from different traditions; Malayalam metres are sung and loose, so collect stanzas the checker gets wrong and add them to `apps/mobile/test/metre_inputs.txt` (with the right answer in `metre.ts`). Not covered yet: ഓമനക്കുട്ടൻ, മാവേലി and other metres whose definition sources disagree on; മിശ്രകാകളി-style lines where some ganas have four matras.
 
 ### Still open (after the 2026-11-07 work)
 

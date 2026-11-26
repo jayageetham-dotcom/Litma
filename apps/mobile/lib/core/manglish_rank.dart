@@ -105,7 +105,7 @@ const List<(String, List<String>)> _lat = [
   ('x', ['ks']), ('q', ['k']), ('f', ['p']), ('w', ['v']), ('z', ['s', 'z']), ('d', ['t']),
   ('a', ['a']), ('e', ['e']), ('i', ['i']), ('o', ['o']), ('u', ['u']),
   ('k', ['k']), ('g', ['g']), ('c', ['c', 'k']), ('j', ['j']), ('t', ['t']), ('n', ['n']),
-  ('p', ['p']), ('b', ['b']), ('m', ['m']), ('y', ['y']), ('r', ['r']), ('l', ['l']),
+  ('p', ['p']), ('b', ['b']), ('m', ['m']), ('y', ['y']), ('Y', ['y', 'i']), ('r', ['r']), ('l', ['l']),
   ('v', ['v']), ('s', ['s']), ('h', ['h']),
 ];
 
@@ -118,7 +118,8 @@ List<String> latinKeys(String word, {int limit = 16}) {
       .replaceAll(RegExp(r'c(?=[eiy])'), 's')
       .replaceAll('tion', 'shan')
       .replaceAll(RegExp(r'(?<=[^aeiou][^aeiou]?)e$'), '')
-      .replaceAll(RegExp(r'y(?![aeiou])'), 'i');
+      // y before a consonant or at the end: the consonant യ് (പെയ്തു, നായ്) or the vowel of ai (മൈ)
+      .replaceAll(RegExp(r'y(?![aeiou])'), 'Y');
   var acc = <String>[''];
   var i = 0;
   while (i < w.length) {

@@ -110,7 +110,7 @@ const LAT: [string, string[]][] = [
   ["x", ["ks"]], ["q", ["k"]], ["f", ["p"]], ["w", ["v"]], ["z", ["s", "z"]], ["d", ["t"]],
   ["a", ["a"]], ["e", ["e"]], ["i", ["i"]], ["o", ["o"]], ["u", ["u"]],
   ["k", ["k"]], ["g", ["g"]], ["c", ["c", "k"]], ["j", ["j"]], ["t", ["t"]], ["n", ["n"]],
-  ["p", ["p"]], ["b", ["b"]], ["m", ["m"]], ["y", ["y"]], ["r", ["r"]], ["l", ["l"]],
+  ["p", ["p"]], ["b", ["b"]], ["m", ["m"]], ["y", ["y"]], ["Y", ["y", "i"]], ["r", ["r"]], ["l", ["l"]],
   ["v", ["v"]], ["s", ["s"]], ["h", ["h"]],
 ];
 
@@ -123,7 +123,8 @@ export function latinKeys(word: string, limit = 16): string[] {
     .replace(/c(?=[eiy])/g, "s") // English: officer, license, cylinder
     .replace(/tion/g, "shan")
     .replace(/(?<=[^aeiou][^aeiou]?)e$/, "") // a silent final e: license
-    .replace(/y(?![aeiou])/g, "i");
+    // y before a consonant or at the end: the consonant യ് (പെയ്തു, നായ്) or the vowel of ai (മൈ)
+    .replace(/y(?![aeiou])/g, "Y");
   let acc = [""];
   let i = 0;
   while (i < w.length) {

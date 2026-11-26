@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-26: Metre checker (branch `metre-checker`)
+
+- `components/editor/MetrePanel.tsx` (stanza at the cursor, debounced; summary box, lines in gana groups, amber for wrong, faded for an uncounted ്, tap selects in the text; switch for the metre marks), `Workspace.tsx` (`metre` panel, poems and lyrics only, `panelLabel`), strings `metre.*`, help `#metre`. Also the offline Manglish y fix in `shared/manglish-rank.ts`. See cross-platform.md.
+
 ## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
 
 - Rhyme files gain the common forms (`scripts/build-rhymes.mjs`, deploy order in `deploy.yml`, `build-dictionary.mjs` keeps the word list). `lib/dictionary.ts` exports `headFor`; the Dictionary's പ്രാസം tab opens a form's base word. See cross-platform.md.

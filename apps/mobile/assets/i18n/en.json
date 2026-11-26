@@ -1686,5 +1686,44 @@
     },
     "legal": "Posts are written by community members and are their own views. Litma does not check posts before they appear and is not responsible for them.",
     "legalMore": "Read the full notice"
+  },
+  "metre": {
+    "panel": "Metre (വൃത്തം)",
+    "tile": "Metre",
+    "following": "The stanza you are on",
+    "empty": "Write a few lines of verse and their metre shows here.",
+    "fit": {
+      "exact": "Every line fits this metre.",
+      "likely": "Likely. Malayalam metres go by how they are sung, so this is read from the aksharas in each line.",
+      "close": "Close. The marked syllables or lines don't fit yet.",
+      "none": "No common metre found. Free verse needs none."
+    },
+    "kind": {
+      "sama": "Sanskrit metre",
+      "ardhasama": "Sanskrit metre",
+      "upajati": "Sanskrit metres mixed",
+      "anushtup": "Sanskrit metre",
+      "bhasha": "Malayalam metre"
+    },
+    "rule": {
+      "ganas": "Ganas {ganas} · {n} aksharas a line",
+      "ardha": "Odd lines {odd} · even lines {even}",
+      "upajati": "Lines of {a} and {b}",
+      "anushtup": "Eight aksharas a pada: the 5th laghu, the 6th guru, and the 7th guru in odd padas, laghu in even ones",
+      "pair": "{a} and {b} aksharas in each pair of lines · ganas {groups}",
+      "same": "{a} aksharas a line · ganas {groups}",
+      "tharangini": "Eight ganas of two matras: 16 matras a line"
+    },
+    "line_one": "{count} akshara · {matras} matras",
+    "line_other": "{count} aksharas · {matras} matras",
+    "needs": "needs {n}",
+    "wantGuru": "A guru fits here",
+    "wantLaghu": "A laghu fits here",
+    "uncounted": "Not counted: a word-final ് can be left out",
+    "legend": "∪ laghu · – guru",
+    "marks": "Show laghu and guru beside each line",
+    "hint": "Tap a syllable to find it in your text.",
+    "guru": "guru",
+    "laghu": "laghu"
   }
 }

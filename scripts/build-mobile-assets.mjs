@@ -154,4 +154,30 @@ try {
   console.warn(`mobile: ranked Manglish examples not refreshed (this Node can't load TypeScript: ${e.message})`);
 }
 
+// Metre (വൃത്തം): the web's answers for the stanzas in test/metre_inputs.txt (blank lines between
+// stanzas); test/metre_test.dart checks lib/core/metre_check.dart gives the same
+try {
+  const mt = await import(join(root, "packages/shared/src/metre.ts"));
+  const text = readFileSync(join(mobile, "test/metre_inputs.txt"), "utf8");
+  const out = mt.stanzas(text).map((lines) => {
+    const r = mt.checkStanza(lines);
+    return {
+      lines,
+      metre: r.metre?.id ?? null,
+      fit: r.fit,
+      lineMetres: r.lineMetres ?? null,
+      checked: r.lines.map((l) => ({
+        count: l.count,
+        matras: l.matras,
+        expected: l.expected ?? null,
+        ok: l.ok,
+        syl: l.syllables.map((s) => [s.text, s.start, s.end, s.w, s.optional, s.counted, s.weight, s.wrong, s.group]),
+      })),
+    };
+  });
+  writeFileSync(join(mobile, "test/metre_vectors.json"), JSON.stringify(out) + "\n");
+} catch (e) {
+  console.warn(`mobile: metre examples not refreshed (this Node can't load TypeScript: ${e.message})`);
+}
+
 console.log(`mobile: ${keys.length} colour tokens → lib/core/tokens.g.dart; ${locales.length} locales → assets/i18n`);

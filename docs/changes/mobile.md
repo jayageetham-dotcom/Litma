@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-26: Metre checker (branch `metre-checker`)
+
+- `lib/core/metre_check.dart` (port of `shared/metre.ts`), `lib/editor/metre_view.dart`, tile in `tools.dart` (poems, lyrics), `test/metre_test.dart` with `metre_vectors.json`/`metre_inputs.txt`; `lib/core/metre.dart` word-final ് laghu (+ `tools_test.dart`); `lib/core/manglish_rank.dart` y before a consonant (+ vectors, three words added to `manglish_rank_words.txt`). **Not compiled here: run Mobile app checks.**
+
 ## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
 
 - Rhymes come from the website's files, so the phone gets the new words with no store build. `lib/data/dictionary.dart` `headFor` + `_formRules` (port of shared `dict.ts`), `dictionary_screen.dart` `_openRhyme` (the പ്രാസം tab opens a form's base word; needs a store build). Test in `test/phases_test.dart`. **Not compiled here.**

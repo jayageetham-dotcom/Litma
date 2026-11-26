@@ -24,7 +24,7 @@ Open any work from the desk and you are in the editor.
 
 > **Phone:** On the phone the writing fills the screen as one long sheet. Tap anywhere on the page, even below the last line, to start typing on the nearest line. While you type, a strip above the keyboard holds the formatting buttons; when the keyboard is closed, a tab bar gives you Format, Contents, Story, Dictionary and More.
 
-> In the Litma phone app, the tools button at the top opens every tool in four groups: **Words** (Dictionary, Rhymes, Check, Saved words), **Plan and assist** (AI companion, Story World, Goals), **Page** (Format, Page setup, Contents, Pages, Insert page) and **Review and share** (Listen, Version history, Share & export). Tools for your writing type, such as footnotes or scene tools, sit in a last group. **Find** has its own button beside the tools button.
+> In the Litma phone app, the tools button at the top opens every tool in four groups: **Words** (Dictionary, Rhymes, Metre in poems and lyrics, Check, Saved words), **Plan and assist** (AI companion, Story World, Goals), **Page** (Format, Page setup, Contents, Pages, Insert page) and **Review and share** (Listen, Version history, Share & export). Tools for your writing type, such as footnotes or scene tools, sit in a last group. **Find** has its own button beside the tools button.
 
 ![The editor's tools on the phone](shots/phone-tools.webp)
 

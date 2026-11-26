@@ -18,7 +18,7 @@
  *
  * Phone app: lib/core/manglish_rank.dart must give the same answers (test/manglish_rank_vectors.json).
  */
-import { COMMON, manglishCandidates, manglishWord } from "./manglish.ts";
+import { COMMON, exactReading, manglishCandidates, manglishWord } from "./manglish.ts";
 
 // ---------------------------------------------------------------- sound skeleton
 
@@ -321,7 +321,8 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number, ranks: Map<st
       return out.slice(0, max);
     }
     // capitals, ~ or _ mean the writer is spelling exactly: their reading leads
-    if (/[A-Z]/.test(word)) add(manglishWord(word));
+    const exact = exactReading(word);
+    if (exact) add(exact);
     for (const s of lookup(word, max)) add(s.word);
     for (const c of manglishCandidates(word, max)) add(c);
     // the plain reading always stays within the first six

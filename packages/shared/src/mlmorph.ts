@@ -313,19 +313,26 @@ export class MlSpeller {
   }
 
   /**
-   * A negative the morphology knows with the quotative എന്ന് (or എന്നു, എന്ന, എന്നും, എന്നോ) joined on:
+   * A negative the morphology knows with the quotative എന്ന് joined on, with any ending mlmorph
+   * allows after a quotative (എന്ന്, എന്നു, എന്നും, എന്നാണ്, എന്നുള്ള, എന്നായിരുന്നു…):
    * ഇല്ല + എന്ന് → ഇല്ലെന്ന്. mlmorph has each half but not every chain of them (കാണാനില്ലെന്ന്,
-   * അറിയില്ലെന്ന്, വരില്ലെന്ന്, പറഞ്ഞില്ലെന്ന്), and these are among the most written words in prose.
+   * അറിയില്ലെന്നാണ്, വരില്ലെന്നുള്ള), and these are among the most written words in prose.
    */
   private quoted(word: string): boolean {
-    const m = /^(.+[\u0D15-\u0D39])െന്ന(്|ു|ും|ോ)?$/u.exec(word);
-    if (!m || [...m[1]].length < 2) return false;
-    // only a negative before it (ഇല്ല, വേണ്ട…): mlmorph reads many slips and bare nouns as
-    // something (വരില, അമ്മ), and those must stay marked (tester, 26 Nov: 122 false passes → 34, all with a base mlmorph itself accepts)
-    const base = m[1];
-    if (this.morph.analyse(base, 8).some((a) => a.endsWith("<neg>"))) return true;
-    // "need not" -ഏണ്ട (പോകേണ്ടെന്ന്, വിഷമിക്കേണ്ടെന്ന്): the verb's -ഏണം form must be a verb
-    if (base.endsWith("േണ്ട")) return this.morph.analyse(base.slice(0, -"േണ്ട".length) + "േണം", 4).some((a) => a.includes("<v><imperative-mood>"));
+    const Q = "െന്ന";
+    for (let at = word.indexOf(Q); at > 0; at = word.indexOf(Q, at + 1)) {
+      const base = word.slice(0, at);
+      const tail = word.slice(at + Q.length);
+      if ([...base].length < 2 || !/[\u0D15-\u0D39]$/u.test(base)) continue;
+      // the ending must be one mlmorph accepts after a quotative (tried on ഇല്ലെന്ന…)
+      if (tail && !this.morph.accepts("ഇല്ല" + Q + tail)) continue;
+      // only a negative before it (ഇല്ല, വേണ്ട…): mlmorph reads many slips and bare nouns as
+      // something (വരില, അമ്മ), and those must stay marked (tester, 26 Nov: 122 false passes → 34,
+      // all with a base mlmorph itself accepts)
+      if (this.morph.analyse(base, 8).some((a) => a.endsWith("<neg>"))) return true;
+      // "need not" -ഏണ്ട (പോകേണ്ടെന്ന്, വിഷമിക്കേണ്ടെന്ന്): the verb's -ഏണം form must be a verb
+      if (base.endsWith("േണ്ട") && this.morph.analyse(base.slice(0, -"േണ്ട".length) + "േണം", 4).some((a) => a.includes("<v><imperative-mood>"))) return true;
+    }
     return false;
   }
 

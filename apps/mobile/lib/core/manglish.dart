@@ -315,3 +315,13 @@ String toMalayalam(String text) {
     return manglishWord(word);
   });
 }
+
+/// The letter-by-letter reading when the writer is spelling exactly with capitals (paNi → പണി,
+/// kaLam → കളം), else null. A name-style capital (Kerala, Ammu), a word in capitals (TV) and
+/// capitals with no meaning in the scheme (iPhone) don't count. Same as the web's `exactReading`
+/// (packages/shared/src/manglish.ts).
+String? exactReading(String word) {
+  if (!RegExp('[A-Z]').hasMatch(word) || RegExp(r'^[A-Z][a-z~_^]*$').hasMatch(word) || (word.length > 1 && word == word.toUpperCase())) return null;
+  final w = word.replaceAllMapped(RegExp('[A-Z]'), (c) => _meaningfulCaps.contains(c[0]) ? c[0]! : c[0]!.toLowerCase());
+  return RegExp('[A-Z]').hasMatch(w) ? manglishWord(w) : null;
+}

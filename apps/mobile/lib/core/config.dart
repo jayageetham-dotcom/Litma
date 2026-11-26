@@ -151,7 +151,10 @@ class Transliterator {
       final list = ((j['candidates'] as List?) ?? const []).cast<String>();
       if (j['source'] == 'offline') return offline(word); // Google didn't answer: keep the ranked list
       // Google's ranking first; the offline spellings only fill gaps, never more than [num]
-      final out = <String>{...list.map((e) => e.trim()).where((e) => e.isNotEmpty), local, ...offline(word)}.take(num).toList();
+      // Google ignores case: a word spelt exactly with capitals (kaLam) gets its own reading first,
+      // as on the web (the server does the same since 26 Nov; this covers an older server)
+      final exact = exactReading(word);
+      final out = <String>{if (exact != null) exact, ...list.map((e) => e.trim()).where((e) => e.isNotEmpty), local, ...offline(word)}.take(num).toList();
       if (_cache.length > 400) _cache.clear();
       _cache['$num/$word'] = out;
       // the writer's own earlier pick beats Google's order

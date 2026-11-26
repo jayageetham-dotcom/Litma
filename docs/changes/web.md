@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-26: Menu placement, Manglish capitals (branch `claude/menu-place-quotative`)
+
+- `EditorContextMenu.tsx` placement by the clicked line's rect; `ManglishPopup.tsx` and `ScriptField.tsx` use `exactReading` / `MEANINGFUL_CAPS` from `shared/manglish.ts`. See cross-platform.md.
+
 ## 2026-11-26: Right-click menu, Manglish picks (branch `claude/context-menu-spelling`, PR #19)
 
 - `components/editor/EditorContextMenu.tsx` (new), mounted in `Workspace.tsx` off phones; `SpellSuggest.tsx` hides while it is open (`CONTEXT_MENU_EVENT`). `ManglishPopup.tsx` `withPick` on cached lists and capitals first; `extensions/manglish.ts` `withPick` on the first offline list. See cross-platform.md.

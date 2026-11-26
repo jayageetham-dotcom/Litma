@@ -7,6 +7,12 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-26: Menu placement, quotative endings, Manglish capitals everywhere (branch `claude/menu-place-quotative`)
+
+- Spelling (every app, server side): `quoted()` now takes any ending mlmorph allows after ഇല്ലെന്ന (എന്നാണ്, എന്നുള്ള, എന്നായിരുന്നു, എന്നല്ലേ…), still only after a negative. `quoted-check.ts`: prose false alarms 22 → 21 of 345; false passes 73 of 1,628 misspellings with the long endings (4.5%, all with a base mlmorph itself accepts). Not covered: എന്നാണല്ലോ (mlmorph rejects it even after ഇല്ല).
+- Manglish capitals: `exactReading` (shared + Dart). Checked with the Litma MCP `transliterate`: Google ignores case (kaLam → കാലം, koDi → കോടി), so the phone app online and the MCP put Google's reading first. Now `_shared/google.ts` (litma-transliterate and MCP), web `ManglishPopup`, phone `Transliterator.candidates` and both offline rankers put the exact reading first only for meaningful capitals inside a word. Fixes the merged PR #19 rule, which also led with broken readings for name-cased words (Kerala → Kഎരല). Vectors: `Ammu kaLam paNi NaLLa iPhone` added to `manglish_rank_inputs.txt`.
+- Web/desktop menu: never covers the clicked line (below, else above, else the roomier side with its own scroll).
+
 ## 2026-11-26: Right-click menu, quotative spelling fix, Manglish picks (branch `claude/context-menu-spelling`, PR #19)
 
 - Web + desktop: Litma's own right-click menu in the editor (`apps/web/src/components/editor/EditorContextMenu.tsx`): spelling fixes, Ignore/Keep, cut, copy, paste, paste without formatting, delete, select all, look up, rhymes, Ask AI, B/I/U, clear formatting, shortcuts; pointer devices only, Shift + right-click keeps the browser's. Desktop: `litma:edit` IPC + `litmaDesktop.edit`, native Cut/Copy/Paste menu outside the editor (`editMenuFor` in `apps/desktop/src/main.ts`). Strings `editorMenu.*`, help `03-editor.md`.

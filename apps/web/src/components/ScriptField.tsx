@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { manglish } from "@litma/shared/manglish";
+import { manglish, MEANINGFUL_CAPS } from "@litma/shared/manglish";
 import { X } from "lucide-react";
 import { useT } from "@/i18n/react";
 
 type Mode = "manglish" | "plain";
 
 /** Capitals the Manglish scheme gives a meaning of their own (T ട, N ണ, L ള…); other capitals read as small letters. */
-const MEANINGFUL_CAPS = new Set([..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].filter((c) => !/[A-Za-z]/.test(manglish(c))));
 
 /**
  * Manglish → Malayalam for fields where people type names: a Name-cased word ("Jagath") reads all small,

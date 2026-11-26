@@ -367,3 +367,18 @@ export function countWords(text: string): number {
 export function readingMinutes(words: number): number {
   return Math.max(1, Math.round(words / 150));
 }
+
+/** Capitals that mean a different letter in Manglish (N ണ, L ള, T ട, D ഡ, R റ, long vowels…). */
+export const MEANINGFUL_CAPS = new Set("ADEHILMNORSTU");
+
+/**
+ * The letter-by-letter reading when the writer is spelling exactly with capitals (paNi → പണി,
+ * kaLam → കളം), else null. A name-style capital (Kerala, Ammu), a word in capitals (TV) and
+ * capitals with no meaning in the scheme (iPhone) don't count, so Google's reading still leads
+ * for them. Google ignores case, so the online lists put this reading first (web, phone, MCP).
+ */
+export function exactReading(word: string): string | null {
+  if (!/[A-Z]/.test(word) || /^[A-Z][a-z~_^]*$/.test(word) || (word.length > 1 && word === word.toUpperCase())) return null;
+  const w = word.replace(/[A-Z]/g, (c) => (MEANINGFUL_CAPS.has(c) ? c : c.toLowerCase()));
+  return /[A-Z]/.test(w) ? manglishWord(w) : null;
+}

@@ -43,10 +43,11 @@ export interface EditorContextMenuProps {
  */
 export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShortcuts }: EditorContextMenuProps) {
   const t = useT();
-  const [at, setAt] = useState<{ x: number; y: number } | null>(null);
+  /** where it opened: the pointer's x and the clicked line's top and bottom */
+  const [at, setAt] = useState<{ x: number; lineTop: number; lineBottom: number } | null>(null);
   const [issue, setIssue] = useState<DocIssue | null>(null);
   const [active, setActive] = useState(-1);
-  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const [pos, setPos] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
   const [toast, setToast] = useState("");
   const menu = useRef<HTMLDivElement>(null);
   const openedAt = useRef(0);
@@ -69,11 +70,12 @@ export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShort
       if (!keyboard && typeof window.matchMedia === "function" && !window.matchMedia("(pointer: fine)").matches) return;
       e.preventDefault();
       const { state, view } = editor;
-      let x = e.clientX, y = e.clientY;
+      let x = e.clientX, lineTop = e.clientY, lineBottom = e.clientY;
       if (keyboard) {
         const c = view.coordsAtPos(state.selection.head);
         x = c.left;
-        y = c.bottom;
+        lineTop = c.top;
+        lineBottom = c.bottom;
       } else {
         // like Docs: a click outside the selection moves the cursor there; inside keeps it
         const hit = view.posAtCoords({ left: e.clientX, top: e.clientY });
@@ -81,12 +83,22 @@ export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShort
         if (hit && (state.selection.empty || hit.pos < from || hit.pos > to)) {
           view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, hit.pos)));
         }
+        // the clicked line, so the menu never covers it
+        if (hit) {
+          try {
+            const c = view.coordsAtPos(hit.pos);
+            lineTop = Math.min(c.top, e.clientY);
+            lineBottom = Math.max(c.bottom, e.clientY);
+          } catch {
+            /* keep the pointer's place */
+          }
+        }
       }
       if (!editor.isFocused) editor.commands.focus();
       setIssue(issueAt(editor.state));
       setActive(-1);
       openedAt.current = Date.now();
-      setAt({ x, y });
+      setAt({ x, lineTop, lineBottom });
     };
     dom.addEventListener("contextmenu", onMenu);
     return () => dom.removeEventListener("contextmenu", onMenu);
@@ -249,15 +261,27 @@ export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShort
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [at, active]);
 
-  // keep it on screen: flip left/up when it would run past the edge
+  // Keep it on screen without covering the clicked line: below the line when it fits, else above,
+  // else on the roomier side with its own scroll. Measured once per opening (one layout read).
   useLayoutEffect(() => {
     if (!at) return setPos(null);
-    const w = menu.current?.offsetWidth ?? 280;
-    const h = menu.current?.offsetHeight ?? 480;
+    const el = menu.current;
+    const w = el?.offsetWidth ?? 280;
+    const h = el?.scrollHeight ?? 480;
     const vw = window.innerWidth, vh = window.innerHeight;
-    const left = at.x + w + 8 > vw ? Math.max(8, at.x - w) : at.x;
-    const top = at.y + h + 8 > vh ? Math.max(8, Math.min(at.y - h, vh - h - 8)) : at.y;
-    setPos({ left, top });
+    const gap = 4, edge = 8;
+    const left = at.x + w + edge > vw ? Math.max(edge, at.x - w) : at.x;
+    const below = vh - at.lineBottom - gap - edge;
+    const above = at.lineTop - gap - edge;
+    let top: number, maxHeight: number;
+    if (h <= below || below >= above) {
+      top = at.lineBottom + gap;
+      maxHeight = Math.max(below, 120);
+    } else {
+      maxHeight = above;
+      top = at.lineTop - gap - Math.min(h, above);
+    }
+    setPos({ left, top, maxHeight });
   }, [at, issue]);
 
   // the text controls the menu (like the suggestion lists)
@@ -281,7 +305,7 @@ export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShort
           role="menu"
           aria-label={t("editorMenu.label")}
           className="pop-in no-print fixed z-[60] flex w-max min-w-[15rem] max-w-[calc(100vw-16px)] flex-col overflow-y-auto rounded-[12px] border border-line bg-paper p-1.5 text-[13.5px] text-ink shadow-[var(--pop-shadow)]"
-          style={{ left: pos?.left ?? at.x, top: pos?.top ?? at.y, maxHeight: "calc(100vh - 16px)", visibility: pos ? "visible" : "hidden", fontFamily: "var(--font-ui)" }}
+          style={{ left: pos?.left ?? at.x, top: pos?.top ?? at.lineBottom, maxHeight: pos ? pos.maxHeight : "calc(100vh - 16px)", visibility: pos ? "visible" : "hidden", fontFamily: "var(--font-ui)" }}
           onPointerDown={keep}
           onMouseDown={keep}
           onContextMenu={keep}

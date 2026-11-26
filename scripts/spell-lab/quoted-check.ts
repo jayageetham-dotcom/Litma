@@ -42,15 +42,16 @@ const fail = (msg: string) => {
 const MUST_OK = `കാണാനില്ലെന്ന് കാണാനില്ലെന്നു കാണാനില്ലെന്ന കാണാനില്ലെന്നും കാണാനില്ലെന്നോ അറിയില്ലെന്ന് വരില്ലെന്ന്
 പറഞ്ഞില്ലെന്ന് കാണാനാവില്ലെന്ന് വേണ്ടെന്ന് ഒരുങ്ങിയില്ലെന്ന് ജയിച്ചില്ലെന്ന് കുറഞ്ഞില്ലെന്ന് വൈകില്ലെന്നും കണ്ടില്ലെന്ന്
 വിഷമിക്കേണ്ടെന്ന് പോകേണ്ടെന്ന് തികഞ്ഞില്ലെന്ന് കണ്ടിട്ടില്ലെന്ന് വായിക്കുന്നില്ലെന്ന് സമ്മതിച്ചില്ലെന്ന് ഒന്നുമില്ലെന്ന്
-ആരുമില്ലെന്ന് സമയമില്ലെന്ന് മറക്കാനാവില്ലെന്ന് ഇല്ലെന്ന് ആണെന്ന് ഉണ്ടെന്ന് വരുമെന്ന് വേണമെന്ന് പോയെന്ന് വന്നെന്ന്`.split(/\s+/);
+ആരുമില്ലെന്ന് സമയമില്ലെന്ന് മറക്കാനാവില്ലെന്ന് ഇല്ലെന്ന് ആണെന്ന് ഉണ്ടെന്ന് വരുമെന്ന് വേണമെന്ന് പോയെന്ന് വന്നെന്ന്
+കാണാനില്ലെന്നാണ് കാണാനില്ലെന്നുള്ള അറിയില്ലെന്നായിരുന്നു വരില്ലെന്നാണോ കിട്ടില്ലെന്നുമാണ് പറഞ്ഞില്ലെന്നായി പോകേണ്ടെന്നാണ് വേണ്ടെന്നുള്ള കണ്ടിട്ടില്ലെന്നല്ലേ`.split(/\s+/);
 for (const w of MUST_OK) if (!ok(w)) fail(`correct word flagged: ${w}`);
 
 // 2. not words: must stay flagged
-const MUST_FLAG = "കാണാനില്ലെന്ന്ന് ലെന്ന് പെരുന്നാൾെന്ന് കാണാനില്ലെന്ന്‌ന്".split(/\s+/);
+const MUST_FLAG = "കാണാനില്ലെന്ന്ന് ലെന്ന് പെരുന്നാൾെന്ന് കാണാനില്ലെന്ന്‌ന് കാണാനില്ലെന്നാണ്ണ് അമ്മെന്നാണ് വരിലെന്നുള്ള കാണാനില്ലെന്നxയ".split(/\s+/);
 for (const w of MUST_FLAG) if (ok(w)) fail(`non-word accepted: ${w}`);
 
 // 3. everyday prose: false alarms
-const PROSE_MAX = 22; // 26 Nov 2026: 22 of 345 words (mlmorph alone: 33)
+const PROSE_MAX = 21; // 26 Nov 2026: 21 of 345 words with the long endings (22 before them; mlmorph alone: 33)
 const words = malayalamWords(readFileSync(join(here, "prose.txt"), "utf8")).map((x) => x.word);
 const before = words.filter((w) => !plain(w)).length;
 const after = words.filter((w) => !ok(w));
@@ -58,7 +59,7 @@ console.log(`prose: ${words.length} words, flagged ${before} by mlmorph alone, $
 if (after.length > PROSE_MAX) fail(`prose false alarms ${after.length} > ${PROSE_MAX}: ${after.join(" ")}`);
 
 // 4. misspellings of chain words that only quoted() lets through
-const FALSE_PASS_MAX = 34; // 26 Nov 2026: 34 of 811 after quoted() took only negatives (was 122); the rest have a base mlmorph itself accepts (പറയനാവില്ല)
+const FALSE_PASS_MAX = 73; // 26 Nov 2026: 73 of 1628 (4.5%) with the long endings too (34 of 811 before them); every one has a base mlmorph itself accepts (പറയനാവില്ല, കേടടില്ല)
 const BASES = `ഇല്ല കാണാനില്ല അറിയില്ല വരില്ല പറഞ്ഞില്ല പോയില്ല കിട്ടിയില്ല തോന്നിയില്ല ഉറങ്ങിയില്ല കഴിഞ്ഞില്ല സമ്മതിച്ചില്ല
 കേട്ടില്ല കണ്ടില്ല വന്നില്ല തന്നില്ല ചെയ്തില്ല മിണ്ടിയില്ല കഴിക്കില്ല പോകില്ല ആവില്ല കാണാനാവില്ല പറയാനാവില്ല മറക്കാനാവില്ല
 സഹിക്കാനാവില്ല ഓർമയില്ല പേടിയില്ല സമയമില്ല പണമില്ല ആരുമില്ല ഒന്നുമില്ല വേണ്ട പോകേണ്ട പറയേണ്ട കരയേണ്ട വിഷമിക്കേണ്ട
@@ -81,7 +82,7 @@ const seen = new Set<string>();
 let caught = 0;
 const through: string[] = [];
 for (const base of BASES)
-  for (const end of ["്", "ു", "ും"]) {
+  for (const end of ["്", "ു", "ും", "ാണ്", "ുള്ള", "ായിരുന്നു"]) {
     const good = base + "െന്ന" + end;
     for (const m of misspell(base)) {
       const w = m + "െന്ന" + end;

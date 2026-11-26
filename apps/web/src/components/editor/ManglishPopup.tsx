@@ -4,7 +4,7 @@ import type { Editor } from "@tiptap/react";
 import type { Transaction } from "@tiptap/pm/state";
 import { transliterate } from "@/lib/functions";
 import { offlineCandidates, OFFLINE_MAX, rememberPick, withPick } from "@/lib/manglish-words";
-import { manglishWord } from "@litma/shared/manglish";
+import { exactReading } from "@litma/shared/manglish";
 import { manglishKey, topCandidates, pageOf, MAX_CANDIDATES, PAGE_SIZE, type ComposeState, type CommitInfo } from "@/extensions/manglish";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useT } from "@/i18n/react";
@@ -18,8 +18,10 @@ async function fetchCandidates(word: string): Promise<string[] | null> {
   const j = await transliterate(word, MAX_CANDIDATES);
   if (!j.candidates?.length || j.source === "offline") return null;
   // capitals (N ണ, L ള, T ട, D ഡ, R റ) mean the writer is spelling exactly: their reading leads,
-  // even though Google ignores case. Then Google's spellings, then the offline ones it doesn't have.
-  const exact = /[A-Z]/.test(word) ? [manglishWord(word)] : [];
+  // even though Google ignores case (not a name's capital: Kerala). Then Google's spellings, then
+  // the offline ones it doesn't have. The server does the same; this covers lists cached before it.
+  const e = exactReading(word);
+  const exact = e ? [e] : [];
   const list = topCandidates([...exact, ...j.candidates, ...offlineCandidates(word, OFFLINE_MAX)]);
   cache.set(word, list);
   // the writer's own earlier pick beats Google's order

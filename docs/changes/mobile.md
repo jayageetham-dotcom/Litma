@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-26: Manglish capitals online (branch `claude/menu-place-quotative`)
+
+- `lib/core/manglish.dart` `exactReading` (port of the web's), used by `manglish_rank.dart` (`suggest`) and `config.dart` `Transliterator.candidates` (exact reading before Google's list). Vectors regenerated (`Ammu kaLam paNi NaLLa iPhone` added). Needs Mobile app checks; a store build for writers to get it (the server change already helps the phone's online list).
+
 ## 2026-11-26: Right-click menu branch (PR #19), nothing to port
 
 - Only `assets/i18n/*.json` regenerated (`editorMenu.*`, web/desktop only). The spelling fix for quotative joins is in `litma-spell`, so the phone gets it with the deploy. To check later: the phone's online Manglish list with capitals (N, L, T, D, R) should put the exact reading first like the web now does.

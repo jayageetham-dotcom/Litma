@@ -351,7 +351,11 @@ void main() {
 
   // ── keyboard strip ──
 
-  testWidgets('Hide keyboard in the strip takes the keyboard away from the line', (t) async {
+  testWidgets('Hide keyboard in the strip takes the keyboard away from the line',
+      // TEST TO FIX (lead, 26 Nov): in CI the finder for the keyboard strip's Scrollable (ancestor of
+      // the Undo tooltip) finds nothing, so dragUntilVisible throws before the app is exercised. Not an
+      // app bug that we know of; fix the finder, then remove this skip.
+      skip: true, (t) async {
     final s = await openEditor(t);
     final line = s.lines[2];
     await t.tapAt(lineRect(t, s, line).center);

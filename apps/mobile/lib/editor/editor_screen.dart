@@ -1045,6 +1045,9 @@ class _MoreMenu extends ConsumerWidget {
 /// the closest one above or below it. Only lines on screen count. Nothing happens if the tap was on
 /// a line's own text (the line handles it).
 void tapPaper(EditorSession session, Offset global) {
+  // a tap on the page outside the text ends a selection, as anywhere else (owner, 26 Nov: the
+  // highlight, handles and bar stayed when the tap landed on the line that was already focused)
+  session.clearSpan();
   TextBlock? best;
   var bestGap = double.infinity;
   for (final b in session.lines) {

@@ -343,7 +343,8 @@ class ManglishRanker {
   }
 
   /// Known words that fit a Manglish word, best first.
-  List<String> lookup(String word, {int max = 8}) {
+  List<String> lookup(String typed, {int max = 8}) {
+    final word = foldCaps(typed);
     final keys = latinKeys(word);
     final literal = manglishWord(word);
     final literalHalf = literal.replaceAll(RegExp(r'ു$'), '്');
@@ -398,7 +399,9 @@ class ManglishRanker {
   }
 
   /// The offline suggestion list: known words first, then the letter readings (never dropped).
-  List<String> suggest(String word, {int max = 6}) {
+  List<String> suggest(String typed, {int max = 6}) {
+    // capitals that don't mean a letter (Kerala, TV, YouTube) are read as small letters
+    final word = foldCaps(typed);
     final out = <String>[];
     void add(String s) {
       if (s.isNotEmpty && !out.contains(s)) out.add(s);

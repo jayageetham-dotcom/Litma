@@ -200,7 +200,7 @@ class LookupViewState extends ConsumerState<LookupView> {
       // Manglish typed in English letters: offer the Malayalam it may have been meant as
       var ml = <String>[];
       if (!isMalayalam(q) && RegExp(r'^[A-Za-z~_^]+$').hasMatch(q)) {
-        ml = {...(await ref.read(servicesProvider).transliterator.candidates(q, num: 4)), manglishWord(q)}.take(4).toList();
+        ml = {...(await ref.read(servicesProvider).transliterator.candidates(q, num: 4)), manglishWord(foldCaps(q))}.take(4).toList();
       }
       if (mounted && _q.text.trim() == q) {
         setState(() {

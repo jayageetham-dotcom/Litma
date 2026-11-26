@@ -110,7 +110,7 @@ if (back.length) fail(`false passes came back: ${back.join(" ")}`);
 //    (ഇ<dem>അല്ല്<n>എന്നു്<postp>… + ഓ<cnj>അര, n-v-compounds, vowel signs read as vowels): tester, 26 Nov.
 //    All of these are wrong, but quoted() accepts them because accepts("ഇല്ലെന്ന" + tail) is true.
 //    The ceiling stops it getting worse; lower it (to 0) when the tail test is made stricter.
-const TAIL_SLIP_MAX = 29; // 26 Nov 2026: 29 of 29 (one more is accepted by mlmorph alone)
+const TAIL_SLIP_MAX = 0; // 26 Nov 2026: 0 of 29 once quotativeTail() needs a plain reading (was 29 of 29)
 const SLIP_TAILS = "യിരുന്നു ാനോ ാണൊ െന്ന് െന്നാണ് ോര ട നട റി ുാക".split(" "); // എന്നയിരുന്നു, doubled എന്ന, junk
 const SLIP_BASES = "കാണാനില്ല വരില്ല പോകേണ്ട".split(" ");
 const slips = SLIP_BASES.flatMap((b) => SLIP_TAILS.map((t) => b + "െന്ന" + t)).filter((w) => !plain(w));

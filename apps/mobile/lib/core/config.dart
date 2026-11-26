@@ -119,11 +119,11 @@ class Transliterator {
   List<String> offline(String word) {
     _loadWords();
     final r = _ranker;
-    if (r == null) return withPick(word, manglishCandidates(word)).take(offlineMax).toList();
+    if (r == null) return withPick(word, manglishCandidates(foldCaps(word))).take(offlineMax).toList();
     try {
       return withPick(word, r.suggest(word, max: offlineMax)).take(offlineMax).toList();
     } catch (_) {
-      return withPick(word, manglishCandidates(word)).take(offlineMax).toList();
+      return withPick(word, manglishCandidates(foldCaps(word))).take(offlineMax).toList();
     }
   }
 
@@ -141,7 +141,7 @@ class Transliterator {
   Future<List<String>> candidates(String word, {int num = maxCandidates}) async {
     final hit = _cache['$num/$word'];
     if (hit != null) return withPick(word, hit);
-    final local = manglishWord(word);
+    final local = manglishWord(foldCaps(word));
     try {
       final r = await _client
           .get(Uri.parse('${AppConfig.functionsUrl}/litma-transliterate?text=${Uri.encodeQueryComponent(word)}&num=$num'), headers: {'apikey': AppConfig.supabaseAnonKey})

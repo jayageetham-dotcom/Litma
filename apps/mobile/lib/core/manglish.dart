@@ -316,12 +316,22 @@ String toMalayalam(String text) {
   });
 }
 
-/// The letter-by-letter reading when the writer is spelling exactly with capitals (paNi → പണി,
-/// kaLam → കളം), else null. A name-style capital (Kerala, Ammu), a word in capitals (TV) and
-/// capitals with no meaning in the scheme (iPhone) don't count. Same as the web's `exactReading`
+/// A Manglish word with only the capitals that mean a letter: a name-style capital (Kerala, Ammu),
+/// a word in capitals (TV), a brand-style word (YouTube, iOS) and capitals with no meaning in the
+/// scheme (iPhone) are lowered, so no reading mixes Latin letters in. Same as the web's `foldCaps`
 /// (packages/shared/src/manglish.ts).
+String foldCaps(String word) {
+  if (!RegExp('[A-Z]').hasMatch(word)) return word;
+  final name = RegExp(r'^[A-Z][a-z~_^]*$').hasMatch(word);
+  final allCaps = word.length > 1 && word == word.toUpperCase();
+  final brand = (RegExp('^[A-Z]').hasMatch(word) && RegExp('[A-Z]').hasMatch(word.substring(1))) || RegExp(r'[a-z][A-Z]{2,}$').hasMatch(word);
+  if (name || allCaps || brand) return word.toLowerCase();
+  return word.replaceAllMapped(RegExp('[A-Z]'), (c) => _meaningfulCaps.contains(c[0]) ? c[0]! : c[0]!.toLowerCase());
+}
+
+/// The letter-by-letter reading when the writer is spelling exactly with capitals inside a word
+/// (paNi → പണി, kaLam → കളം), else null. Same as the web's `exactReading`.
 String? exactReading(String word) {
-  if (!RegExp('[A-Z]').hasMatch(word) || RegExp(r'^[A-Z][a-z~_^]*$').hasMatch(word) || (word.length > 1 && word == word.toUpperCase())) return null;
-  final w = word.replaceAllMapped(RegExp('[A-Z]'), (c) => _meaningfulCaps.contains(c[0]) ? c[0]! : c[0]!.toLowerCase());
+  final w = foldCaps(word);
   return RegExp('[A-Z]').hasMatch(w) ? manglishWord(w) : null;
 }

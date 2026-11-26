@@ -1,7 +1,7 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey, EditorState } from "@tiptap/pm/state";
 import { Decoration, DecorationSet, EditorView } from "@tiptap/pm/view";
-import { manglish, manglishWord, MANGLISH_WORD_RE } from "@litma/shared/manglish";
+import { foldCaps, manglish, manglishWord, MANGLISH_WORD_RE } from "@litma/shared/manglish";
 import { offlineCandidates, OFFLINE_MAX, withPick } from "../lib/manglish-words";
 import { LAYOUTS, keyToText, readLayout, storeLayout, type MalayalamLayout } from "@litma/keyboards";
 
@@ -102,8 +102,8 @@ function computeCompose(state: EditorState, prev: ComposeState, mode: InputMode)
 function commit(view: EditorView, index?: number): boolean {
   const st = manglishKey.getState(view.state);
   if (!st || !st.active) return false;
-  const list = st.candidates.length ? st.candidates : [manglishWord(st.word)];
-  const choice = list[Math.min(index ?? st.index, list.length - 1)] ?? manglishWord(st.word);
+  const list = st.candidates.length ? st.candidates : [manglishWord(foldCaps(st.word))];
+  const choice = list[Math.min(index ?? st.index, list.length - 1)] ?? manglishWord(foldCaps(st.word));
   const tr = view.state.tr.insertText(choice, st.from, st.to);
   const chosen = (index !== undefined && index > 0) || (index === undefined && st.index > 0);
   const committed: CommitInfo = { from: st.from, text: choice, word: st.word, fetched: st.fetched || index !== undefined || st.index > 0, chosen };
@@ -245,8 +245,8 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
           const now = manglishKey.getState(newState);
           if (now?.active && now.from === was.from) return null;
           if (newState.doc.textBetween(was.from, was.to, undefined, "￼") !== was.word) return null;
-          const list = was.candidates.length ? was.candidates : [manglishWord(was.word)];
-          const choice = list[Math.min(was.index, list.length - 1)] ?? manglishWord(was.word);
+          const list = was.candidates.length ? was.candidates : [manglishWord(foldCaps(was.word))];
+          const choice = list[Math.min(was.index, list.length - 1)] ?? manglishWord(foldCaps(was.word));
           const committed: CommitInfo = { from: was.from, text: choice, word: was.word, fetched: was.fetched || was.index > 0, chosen: was.index > 0 };
           return newState.tr.insertText(choice, was.from, was.to).setMeta(manglishKey, { reset: true, committed });
         },
@@ -268,7 +268,7 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
             const st = manglishKey.getState(view.state);
             if (!st || !st.active || st.dismissed || event.isComposing) return false;
             if (event.metaKey || event.ctrlKey || event.altKey) return false;
-            const list = st.candidates.length ? st.candidates : [manglishWord(st.word)];
+            const list = st.candidates.length ? st.candidates : [manglishWord(foldCaps(st.word))];
             if (event.key === "ArrowDown" || event.key === "ArrowUp") {
               if (list.length < 2) return false;
               const d = event.key === "ArrowDown" ? 1 : -1;

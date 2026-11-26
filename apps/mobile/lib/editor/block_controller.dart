@@ -175,7 +175,7 @@ class BlockController extends TextEditingController {
         if (keepEnglish == word) {
           keepEnglish = null;
         } else {
-          final ml = spelling?.call(word) ?? manglishWord(word);
+          final ml = spelling?.call(word) ?? manglishWord(foldCaps(word));
           final start = end - word.length;
           final marksOfWord = block.marks[start];
           _replace(start, end, ml, marksOfWord);
@@ -213,7 +213,7 @@ class BlockController extends TextEditingController {
       keepEnglish = null;
       return null;
     }
-    final ml = spelling?.call(word) ?? manglishWord(word);
+    final ml = spelling?.call(word) ?? manglishWord(foldCaps(word));
     _replace(start, end, ml, block.marks.isEmpty ? MarkSet.empty : block.marks[start]);
     final d = ml.length - word.length;
     int moved(int x) => (x >= end ? x + d : x).clamp(0, block.text.length) + 1;

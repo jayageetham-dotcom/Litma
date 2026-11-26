@@ -34,4 +34,9 @@ Tester, 26 Nov, on 04ee40c. Scripts in /tmp/tester2/ (attack.ts, strict*.ts, exa
 
 Test changes committed: `scripts/spell-lab/quoted-check.ts` (13 more long endings in MUST_OK incl. എന്നോർത്ത്/എന്നറിയാം/എന്നമട്ടിൽ/വേണ്ടെന്നുവെച്ചു, 9 more MUST_FLAG, new §6 ending slips with a ceiling), `apps/mobile/test/manglish_rank_inputs.txt` + regenerated `manglish_rank_vectors.json`.
 
+### Fixes after the tester (lead, 26 Nov)
+- 1 (loose endings): `quotativeTail()` needs a plain mlmorph reading of ഇല്ലെന്ന+ending (no compound, quantifier, indeclinable, interrogative), a short list for good compound-only endings (`QUOTATIVE_COMPOUND_TAILS`: ാകും ാവും ോർത്ത് റിയാം മട്ടിൽ ുവെച്ചു ുവച്ചു ിട്ടും ായിരിക്കും ാക്കി), no doubled എന്ന, no two vowel signs in a row, no എന്നെ/എന്നേ. quoted-check §6 slips 29 → 0 (`TAIL_SLIP_MAX = 0`); random 1–4 letter endings accepted 6.9% → 2.8% (the rest are real one-letter endings like എന്നോ, എന്നീ); MUST_OK all still ok; prose 21 of 345.
+- 2 + 3 (capitals): `foldCaps` (shared + Dart) lowers name-style, all-caps, brand-style (a leading capital with more capitals, or a run of capitals after small letters at the end: YouTube, WhatsApp, iOS, macOS) and meaningless capitals before every letter reading: rankers (`suggest`, `lookup`), web `offlineCandidates` fallback and `commit`, `_shared/google.ts` local, phone `config.dart`, `block_controller.dart`, `dictionary_screen.dart`. `exactReading` = reading of `foldCaps(word)` when a capital is left. Vectors: no suggestion contains Latin letters; Kerala → കേരള…; YouTube online keeps Google's reading. Tradeoff: NaLLa and LLa now count as brand-style (lowered).
+- 4 (selection collapses when right-clicking the gap between pages) and 5 (pre-existing mlmorph gaps, ZWNJ after ്) left open.
+
 ## Verification (verifier)

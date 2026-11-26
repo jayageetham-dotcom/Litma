@@ -1,10 +1,10 @@
-import { exactReading, manglishWord } from "./manglish.ts";
+import { exactReading, foldCaps, manglishWord } from "./manglish.ts";
 
 const cache = new Map<string, string[]>();
 
 /** Google Input Tools (ml-t-i0-und) candidates for one Manglish word, with offline fallback. */
 export async function googleCandidates(word: string, num = 6): Promise<{ candidates: string[]; source: string }> {
-  const local = manglishWord(word);
+  const local = manglishWord(foldCaps(word));
   const key = `${word}:${num}`;
   const hit = cache.get(key);
   if (hit) return { candidates: hit, source: "cache" };

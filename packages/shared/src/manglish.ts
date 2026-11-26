@@ -372,13 +372,26 @@ export function readingMinutes(words: number): number {
 export const MEANINGFUL_CAPS = new Set("ADEHILMNORSTU");
 
 /**
- * The letter-by-letter reading when the writer is spelling exactly with capitals (paNi → പണി,
- * kaLam → കളം), else null. A name-style capital (Kerala, Ammu), a word in capitals (TV) and
- * capitals with no meaning in the scheme (iPhone) don't count, so Google's reading still leads
- * for them. Google ignores case, so the online lists put this reading first (web, phone, MCP).
+ * A Manglish word with only the capitals that mean a letter: a name-style capital (Kerala, Ammu),
+ * a word in capitals (TV, KSRTC), a brand-style word (YouTube, WhatsApp, iOS) and capitals with no
+ * meaning in the scheme (iPhone) are lowered, so no reading ever mixes Latin letters in (Kഎരല).
+ * Use it before any letter reading of a typed word.
+ */
+export function foldCaps(word: string): string {
+  if (!/[A-Z]/.test(word)) return word;
+  const name = /^[A-Z][a-z~_^]*$/.test(word);
+  const allCaps = word.length > 1 && word === word.toUpperCase();
+  const brand = (/^[A-Z]/.test(word) && /[A-Z]/.test(word.slice(1))) || /[a-z][A-Z]{2,}$/.test(word);
+  if (name || allCaps || brand) return word.toLowerCase();
+  return word.replace(/[A-Z]/g, (c) => (MEANINGFUL_CAPS.has(c) ? c : c.toLowerCase()));
+}
+
+/**
+ * The letter-by-letter reading when the writer is spelling exactly with capitals inside a word
+ * (paNi → പണി, kaLam → കളം), else null (see foldCaps for the capitals that don't count). Google
+ * ignores case, so the online lists put this reading first (web, phone, MCP).
  */
 export function exactReading(word: string): string | null {
-  if (!/[A-Z]/.test(word) || /^[A-Z][a-z~_^]*$/.test(word) || (word.length > 1 && word === word.toUpperCase())) return null;
-  const w = word.replace(/[A-Z]/g, (c) => (MEANINGFUL_CAPS.has(c) ? c : c.toLowerCase()));
+  const w = foldCaps(word);
   return /[A-Z]/.test(w) ? manglishWord(w) : null;
 }

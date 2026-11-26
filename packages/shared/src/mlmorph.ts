@@ -291,6 +291,9 @@ export type WordVerdict =
   /** unknown with nothing close: a question, never an error (names, dialect, new words) */
   | { word: string; ok: false; kind: "unknown"; fix: [] };
 
+/** Good endings after the quotative that mlmorph reads only as compounds (എന്നാകും, എന്നോർത്ത്…). */
+const QUOTATIVE_COMPOUND_TAILS = new Set(["ാകും", "ാവും", "ോർത്ത്", "റിയാം", "മട്ടിൽ", "ുവെച്ചു", "ുവച്ചു", "ിട്ടും", "ായിരിക്കും", "ാക്കി"]);
+
 export class MlSpeller {
   private cache = new Map<string, WordVerdict>();
   constructor(private morph: MlMorph, private mistakes: Record<string, string>) {}
@@ -324,8 +327,7 @@ export class MlSpeller {
       const base = word.slice(0, at);
       const tail = word.slice(at + Q.length);
       if ([...base].length < 2 || !/[\u0D15-\u0D39]$/u.test(base)) continue;
-      // the ending must be one mlmorph accepts after a quotative (tried on ഇല്ലെന്ന…)
-      if (tail && !this.morph.accepts("ഇല്ല" + Q + tail)) continue;
+      if (tail && !this.quotativeTail(tail)) continue;
       // only a negative before it (ഇല്ല, വേണ്ട…): mlmorph reads many slips and bare nouns as
       // something (വരില, അമ്മ), and those must stay marked (tester, 26 Nov: 122 false passes → 34,
       // all with a base mlmorph itself accepts)
@@ -334,6 +336,19 @@ export class MlSpeller {
       if (base.endsWith("േണ്ട") && this.morph.analyse(base.slice(0, -"േണ്ട".length) + "േണം", 4).some((a) => a.includes("<v><imperative-mood>"))) return true;
     }
     return false;
+  }
+
+  /**
+   * An ending that can follow the quotative (ആണ്, ഉള്ള, ആയിരുന്നു, അല്ലേ…). Tried on ഇല്ലെന്ന, but
+   * mlmorph also reads slips and junk there as compounds, quantifiers or particles (ഇല്ലെന്നാനോ,
+   * ഇല്ലെന്നോര), so a plain reading is needed; a few good endings that mlmorph only reads as
+   * compounds are listed. No doubled എന്ന, no two vowel signs in a row, no എന്നെ/എന്നേ
+   * (tester, 26 Nov: random endings accepted 6.9% → under 3%, every slip in quoted-check §6 caught).
+   */
+  private quotativeTail(tail: string): boolean {
+    if (tail.startsWith("െ") || tail.startsWith("േ") || /[\u0D3E-\u0D4C\u0D57]{2}/u.test(tail)) return false;
+    if (QUOTATIVE_COMPOUND_TAILS.has(tail)) return true;
+    return this.morph.analyse("ഇല്ലെന്ന" + tail, 16).some((a) => !/compound|<quantifier>|<indeclinable>|<interrogative>/.test(a));
   }
 
   /** Spellings the morphology accepts, simplest analysis first (mlmorph's ranking), at most max. */

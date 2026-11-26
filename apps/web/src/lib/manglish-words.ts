@@ -6,7 +6,7 @@
  * built in idle moments, so typing never waits. Until it is ready, and if it can't be loaded,
  * suggestions are today's letter readings (manglishCandidates).
  */
-import { manglishCandidates } from "@litma/shared/manglish";
+import { foldCaps, manglishCandidates } from "@litma/shared/manglish";
 import { buildManglishRanker, ownWordsFrom, parseWordList, type ManglishRanker } from "@litma/shared/manglish-rank";
 import { BASE } from "./config";
 
@@ -88,12 +88,12 @@ export function loadManglishWords(): Promise<void> {
 export function offlineCandidates(word: string, max = 6): string[] {
   if (!ranker) {
     void loadManglishWords();
-    return withPick(word, manglishCandidates(word, max)).slice(0, max);
+    return withPick(word, manglishCandidates(foldCaps(word), max)).slice(0, max);
   }
   try {
     return withPick(word, ranker.suggest(word, max)).slice(0, max);
   } catch {
-    return withPick(word, manglishCandidates(word, max)).slice(0, max);
+    return withPick(word, manglishCandidates(foldCaps(word), max)).slice(0, max);
   }
 }
 

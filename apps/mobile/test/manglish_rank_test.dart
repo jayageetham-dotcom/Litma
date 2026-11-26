@@ -47,7 +47,8 @@ void main() {
   test('the plain reading always stays within the first six', () {
     for (final e in vectors.entries) {
       if (e.key.startsWith('__')) continue;
-      expect(ranker.suggest(e.key, max: 8).take(6), contains(manglishCandidates(e.key).first), reason: e.key);
+      // capitals that don't mean a letter are read as small letters first (foldCaps)
+      expect(ranker.suggest(e.key, max: 8).take(6), contains(manglishCandidates(foldCaps(e.key)).first), reason: e.key);
     }
   });
 

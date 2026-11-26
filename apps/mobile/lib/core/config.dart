@@ -119,11 +119,11 @@ class Transliterator {
   List<String> offline(String word) {
     _loadWords();
     final r = _ranker;
-    if (r == null) return withPick(word, manglishCandidates(word)).take(offlineMax).toList();
+    if (r == null) return withPick(word, manglishCandidates(foldCaps(word))).take(offlineMax).toList();
     try {
       return withPick(word, r.suggest(word, max: offlineMax)).take(offlineMax).toList();
     } catch (_) {
-      return withPick(word, manglishCandidates(word)).take(offlineMax).toList();
+      return withPick(word, manglishCandidates(foldCaps(word))).take(offlineMax).toList();
     }
   }
 
@@ -141,7 +141,7 @@ class Transliterator {
   Future<List<String>> candidates(String word, {int num = maxCandidates}) async {
     final hit = _cache['$num/$word'];
     if (hit != null) return withPick(word, hit);
-    final local = manglishWord(word);
+    final local = manglishWord(foldCaps(word));
     try {
       final r = await _client
           .get(Uri.parse('${AppConfig.functionsUrl}/litma-transliterate?text=${Uri.encodeQueryComponent(word)}&num=$num'), headers: {'apikey': AppConfig.supabaseAnonKey})
@@ -151,7 +151,10 @@ class Transliterator {
       final list = ((j['candidates'] as List?) ?? const []).cast<String>();
       if (j['source'] == 'offline') return offline(word); // Google didn't answer: keep the ranked list
       // Google's ranking first; the offline spellings only fill gaps, never more than [num]
-      final out = <String>{...list.map((e) => e.trim()).where((e) => e.isNotEmpty), local, ...offline(word)}.take(num).toList();
+      // Google ignores case: a word spelt exactly with capitals (kaLam) gets its own reading first,
+      // as on the web (the server does the same since 26 Nov; this covers an older server)
+      final exact = exactReading(word);
+      final out = <String>{?exact, ...list.map((e) => e.trim()).where((e) => e.isNotEmpty), local, ...offline(word)}.take(num).toList();
       if (_cache.length > 400) _cache.clear();
       _cache['$num/$word'] = out;
       // the writer's own earlier pick beats Google's order

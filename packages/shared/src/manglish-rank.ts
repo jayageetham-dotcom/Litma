@@ -18,7 +18,7 @@
  *
  * Phone app: lib/core/manglish_rank.dart must give the same answers (test/manglish_rank_vectors.json).
  */
-import { COMMON, manglishCandidates, manglishWord } from "./manglish.ts";
+import { COMMON, exactReading, foldCaps, manglishCandidates, manglishWord } from "./manglish.ts";
 
 // ---------------------------------------------------------------- sound skeleton
 
@@ -289,7 +289,8 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number, ranks: Map<st
   const W = RANK_WEIGHTS;
   let own = new Map<string, Entry[]>();
   const buckets = (o: string) => [...(own.get(o) ?? []), ...(idx.get(o) ?? [])];
-  function lookup(word: string, max = 8) {
+  function lookup(typed: string, max = 8) {
+    const word = foldCaps(typed);
     const keys = latinKeys(word);
     const literal = manglishWord(word);
     // a typed final u may be ് or ു (enthaanu → എന്താണ്): usage decides, as with Google
@@ -308,7 +309,9 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number, ranks: Map<st
     }
     return [...seen].map(([w, score]) => ({ word: w, score })).sort((a, b) => b.score - a.score).slice(0, max);
   }
-  function suggest(word: string, max = 6) {
+  function suggest(typed: string, max = 6) {
+    // capitals that don't mean a letter (Kerala, TV, YouTube) are read as small letters
+    const word = foldCaps(typed);
     const out: string[] = [];
     const add = (s: string) => {
       if (s && !out.includes(s)) out.push(s);
@@ -321,7 +324,8 @@ function makeRanker(idx: Map<string, Entry[]>, size: () => number, ranks: Map<st
       return out.slice(0, max);
     }
     // capitals, ~ or _ mean the writer is spelling exactly: their reading leads
-    if (/[A-Z]/.test(word)) add(manglishWord(word));
+    const exact = exactReading(word);
+    if (exact) add(exact);
     for (const s of lookup(word, max)) add(s.word);
     for (const c of manglishCandidates(word, max)) add(c);
     // the plain reading always stays within the first six

@@ -251,7 +251,6 @@ List<String> parseWordList(String text) => text.split('\n').map((w) => w.trim())
 
 final RegExp _onlyLetters3 = RegExp(r'^[A-Za-z]{3,}$');
 final RegExp _piece = RegExp(r'^(ng|nk|mp|nt|nd|nch|nth|rr|thh)');
-final RegExp _capital = RegExp('[A-Z]');
 final RegExp _yStart = RegExp(r'^y(?=[aeiou])');
 
 class ManglishRanker {
@@ -344,7 +343,8 @@ class ManglishRanker {
   }
 
   /// Known words that fit a Manglish word, best first.
-  List<String> lookup(String word, {int max = 8}) {
+  List<String> lookup(String typed, {int max = 8}) {
+    final word = foldCaps(typed);
     final keys = latinKeys(word);
     final literal = manglishWord(word);
     final literalHalf = literal.replaceAll(RegExp(r'ു$'), '്');
@@ -399,7 +399,9 @@ class ManglishRanker {
   }
 
   /// The offline suggestion list: known words first, then the letter readings (never dropped).
-  List<String> suggest(String word, {int max = 6}) {
+  List<String> suggest(String typed, {int max = 6}) {
+    // capitals that don't mean a letter (Kerala, TV, YouTube) are read as small letters
+    final word = foldCaps(typed);
     final out = <String>[];
     void add(String s) {
       if (s.isNotEmpty && !out.contains(s)) out.add(s);
@@ -411,7 +413,8 @@ class ManglishRanker {
       manglishCandidates(word, max: max).forEach(add);
       return out.take(max).toList();
     }
-    if (_capital.hasMatch(word)) add(manglishWord(word));
+    final exact = exactReading(word);
+    if (exact != null) add(exact);
     lookup(word, max: max).forEach(add);
     manglishCandidates(word, max: max).forEach(add);
     final lit = manglishWord(word);

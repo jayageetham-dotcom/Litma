@@ -1,10 +1,10 @@
-import { manglishWord } from "./manglish.ts";
+import { exactReading, foldCaps, manglishWord } from "./manglish.ts";
 
 const cache = new Map<string, string[]>();
 
 /** Google Input Tools (ml-t-i0-und) candidates for one Manglish word, with offline fallback. */
 export async function googleCandidates(word: string, num = 6): Promise<{ candidates: string[]; source: string }> {
-  const local = manglishWord(word);
+  const local = manglishWord(foldCaps(word));
   const key = `${word}:${num}`;
   const hit = cache.get(key);
   if (hit) return { candidates: hit, source: "cache" };
@@ -16,7 +16,9 @@ export async function googleCandidates(word: string, num = 6): Promise<{ candida
     const data = await r.json();
     const google: string[] = data?.[0] === "SUCCESS" ? data[1]?.[0]?.[1] ?? [] : [];
     if (!google.length) return { candidates: [local], source: "offline" };
-    const merged = Array.from(new Set([...google, local])).slice(0, num + 1);
+    // Google ignores case: a word spelt exactly with capitals (kaLam) gets its own reading first
+    const exact = exactReading(word);
+    const merged = Array.from(new Set([...(exact ? [exact] : []), ...google, local])).slice(0, num + 1);
     if (cache.size > 5000) cache.clear();
     cache.set(key, merged);
     return { candidates: merged, source: "google" };

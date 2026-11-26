@@ -367,3 +367,33 @@ export function countWords(text: string): number {
 export function readingMinutes(words: number): number {
   return Math.max(1, Math.round(words / 150));
 }
+
+/** Capitals that mean a different letter in Manglish (N ണ, L ള, T ട, D ഡ, R റ, long vowels…). */
+export const MEANINGFUL_CAPS = new Set("ADEHILMNORSTU");
+
+/**
+ * A Manglish word with only the capitals that mean a letter: a name-style capital (Kerala, Ammu),
+ * a word in capitals (TV, KSRTC), a brand-style word (YouTube, WhatsApp) and capitals with no
+ * meaning in the scheme (iPhone) are lowered, so no reading ever mixes Latin letters in (Kഎരല).
+ * Use it before any letter reading of a typed word.
+ */
+export function foldCaps(word: string): string {
+  if (!/[A-Z]/.test(word)) return word;
+  const name = /^[A-Z][a-z~_^]*$/.test(word);
+  const allCaps = word.length > 1 && word === word.toUpperCase();
+  // a brand: a capital with no meaning in the scheme first, more capitals later (YouTube, WhatsApp,
+  // GitHub, ChatGPT). Meaningful first capitals stay Manglish (OrmmayilE, kozhikkOD, NaLLa)
+  const brand = /^[A-Z]/.test(word) && !MEANINGFUL_CAPS.has(word[0]) && /[A-Z]/.test(word.slice(1));
+  if (name || allCaps || brand) return word.toLowerCase();
+  return word.replace(/[A-Z]/g, (c) => (MEANINGFUL_CAPS.has(c) ? c : c.toLowerCase()));
+}
+
+/**
+ * The letter-by-letter reading when the writer is spelling exactly with capitals inside a word
+ * (paNi → പണി, kaLam → കളം), else null (see foldCaps for the capitals that don't count). Google
+ * ignores case, so the online lists put this reading first (web, phone, MCP).
+ */
+export function exactReading(word: string): string | null {
+  const w = foldCaps(word);
+  return /[A-Z]/.test(w) ? manglishWord(w) : null;
+}

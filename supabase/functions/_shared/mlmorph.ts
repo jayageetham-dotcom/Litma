@@ -291,6 +291,9 @@ export type WordVerdict =
   /** unknown with nothing close: a question, never an error (names, dialect, new words) */
   | { word: string; ok: false; kind: "unknown"; fix: [] };
 
+/** Good endings after the quotative that mlmorph reads only as compounds (എന്നാകും, എന്നോർത്ത്…). */
+const QUOTATIVE_COMPOUND_TAILS = new Set(["ാകും", "ാവും", "ോർത്ത്", "റിയാം", "മട്ടിൽ", "ുവെച്ചു", "ുവച്ചു", "ിട്ടും", "ായിരിക്കും", "ാക്കി"]);
+
 export class MlSpeller {
   private cache = new Map<string, WordVerdict>();
   constructor(private morph: MlMorph, private mistakes: Record<string, string>) {}
@@ -313,20 +316,39 @@ export class MlSpeller {
   }
 
   /**
-   * A negative the morphology knows with the quotative എന്ന് (or എന്നു, എന്ന, എന്നും, എന്നോ) joined on:
+   * A negative the morphology knows with the quotative എന്ന് joined on, with any ending mlmorph
+   * allows after a quotative (എന്ന്, എന്നു, എന്നും, എന്നാണ്, എന്നുള്ള, എന്നായിരുന്നു…):
    * ഇല്ല + എന്ന് → ഇല്ലെന്ന്. mlmorph has each half but not every chain of them (കാണാനില്ലെന്ന്,
-   * അറിയില്ലെന്ന്, വരില്ലെന്ന്, പറഞ്ഞില്ലെന്ന്), and these are among the most written words in prose.
+   * അറിയില്ലെന്നാണ്, വരില്ലെന്നുള്ള), and these are among the most written words in prose.
    */
   private quoted(word: string): boolean {
-    const m = /^(.+[\u0D15-\u0D39])െന്ന(്|ു|ും|ോ)?$/u.exec(word);
-    if (!m || [...m[1]].length < 2) return false;
-    // only a negative before it (ഇല്ല, വേണ്ട…): mlmorph reads many slips and bare nouns as
-    // something (വരില, അമ്മ), and those must stay marked (tester, 26 Nov: 122 false passes → 34, all with a base mlmorph itself accepts)
-    const base = m[1];
-    if (this.morph.analyse(base, 8).some((a) => a.endsWith("<neg>"))) return true;
-    // "need not" -ഏണ്ട (പോകേണ്ടെന്ന്, വിഷമിക്കേണ്ടെന്ന്): the verb's -ഏണം form must be a verb
-    if (base.endsWith("േണ്ട")) return this.morph.analyse(base.slice(0, -"േണ്ട".length) + "േണം", 4).some((a) => a.includes("<v><imperative-mood>"));
+    const Q = "െന്ന";
+    for (let at = word.indexOf(Q); at > 0; at = word.indexOf(Q, at + 1)) {
+      const base = word.slice(0, at);
+      const tail = word.slice(at + Q.length);
+      if ([...base].length < 2 || !/[\u0D15-\u0D39]$/u.test(base)) continue;
+      if (tail && !this.quotativeTail(tail)) continue;
+      // only a negative before it (ഇല്ല, വേണ്ട…): mlmorph reads many slips and bare nouns as
+      // something (വരില, അമ്മ), and those must stay marked (tester, 26 Nov: 122 false passes → 34,
+      // all with a base mlmorph itself accepts)
+      if (this.morph.analyse(base, 8).some((a) => a.endsWith("<neg>"))) return true;
+      // "need not" -ഏണ്ട (പോകേണ്ടെന്ന്, വിഷമിക്കേണ്ടെന്ന്): the verb's -ഏണം form must be a verb
+      if (base.endsWith("േണ്ട") && this.morph.analyse(base.slice(0, -"േണ്ട".length) + "േണം", 4).some((a) => a.includes("<v><imperative-mood>"))) return true;
+    }
     return false;
+  }
+
+  /**
+   * An ending that can follow the quotative (ആണ്, ഉള്ള, ആയിരുന്നു, അല്ലേ…). Tried on ഇല്ലെന്ന, but
+   * mlmorph also reads slips and junk there as compounds, quantifiers or particles (ഇല്ലെന്നാനോ,
+   * ഇല്ലെന്നോര), so a plain reading is needed; a few good endings that mlmorph only reads as
+   * compounds are listed. No doubled എന്ന, no two vowel signs in a row, no എന്നെ/എന്നേ
+   * (tester, 26 Nov: random endings accepted 6.9% → under 3%, every slip in quoted-check §6 caught).
+   */
+  private quotativeTail(tail: string): boolean {
+    if (tail.startsWith("െ") || tail.startsWith("േ") || /[\u0D3E-\u0D4C\u0D57]{2}/u.test(tail)) return false;
+    if (QUOTATIVE_COMPOUND_TAILS.has(tail)) return true;
+    return this.morph.analyse("ഇല്ലെന്ന" + tail, 16).some((a) => !/compound|<quantifier>|<indeclinable>|<interrogative>/.test(a));
   }
 
   /** Spellings the morphology accepts, simplest analysis first (mlmorph's ranking), at most max. */

@@ -14,3 +14,9 @@ Steps:
 5. Look for risk: data loss (documents the phone can't edit must round-trip), migrations without RLS, secrets in code, behaviour changes the change log doesn't mention.
 
 Verdict: **MERGE** or **DON'T MERGE**, then a short list of blocking issues (file and line) and non-blocking notes, and whether a Release is needed afterwards for desktop and phone. Never merge, push or edit yourself.
+
+## Working with the team
+- The lead session gives you the work file `docs/work/<branch>.md`. Read all of it before you start: the owner's ask, decisions, open questions and what other roles wrote.
+- Write your hand-over into your own section of that file before you finish, so the next agent can act on it without asking (files, functions, tests, exact failing inputs, screenshot paths).
+- If you disagree with the spec, a decision or another role's work, don't silently do it your way: add a line under **Questions** (`→ designer: …`) and say so in your reply. Build on what others found; don't redo it.
+- When you get findings back (design review, test failures, verifier blocks), fix or answer every one and mark its status in the work file.

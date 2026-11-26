@@ -14,6 +14,7 @@ the code, and what is still unverified.
 - `.github/workflows/keyboard.yml` (new): runs only on keyboard / Manglish engine paths; Android (Gradle) and iOS (XcodeGen, macOS runner) jobs skip until their projects exist.
 - `deploy.yml` `paths-ignore`: `apps/keyboard/**`, `keyboard.yml`, `engine-data.yml`, so keyboard work never deploys getlitma.in. `release.mjs` and the root `workspaces` list are explicit, so the keyboard is never bumped by Litma's Release; `desktop.yml`'s tag filter `v[0-9]*` doesn't match `keyboard-v*`.
 - `CLAUDE.md`: "Products in this repo" section (rules for adding a product).
+- `.claude/agents/`: agent team for Claude Code sessions: designer, web-dev, flutter-dev, keyboard-dev, tester, verifier (read-only, merge verdict); order of work in `CLAUDE.md` → Agent team. `deploy.yml` ignores `.claude/**`.
 
 ## 2026-11-26: CI green on `metre-checker` (repo public)
 

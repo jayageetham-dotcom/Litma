@@ -124,7 +124,7 @@ Litma checks Malayalam spelling as you write, with its own Malayalam engine: it 
 Marks appear in your text as you write. Click or tap a marked word (or select it) and its suggestions open right there: under the word on a computer, in the strip above the keyboard on a phone. Edit a marked word and, once you pause, the suggestions are for the whole new word.
 
 - Pick a spelling to put it in place of the word.
-- **Ignore** leaves the word as you wrote it. It isn't marked again until you open Litma again.
+- **Ignore** leaves the word as you wrote it. It isn't marked again in this work, on any of your devices, even after you close it. Other works still mark it.
 - **Keep** leaves it for good: a kept word isn't marked again on this device.
 - **Suggest** appears on a word marked "Not in the dictionary", which has no spellings of its own. It shows known words that sound like yours (കര്യം → കാര്യം). Nothing is shown until you ask, so a name or a word you made up is never pushed to change.
 - Or just carry on typing. A dialect or regional word is often right as it is; the suggestion is only a choice. <kbd>Esc</kbd> closes the suggestions on a computer.

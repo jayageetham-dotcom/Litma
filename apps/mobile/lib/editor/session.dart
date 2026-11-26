@@ -83,8 +83,12 @@ class EditorSession extends ChangeNotifier {
   /// Set by the editor screen: checks a line's text for spelling (null: marks off).
   Future<List<SpellIssue>> Function(String text)? spellCheck;
 
-  /// Words left as written until the app is opened again ("Ignore" on a suggestion), in every work.
+  /// Words left as written in this visit ("Ignore" on a suggestion); the open work also keeps its own
+  /// (`settings.spellIgnored`, saved with it, as on the web), see [isSpellIgnored].
   static final spellIgnored = <String>{};
+
+  /// Ignored in this work (kept with it on every device) or earlier in this visit.
+  bool isSpellIgnored(String word) => spellIgnored.contains(word) || ((settings['spellIgnored'] as List?)?.contains(word) ?? false);
   Timer? _spellTimer;
   int _spellRun = 0;
 
@@ -98,9 +102,15 @@ class EditorSession extends ChangeNotifier {
     _scheduleSpelling(const Duration(milliseconds: 50));
   }
 
-  /// Leave this word as written for the rest of the visit.
+  /// Leave this word as written in this work, kept with it (a reopen or another device keeps it).
   void ignoreSpelling(String word) {
     spellIgnored.add(word);
+    final kept = [...((settings['spellIgnored'] as List?)?.cast<String>() ?? const <String>[])];
+    if (!kept.contains(word)) {
+      kept.add(word);
+      _doc = _doc.copyWith(settings: {..._doc.settings, 'spellIgnored': kept.length > 1000 ? kept.sublist(kept.length - 1000) : kept});
+      unawaited(store.updateDoc(_doc.id, {'settings': _doc.settings}).catchError((_) => false));
+    }
     for (final c in _controllers.values) {
       if (c.spellIssues.any((i) => i.text == word)) c.setSpellIssues([for (final i in c.spellIssues) if (i.text != word) i]);
     }
@@ -134,7 +144,7 @@ class EditorSession extends ChangeNotifier {
         // the line changed or went away while it was being checked: it is done again later
         if (run != _spellRun || c.block.text != text || !identical(_controllers[c.block], c)) return;
         c.spellCheckedText = text;
-        final marks = [for (final f in found) if (!spellIgnored.contains(f.text)) f];
+        final marks = [for (final f in found) if (!isSpellIgnored(f.text)) f];
         if (marks.isNotEmpty || c.spellIssues.isNotEmpty) changed = true;
         c.setSpellIssues(marks);
       }));

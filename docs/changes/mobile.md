@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-26: Ignore kept with the work (branch `claude/keep-ignores`)
+
+- `lib/editor/session.dart` `isSpellIgnored` (visit set + `settings.spellIgnored`), `ignoreSpelling` saves the work's settings; `writing_aids.dart` Check sheet uses it. Needs Mobile app checks and a store build.
+
 ## 2026-11-26: Manglish capitals online (branch `claude/menu-place-quotative`)
 
 - `lib/core/manglish.dart` `foldCaps` + `exactReading` (ports of the web's): `manglish_rank.dart` (`suggest`, `lookup` fold first), `config.dart` `Transliterator.candidates` (exact reading before Google's list; folded fallbacks), `block_controller.dart` and `dictionary_screen.dart` fallbacks fold capitals. Test: plain reading in the first six compares after `foldCaps`. Vectors regenerated (`Ammu kaLam paNi NaLLa iPhone` added). Needs Mobile app checks; a store build for writers to get it (the server change already helps the phone's online list).

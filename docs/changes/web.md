@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-26: Ignore kept with the work (branch `claude/keep-ignores`)
+
+- `lib/spell.ts` `setWorkIgnored`, `Workspace.tsx` effect per work id (`updateSettingsRef`). See cross-platform.md.
+
 ## 2026-11-26: Menu placement, Manglish capitals (branch `claude/menu-place-quotative`)
 
 - `EditorContextMenu.tsx` placement by the clicked line's rect; `ManglishPopup.tsx` and `ScriptField.tsx` use `exactReading` / `MEANINGFUL_CAPS` from `shared/manglish.ts`. See cross-platform.md.

@@ -67,10 +67,24 @@ export function addMyWord(w: string) {
   window.dispatchEvent(new Event(SPELL_EVENT));
 }
 
-/** Words left as written for this visit ("Ignore" on a suggestion): not marked again until the app reloads. */
+/**
+ * Words left as written ("Ignore" on a suggestion). They are kept with the open work
+ * (`settings.spellIgnored`, saved with it, so a refresh or another device keeps them) through the
+ * saver the editor sets; without an open work they last for the visit.
+ */
 const ignored = new Set<string>();
+let saveIgnored: ((words: string[]) => void) | null = null;
+/** The open work's ignored words and how to save more (null when the work closes). */
+export function setWorkIgnored(words: string[], save: ((words: string[]) => void) | null) {
+  ignored.clear();
+  for (const w of words) ignored.add(w);
+  saveIgnored = save;
+  window.dispatchEvent(new Event(SPELL_EVENT));
+}
 export function ignoreWord(w: string) {
+  if (ignored.has(w)) return;
   ignored.add(w);
+  saveIgnored?.([...ignored].slice(-1000));
   window.dispatchEvent(new Event(SPELL_EVENT));
 }
 

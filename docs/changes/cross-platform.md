@@ -7,6 +7,10 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-26: Ignore kept with the work (branch `claude/keep-ignores`)
+
+- Owner: fixed and ignored spellings came back after a refresh. Fixes were saved (the same word elsewhere in a lyric stays marked); Ignore lived only in memory. Now Ignore is saved in the work's `settings.spellIgnored` (shared `DocSettings`, last 1,000 words): web `lib/spell.ts` `setWorkIgnored` (Workspace loads and saves it), phone `EditorSession.isSpellIgnored` / `ignoreSpelling` (marks and the Check sheet). Strings `check.ignoreHint` (en + ml), help `03-editor.md`. Not yet: MCP `check_spelling` doesn't read a work's ignored words.
+
 ## 2026-11-26: Menu placement, quotative endings, Manglish capitals everywhere (branch `claude/menu-place-quotative`)
 
 - Spelling (every app, server side): `quoted()` now takes any ending mlmorph allows after ഇല്ലെന്ന (എന്നാണ്, എന്നുള്ള, എന്നായിരുന്നു, എന്നല്ലേ…), still only after a negative. `quoted-check.ts`: prose false alarms 22 → 21 of 345; false passes 73 of 1,628 misspellings with the long endings (4.5%, all with a base mlmorph itself accepts). Not covered: എന്നാണല്ലോ (mlmorph rejects it even after ഇല്ല).

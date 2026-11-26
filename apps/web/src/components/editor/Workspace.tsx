@@ -41,7 +41,7 @@ import { TimerChip } from "./TimerChip";
 import { CheckPanel } from "./CheckPanel";
 import { ReadAloudPanel } from "./ReadAloudPanel";
 import { recheckSpelling } from "@/extensions/writing-aids";
-import { SPELL_EVENT, blockChecker, setStoryWords, spellPrefs } from "@/lib/spell";
+import { SPELL_EVENT, blockChecker, setStoryWords, setWorkIgnored, spellPrefs } from "@/lib/spell";
 import { setStoryNames } from "@/lib/manglish-words";
 import { ownWordsFrom } from "@litma/shared/manglish-rank";
 import { timerWords } from "@/lib/timer";
@@ -199,6 +199,11 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     },
     [initial.id]
   );
+  // "Ignore" on a spelling is kept with this work, so a refresh or another device keeps it
+  useEffect(() => {
+    setWorkIgnored(settingsRef.current.spellIgnored ?? [], (words) => updateSettingsRef.current({ spellIgnored: words }));
+    return () => setWorkIgnored([], null);
+  }, [initial.id]);
   /** New documents stay "pristine" until the writer types; pristine documents are discarded on close. */
   const pristine = useRef(!!initial.settings.pristine);
   const docRef = useRef<LitmaDoc>(initial);
@@ -433,6 +438,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     },
     [persist]
   );
+  const updateSettingsRef = useRef(updateSettings);
+  updateSettingsRef.current = updateSettings;
 
   useEffect(() => {
     if (!editor) return;

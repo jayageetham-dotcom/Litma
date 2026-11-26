@@ -373,7 +373,7 @@ export const MEANINGFUL_CAPS = new Set("ADEHILMNORSTU");
 
 /**
  * A Manglish word with only the capitals that mean a letter: a name-style capital (Kerala, Ammu),
- * a word in capitals (TV, KSRTC), a brand-style word (YouTube, WhatsApp, iOS) and capitals with no
+ * a word in capitals (TV, KSRTC), a brand-style word (YouTube, WhatsApp) and capitals with no
  * meaning in the scheme (iPhone) are lowered, so no reading ever mixes Latin letters in (Kഎരല).
  * Use it before any letter reading of a typed word.
  */
@@ -381,7 +381,9 @@ export function foldCaps(word: string): string {
   if (!/[A-Z]/.test(word)) return word;
   const name = /^[A-Z][a-z~_^]*$/.test(word);
   const allCaps = word.length > 1 && word === word.toUpperCase();
-  const brand = (/^[A-Z]/.test(word) && /[A-Z]/.test(word.slice(1))) || /[a-z][A-Z]{2,}$/.test(word);
+  // a brand: a capital with no meaning in the scheme first, more capitals later (YouTube, WhatsApp,
+  // GitHub, ChatGPT). Meaningful first capitals stay Manglish (OrmmayilE, kozhikkOD, NaLLa)
+  const brand = /^[A-Z]/.test(word) && !MEANINGFUL_CAPS.has(word[0]) && /[A-Z]/.test(word.slice(1));
   if (name || allCaps || brand) return word.toLowerCase();
   return word.replace(/[A-Z]/g, (c) => (MEANINGFUL_CAPS.has(c) ? c : c.toLowerCase()));
 }

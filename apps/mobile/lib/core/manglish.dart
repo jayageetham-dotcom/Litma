@@ -317,14 +317,15 @@ String toMalayalam(String text) {
 }
 
 /// A Manglish word with only the capitals that mean a letter: a name-style capital (Kerala, Ammu),
-/// a word in capitals (TV), a brand-style word (YouTube, iOS) and capitals with no meaning in the
+/// a word in capitals (TV), a brand-style word (YouTube, WhatsApp) and capitals with no meaning in the
 /// scheme (iPhone) are lowered, so no reading mixes Latin letters in. Same as the web's `foldCaps`
 /// (packages/shared/src/manglish.ts).
 String foldCaps(String word) {
   if (!RegExp('[A-Z]').hasMatch(word)) return word;
   final name = RegExp(r'^[A-Z][a-z~_^]*$').hasMatch(word);
   final allCaps = word.length > 1 && word == word.toUpperCase();
-  final brand = (RegExp('^[A-Z]').hasMatch(word) && RegExp('[A-Z]').hasMatch(word.substring(1))) || RegExp(r'[a-z][A-Z]{2,}$').hasMatch(word);
+  // a brand: a capital with no meaning in the scheme first, more capitals later (YouTube, WhatsApp)
+  final brand = RegExp('^[A-Z]').hasMatch(word) && !_meaningfulCaps.contains(word[0]) && RegExp('[A-Z]').hasMatch(word.substring(1));
   if (name || allCaps || brand) return word.toLowerCase();
   return word.replaceAllMapped(RegExp('[A-Z]'), (c) => _meaningfulCaps.contains(c[0]) ? c[0]! : c[0]!.toLowerCase());
 }

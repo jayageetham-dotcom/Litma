@@ -14,6 +14,8 @@ export interface CharacterNote {
 }
 
 export interface DocSettings {
+  /** spellings the writer chose Ignore for in this work: not marked here again (every device) */
+  spellIgnored?: string[];
   pageSize: PageSizeKey;
   margins: { top: number; bottom: number; left: number; right: number };
   font: string;

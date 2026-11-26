@@ -6,6 +6,8 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 
 ## Open items
 
+- **Release needed** for Ignore kept with the work (2026-11-26, shared web code).
+
 - **Release needed** for PR #20 (2026-11-26): right-click menu placement off the clicked line and the Manglish capitals rule (`foldCaps`/`exactReading`), both in the shared web code.
 
 - **Release needed** for the right-click menu (2026-11-26, PR #19): web menu plus desktop-only `litma:edit` IPC (`webContents.paste`/`pasteAndMatchStyle`) and the native Cut/Copy/Paste menu outside the editor (`editMenuFor`). An older desktop build without `litmaDesktop.edit` falls back to `navigator.clipboard`.

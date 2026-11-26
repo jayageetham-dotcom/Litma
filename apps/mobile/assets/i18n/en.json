@@ -1288,7 +1288,7 @@
     "announce": "{kind}: {word}. Down arrow (or Alt + Down) for suggestions, Enter to use one, Esc to close.",
     "announceTouch": "{kind}: {word}. Suggestions are above the keyboard.",
     "ignore": "Ignore",
-    "ignoreHint": "Leave it as written. It isn't marked again until you reopen Litma.",
+    "ignoreHint": "Leave it as written. It isn't marked again in this work.",
     "keepHint": "Keep this word: it is never marked again on this device.",
     "suggest": "Suggest",
     "suggestHint": "Show known words that sound like this one.",

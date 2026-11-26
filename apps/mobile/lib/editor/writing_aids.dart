@@ -329,7 +329,7 @@ class _CheckSheetState extends ConsumerState<_CheckSheet> {
     for (final l in widget.session.lines) {
       final r = services.transliterator.ranker;
       for (final i in await services.speller.check(l.text, unknown: _unknown, mine: _mine, engine: services.spellEngine.call, rankFixes: r?.rankFixes, closeWords: r?.closeWords)) {
-        if (EditorSession.spellIgnored.contains(i.text)) continue;
+        if (widget.session.isSpellIgnored(i.text)) continue;
         out.add(_Found(l, i));
       }
       if (out.length >= 300) break;

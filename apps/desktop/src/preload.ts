@@ -32,6 +32,8 @@ contextBridge.exposeInMainWorld("litmaDesktop", {
   setReminder: (state: unknown) => ipcRenderer.invoke("litma:reminder:set", state),
   reminderRang: (day: string) => ipcRenderer.invoke("litma:reminder:rang", day),
   notify: (title: string, body: string) => ipcRenderer.invoke("litma:notify", title, body),
+  // the editor's own right-click menu: paste through the page's paste handling, as Ctrl/⌘+V does
+  edit: (role: "paste" | "pasteAndMatchStyle") => ipcRenderer.invoke("litma:edit", role),
   // daily backups into a folder the writer picks (backup.ts)
   backupFolder: () => ipcRenderer.invoke("litma:backup:folder"),
   chooseBackupFolder: () => ipcRenderer.invoke("litma:backup:choose"),

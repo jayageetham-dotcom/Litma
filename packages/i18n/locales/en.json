@@ -162,6 +162,25 @@
     "inbox": "Assistant inbox",
     "keepSelection": "Your selection is kept while you use the tools."
   },
+  "editorMenu": {
+    "label": "Editing menu",
+    "cut": "Cut",
+    "copy": "Copy",
+    "paste": "Paste",
+    "pastePlain": "Paste without formatting",
+    "delete": "Delete",
+    "selectAll": "Select all",
+    "lookUp": "Look up in dictionary",
+    "rhymes": "Find rhymes",
+    "askAI": "Ask AI",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "clearFormatting": "Clear formatting",
+    "shortcuts": "Keyboard shortcuts",
+    "pasteBlocked": "The browser didn't allow pasting from the menu. Press {key} to paste.",
+    "nativeHint": "Shift + right-click opens the browser's own menu."
+  },
   "settings": {
     "language": "Language",
     "languageHint": "The language of menus and buttons. Your writing is not affected.",

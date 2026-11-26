@@ -20,6 +20,8 @@ export interface LitmaDesktop {
   reminderRang?: (day: string) => Promise<void>;
   /** a system notification (writing timer) */
   notify?: (title: string, body: string) => Promise<void>;
+  /** newer desktop builds: paste (or paste without formatting) into the focused editor */
+  edit?: (role: "paste" | "pasteAndMatchStyle") => Promise<void>;
   /** daily backups into a folder the writer picks (apps/desktop/src/backup.ts) */
   backupFolder?: () => Promise<string | null>;
   chooseBackupFolder?: () => Promise<string | null>;

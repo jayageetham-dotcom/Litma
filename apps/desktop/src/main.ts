@@ -193,6 +193,31 @@ function routeNavigation(win: BrowserWindow) {
   });
 }
 
+/**
+ * Right-click outside the manuscript (title, search and settings boxes, selected text): a small
+ * native menu. The editor shows Litma's own menu (EditorContextMenu in the web app) and cancels the
+ * event, so Electron never raises this there.
+ */
+function editMenuFor(win: BrowserWindow) {
+  win.webContents.on("context-menu", (_e, p) => {
+    const items: MenuItemConstructorOptions[] = p.isEditable
+      ? [
+          { role: "cut", enabled: p.editFlags.canCut },
+          { role: "copy", enabled: p.editFlags.canCopy },
+          { role: "paste", enabled: p.editFlags.canPaste },
+          { type: "separator" },
+          { role: "selectAll" },
+        ]
+      : p.selectionText.trim()
+        ? [{ role: "copy" }]
+        : [];
+    if (items.length) Menu.buildFromTemplate(items).popup({ window: win });
+  });
+}
+
+/** The web app's menu asks for these (paste goes through the page's own paste handling). */
+const EDIT_ROLES = new Set(["paste", "pasteAndMatchStyle"]);
+
 function createWindow(url = `${ORIGIN}/desk/`) {
   const saved = readBounds();
   const win = new BrowserWindow({
@@ -220,6 +245,7 @@ function createWindow(url = `${ORIGIN}/desk/`) {
   win.once("ready-to-show", () => win.show());
   win.on("close", () => saveBounds(win));
   routeNavigation(win);
+  editMenuFor(win);
   win.loadURL(url);
   return win;
 }
@@ -310,6 +336,9 @@ if (!app.requestSingleInstanceLock()) {
     // writing reminders and timer alerts (see reminders.ts)
     ipcMain.handle("litma:reminder:set", (_e, s: ReminderState) => setReminder(s));
     ipcMain.handle("litma:reminder:rang", (_e, day: string) => markRang(String(day)));
+    ipcMain.handle("litma:edit", (e, role: string) => {
+      if (EDIT_ROLES.has(role)) e.sender[role as "paste" | "pasteAndMatchStyle"]();
+    });
     ipcMain.handle("litma:notify", (_e, title: string, body: string) => showNotification(String(title), String(body), () => createWindow()));
     startReminders(() => createWindow());
     registerBackup();

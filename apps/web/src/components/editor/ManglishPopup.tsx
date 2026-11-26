@@ -4,6 +4,7 @@ import type { Editor } from "@tiptap/react";
 import type { Transaction } from "@tiptap/pm/state";
 import { transliterate } from "@/lib/functions";
 import { offlineCandidates, OFFLINE_MAX, rememberPick, withPick } from "@/lib/manglish-words";
+import { manglishWord } from "@litma/shared/manglish";
 import { manglishKey, topCandidates, pageOf, MAX_CANDIDATES, PAGE_SIZE, type ComposeState, type CommitInfo } from "@/extensions/manglish";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useT } from "@/i18n/react";
@@ -16,8 +17,10 @@ async function fetchCandidates(word: string): Promise<string[] | null> {
   if (cache.has(word)) return withPick(word, cache.get(word)!);
   const j = await transliterate(word, MAX_CANDIDATES);
   if (!j.candidates?.length || j.source === "offline") return null;
-  // Google's spellings first, then the offline ones it doesn't have
-  const list = topCandidates([...j.candidates, ...offlineCandidates(word, OFFLINE_MAX)]);
+  // capitals (N ണ, L ള, T ട, D ഡ, R റ) mean the writer is spelling exactly: their reading leads,
+  // even though Google ignores case. Then Google's spellings, then the offline ones it doesn't have.
+  const exact = /[A-Z]/.test(word) ? [manglishWord(word)] : [];
+  const list = topCandidates([...exact, ...j.candidates, ...offlineCandidates(word, OFFLINE_MAX)]);
   cache.set(word, list);
   // the writer's own earlier pick beats Google's order
   return withPick(word, list);
@@ -100,7 +103,8 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
         if (cache.has(word)) {
           queueMicrotask(() => {
             const now = manglishKey.getState(editor.state);
-            if (now?.active && now.word === word && !now.fetched) editor.view.dispatch(editor.state.tr.setMeta(manglishKey, { candidates: cache.get(word), word }));
+            // the writer's own earlier pick first, also for a word seen before in this visit
+            if (now?.active && now.word === word && !now.fetched) editor.view.dispatch(editor.state.tr.setMeta(manglishKey, { candidates: withPick(word, cache.get(word)!), word }));
           });
           return;
         }

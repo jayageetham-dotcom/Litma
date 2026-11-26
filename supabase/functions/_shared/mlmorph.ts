@@ -307,9 +307,19 @@ export class MlSpeller {
   private verdict(raw: string): WordVerdict {
     const word = normaliseWord(raw);
     if (this.mistakes[word]) return { word: raw, ok: false, kind: "mistake", fix: [this.mistakes[word]] };
-    if (this.morph.accepts(word) || looksForeign(word)) return { word: raw, ok: true };
+    if (this.morph.accepts(word) || looksForeign(word) || this.quoted(word)) return { word: raw, ok: true };
     const fix = this.suggest(word);
     return fix.length ? { word: raw, ok: false, kind: "suspect", fix } : { word: raw, ok: false, kind: "unknown", fix: [] };
+  }
+
+  /**
+   * A word the morphology knows with the quotative എന്ന് (or എന്നു, എന്ന, എന്നും, എന്നോ) joined on:
+   * ഇല്ല + എന്ന് → ഇല്ലെന്ന്. mlmorph has each half but not every chain of them (കാണാനില്ലെന്ന്,
+   * അറിയില്ലെന്ന്, വരില്ലെന്ന്, പറഞ്ഞില്ലെന്ന്), and these are among the most written words in prose.
+   */
+  private quoted(word: string): boolean {
+    const m = /^(.+[\u0D15-\u0D39])െന്ന(്|ു|ും|ോ)?$/u.exec(word);
+    return !!m && [...m[1]].length >= 2 && this.morph.accepts(m[1]);
   }
 
   /** Spellings the morphology accepts, simplest analysis first (mlmorph's ranking), at most max. */

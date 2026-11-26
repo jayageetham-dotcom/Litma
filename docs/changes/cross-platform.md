@@ -12,7 +12,8 @@ the code, and what is still unverified.
 - Web + desktop: Litma's own right-click menu in the editor (`apps/web/src/components/editor/EditorContextMenu.tsx`): spelling fixes, Ignore/Keep, cut, copy, paste, paste without formatting, delete, select all, look up, rhymes, Ask AI, B/I/U, clear formatting, shortcuts; pointer devices only, Shift + right-click keeps the browser's. Desktop: `litma:edit` IPC + `litmaDesktop.edit`, native Cut/Copy/Paste menu outside the editor (`editMenuFor` in `apps/desktop/src/main.ts`). Strings `editorMenu.*`, help `03-editor.md`.
 - Spelling engine (every app, server side): `MlSpeller.quoted()` in `shared/mlmorph.ts` accepts known words + quotative എന്ന് (കാണാനില്ലെന്ന്, അറിയില്ലെന്ന്…), which mlmorph alone flagged "Check spelling?".
 - Web Manglish: the writer's own pick leads on cached Google lists and the first offline list; capitals put the exact reading first online too (offline already did).
-- Unverified: phone transliterator's online list with capitals (`apps/mobile/lib/core`), desktop menu in a packaged build.
+- Tester + verifier (agent team): menu passes at 1440/1024 px light and dark, Electron unpackaged (paste keeps or drops formatting, native menu in inputs); keyboard opening fixed after the tester; `quoted()` limited to negatives (misspellings let through 122 → 34, prose false alarms 33 → 22 of 345). Check: `npx tsx scripts/spell-lab/quoted-check.ts`. Verifier: MERGE.
+- Open: chains with എന്നാണ് / എന്നുള്ള still flagged; a tall menu at the top can cover the clicked line; phone's online Manglish with capitals untested; packaged desktop on macOS/Windows untested.
 
 ## 2026-11-26: Monorepo for more Litma products (branch `monorepo`, on `metre-checker`)
 

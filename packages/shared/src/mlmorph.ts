@@ -321,7 +321,7 @@ export class MlSpeller {
     const m = /^(.+[\u0D15-\u0D39])െന്ന(്|ു|ും|ോ)?$/u.exec(word);
     if (!m || [...m[1]].length < 2) return false;
     // only a negative before it (ഇല്ല, വേണ്ട…): mlmorph reads many slips and bare nouns as
-    // something (വരില, അമ്മ), and those must stay marked (tester, 26 Nov: 122 false passes → 0)
+    // something (വരില, അമ്മ), and those must stay marked (tester, 26 Nov: 122 false passes → 34, all with a base mlmorph itself accepts)
     const base = m[1];
     if (this.morph.analyse(base, 8).some((a) => a.endsWith("<neg>"))) return true;
     // "need not" -ഏണ്ട (പോകേണ്ടെന്ന്, വിഷമിക്കേണ്ടെന്ന്): the verb's -ഏണം form must be a verb

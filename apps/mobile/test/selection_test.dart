@@ -88,6 +88,14 @@ Future<void> selectInLine(WidgetTester t, EditorSession s, TextBlock line, int f
 
 Finder barButton(String label) => find.descendant(of: find.byType(SelectionLayer), matching: find.text(label));
 
+/// Tap a button of the bar (it scrolls sideways on a phone).
+Future<void> tapBar(WidgetTester t, Finder f) async {
+  await t.ensureVisible(f);
+  await frames(t, 3);
+  await t.tap(f);
+  await frames(t);
+}
+
 Rect barRect(WidgetTester t) => t.getRect(find.ancestor(of: barButton('Copy'), matching: find.byType(Material)).first);
 
 /// The middle of character [i] of [line] on screen.
@@ -105,8 +113,11 @@ Offset endCaret(EditorSession s) {
 }
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
     PackageInfo.setMockInitialValues(appName: 'Litma', packageName: 'in.getlitma.litma', version: '0.7.33', buildNumber: '1', buildSignature: '');
+    // the app's own fonts, so lines, the footer and the bar measure as on a phone (the test font's
+    // square glyphs are far wider and overflow the footer)
+    await h.loadFonts();
   });
 
   // ── the owner's report ──
@@ -116,6 +127,7 @@ void main() {
     final last = s.lines.last;
     await t.longPressAt(charAt(s, last, wordFrom + 2));
     await frames(t);
+    debugPrint('long press: field selection=${s.controllerFor(last).blockSelection} focused=${identical(s.focused, last)} hasFocus=${s.focusFor(last).hasFocus} hasSpan=${s.hasSpan}');
     expect(s.hasSpan, isTrue, reason: 'the long press selected a word');
     expect(barButton('Copy'), findsOneWidget, reason: 'the selection bar shows');
     // the paper under the last line: this lands on the line that already holds the keyboard
@@ -227,25 +239,20 @@ void main() {
     final s = await openEditor(t);
     final line = s.lines[3];
     await selectInLine(t, s, line, wordFrom, wordTo);
-    await t.tap(barButton('Copy'));
-    await frames(t);
+    await tapBar(t, barButton('Copy'));
     expect(clip, 'word3x');
     expect(s.hasSpan, isTrue, reason: 'Copy keeps the selection');
-    await t.tap(find.descendant(of: find.byType(SelectionLayer), matching: find.byIcon(LucideIcons.bold)));
-    await frames(t);
+    await tapBar(t, find.descendant(of: find.byType(SelectionLayer), matching: find.byIcon(LucideIcons.bold)));
     expect(line.marks.sublist(wordFrom, wordTo).every((m) => m.has('bold')), isTrue);
-    await t.tap(barButton('Cut'));
-    await frames(t);
+    await tapBar(t, barButton('Cut'));
     expect(line.text, 'line 3  end');
     expect(s.hasSpan, isFalse);
     // Paste over a new selection
     await selectInLine(t, s, s.lines[1], 0, 4);
-    await t.tap(barButton('Paste'));
-    await frames(t);
+    await tapBar(t, barButton('Paste'));
     expect(s.lines[1].text, 'word3x 1 word1x end');
     await selectInLine(t, s, s.lines[2], 0, 5);
-    await t.tap(barButton('Delete'));
-    await frames(t);
+    await tapBar(t, barButton('Delete'));
     expect(s.lines[2].text, '2 word2x end');
     await closeEditor(t);
   });
@@ -310,6 +317,7 @@ void main() {
     t.view.viewInsets = const FakeViewPadding(bottom: 300 * 3);
     await frames(t);
     expect(s.focusFor(line).hasFocus, isTrue);
+    debugPrint('keyboard strip: focused=${identical(s.focused, line)} insets=${t.view.viewInsets.bottom} tools=${find.byTooltip('Bold').evaluate().length}');
     final hide = find.byTooltip('Hide keyboard');
     await t.ensureVisible(hide);
     await frames(t, 3);

@@ -8,6 +8,10 @@ Malayalam literary writing app. **npm-workspaces monorepo**: `apps/web` (Next.js
 - Shared engine data (the Manglish word list) for any product: reusable workflow `engine-data.yml` (artifact `engine-data`).
 - A new product gets its own folder under `apps/`, its own workflow with `paths:` filters, a line in `deploy.yml`'s `paths-ignore`, and its own tag prefix. Never make Litma's Release or deploy run for another product, or the other way round.
 
+## Agent team (`.claude/agents/`, Nov 2026)
+- `designer` (spec before building, screenshot review after), `web-dev` (web, desktop, shared, Supabase), `flutter-dev` (phone app), `keyboard-dev` (Litma Malayalam Keyboard, native), `tester` (tries to break it, writes tests, measures false alarms), `verifier` (fresh eyes on the whole branch, merge / don't merge; read-only).
+- Order for a feature: designer spec → web-dev (shared engine + web/desktop + MCP) and flutter-dev (port, vector tests) on the same branch → designer review → tester → fixes → verifier → owner merges. Lead session coordinates, keeps `docs/changes/` and the project status file current, and never merges to `main` itself.
+
 ## Setup guide
 - `docs/setup/google-and-supabase.md`: the owner's step-by-step for Google Cloud (consent screen, web client, Drive API), Supabase (providers, URL configuration, hooks, secrets, migrations, cron, admins) and the GitHub secrets/variables, with links. Keep it true when a scope, redirect URL, secret, function or migration changes.
 

@@ -20,6 +20,8 @@ on:
       - "apps/keyboard/**"
       - ".github/workflows/keyboard.yml"
       - ".github/workflows/engine-data.yml"
+      # Claude's agent definitions aren't part of the site
+      - ".claude/**"
       # Instagram reels and posters aren't part of the site
       - "marketing/**"
   workflow_dispatch:

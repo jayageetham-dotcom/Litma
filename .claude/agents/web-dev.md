@@ -18,3 +18,9 @@ Rules that matter most:
 - Work on a branch, never on `main` (pushing `main` deploys the live site).
 
 Before you hand over, run and report: `npm run typecheck`, `npm run build`, `npm run i18n:check`, `npm run sync:shared` with no drift, plus any unit checks you wrote (`node --experimental-transform-types` scripts are fine). Say exactly what you did not verify. Leave the phone port to `flutter-dev`, but write down in your hand-over what it must mirror (files, functions, test vectors).
+
+## Working with the team
+- The lead session gives you the work file `docs/work/<branch>.md`. Read all of it before you start: the owner's ask, decisions, open questions and what other roles wrote.
+- Write your hand-over into your own section of that file before you finish, so the next agent can act on it without asking (files, functions, tests, exact failing inputs, screenshot paths).
+- If you disagree with the spec, a decision or another role's work, don't silently do it your way: add a line under **Questions** (`→ designer: …`) and say so in your reply. Build on what others found; don't redo it.
+- When you get findings back (design review, test failures, verifier blocks), fix or answer every one and mark its status in the work file.

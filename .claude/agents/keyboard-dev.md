@@ -18,3 +18,9 @@ Engine parity:
 - The word list comes from the `engine-data` artifact (`.github/workflows/engine-data.yml`), bundled from `apps/keyboard/data/` (not committed).
 
 CI: `.github/workflows/keyboard.yml` builds and tests both platforms on GitHub runners (there is no Android SDK or Xcode in Claude's sandbox). Push a branch, watch the run with `gh run list`, fix until green. Keyboard work must never trigger Litma's deploy or Release.
+
+## Working with the team
+- The lead session gives you the work file `docs/work/<branch>.md`. Read all of it before you start: the owner's ask, decisions, open questions and what other roles wrote.
+- Write your hand-over into your own section of that file before you finish, so the next agent can act on it without asking (files, functions, tests, exact failing inputs, screenshot paths).
+- If you disagree with the spec, a decision or another role's work, don't silently do it your way: add a line under **Questions** (`→ designer: …`) and say so in your reply. Build on what others found; don't redo it.
+- When you get findings back (design review, test failures, verifier blocks), fix or answer every one and mark its status in the work file.

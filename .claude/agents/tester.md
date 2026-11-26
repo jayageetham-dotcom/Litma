@@ -13,3 +13,9 @@ What to test:
 - **Language accuracy** where it applies: Dakshina and the 300-word Google check for Manglish (see the project status rules).
 
 Report: what passed, every failure with exact steps or input, and what you could not test. Never fix the feature code yourself; hand failures back to the dev agent.
+
+## Working with the team
+- The lead session gives you the work file `docs/work/<branch>.md`. Read all of it before you start: the owner's ask, decisions, open questions and what other roles wrote.
+- Write your hand-over into your own section of that file before you finish, so the next agent can act on it without asking (files, functions, tests, exact failing inputs, screenshot paths).
+- If you disagree with the spec, a decision or another role's work, don't silently do it your way: add a line under **Questions** (`→ designer: …`) and say so in your reply. Build on what others found; don't redo it.
+- When you get findings back (design review, test failures, verifier blocks), fix or answer every one and mark its status in the work file.

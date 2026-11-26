@@ -49,6 +49,7 @@ export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShort
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const [toast, setToast] = useState("");
   const menu = useRef<HTMLDivElement>(null);
+  const openedAt = useRef(0);
   const listId = domId("ctx-menu", useId());
   const optId = (i: number) => `${listId}-${i}`;
 
@@ -62,7 +63,8 @@ export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShort
     const dom = editor.view.dom as HTMLElement;
     const onMenu = (e: MouseEvent) => {
       if (e.shiftKey || !editor.isEditable) return; // the browser's own menu
-      const keyboard = e.button !== 2 && e.clientX === 0 && e.clientY === 0;
+      // the menu key / Shift+F10: Chromium sends button -1 (with the caret's place), others 0,0
+      const keyboard = e.button === -1 || (e.button !== 2 && e.clientX === 0 && e.clientY === 0);
       // touch screens: a long press selects text and shows the system's handles and bar
       if (!keyboard && typeof window.matchMedia === "function" && !window.matchMedia("(pointer: fine)").matches) return;
       e.preventDefault();
@@ -83,6 +85,7 @@ export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShort
       if (!editor.isFocused) editor.commands.focus();
       setIssue(issueAt(editor.state));
       setActive(-1);
+      openedAt.current = Date.now();
       setAt({ x, y });
     };
     dom.addEventListener("contextmenu", onMenu);
@@ -220,19 +223,31 @@ export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShort
     const onDown = (e: PointerEvent) => {
       if (!menu.current?.contains(e.target as Node)) close();
     };
+    // the page scrolling closes it, but not the menu's own scrolling (short windows) and not the
+    // small scroll Chromium makes when the menu key opens it
+    const onScroll = (e: Event) => {
+      if (menu.current?.contains(e.target as Node) || Date.now() - openedAt.current < 400) return;
+      close();
+    };
     window.addEventListener("keydown", onKey, true);
     window.addEventListener("pointerdown", onDown, true);
     window.addEventListener("resize", close);
     window.addEventListener("blur", close);
-    document.addEventListener("scroll", close, true);
+    document.addEventListener("scroll", onScroll, true);
     return () => {
       window.removeEventListener("keydown", onKey, true);
       window.removeEventListener("pointerdown", onDown, true);
       window.removeEventListener("resize", close);
       window.removeEventListener("blur", close);
-      document.removeEventListener("scroll", close, true);
+      document.removeEventListener("scroll", onScroll, true);
     };
   }, [at, close]);
+
+  // the highlighted item stays in view when the menu scrolls (short windows)
+  useEffect(() => {
+    if (at && active >= 0) document.getElementById(optId(active))?.scrollIntoView({ block: "nearest" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [at, active]);
 
   // keep it on screen: flip left/up when it would run past the edge
   useLayoutEffect(() => {

@@ -49,4 +49,9 @@ Novel editor, 1440×900 and 1024×768, light and dark: **60 of 62 checks pass in
 ### Not tested
 - Manglish capitals online and picks remembered across cached Google lists (local mode never calls Google); the phone app (no Flutter here); MCP `check_spelling` (needs the deployed function).
 
+### Fixes after the tester (lead, 26 Nov)
+- Menu key / Shift+F10 closing at once: keyboard opening is now `button === -1` (or 0,0); page scroll in the first 400 ms after opening and scrolling inside the menu no longer close it; the highlighted item is scrolled into view. Checked in Chromium at 1440×900 and 1024×420: both keys open and stay open, ↓ ×14 keeps the item visible.
+- False passes: `quoted()` takes a base only when mlmorph reads it as a negative (`<neg>`), or `-ഏണ്ട` whose `-ഏണം` is a verb. Misspellings let through 122 → 34 (the 34 have a base mlmorph already accepts, e.g. പറയനാവില്ല); prose false alarms stay 22 of 345; every KNOWN false pass (അമ്മെന്ന്, വരിലെന്ന്…) is now flagged and the check fails if one comes back. `quoted-check.ts` limit lowered to 34.
+- Not changed: a tall menu pinned at the top can cover the clicked line (cosmetic).
+
 ## Verification (verifier)

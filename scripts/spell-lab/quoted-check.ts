@@ -58,7 +58,7 @@ console.log(`prose: ${words.length} words, flagged ${before} by mlmorph alone, $
 if (after.length > PROSE_MAX) fail(`prose false alarms ${after.length} > ${PROSE_MAX}: ${after.join(" ")}`);
 
 // 4. misspellings of chain words that only quoted() lets through
-const FALSE_PASS_MAX = 122; // 26 Nov 2026: 122 of 811 that mlmorph alone catches (15%)
+const FALSE_PASS_MAX = 34; // 26 Nov 2026: 34 of 811 after quoted() took only negatives (was 122); the rest have a base mlmorph itself accepts (പറയനാവില്ല)
 const BASES = `ഇല്ല കാണാനില്ല അറിയില്ല വരില്ല പറഞ്ഞില്ല പോയില്ല കിട്ടിയില്ല തോന്നിയില്ല ഉറങ്ങിയില്ല കഴിഞ്ഞില്ല സമ്മതിച്ചില്ല
 കേട്ടില്ല കണ്ടില്ല വന്നില്ല തന്നില്ല ചെയ്തില്ല മിണ്ടിയില്ല കഴിക്കില്ല പോകില്ല ആവില്ല കാണാനാവില്ല പറയാനാവില്ല മറക്കാനാവില്ല
 സഹിക്കാനാവില്ല ഓർമയില്ല പേടിയില്ല സമയമില്ല പണമില്ല ആരുമില്ല ഒന്നുമില്ല വേണ്ട പോകേണ്ട പറയേണ്ട കരയേണ്ട വിഷമിക്കേണ്ട
@@ -93,11 +93,14 @@ for (const base of BASES)
     }
   }
 console.log(`misspellings: ${seen.size}, mlmorph alone flags ${caught}, quoted() lets ${through.length} through`);
+if (process.env.SHOW) console.log(through.join(" "));
 if (through.length > FALSE_PASS_MAX) fail(`false passes ${through.length} > ${FALSE_PASS_MAX}: ${through.slice(0, 20).join(" ")}`);
 
-// 5. known false passes (not failing yet; see docs/work/claude-context-menu-spelling.md)
+// 5. false passes the tester found (26 Nov): none may come back
 const KNOWN = "അമ്മെന്ന് സീതെന്ന് ആയിഷെന്ന് പുഴെന്ന് വരിലെന്ന് കണ്ടിലെന്ന് വന്നിലെന്ന് പണമിലെന്ന് മരിചെന്ന്".split(" ");
-console.log(`known false passes still accepted: ${KNOWN.filter(ok).join(" ") || "none"}`);
+const back = KNOWN.filter(ok);
+console.log(`known false passes still accepted: ${back.join(" ") || "none"}`);
+if (back.length) fail(`false passes came back: ${back.join(" ")}`);
 
 console.log(failed ? `${failed} failure(s)` : "quoted-check: all passed");
 process.exit(failed ? 1 : 0);

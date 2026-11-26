@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-26: Right-click menu branch (PR #19), nothing to port
+
+- Only `assets/i18n/*.json` regenerated (`editorMenu.*`, web/desktop only). The spelling fix for quotative joins is in `litma-spell`, so the phone gets it with the deploy. To check later: the phone's online Manglish list with capitals (N, L, T, D, R) should put the exact reading first like the web now does.
+
 ## 2026-11-26: Phone build and tests fixed (CI green on `metre-checker`)
 
 - First real CI run of all six engine branches and of `main`'s PR #15 code: `flutter analyze` failed on `main` and every branch (AttributedString, SemanticsNode no longer come with material in the current Flutter) → `import 'package:flutter/semantics.dart'` in `lib/editor/suggestion_rows.dart` and `test/suggestion_rows_test.dart`. Three screen-reader tests read the chips before their fade-in had started (one long pump) → `settle()` steps the clock in frames. `.github/workflows/mobile.yml` also runs on changes to `shared/manglish-rank.ts`, `metre.ts`, `search.ts` (and any `packages/shared` file in PRs).

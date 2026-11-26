@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-26: Right-click menu, Manglish picks (branch `claude/context-menu-spelling`, PR #19)
+
+- `components/editor/EditorContextMenu.tsx` (new), mounted in `Workspace.tsx` off phones; `SpellSuggest.tsx` hides while it is open (`CONTEXT_MENU_EVENT`). `ManglishPopup.tsx` `withPick` on cached lists and capitals first; `extensions/manglish.ts` `withPick` on the first offline list. See cross-platform.md.
+
 ## 2026-11-26: Metre checker (branch `metre-checker`)
 
 - `components/editor/MetrePanel.tsx` (stanza at the cursor, debounced; summary box, lines in gana groups, amber for wrong, faded for an uncounted ്, tap selects in the text; switch for the metre marks), `Workspace.tsx` (`metre` panel, poems and lyrics only, `panelLabel`), strings `metre.*`, help `#metre`. Also the offline Manglish y fix in `shared/manglish-rank.ts`. See cross-platform.md.

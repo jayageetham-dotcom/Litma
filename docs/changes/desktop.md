@@ -6,6 +6,8 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 
 ## Open items
 
+- **Release needed** for ranked offline Manglish suggestions (2026-11-24, shared web code; the word list comes from the website's `/dict/` and is kept on disk by `kept()`).
+
 - **Release needed** for the 2026-11-22 accessibility work: spelling suggestions from the keyboard and for screen readers, Manglish list for screen readers, shortcuts list in Malayalam (`SpellSuggest.tsx`, `ManglishPopup.tsx`, `ShortcutsDialog.tsx`; no desktop-only code).
 
 - **Release needed** for the 2026-11-07 web changes (print view without the white strip on top,
@@ -22,6 +24,14 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+
+## 2026-11-26: Metre checker (branch `metre-checker`)
+
+- No desktop code. The metre panel and the Manglish fix come to the desktop app with the next Release.
+
+## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
+
+- No desktop code. The desktop app reads `/dict/rhyme` from the website, so it gets the new rhymes with the website deploy; the പ്രാസം tab's base-word opening comes with the next Release.
 
 ## 2026-11-22: Release builds the desktop store packages too
 

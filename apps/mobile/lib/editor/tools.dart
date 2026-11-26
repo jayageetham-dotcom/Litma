@@ -24,6 +24,7 @@ import '../features/story/story_world_screen.dart';
 import '../widgets/common.dart';
 import 'document.dart';
 import 'export.dart';
+import 'metre_view.dart';
 import 'pdf_fonts.dart';
 import 'session.dart';
 import 'work_tools.dart';
@@ -47,6 +48,7 @@ Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s
     (context.t('app.tools.groupWords'), [
       tool(LucideIcons.bookA, 'nav.dictionary', c.tintTangerine, () => showLookUpSheet(context, s)),
       tool(LucideIcons.repeat2, 'app.tools.rhymes', c.tintSky, () => showRhymeSheet(context, ref, s)),
+      if (s.kind == DocKind.poem || s.kind == DocKind.lyrics) tool(LucideIcons.audioLines, 'metre.tile', c.tintViolet, () => showMetreSheet(context, s)),
       tool(LucideIcons.spellCheck, 'app.tools.check', c.tintCoral, () => showCheckSheet(context, ref, s)),
       tool(LucideIcons.bookmark, 'saved.title', c.tintLime, () => showSavedWordsSheet(context, ref, s)),
     ]),
@@ -143,7 +145,7 @@ Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s
 
 void openStoryWorld(BuildContext context, EditorSession s) {
   FocusScope.of(context).unfocus();
-  Navigator.of(context).push(StoryWorldScreen.route(docId: s.doc.id, kind: s.kind, settings: s.settings, onSettings: s.updateSettings));
+  Navigator.of(context).push(StoryWorldScreen.route(docId: s.doc.id, kind: s.kind, settings: s.settings, onSettings: s.updateSettings)).then((_) => s.storyClosed?.call());
 }
 
 /// A sheet with the dictionary; tapping a word puts it into the writing (replacing a selection).

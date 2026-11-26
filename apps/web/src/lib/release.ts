@@ -6,7 +6,7 @@ import "@/lib/desktop";
 /** Public repository whose GitHub Releases hold the installers (see apps/desktop/README.md → Publishing). */
 export const RELEASES_REPO = "jayageetham-dotcom/litma-releases";
 export const RELEASES_PAGE = `https://github.com/${RELEASES_REPO}/releases`;
-/** Store links. A null one shows as "Coming soon" (phones) or is left out (Windows). */
+/** Store links. A null one shows as "Coming soon" (phones) or is left out (Windows). iPhone/iPad and Windows are live (Nov 2026). */
 export const STORE_LINKS = {
   /** App Store listing (Apple ID 6834719757; this address opens the visitor's own country's store) */
   ios: "https://apps.apple.com/app/id6834719757" as string | null,
@@ -49,10 +49,14 @@ const toUrl = (f?: string | FileInfo) => {
 export function downloadsFor(r: Release | null | undefined) {
   if (r === undefined) return { mac: null, win: null, linux: null, macSize: null, winSize: null, linuxSize: null, viaGithub: false };
   if (r === null) return { mac: `${RELEASES_PAGE}/latest`, win: `${RELEASES_PAGE}/latest`, linux: `${RELEASES_PAGE}/latest`, macSize: null, winSize: null, linuxSize: null, viaGithub: true };
+  // Mac and Windows have shipped: when latest.json names no file for them, the signed installers are
+  // still on the public releases page, so the apps never say "on its way" for them
+  const mac = toUrl(r.desktop?.mac ?? r.mac);
+  const win = toUrl(r.desktop?.win ?? r.win);
   return {
-    viaGithub: false,
-    mac: toUrl(r.desktop?.mac ?? r.mac),
-    win: toUrl(r.desktop?.win ?? r.win),
+    viaGithub: !mac || !win,
+    mac: mac ?? `${RELEASES_PAGE}/latest`,
+    win: win ?? `${RELEASES_PAGE}/latest`,
     // releases before the Linux build have none: the page says it's on its way
     linux: toUrl(r.desktop?.linux ?? r.linux),
     macSize: r.desktop?.mac?.size ?? null,

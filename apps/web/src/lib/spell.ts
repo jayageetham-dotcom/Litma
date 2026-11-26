@@ -8,6 +8,7 @@ import { loadIndex } from "./dictionary";
 import { mlShardName } from "@litma/shared/dict";
 import { createSpeller, type SpellIssue } from "@litma/shared/spell";
 import { spellEngine } from "./spell-engine";
+import { loadManglishWords, spellWords } from "./manglish-words";
 
 const speller = createSpeller(
   (path) =>
@@ -73,10 +74,22 @@ export function ignoreWord(w: string) {
   window.dispatchEvent(new Event(SPELL_EVENT));
 }
 
+/** The open work's Story World names: the writer's own words, never marked as unknown. */
+let storyWords = new Set<string>();
+export function setStoryWords(words: string[]) {
+  storyWords = new Set(words);
+  window.dispatchEvent(new Event(SPELL_EVENT));
+}
+
 /** The check the editor runs on each text block. */
 export function blockChecker(): (text: string) => Promise<SpellIssue[]> {
   const p = spellPrefs();
-  const mine = new Set([...myWords(), ...ignored]);
+  const mine = new Set([...myWords(), ...ignored, ...storyWords]);
   const skip = new Set(ignored);
-  return async (text) => (await speller.check(text, { unknown: p.unknown, mine, engine: spellEngine, punctuation: p.punct })).filter((i) => i.kind === "punct" || !skip.has(i.text));
+  // the offline word list ranks the fixes and catches typos the engine has nothing for; until it
+  // has loaded the check runs without it, and checks again once it is there
+  const words = spellWords();
+  if (!words) void loadManglishWords().then(() => spellWords() && window.dispatchEvent(new Event(SPELL_EVENT)));
+  return async (text) =>
+    (await speller.check(text, { unknown: p.unknown, mine, engine: spellEngine, punctuation: p.punct, words: words ?? undefined })).filter((i) => i.kind === "punct" || !skip.has(i.text));
 }

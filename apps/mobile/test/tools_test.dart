@@ -220,5 +220,7 @@ void main() {
     expect(aksharas('കമലം').length, 3);
     expect(metrePattern('കാല'), '–∪');
     expect(metrePattern('അമ്മ'), '–∪', reason: 'a short akshara before a conjunct is guru');
+    expect(metrePattern('പാട്ട്'), '–∪', reason: 'a word-final ് is a short syllable');
+    expect(metrePattern('അത്'), '∪∪');
   });
 }

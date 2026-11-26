@@ -34,7 +34,18 @@ final shards = <String, Object>{
       ]
     }
   },
+  'ml/d2e': {
+    'മഴ': {'e': ['rain']},
+    'മുറിയുക': {'e': ['to be cut']},
+  },
+  'ml/d24': {
+    'തടവുകാരൻ': {'e': ['prisoner']},
+  },
   'ml/d15': {
+    'കാണുക': {'e': ['to see']},
+    'കോഴി': {'e': ['hen']},
+    'കോഴിക്കോട്': {'e': ['Kozhikode']},
+    'കഥകൾ': {'e': ['stories']},
     'കാട്': {
       'd': {'നാ.': ['വനം, അടവി']},
       'e': ['forest', 'jungle'],
@@ -54,6 +65,17 @@ Dictionary dictionary() {
 
 void main() {
   group('dictionary (port of shared/dict.ts)', () {
+    test('headFor: a rhyme form opens the word it comes from, never a wrong one', () async {
+      final d = dictionary();
+      expect(await d.headFor('കാണുന്നു'), 'കാണുക');
+      expect(await d.headFor('മുറിഞ്ഞു'), 'മുറിയുക');
+      expect(await d.headFor('മഴയിൽ'), 'മഴ');
+      expect(await d.headFor('തടവുകാർ'), 'തടവുകാരൻ');
+      expect(await d.headFor('കോഴിക്കോട്ടെ'), 'കോഴിക്കോട്', reason: 'not കോഴി');
+      expect(await d.headFor('കഥകളൊക്കെ'), 'കഥകൾ');
+      expect(await d.headFor('കോഴിമുട്ടക്കറിയിൽ'), isNull, reason: 'a short prefix is not enough');
+      expect(await d.headFor('forest'), isNull);
+    });
     test('English word: Malayalam meanings, synonyms, translations', () async {
       final r = await dictionary().lookup('forests');
       expect(r.head, 'forest', reason: 'plural is stemmed');

@@ -17,6 +17,7 @@ export const loadIndex = (): Promise<DictIndex | null> => dict.index();
 export const lookup = dict.lookup;
 export const suggest = dict.suggest;
 export const opposites = dict.opposites;
+export const headFor = dict.headFor;
 export const getEn = dict.getEn;
 export const getMl = dict.getMl;
 export { isMalayalam };

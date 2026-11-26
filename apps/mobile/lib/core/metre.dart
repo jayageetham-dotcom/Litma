@@ -45,8 +45,7 @@ List<Akshara> aksharas(String line) {
     final next = k + 1 < merged.length ? merged[k + 1].text : null;
     // a short akshara before a conjunct (C്C…) is guru
     if (!long && next != null && next.length > 2 && next[1] == _virama && _cons.hasMatch(next[2])) long = true;
-    // an akshara whose own text ends in virama is guru
-    if (!long && t.endsWith(_virama)) long = true;
+    // a word-final ് (samvruthokaram: അത്, പാട്ട്) is a short syllable: laghu (see metre_check.dart)
     merged[k].long = long;
   }
   return merged;

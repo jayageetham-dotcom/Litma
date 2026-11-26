@@ -3,6 +3,54 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-26: Phone build and tests fixed (CI green on `metre-checker`)
+
+- First real CI run of all six engine branches and of `main`'s PR #15 code: `flutter analyze` failed on `main` and every branch (AttributedString, SemanticsNode no longer come with material in the current Flutter) → `import 'package:flutter/semantics.dart'` in `lib/editor/suggestion_rows.dart` and `test/suggestion_rows_test.dart`. Three screen-reader tests read the chips before their fade-in had started (one long pump) → `settle()` steps the clock in frames. `.github/workflows/mobile.yml` also runs on changes to `shared/manglish-rank.ts`, `metre.ts`, `search.ts` (and any `packages/shared` file in PRs).
+- Mobile app checks on `metre-checker` (`3d7128d`): analyze clean, all tests pass (metre, Manglish ranking, search, spelling, suggestion rows…). The lower branches don't carry these fixes: merge `metre-checker` (it holds all six), not them one by one.
+
+## 2026-11-26: Metre checker (branch `metre-checker`)
+
+- `lib/core/metre_check.dart` (port of `shared/metre.ts`), `lib/editor/metre_view.dart`, tile in `tools.dart` (poems, lyrics), `test/metre_test.dart` with `metre_vectors.json`/`metre_inputs.txt`; `lib/core/metre.dart` word-final ് laghu (+ `tools_test.dart`); `lib/core/manglish_rank.dart` y before a consonant (+ vectors, three words added to `manglish_rank_words.txt`). **Not compiled here: run Mobile app checks.**
+
+## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
+
+- Rhymes come from the website's files, so the phone gets the new words with no store build. `lib/data/dictionary.dart` `headFor` + `_formRules` (port of shared `dict.ts`), `dictionary_screen.dart` `_openRhyme` (the പ്രാസം tab opens a form's base word; needs a store build). Test in `test/phases_test.dart`. **Not compiled here.**
+
+## 2026-11-25: Better spelling suggestions (branch `spelling-suggestions`)
+
+- `packages/shared/src/manglish-rank.ts`: `rankOf`, `rankFixes` (engine fixes + sound-alike words, scored by use, closeness and the engine's order), `closeWords` (common words, top 30,000, one letter from a word that isn't listed; empty for names and new words). `spell.ts` `SpellOptions.words`: suspects' fixes ranked; an unknown word with close common words (and not in the dictionary) becomes "Check spelling?", with or without the engine. Phone: `lib/core/manglish_rank.dart` (same), `lib/data/spell.dart` `check(rankFixes:, closeWords:)`, `Transliterator.ranker`/`wordsReady`, `writing_aids.dart` (re-checks once the list has loaded). Vectors `__spell__` in `test/manglish_rank_test.dart`.
+- Web: `lib/spell.ts` passes `spellWords()` (`lib/manglish-words.ts`) and starts loading the list, re-checking when it arrives.
+- Measured on 387 realistic slips of common words (scripts/manglish-lab style, mlmorph built here): right fix first 66.7% → 94% overall (engine suspects 66.7% → 72.4%; 86 of 102 typos the engine had nothing for are now asked, right first for 84); real words the engine doesn't know asked about: 1.7% (amber question, Ignore/Keep; Story World names excluded).
+- Not done: the MCP `check_spelling` (server) has no word list, so its fixes stay in the engine's order.
+- Playwright (local, offline, default settings): പുസ്ടകം and ണൽകാൻ marked "Check spelling?", പുസ്തകം offered and applied; ചക്കപ്പഴക്കുഴി unmarked; desktop card and phone strip.
+
+## 2026-11-25: Forgiving search (branch `forgiving-search`)
+
+- `packages/shared/src/search.ts`: `searchRank` (3 as typed, 2 by sound incl. Malayalam queries: കത → കഥ, മലയാലം → മലയാളം, 1 one typo from 5 sound letters / two from 12, swaps count once), `matchesSearch` = rank > 0, `manglishMatches` also for Malayalam queries (other spellings, never the query) and near misses. Phone port `lib/core/search.dart` (same cases in `test/search_test.dart`).
+- Desk (web `app/desk/page.tsx`, phone `desk_screen.dart`): while searching, results sorted by rank (stable; title/words sort within rank). Saved words, നാട്ടറിവ്, Community, phone dictionary filter get the forgiving match through `matchesSearch`.
+- Find (web `FindBar` in Workspace.tsx, phone `work_tools.dart`): chips for Malayalam searches labelled `search.soundsLike` (+ hint; en + ml). Web Find bar: search and replace fields keep at least 7.5rem on narrow phones (were squeezed to a few letters at 320 px).
+- Help `01-getting-started.md`, `03-editor.md#find`. Playwright: desk search (കത, malayalm, dairy, മലയാലം) on phone and desktop; Find at 320/390/1280 px.
+
+## 2026-11-25: Story World names and remembered picks in Manglish (branch `manglish-names`)
+
+- Shared: `manglish-rank.ts` `setOwnWords` (own index, commonness above every listed word) and `ownWordsFrom` (Malayalam words in names); phone port in `lib/core/manglish_rank.dart`, checked by `__own__` vectors in `test/manglish_rank_test.dart`.
+- Web/desktop: `Workspace.tsx` loads the work's Story World names on open and when Story World closes → `setStoryNames` (`lib/manglish-words.ts`) and `setStoryWords` (`lib/spell.ts`, never marked). Picks: `CommitInfo.chosen` (a spelling other than the first, by click or arrows) → `rememberPick` (`litma:manglish-picks`, 1,000 newest, this device only); `withPick` puts it first in offline and Google lists.
+- Phone: `Transliterator.setStoryNames/storyWords/rememberPick/withPick` (same key in SharedPreferences), `editor_screen.dart` `_loadStoryNames` (on open and `session.storyClosed` from `openStoryWorld`), `_chose` from the strip; `setupSpellMarks` adds Story World names to "mine". Fix: offline, a space now takes the ranked first spelling (`_firstOffline`), not the letter reading. **Not compiled here.**
+- Help `02-typing.md`. Playwright (local): with a character കുഞ്ഞാറ്റ, "kunjaatta" → കുഞ്ഞാറ്റ first and the name isn't marked; a chosen spelling (വല്ലം for vellam) comes first next time.
+
+## 2026-11-24: Spelling "Suggest" and "Deselect all" (on a branch until CI passes)
+
+- `lib/editor/suggestion_rows.dart` `SpellRow` is now stateful: optional `onSuggest`; for an `unknown` mark with no fixes it shows **Suggest**, then the sound-alike words (or `check.noSimilar`). Wired through `_KeyboardBar.onSuggestWord` → `Transliterator.similar` (waits for the word list) → `ManglishRanker.similar` (port of the web's, checked by `test/manglish_rank_test.dart` `__similar__` vectors). Two new widget tests in `test/suggestion_rows_test.dart`.
+- Selection bar (`lib/editor/selection_layer.dart`): when the whole work is selected (`EditorSession.allSelected`) the last button is **Deselect all** (`app.selection.deselectAll`), which calls `deselectAll()` (clears the span, collapses the field's own selection).
+- **Not compiled here.**
+
+## 2026-11-24: Ranked offline Manglish suggestions (on a branch until CI passes)
+
+- `lib/core/manglish_rank.dart` (new): port of `packages/shared/src/manglish-rank.ts` (`ManglishRanker.of/build`, `suggest`, `lookup`, `scriptKey`, `latinKeys`). Ties keep list order like the web's stable sort.
+- `lib/core/config.dart` `Transliterator`: `wordList` loader, `offline(word)` gives ranked spellings once the list is loaded (else `manglishCandidates`); Google's answers first, then offline ones; an Edge Function "offline" answer keeps the ranked list. `lib/app/providers.dart` wires `wordList` to `Dictionary.text('manglish-words', timeout: 90 s)` (kept on the phone). `lib/editor/editor_screen.dart` uses `transliterator.offline` for the instant strip, so a space offline now takes the best real word.
+- Test: `test/manglish_rank_test.dart` against `test/manglish_rank_vectors.json` (written by `npm run mobile:assets` from `test/manglish_rank_words.txt` + `test/manglish_rank_inputs.txt`).
+- **Not compiled here.** Merge only after "Mobile app checks" is green.
+
 ## 2026-11-22: Suggestion rows for screen readers (on a branch until CI passes)
 
 - New `lib/editor/suggestion_rows.dart`: `SpellRow` and `ManglishRow`, moved out of `editor_screen.dart` (`_SpellRow` and `_Suggestions` now only wire the session to them; look and behaviour unchanged). Each chip is one `Semantics(container, button, onTap, excludeSemantics)`: spellings get a Malayalam `attributedLabel` (`LocaleStringAttribute` ml) so TalkBack/VoiceOver use a Malayalam voice; Ignore and Keep are named by their word with the long text as the hint (before: the hint was the name); the Manglish spelling a space takes is `selected`. The spelling row is a `liveRegion` container labelled `check.announceTouch` (en + ml), so it is announced when it appears.

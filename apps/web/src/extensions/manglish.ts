@@ -1,7 +1,8 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey, EditorState } from "@tiptap/pm/state";
 import { Decoration, DecorationSet, EditorView } from "@tiptap/pm/view";
-import { manglish, manglishCandidates, manglishWord, MANGLISH_WORD_RE } from "@litma/shared/manglish";
+import { manglish, manglishWord, MANGLISH_WORD_RE } from "@litma/shared/manglish";
+import { offlineCandidates, OFFLINE_MAX } from "../lib/manglish-words";
 import { LAYOUTS, keyToText, readLayout, storeLayout, type MalayalamLayout } from "@litma/keyboards";
 
 export type InputMode = "manglish" | "malayalam" | "english";
@@ -25,6 +26,8 @@ export interface CommitInfo {
   text: string;
   word: string;
   fetched: boolean;
+  /** the writer chose this spelling (tapped it or moved to it), not just the first one */
+  chosen?: boolean;
 }
 
 export const manglishKey = new PluginKey<ComposeState>("manglish");
@@ -90,7 +93,7 @@ function computeCompose(state: EditorState, prev: ComposeState, mode: InputMode)
     from,
     to: $from.pos,
     word,
-    candidates: sameWord && prev.word === word ? prev.candidates : manglishCandidates(word),
+    candidates: sameWord && prev.word === word ? prev.candidates : offlineCandidates(word, OFFLINE_MAX),
     index: sameWord && prev.word === word ? prev.index : 0,
     fetched: sameWord && prev.word === word ? prev.fetched : false,
   };
@@ -102,7 +105,8 @@ function commit(view: EditorView, index?: number): boolean {
   const list = st.candidates.length ? st.candidates : [manglishWord(st.word)];
   const choice = list[Math.min(index ?? st.index, list.length - 1)] ?? manglishWord(st.word);
   const tr = view.state.tr.insertText(choice, st.from, st.to);
-  const committed: CommitInfo = { from: st.from, text: choice, word: st.word, fetched: st.fetched || index !== undefined || st.index > 0 };
+  const chosen = (index !== undefined && index > 0) || (index === undefined && st.index > 0);
+  const committed: CommitInfo = { from: st.from, text: choice, word: st.word, fetched: st.fetched || index !== undefined || st.index > 0, chosen };
   tr.setMeta(manglishKey, { reset: true, committed });
   view.dispatch(tr);
   return true;
@@ -243,7 +247,7 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
           if (newState.doc.textBetween(was.from, was.to, undefined, "￼") !== was.word) return null;
           const list = was.candidates.length ? was.candidates : [manglishWord(was.word)];
           const choice = list[Math.min(was.index, list.length - 1)] ?? manglishWord(was.word);
-          const committed: CommitInfo = { from: was.from, text: choice, word: was.word, fetched: was.fetched || was.index > 0 };
+          const committed: CommitInfo = { from: was.from, text: choice, word: was.word, fetched: was.fetched || was.index > 0, chosen: was.index > 0 };
           return newState.tr.insertText(choice, was.from, was.to).setMeta(manglishKey, { reset: true, committed });
         },
         props: {

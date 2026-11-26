@@ -9,6 +9,7 @@ import { HomeNav } from "@/components/HomeActions";
 import { MobileNav } from "@/components/MobileNav";
 import { SavedWords, useBookmarks } from "@/components/SavedWords";
 import { RhymeFinder } from "@/components/RhymeFinder";
+import { headFor } from "@/lib/dictionary";
 import { NattarivuCategories, NattarivuCategoryView } from "@/components/Nattarivu";
 import { nattarivuCategory } from "@litma/shared/nattarivu";
 import { useT } from "@/i18n/react";
@@ -81,7 +82,7 @@ function Dictionary() {
         <div className="mt-6 grid gap-12 lg:mt-8 lg:grid-cols-[minmax(0,1fr)_20rem] xl:gap-16">
           <section className={view === "saved" ? "max-lg:hidden" : ""}>
             {view === "rhyme" ? (
-              <RhymeFinder word={params.get("r") ?? undefined} onPick={(w) => openWord(w)} pickHint={t("rhyme.openHint")} />
+              <RhymeFinder word={params.get("r") ?? undefined} onPick={(w) => void headFor(w).then((h) => openWord(h ?? w), () => openWord(w))} pickHint={t("rhyme.openHint")} />
             ) : view === "nattarivu" ? (
               category ? (
                 <NattarivuCategoryView key={category.id} category={category} onBack={() => go({ view: "nattarivu" })} onOpen={(id) => go({ view: "nattarivu", c: id })} onWord={(w) => openWord(w, category.id)} />

@@ -124,4 +124,60 @@ try {
   console.warn(`mobile: Manglish examples not refreshed (this Node can't load TypeScript: ${e.message})`);
 }
 
+// Ranked offline Manglish suggestions: the web's answers for test/manglish_rank_inputs.txt with the small
+// word list test/manglish_rank_words.txt (a sample of /dict/manglish-words.txt, most used first);
+// test/manglish_rank_test.dart checks lib/core/manglish_rank.dart gives the same lists
+try {
+  const r = await import(join(root, "packages/shared/src/manglish-rank.ts"));
+  const read = (f) => readFileSync(join(mobile, "test", f), "utf8");
+  const ranker = r.createManglishRanker(r.parseWordList(read("manglish_rank_words.txt")));
+  const inputs = read("manglish_rank_inputs.txt").split("\n").filter(Boolean);
+  const out = Object.fromEntries(inputs.map((w) => [w, { keys: r.latinKeys(w), suggest: ranker.suggest(w, 8) }]));
+  const scripts = ranker.lookup("enthaanu", 3).map((x) => x.word);
+  out.__script__ = Object.fromEntries(scripts.map((w) => [w, { key: r.scriptKey(w), lengths: r.scriptLengths(w) }]));
+  // spelling "Suggest": known words that sound like an unknown Malayalam word
+  out.__similar__ = Object.fromEntries(["കര്യം", "മലയാലം", "വെല്ലം", "സന്തോശം", "പരഞ്ഞു", "എന്താനു", "ചക്കപ്പഴക്കുഴി"].map((w) => [w, ranker.similar(w, 6)]));
+  // spelling: fixes ranked by use and sound, and common words one letter from an unknown word
+  out.__spell__ = {
+    rank: Object.fromEntries(
+      [["വെരും", ["വെറും", "വേരും"]], ["ഒറുപാട്", ["ഒരുപാട്", "ഒറ്റുപാട്"]], ["കാര്യമ്", ["കാര്യം", "കാര്യമായ"]], ["പറന്നു", []]].map(([w, f]) => [w, { fixes: f, ranked: ranker.rankFixes(w, f, 4) }])
+    ),
+    close: Object.fromEntries(["ണൽകാൻ", "പുസ്ടകം", "കര്യം", "മലയാലം", "ചക്കപ്പഴക്കുഴി", "ഹന്ന", "എന്നു"].map((w) => [w, ranker.closeWords(w)])),
+    rankOf: Object.fromEntries(["എന്ന", "കാര്യം", "ചക്കപ്പഴക്കുഴി"].map((w) => [w, ranker.rankOf(w)])),
+  };
+  // the writer's own words (Story World names) come first when they fit
+  const names = ["ഹന്ന ജോസഫ്", "കുഞ്ഞാറ്റ", "തെക്കുംകൂർ"];
+  ranker.setOwnWords(r.ownWordsFrom(names));
+  out.__own__ = { names, words: r.ownWordsFrom(names), suggest: Object.fromEntries(["kunjaatta", "hanna", "josaf", "thekkumkoor", "enthaanu"].map((w) => [w, ranker.suggest(w, 8)])), similar: ranker.similar("ഹന", 6) };
+  writeFileSync(join(mobile, "test/manglish_rank_vectors.json"), JSON.stringify(out) + "\n");
+} catch (e) {
+  console.warn(`mobile: ranked Manglish examples not refreshed (this Node can't load TypeScript: ${e.message})`);
+}
+
+// Metre (വൃത്തം): the web's answers for the stanzas in test/metre_inputs.txt (blank lines between
+// stanzas); test/metre_test.dart checks lib/core/metre_check.dart gives the same
+try {
+  const mt = await import(join(root, "packages/shared/src/metre.ts"));
+  const text = readFileSync(join(mobile, "test/metre_inputs.txt"), "utf8");
+  const out = mt.stanzas(text).map((lines) => {
+    const r = mt.checkStanza(lines);
+    return {
+      lines,
+      metre: r.metre?.id ?? null,
+      fit: r.fit,
+      lineMetres: r.lineMetres ?? null,
+      checked: r.lines.map((l) => ({
+        count: l.count,
+        matras: l.matras,
+        expected: l.expected ?? null,
+        ok: l.ok,
+        syl: l.syllables.map((s) => [s.text, s.start, s.end, s.w, s.optional, s.counted, s.weight, s.wrong, s.group]),
+      })),
+    };
+  });
+  writeFileSync(join(mobile, "test/metre_vectors.json"), JSON.stringify(out) + "\n");
+} catch (e) {
+  console.warn(`mobile: metre examples not refreshed (this Node can't load TypeScript: ${e.message})`);
+}
+
 console.log(`mobile: ${keys.length} colour tokens → lib/core/tokens.g.dart; ${locales.length} locales → assets/i18n`);

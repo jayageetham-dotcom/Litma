@@ -21,7 +21,12 @@ import '../data/store.dart';
 class Services {
   Services({required this.auth, required this.offline, required this.store, required this.prefs, required this.messages, Transliterator? transliterator, Dictionary? dictionary})
       : transliterator = transliterator ?? Transliterator(),
-        dictionary = dictionary ?? Dictionary(offline);
+        dictionary = dictionary ?? Dictionary(offline) {
+    // ranked offline Manglish suggestions read the website's word list, kept on the phone once loaded
+    this.transliterator.wordList ??= () => this.dictionary.text('manglish-words', timeout: const Duration(seconds: 90));
+    // the writer's own Manglish picks are kept on this phone
+    this.transliterator.prefs ??= prefs;
+  }
   final AuthGateway auth;
   final OfflineLayer offline;
   final Store store;

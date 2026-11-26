@@ -4,6 +4,7 @@ import type { Editor } from "@tiptap/react";
 import { issueAt, type DocIssue } from "@/extensions/writing-aids";
 import { manglishKey } from "@/extensions/manglish";
 import { addMyWord, ignoreWord } from "@/lib/spell";
+import { similarWords } from "@/lib/manglish-words";
 import { useT } from "@/i18n/react";
 import { domId, ownAttr } from "./aria-owner";
 
@@ -56,6 +57,28 @@ function useActions(editor: Editor, issue: DocIssue | null, close: () => void) {
     addMyWord(issue.text);
   };
   return { fix, ignore, keepWord, canKeep: !!issue && issue.kind !== "unicode" && issue.kind !== "punct" };
+}
+
+/**
+ * A word the dictionary doesn't know has no spellings of its own: "Suggest" asks for known words
+ * that sound like it (the offline word list), shown like any other suggestions. Only on request,
+ * so names and made-up words are never pushed to change.
+ */
+function useSimilar(issue: DocIssue | null) {
+  const [asked, setAsked] = useState<{ key: string; words: string[] | null } | null>(null);
+  const key = issue ? keyOf(issue) : "";
+  const mine = asked && asked.key === key ? asked : null;
+  const canSuggest = !!issue && issue.kind === "unknown" && issue.fix.length === 0 && !mine;
+  const suggest = () => {
+    if (!issue) return;
+    setAsked({ key, words: null });
+    similarWords(issue.text).then((words) => setAsked((a) => (a && a.key === key ? { key, words } : a)));
+  };
+  const own = issue ? issue.fix.slice(0, 6) : [];
+  const fixes = own.length ? own : mine?.words ?? [];
+  // asked and nothing close came back: say so instead of the kind of mark
+  const none = !!mine && mine.words !== null && mine.words.length === 0;
+  return { fixes, canSuggest, suggest, none };
 }
 
 const NAV_KEYS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"]);
@@ -165,9 +188,10 @@ export function SpellStrip({ editor, placeholder = false }: { editor: Editor; pl
   const t = useT();
   const { issue, close } = useSpellAt(editor);
   const { fix, ignore, keepWord, canKeep } = useActions(editor, issue, close);
-  const fixes = issue ? issue.fix.slice(0, 6) : [];
-  const count = issue ? fixes.length + 1 + (canKeep ? 1 : 0) : 0;
-  const run = (i: number) => (i < fixes.length ? fix(fixes[i]) : i === fixes.length ? ignore() : keepWord());
+  const { fixes, canSuggest, suggest, none } = useSimilar(issue);
+  const sg = canSuggest ? 1 : 0;
+  const count = issue ? fixes.length + sg + 1 + (canKeep ? 1 : 0) : 0;
+  const run = (i: number) => (i < fixes.length ? fix(fixes[i]) : i < fixes.length + sg ? suggest() : i === fixes.length + sg ? ignore() : keepWord());
   const { active, optId } = useSpellKeys(editor, issue, count, run, close);
   const strip = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -189,8 +213,9 @@ export function SpellStrip({ editor, placeholder = false }: { editor: Editor; pl
       <div ref={strip} className="no-print flex h-11 items-stretch gap-1 border-t border-line bg-paper px-1.5 py-1 text-ink" role="listbox" aria-label={t("check.suggestions")} onPointerDown={keep} onMouseDown={keep}>
         <div className="scrollbar-none flex min-w-0 flex-1 items-stretch gap-1 overflow-x-auto overscroll-x-contain" role="group">
           {fixes.length === 0 && (
-            <span className="flex shrink-0 items-center px-2.5 text-[13px] text-muted" aria-hidden>
-              {t(`check.kind.${issue.kind}`)}
+            // shrinks with an ellipsis on narrow phones, so Suggest, Ignore and Keep always fit
+            <span className="min-w-0 shrink self-center truncate px-2.5 text-[13px] text-muted" aria-hidden={!none} role={none ? "status" : undefined}>
+              {none ? t("check.noSimilar") : t(`check.kind.${issue.kind}`)}
             </span>
           )}
           {fixes.map((f, i) => (
@@ -212,11 +237,16 @@ export function SpellStrip({ editor, placeholder = false }: { editor: Editor; pl
           ))}
         </div>
         <div className="flex shrink-0 items-stretch gap-1" role="group">
-          <button id={optId(fixes.length)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length} onClick={ignore} title={t("check.ignoreHint")} className={`shrink-0 rounded-[8px] px-2.5 text-[13px] text-muted active:bg-subtle${ring(fixes.length)}`}>
+          {canSuggest && (
+            <button id={optId(fixes.length)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length} onClick={suggest} title={t("check.suggestHint")} className={`shrink-0 rounded-[8px] px-2.5 text-[13px] font-medium text-accent active:bg-subtle${ring(fixes.length)}`}>
+              {t("check.suggest")}
+            </button>
+          )}
+          <button id={optId(fixes.length + sg)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length + sg} onClick={ignore} title={t("check.ignoreHint")} className={`shrink-0 rounded-[8px] px-2.5 text-[13px] text-muted active:bg-subtle${ring(fixes.length + sg)}`}>
             {t("check.ignore")}
           </button>
           {canKeep && (
-            <button id={optId(fixes.length + 1)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length + 1} onClick={keepWord} title={t("check.keepHint")} className={`shrink-0 rounded-[8px] px-2.5 text-[13px] text-muted active:bg-subtle${ring(fixes.length + 1)}`}>
+            <button id={optId(fixes.length + sg + 1)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length + sg + 1} onClick={keepWord} title={t("check.keepHint")} className={`shrink-0 rounded-[8px] px-2.5 text-[13px] text-muted active:bg-subtle${ring(fixes.length + sg + 1)}`}>
               {t("check.keep")}
             </button>
           )}
@@ -238,9 +268,10 @@ export function SpellSuggest({ editor }: { editor: Editor }) {
   const { fix, ignore, keepWord, canKeep } = useActions(editor, issue, close);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const card = useRef<HTMLDivElement>(null);
-  const fixes = issue ? issue.fix.slice(0, 6) : [];
-  const count = issue && pos ? fixes.length + 1 + (canKeep ? 1 : 0) : 0;
-  const run = (i: number) => (i < fixes.length ? fix(fixes[i]) : i === fixes.length ? ignore() : keepWord());
+  const { fixes, canSuggest, suggest, none } = useSimilar(issue);
+  const sg = canSuggest ? 1 : 0;
+  const count = issue && pos ? fixes.length + sg + 1 + (canKeep ? 1 : 0) : 0;
+  const run = (i: number) => (i < fixes.length ? fix(fixes[i]) : i < fixes.length + sg ? suggest() : i === fixes.length + sg ? ignore() : keepWord());
   const { active, optId } = useSpellKeys(editor, issue, count, run, close);
   const headId = useId();
   const listId = domId("spell-list", useId());
@@ -303,7 +334,7 @@ export function SpellSuggest({ editor }: { editor: Editor }) {
         onMouseDown={keep}
       >
         <p id={headId} className="px-1.5 pb-1 pt-0.5 text-[11.5px] font-medium text-muted" style={{ fontFamily: "var(--font-ui)" }}>
-          {ml ? t(`check.kind.${issue.kind}`) : t(`check.punct.${(issue.rule ?? "spaceBefore") as "spaceBefore"}`)}
+          {none ? t("check.noSimilar") : ml ? t(`check.kind.${issue.kind}`) : t(`check.punct.${(issue.rule ?? "spaceBefore") as "spaceBefore"}`)}
         </p>
         <div id={listId} role="listbox" aria-labelledby={headId} className="flex flex-col">
           {fixes.length > 0 && (
@@ -328,11 +359,16 @@ export function SpellSuggest({ editor }: { editor: Editor }) {
             </div>
           )}
           <div role="group" className="mt-1 flex items-center gap-1 border-t border-line pt-1 text-[13px]" style={{ fontFamily: "var(--font-ui)" }}>
-            <button id={optId(fixes.length)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length} onClick={ignore} title={t("check.ignoreHint")} className={row(fixes.length, "flex-1 rounded-[6px] px-2 py-1 text-left text-muted hover:bg-subtle hover:text-ink")}>
+            {canSuggest && (
+              <button id={optId(fixes.length)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length} onClick={suggest} title={t("check.suggestHint")} className={row(fixes.length, "rounded-[6px] px-2 py-1 font-medium text-accent hover:bg-subtle")}>
+                {t("check.suggest")}
+              </button>
+            )}
+            <button id={optId(fixes.length + sg)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length + sg} onClick={ignore} title={t("check.ignoreHint")} className={row(fixes.length + sg, "flex-1 rounded-[6px] px-2 py-1 text-left text-muted hover:bg-subtle hover:text-ink")}>
               {t("check.ignore")}
             </button>
             {canKeep && (
-              <button id={optId(fixes.length + 1)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length + 1} onClick={keepWord} title={t("check.keepHint")} className={row(fixes.length + 1, "rounded-[6px] px-2 py-1 text-muted hover:bg-subtle hover:text-ink")}>
+              <button id={optId(fixes.length + sg + 1)} type="button" role="option" tabIndex={-1} aria-selected={active === fixes.length + sg + 1} onClick={keepWord} title={t("check.keepHint")} className={row(fixes.length + sg + 1, "rounded-[6px] px-2 py-1 text-muted hover:bg-subtle hover:text-ink")}>
                 {t("check.keep")}
               </button>
             )}

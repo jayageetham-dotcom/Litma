@@ -169,6 +169,17 @@ export interface SpellOptions {
   engine?: SpellEngine;
   /** punctuation and spacing rules (punctuation.ts) */
   punctuation?: boolean;
+  /**
+   * The offline word list (manglish-rank.ts), once loaded: ranks the engine's fixes by real use and
+   * adds sound-alike words; asks about an unknown word one letter from a common word. Optional.
+   */
+  words?: SpellWords;
+}
+
+/** What the spelling check uses from the offline word list (ManglishRanker has both). */
+export interface SpellWords {
+  rankFixes(word: string, fixes: string[], max?: number): string[];
+  closeWords(word: string): string[];
 }
 
 /** Fetch a text file relative to the /dict root (e.g. "words/d15-d3e"); null when missing. */
@@ -239,11 +250,18 @@ export function createSpeller(fetchText: SpellFetch, fetchIndex: IndexFetch, sha
           continue;
         }
         if (v.k === "suspect" && v.fix?.length) {
-          out.push({ from, to, text: word, kind: "suspect", fix: v.fix.slice(0, 4) });
+          out.push({ from, to, text: word, kind: "suspect", fix: opts.words ? opts.words.rankFixes(word, v.fix, 4) : v.fix.slice(0, 4) });
           continue;
         }
       }
       if (v?.k === "ok") continue;
+      // nobody knows it, and a common word is one letter away: probably a typo, so ask (with or
+      // without the engine). Names and new words rarely sit that close to a common word.
+      const close = opts.words && [...word].length > 2 ? opts.words.closeWords(word) : [];
+      if (close.length && !(await isKnown(word))) {
+        out.push({ from, to, text: word, kind: "suspect", fix: close });
+        continue;
+      }
       if (opts.unknown && [...word].length > 2 && !(await isKnown(word))) out.push({ from, to, text: word, kind: "unknown", fix: [] });
     }
     if (opts.punctuation) for (const p of punctuationIssues(text)) out.push({ from: p.from, to: p.to, text: p.text, kind: "punct", fix: [p.fix], rule: p.rule });

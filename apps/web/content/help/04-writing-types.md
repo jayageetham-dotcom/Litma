@@ -2,7 +2,7 @@
 id: types
 title: Writing types
 ml: സാഹിത്യരൂപങ്ങൾ
-summary: Novel, story, poem, screenplay, play, feature, essay, lyrics and diary, each with its own page.
+summary: Novel, story, poem, screenplay, play, feature, essay, lyrics and diary, each with its own page, and a metre checker for verse.
 icon: layout-template
 tint: lime
 ---
@@ -50,7 +50,29 @@ When you choose **New work**, Litma shows ten writing types with a preview of th
 
 Choose **വൃത്തം** on the toolbar, or press <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd>. Litma shows how many aksharas each line has and marks every syllable as laghu (short) or guru (long), so you can check the metre as you write. The marks never print. Choose it again to hide them.
 
-For words that rhyme, with the same laghu and guru, use the [rhyme finder](#rhymes).
+For words that rhyme, with the same laghu and guru, use the [rhyme finder](#rhymes). To find out which metre a stanza is in, use the [metre checker](#metre).
+
+## Check the metre (വൃത്തം) {#metre}
+
+In a poem or song lyrics, the metre checker names the metre of the stanza you are writing and shows which syllables don't fit it yet.
+
+![The metre checker beside a poem](shots/metre.webp "The stanza's metre, its rule, and each line in syllables with laghu (∪) and guru (–).")
+
+1. Inside a poem or lyrics, choose **Metre (വൃത്തം)** on the right-hand rail. On a phone, choose **More**, then **Metre**; in the Litma phone app, the tools button, then **Metre**.
+2. Put the cursor anywhere in a stanza. The checker reads that stanza; on an empty line it reads the stanza above.
+3. Read the box at the top: the metre's name, its rule (the ganas, or the aksharas in each line), and how well the stanza fits.
+4. Each line is shown in syllables, grouped by gana, with ∪ for laghu and – for guru. A syllable marked in amber needs the other weight; a line with the wrong number of aksharas says how many it needs. Tap a syllable to find it in your text.
+
+What the checker can say:
+
+- **Every line fits:** a Sanskrit metre (സമവൃത്തം and the like: വസന്തതിലകം, മന്ദാക്രാന്ത, ശാർദ്ദൂലവിക്രീഡിതം, അനുഷ്ടുപ്പ്, ഉപജാതി and others) whose laghu–guru pattern every line follows. The last syllable of a line may be either.
+- **Likely:** a Malayalam metre (ഭാഷാവൃത്തം: കേക, കാകളി, മഞ്ജരി, നതോന്നത, അന്നനട, തരംഗിണി and others). These are sung, so the checker reads them from the aksharas in each pair of lines and the shape of the ganas.
+- **Close:** a few syllables, or one line, are off. They are marked.
+- **No common metre found:** free verse needs none. The checker never marks free verse as wrong.
+
+> **Good to know:** A ് at the end of a word (അത്, പാട്ട്) can be read as a short syllable or not counted at all, as poets do both. The checker takes whichever fits the metre and shows an uncounted one faded.
+
+The panel also has a switch for the [metre marks](#poem) beside each line.
 
 ## Screenplays {#screenplay}
 

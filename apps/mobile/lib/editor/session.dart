@@ -38,6 +38,9 @@ class EditorSession extends ChangeNotifier {
 
   /// Set by the editor screen: the best spelling it is showing for a Manglish word.
   String? Function(String word)? spelling;
+
+  /// Set by the editor screen: Story World was closed (names may have changed).
+  VoidCallback? storyClosed;
   late final DocSaver saver;
 
   /// New works stay pristine until the writer types; pristine works are discarded on close.
@@ -1008,6 +1011,31 @@ class EditorSession extends ChangeNotifier {
     final all = lines;
     if (all.isEmpty) return;
     setSpan(DocPoint(all.first, 0), DocPoint(all.last, all.last.text.length));
+  }
+
+  /// True when the selection covers the whole work (the bar then offers Deselect all).
+  bool get allSelected {
+    final r = spanRange;
+    final all = lines;
+    if (r == null || all.isEmpty) return false;
+    return identical(r.$1.line, all.first) && r.$1.at == 0 && identical(r.$2.line, all.last) && r.$2.at >= all.last.text.length;
+  }
+
+  /// End the selection and leave the cursor in the line that holds the keyboard (Deselect all).
+  void deselectAll() {
+    final f = focused;
+    final c = f == null ? null : _controllers[f];
+    _anchor = _extent = null;
+    if (c != null && !c.blockSelection.isCollapsed) {
+      _syncing = true;
+      try {
+        c.placeCursor(c.blockSelection.extentOffset);
+      } finally {
+        _syncing = false;
+      }
+    }
+    _synced = null;
+    notifyListeners();
   }
 
   /// The line where the selection was last moved to (on screen, under the writer's finger) holds

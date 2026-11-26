@@ -83,6 +83,15 @@ jobs:
           path: .dict-cache
           key: olam-datasets-v1
 
+      - name: 🔤 Cache Malayalam word frequencies
+        uses: actions/cache@v5
+        with:
+          path: .manglish-cache
+          key: manglish-words-bb8f0ad
+
+      - name: 🔤 Build the offline Manglish word list (rhymes use it too, so it comes first)
+        run: node scripts/build-manglish-words.mjs --cache .manglish-cache
+
       - name: 📚 Build dictionary shards (Olam open datasets)
         run: node scripts/build-dictionary.mjs --cache .dict-cache --out apps/web/public/dict
 

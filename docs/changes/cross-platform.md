@@ -7,6 +7,72 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-26: CI green on `metre-checker` (repo public)
+
+- First real CI run of all six engine branches and of `main`'s PR #15 code: `flutter analyze` failed on `main` and every branch (AttributedString, SemanticsNode no longer come with material in the current Flutter) → `import 'package:flutter/semantics.dart'` in `lib/editor/suggestion_rows.dart` and `test/suggestion_rows_test.dart`. Three screen-reader tests read the chips before their fade-in had started (one long pump) → `settle()` steps the clock in frames. `.github/workflows/mobile.yml` also runs on changes to `shared/manglish-rank.ts`, `metre.ts`, `search.ts` (and any `packages/shared` file in PRs).
+- Mobile app checks on `metre-checker` (`3d7128d`): analyze clean, all tests pass (metre, Manglish ranking, search, spelling, suggestion rows…). The lower branches don't carry these fixes: merge `metre-checker` (it holds all six), not them one by one.
+
+## 2026-11-26: Metre checker (branch `metre-checker`)
+
+- `packages/shared/src/metre.ts` (new): syllable scan with laghu/guru (`scanLine`: chillus incl. the old ZWJ forms and ൻ്റ, conjuncts across spaces, ം ഃ, a word-final ് optional), `readings` (each optional ് counted or not), `checkStanza` → metre, fit (exact / likely / close / none), every line's syllables with weight, gana group and wrong marks, expected aksharas. 28 Sanskrit sama metres, വിയോഗിനി and പുഷ്പിതാഗ്ര, two ഉപജാതി mixes, അനുഷ്ടുപ്പ്, 11 Malayalam metres. Definitions checked against Vrittamanjari and the MIT `kavyanarthaki` table (its രഥോദ്ധത and മന്ദാക്രാന്ത rows are wrong; കുസുമമഞ്ജരി left out as sources disagree); nothing copied, so no credit line.
+- Tested on public-domain verse: വീണപൂവ് → വസന്തതിലകം exact (with യെ for യേ → close, the syllable marked), അദ്ധ്യാത്മരാമായണം → കേക, അയോദ്ധ്യാകാണ്ഡം → കാകളി, കുചേലവൃത്തം → നതോന്നത, Raghuvamsha → അനുഷ്ടുപ്പ്, Kumarasambhava → ഉപജാതി, Meghaduta → മന്ദാക്രാന്ത, ശാർദ്ദൂലവിക്രീഡിതം; prose → none. 2,000 random stanzas from common words: 97.8% none, under 1% named "likely".
+- Phone: `lib/core/metre_check.dart` (port), `test/metre_test.dart` + `test/metre_vectors.json` (from `test/metre_inputs.txt` via `scripts/build-mobile-assets.mjs`), `lib/editor/metre_view.dart`, tools sheet tile (poems, lyrics). **Not compiled here.**
+- Web/desktop: `components/editor/MetrePanel.tsx`, rail Words group and phone More tile (poems, lyrics; `labelKey`/`shortKey` on `PANELS` so its name comes from i18n). Strings `metre.*` (en + ml). MCP `check_metre` (deno check passes). Help `04-writing-types.md#metre` with `shots/metre.webp`, `03-editor.md` phone tools list.
+- `aksharas()` (shared + phone `lib/core/metre.dart`): a word-final ് is laghu, not guru (marks and rhyme metres); rhyme keys unchanged. `tools_test.dart` cases added.
+- Offline Manglish: a y before a consonant or at the end reads as യ് or the ai vowel (`latinKeys`, shared + phone): പെയ്തു, നെയ്തു, ചെയ്തു, നായ് now first (were പത്തു, നൈറ്റ്…). Dakshina test 71.4% → 71.9% first (top 6 87.2% same); the 300-word Google check unchanged (224 vs Google 215). Vectors and the small test word list updated.
+- Playwright (local): panel at 1440 (light, dark), 390, 375 and 320 px; tapping a marked syllable selects it; the marks switch works; typing in a poem with the panel open; no Metre tool in a novel; Rhymes, desk, dictionary and help pages load without errors.
+- Writers get it with the website deploy; the desktop app needs a Release and the phone app a store build.
+
+## 2026-11-26: Rhymes from the words people write (branch `better-rhymes`)
+
+- `scripts/build-rhymes.mjs`: the top 60,000 words of `/dict/manglish-words.txt` join the rhyme files when they start with a dictionary headword (≥ 2 aksharas) and with no left-out headword; scored by use (4 − log10(rank+1)), a known headword that is also common rises, a headword nobody writes (not in the list) drops by 2. Fairness: `FORM_AVOID` (caste, community and religion-group names, caste surnames, abuse) now removes such words from all rhyme files, headwords included; ordinary look-alikes (കുറവ്, പണിക്ക്, അരയന്നം, പിള്ളേർ, കൊല്ലം) checked as kept. Real Olam build here: 24,813 forms added (212,651 words, 2,492 files, 18 → 20 MB). Rhymes for പറഞ്ഞു 14 → 103, കണ്ണീരിൽ 2 → 54, പോകുന്നു 31 → 832; odd fragments (ഉന്നു, കൂന്നു) left the top.
+- `deploy.yml`: the Manglish word list is built before the dictionary step; `build-dictionary.mjs` keeps `manglish-words.txt` when it clears `dict/`.
+- `shared/dict.ts` `headFor` (+ phone `Dictionary.headFor`, test in `test/phases_test.dart`): a rhyme form opens the word it comes from (കാണുന്നു → കാണുക, മുറിഞ്ഞു → മുറിയുക, മഴയിൽ → മഴ, കോഴിക്കോട്ടെ → കോഴിക്കോട്), null rather than a short wrong prefix. Used by the Dictionary's പ്രാസം tab (web `app/dictionary/page.tsx`, phone `_openRhyme`). 170 of 300 sampled forms open an entry (was 93 of 400 through plain lookup).
+- Every app reads the same `/dict/rhyme` files from the website (phone network-first), so writers get the rhymes with the next website deploy; no desktop Release or store build is needed for the rhymes. The phone's tap-to-meaning needs the next store build. Help `06-dictionary.md#rhymes`.
+- Playwright (local, real dictionary): പ്രാസം tab and editor Rhymes panel at 390 and 1440 px; clicking നിറഞ്ഞു opens നിറയുക. **Phone code not compiled here.**
+
+## 2026-11-25: Better spelling suggestions (branch `spelling-suggestions`)
+
+- `packages/shared/src/manglish-rank.ts`: `rankOf`, `rankFixes` (engine fixes + sound-alike words, scored by use, closeness and the engine's order), `closeWords` (common words, top 30,000, one letter from a word that isn't listed; empty for names and new words). `spell.ts` `SpellOptions.words`: suspects' fixes ranked; an unknown word with close common words (and not in the dictionary) becomes "Check spelling?", with or without the engine. Phone: `lib/core/manglish_rank.dart` (same), `lib/data/spell.dart` `check(rankFixes:, closeWords:)`, `Transliterator.ranker`/`wordsReady`, `writing_aids.dart` (re-checks once the list has loaded). Vectors `__spell__` in `test/manglish_rank_test.dart`.
+- Web: `lib/spell.ts` passes `spellWords()` (`lib/manglish-words.ts`) and starts loading the list, re-checking when it arrives.
+- Measured on 387 realistic slips of common words (scripts/manglish-lab style, mlmorph built here): right fix first 66.7% → 94% overall (engine suspects 66.7% → 72.4%; 86 of 102 typos the engine had nothing for are now asked, right first for 84); real words the engine doesn't know asked about: 1.7% (amber question, Ignore/Keep; Story World names excluded).
+- Not done: the MCP `check_spelling` (server) has no word list, so its fixes stay in the engine's order.
+- Playwright (local, offline, default settings): പുസ്ടകം and ണൽകാൻ marked "Check spelling?", പുസ്തകം offered and applied; ചക്കപ്പഴക്കുഴി unmarked; desktop card and phone strip.
+
+## 2026-11-25: Forgiving search (branch `forgiving-search`)
+
+- `packages/shared/src/search.ts`: `searchRank` (3 as typed, 2 by sound incl. Malayalam queries: കത → കഥ, മലയാലം → മലയാളം, 1 one typo from 5 sound letters / two from 12, swaps count once), `matchesSearch` = rank > 0, `manglishMatches` also for Malayalam queries (other spellings, never the query) and near misses. Phone port `lib/core/search.dart` (same cases in `test/search_test.dart`).
+- Desk (web `app/desk/page.tsx`, phone `desk_screen.dart`): while searching, results sorted by rank (stable; title/words sort within rank). Saved words, നാട്ടറിവ്, Community, phone dictionary filter get the forgiving match through `matchesSearch`.
+- Find (web `FindBar` in Workspace.tsx, phone `work_tools.dart`): chips for Malayalam searches labelled `search.soundsLike` (+ hint; en + ml). Web Find bar: search and replace fields keep at least 7.5rem on narrow phones (were squeezed to a few letters at 320 px).
+- Help `01-getting-started.md`, `03-editor.md#find`. Playwright: desk search (കത, malayalm, dairy, മലയാലം) on phone and desktop; Find at 320/390/1280 px.
+
+## 2026-11-25: Story World names and remembered picks in Manglish (branch `manglish-names`)
+
+- Shared: `manglish-rank.ts` `setOwnWords` (own index, commonness above every listed word) and `ownWordsFrom` (Malayalam words in names); phone port in `lib/core/manglish_rank.dart`, checked by `__own__` vectors in `test/manglish_rank_test.dart`.
+- Web/desktop: `Workspace.tsx` loads the work's Story World names on open and when Story World closes → `setStoryNames` (`lib/manglish-words.ts`) and `setStoryWords` (`lib/spell.ts`, never marked). Picks: `CommitInfo.chosen` (a spelling other than the first, by click or arrows) → `rememberPick` (`litma:manglish-picks`, 1,000 newest, this device only); `withPick` puts it first in offline and Google lists.
+- Phone: `Transliterator.setStoryNames/storyWords/rememberPick/withPick` (same key in SharedPreferences), `editor_screen.dart` `_loadStoryNames` (on open and `session.storyClosed` from `openStoryWorld`), `_chose` from the strip; `setupSpellMarks` adds Story World names to "mine". Fix: offline, a space now takes the ranked first spelling (`_firstOffline`), not the letter reading. **Not compiled here.**
+- Help `02-typing.md`. Playwright (local): with a character കുഞ്ഞാറ്റ, "kunjaatta" → കുഞ്ഞാറ്റ first and the name isn't marked; a chosen spelling (വല്ലം for vellam) comes first next time.
+
+## 2026-11-24: Desk download card on phones
+
+- Website only (the desktop app hides the card; the phone app has none): iPhone visitors get the App Store row, Android the Google Play row (Soon). See `web.md`.
+
+## 2026-11-24: Spelling "Suggest" for unknown words; phone "Deselect all"
+
+- Web, desktop and phone: a word marked "Not in the dictionary" gets **Suggest** next to Ignore and Keep, showing known words that sound like it (from the offline Manglish word list). Only on request. Phone selection bar: **Select all** turns into **Deselect all** once everything is selected (web has no Select all button). Strings `check.suggest`, `check.suggestHint`, `check.noSimilar`, `app.selection.deselectAll` (en + ml). Help `03-editor.md` updated. Needs desktop Release + phone store build; phone part waits for CI.
+
+## 2026-11-24: Download page and cards match the stores
+
+- iPhone/iPad (App Store), Windows (Microsoft Store) and Mac (signed .dmg) never show "on its way" or "Coming soon" any more; Android still does until it leaves the closed test. Web only (`web.md`); the desktop app hides these pages, the phone app has none. Strings `download.mobileLive`, `download.heroBodyMobile` (en + ml, phone copy refreshed).
+
+## 2026-11-24: Ranked offline Manglish suggestions (branch `offline-manglish`)
+
+- Offline suggestions now pick real words: `packages/shared/src/manglish-rank.ts` (sound skeleton indexed by consonant outline, scored by fit, plain reading, typed vowel lengths and word rank) over `/dict/manglish-words.txt` (150k most used words, ~1 MB compressed, built in the deploy job by `scripts/build-manglish-words.mjs` from Kavya Manohar's CC BY 4.0 word frequencies, pinned revision + sha256). Dakshina test: first right 17.8% → 71.7%, top 6 27.1% → 87.6%; on 300 words checked through Litma MCP `transliterate` (Google), ours 225 right vs Google's 216.
+- Writers are never forced: no close real word → plain reading first; plain reading always in the first six; capitals/`~`/`_`, COMMON words, word pieces, digits and punctuation keep today's lists. Online, Google's list still comes first (offline spellings fill in after it).
+- Web/desktop: `apps/web/src/lib/manglish-words.ts` (loads on first Manglish word, index built in idle slices). Phone: `lib/core/manglish_rank.dart` + `Transliterator.offline` (word list via `Dictionary.text`, kept on the phone). Details in `web.md`, `mobile.md`. Research scripts: `scripts/manglish-lab/`.
+- Credits: THIRD_PARTY_NOTICES.md + help `11-account.md#credits`; help `02-typing.md` Offline note rewritten.
+- **Needs:** website deploy (builds the word list), desktop Release, phone store build. Phone code **not compiled here**: merge only after "Mobile app checks" is green.
+
 ## 2026-11-22: Keyboard and screen readers for the spelling suggestions
 
 - Web and desktop: the card under a marked word (`SpellSuggest.tsx`) now works from the keyboard like the Manglish list: ↓/↑ through the spellings, Ignore and Keep, Enter uses the highlighted row, Esc closes, Alt+↓ always opens it. Screen readers get `aria-activedescendant`/`aria-controls` on the editor, a polite announcement (`check.announce`, en + ml) and `aria-invalid="spelling|grammar"` on every mark. Details in `web.md`. Desktop gets it with the next Release.
@@ -124,6 +190,9 @@ Apple and Google Play developer accounts bought. Setup guide Part 10 (phone stor
 App Store Connect app made (Apple ID 6834719757, 13+); listing and iPhone screenshots in `marketing/store/app-store/`; `Info.plist` declares no non-exempt encryption. Open: `ASC_*` secrets, first TestFlight build, iPad or iPhone-only (see `mobile.md`).
 
 ## Open items
+
+- Engine branches (24–26 Nov, stacked: `offline-manglish` → `manglish-names` → `forgiving-search` → `spelling-suggestions` → `better-rhymes` → `metre-checker`): CI green on `metre-checker` (26 Nov, holds all six and fixes `main`'s phone build); merge that one PR; owner to compare Manglish with Google on real writing.
+- Metre checker: try it on real poems by writers from different traditions; Malayalam metres are sung and loose, so collect stanzas the checker gets wrong and add them to `apps/mobile/test/metre_inputs.txt` (with the right answer in `metre.ts`). Not covered yet: ഓമനക്കുട്ടൻ, മാവേലി and other metres whose definition sources disagree on; മിശ്രകാകളി-style lines where some ganas have four matras.
 
 ### Still open (after the 2026-11-07 work)
 

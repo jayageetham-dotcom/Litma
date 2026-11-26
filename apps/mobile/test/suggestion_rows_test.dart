@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:ui' show LocaleStringAttribute;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:litma/core/i18n.dart';
 import 'package:litma/core/theme.dart';
@@ -27,11 +28,20 @@ Future<void> pump(WidgetTester t, Widget row, {String locale = 'en'}) async {
       child: Scaffold(body: Align(alignment: Alignment.topLeft, child: SizedBox(width: 420, height: 46, child: row))),
     ),
   ));
-  await t.pump(const Duration(seconds: 1)); // the chips' fade-in
+  await settle(t);
+}
+
+/// Let the chips fade in: each starts after a short timer, and its animation runs from the next
+/// frame, so step the clock in a few frames (one long pump would end before the fade starts).
+Future<void> settle(WidgetTester t) async {
+  for (var k = 0; k < 6; k++) {
+    await t.pump(const Duration(milliseconds: 250));
+  }
 }
 
 const broken = SpellIssue(4, 9, 'ദു:ഖം', SpellKind.unicode, ['ദുഃഖം', 'ദുഖം']);
 const suspect = SpellIssue(0, 5, 'പോയീ', SpellKind.suspect, ['പോയി']);
+const unknown = SpellIssue(0, 5, 'കര്യം', SpellKind.unknown, []);
 
 bool malayalam(SemanticsNode node) =>
     node.getSemanticsData().attributedLabel.attributes.any((a) => a is LocaleStringAttribute && a.locale.languageCode == 'ml');
@@ -104,5 +114,32 @@ void main() {
     await t.tap(find.byKey(const ValueKey('manglish-keep')));
     expect(english, isTrue);
     h.dispose();
+  });
+
+  testWidgets('unknown word: Suggest shows sound-alike words on request, and a tap uses one', (t) async {
+    String? fixed;
+    var asked = 0;
+    await pump(t, SpellRow(issue: unknown, onFix: (f) => fixed = f, onIgnore: () {}, onKeep: () {}, onSuggest: () async {
+      asked++;
+      return ['കാര്യം', 'കരം'];
+    }));
+    // nothing is offered until the writer asks
+    expect(find.byKey(const ValueKey('spell-fix-0')), findsNothing);
+    expect(find.text(check('suggest')), findsOneWidget);
+    await t.tap(find.byKey(const ValueKey('spell-suggest')));
+    await settle(t);
+    expect(asked, 1);
+    expect(find.byKey(const ValueKey('spell-suggest')), findsNothing);
+    await t.tap(find.byKey(const ValueKey('spell-fix-0')));
+    expect(fixed, 'കാര്യം');
+  });
+
+  testWidgets('unknown word: no close words says so; marks with their own spellings have no Suggest', (t) async {
+    await pump(t, SpellRow(issue: unknown, onFix: (_) {}, onIgnore: () {}, onSuggest: () async => const <String>[]));
+    await t.tap(find.byKey(const ValueKey('spell-suggest')));
+    await settle(t);
+    expect(find.text(check('noSimilar')), findsOneWidget);
+    await pump(t, SpellRow(issue: suspect, onFix: (_) {}, onIgnore: () {}, onSuggest: () async => const ['x']));
+    expect(find.byKey(const ValueKey('spell-suggest')), findsNothing);
   });
 }

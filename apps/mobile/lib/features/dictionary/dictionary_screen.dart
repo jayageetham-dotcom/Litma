@@ -109,6 +109,15 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _lookup.currentState?.search(word));
   }
 
+  /// A rhyme is often a form with no entry of its own (കാണുന്നു): open the word it comes from.
+  Future<void> _openRhyme(String word) async {
+    String? head;
+    try {
+      head = await ref.read(servicesProvider).dictionary.headFor(word);
+    } catch (_) {}
+    if (mounted) _open(head ?? word);
+  }
+
   @override
   Widget build(BuildContext context) {
     final saved = ref.watch(bookmarksProvider).value?.length ?? 0;
@@ -134,7 +143,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
               backChip: _fromCategory == null ? null : (label: _fromCategory!, onTap: () => setState(() => _tab = 1)),
             ),
             _NattarivuView(onWord: (w, cat) => _open(w, from: cat)),
-            RhymeFinderView(inSheet: false, onPick: _open),
+            RhymeFinderView(inSheet: false, onPick: _openRhyme),
             _SavedView(onWord: _open),
           ]),
         ),

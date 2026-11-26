@@ -1,5 +1,5 @@
 "use client";
-import { matchesSearch } from "@litma/shared/search";
+import { searchRank } from "@litma/shared/search";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -96,11 +96,17 @@ function Desk() {
   }
 
   const shown = useMemo(() => {
-    const list = (docs ?? []).filter(
-      (d) => (filter === "all" || d.kind === filter) && matchesSearch(`${d.title} ${d.excerpt ?? ""}`, q)
-    );
-    if (sort === "title") list.sort((a, b) => a.title.localeCompare(b.title, "ml"));
-    if (sort === "words") list.sort((a, b) => b.word_count - a.word_count);
+    const ranked = (docs ?? [])
+      .filter((d) => filter === "all" || d.kind === filter)
+      .map((d) => ({ d, r: searchRank(`${d.title} ${d.excerpt ?? ""}`, q) }))
+      .filter((x) => x.r > 0);
+    // while searching: as typed first, then by sound, then near misses (each in the chosen order)
+    if (q.trim()) ranked.sort((a, b) => b.r - a.r);
+    const list = ranked.map((x) => x.d);
+    const rank = new Map(ranked.map((x) => [x.d, q.trim() ? x.r : 0]));
+    const byRank = (a: (typeof list)[number], b: (typeof list)[number]) => (rank.get(b) ?? 0) - (rank.get(a) ?? 0);
+    if (sort === "title") list.sort((a, b) => byRank(a, b) || a.title.localeCompare(b.title, "ml"));
+    if (sort === "words") list.sort((a, b) => byRank(a, b) || b.word_count - a.word_count);
     // the pinned work always comes first (not in the trash)
     const at = view === "works" && pinned ? list.findIndex((d) => d.id === pinned) : -1;
     if (at > 0) list.unshift(...list.splice(at, 1));

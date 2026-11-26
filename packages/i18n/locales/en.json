@@ -223,7 +223,7 @@
     "allBody": "Pick another device or get Litma for someone else.",
     "macReq": "macOS 11 Big Sur or later. One app for Apple silicon and Intel.",
     "winReq": "Windows 10 or 11, 64-bit (Intel/AMD or ARM).",
-    "iosReq": "For iPhone and iPad. On its way to the App Store.",
+    "iosReq": "For iPhone and iPad, on the App Store.",
     "androidReq": "For Android phones and tablets. On its way to Google Play.",
     "dmg": "Download .dmg",
     "exe": "Download .exe",
@@ -237,6 +237,8 @@
     "appStoreAlt": "Download on the App Store",
     "playAlt": "Get it on Google Play",
     "mobileSoon": "The mobile app is on its way. Until then, Litma works in your phone's browser.",
+    "mobileLive": "Litma is on the App Store for iPhone and iPad. Sign in with the same account and your works are there.",
+    "heroBodyMobile": "The same Malayalam writing desk as on the web, made for your phone. Your works sync with your account everywhere.",
     "webOnly": "There's no app for this computer, but Litma works fully in your browser.",
     "useWeb": "Write on the web",
     "webTitle": "No install needed",
@@ -256,6 +258,9 @@
     "deskTitle": "Write in the Litma app",
     "deskBody": "Faster to open, its own window, and it keeps working when the connection drops.",
     "deskMore": "All downloads",
+    "deskBodyPhone": "Made for your phone, opens in a tap, and keeps working when the connection drops. Your works sync with your account.",
+    "iosRowHint": "On the App Store",
+    "androidRowHint": "On Google Play",
     "startedLink": "Here's how to install it"
   },
   "manglish": {
@@ -1198,6 +1203,7 @@
       "copy": "Copy",
       "paste": "Paste",
       "selectAll": "Select all",
+      "deselectAll": "Deselect all",
       "start": "Start of selection",
       "end": "End of selection"
     }
@@ -1210,6 +1216,8 @@
   },
   "search": {
     "inMalayalam": "In Malayalam",
+    "soundsLike": "Sounds like",
+    "soundsLikeHint": "Other spellings in this work that sound the same, and near misses",
     "inMalayalamHint": "Words in this work that sound like what you typed. Tap one to find it."
   },
   "rhyme": {
@@ -1263,6 +1271,9 @@
     "ignore": "Ignore",
     "ignoreHint": "Leave it as written. It isn't marked again until you reopen Litma.",
     "keepHint": "Keep this word: it is never marked again on this device.",
+    "suggest": "Suggest",
+    "suggestHint": "Show known words that sound like this one.",
+    "noSimilar": "No close words found",
     "offHint": "Marks letters typed in an old or broken way (ന്‍ for ൻ, a colon for ഃ), common misspellings, likely typos with their correct spelling, and spacing around punctuation.",
     "kind": {
       "unicode": "Broken letter",
@@ -1675,5 +1686,44 @@
     },
     "legal": "Posts are written by community members and are their own views. Litma does not check posts before they appear and is not responsible for them.",
     "legalMore": "Read the full notice"
+  },
+  "metre": {
+    "panel": "Metre (വൃത്തം)",
+    "tile": "Metre",
+    "following": "The stanza you are on",
+    "empty": "Write a few lines of verse and their metre shows here.",
+    "fit": {
+      "exact": "Every line fits this metre.",
+      "likely": "Likely. Malayalam metres go by how they are sung, so this is read from the aksharas in each line.",
+      "close": "Close. The marked syllables or lines don't fit yet.",
+      "none": "No common metre found. Free verse needs none."
+    },
+    "kind": {
+      "sama": "Sanskrit metre",
+      "ardhasama": "Sanskrit metre",
+      "upajati": "Sanskrit metres mixed",
+      "anushtup": "Sanskrit metre",
+      "bhasha": "Malayalam metre"
+    },
+    "rule": {
+      "ganas": "Ganas {ganas} · {n} aksharas a line",
+      "ardha": "Odd lines {odd} · even lines {even}",
+      "upajati": "Lines of {a} and {b}",
+      "anushtup": "Eight aksharas a pada: the 5th laghu, the 6th guru, and the 7th guru in odd padas, laghu in even ones",
+      "pair": "{a} and {b} aksharas in each pair of lines · ganas {groups}",
+      "same": "{a} aksharas a line · ganas {groups}",
+      "tharangini": "Eight ganas of two matras: 16 matras a line"
+    },
+    "line_one": "{count} akshara · {matras} matras",
+    "line_other": "{count} aksharas · {matras} matras",
+    "needs": "needs {n}",
+    "wantGuru": "A guru fits here",
+    "wantLaghu": "A laghu fits here",
+    "uncounted": "Not counted: a word-final ് can be left out",
+    "legend": "∪ laghu · – guru",
+    "marks": "Show laghu and guru beside each line",
+    "hint": "Tap a syllable to find it in your text.",
+    "guru": "guru",
+    "laghu": "laghu"
   }
 }

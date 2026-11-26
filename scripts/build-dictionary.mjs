@@ -287,8 +287,11 @@ async function main() {
     mlObj[k] = o;
   }
 
+  // start clean, but keep the offline Manglish word list (built just before this step; rhymes use it)
+  const keepWords = existsSync(join(OUT, "manglish-words.txt")) ? readFileSync(join(OUT, "manglish-words.txt")) : null;
   rmSync(OUT, { recursive: true, force: true });
   mkdirSync(join(OUT, "en"), { recursive: true });
+  if (keepWords) writeFileSync(join(OUT, "manglish-words.txt"), keepWords);
   mkdirSync(join(OUT, "ml"), { recursive: true });
 
   const { shards: enShards, split: enSplit } = shardAll([...en.entries()], enFirst, enSecond);

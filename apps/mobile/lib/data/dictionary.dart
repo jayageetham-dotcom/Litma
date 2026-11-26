@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
 
+import '../core/akshara.dart' show firstAksharaLength;
 import '../core/config.dart';
 import 'forms.dart' show Json;
 import 'offline.dart';
@@ -90,9 +91,9 @@ class Dictionary {
   final _texts = <String, Future<String?>>{};
 
   /// A text file under /dict (the spelling word lists, `words/<shard>.txt`), kept on the phone once used.
-  Future<String?> text(String path) => _texts.putIfAbsent(path, () async {
+  Future<String?> text(String path, {Duration timeout = const Duration(seconds: 12)}) => _texts.putIfAbsent(path, () async {
         try {
-          final r = await _client.get(Uri.parse('${AppConfig.site}/dict/$path.txt')).timeout(const Duration(seconds: 12));
+          final r = await _client.get(Uri.parse('${AppConfig.site}/dict/$path.txt')).timeout(timeout);
           if (r.statusCode == 200) {
             final t = utf8.decode(r.bodyBytes);
             unawaited(offline.put('dict', 'txt:$path', {'v': t}).catchError((_) {}));
@@ -295,4 +296,50 @@ class Dictionary {
     return res;
   }
 
+  /// The dictionary word to open for a Malayalam word with no entry of its own, such as a rhyme
+  /// like കാണുന്നു or മുറിഞ്ഞു (same answers as `headFor` in packages/shared/src/dict.ts): the
+  /// word, the verb or noun it is a form of, its plain form from [lookup], then the longest
+  /// headword it starts with that covers most of it. Null when none is close enough.
+  Future<String?> headFor(String word) async {
+    final w = word.trim();
+    if (!isMalayalam(w)) return null;
+    if (await getMl(w) != null) return w;
+    final bare = w
+        .replaceAllMapped(RegExp(r'([ളരലനണ])ൊക്കെ$'), (m) => _chillu[m[1]]!)
+        .replaceAll(RegExp(r'ൊക്കെ$'), '്');
+    if (bare != w) return headFor(bare);
+    for (final (end, add) in _formRules) {
+      final m = end.firstMatch(w);
+      if (m == null || m.start < 2) continue;
+      final cand = w.substring(0, m.start) + add.replaceAll(r'$1', m.groupCount > 0 ? (m[1] ?? '') : '');
+      if (cand != w && await getMl(cand) != null) return cand;
+    }
+    final r = await lookup(w);
+    if (r.head != null) return r.head;
+    final ends = <int>[];
+    for (var i = 0; i < w.length;) {
+      final n = firstAksharaLength(w.substring(i));
+      i += n > 0 ? n : 1;
+      ends.add(i);
+    }
+    final least = math.max(2, (ends.length * 0.6).ceil());
+    for (var k = ends.length - 1; k >= least; k--) {
+      final base = w.substring(0, ends[k - 1]);
+      for (final cand in [base, '$base്', '$baseം']) {
+        if (await getMl(cand) != null) return cand;
+      }
+    }
+    return null;
+  }
 }
+
+/// Word endings → the dictionary form they come from (same list as FORM_RULES in shared/dict.ts).
+final List<(RegExp, String)> _formRules = [
+  (RegExp(r'യ(?:ിൽ|ിലെ|ിലും|ിലേക്ക്|ുടെ|ും|െ|ോട്|്ക്ക്|്ക്കും|ാണ്)$'), ''),
+  (RegExp(r'ഞ്ഞു?$'), 'യുക'),
+  (RegExp(r'(?:ുന്നു|ുന്നതും|ുന്നത്|ുന്ന|ുമ്പോൾ|ുകയും|ുകയാണ്|ുകയായിരുന്നു|ുമെന്ന്|ും|ാൻ|ണം|ാം)$'), 'ുക'),
+  (RegExp(r'ിച്ചു$|ിച്ച$|ിച്ച്$'), 'ിക്കുക'),
+  (RegExp(r'ാർ$'), 'ാരൻ'),
+  (RegExp(r'ർ$'), 'ൻ'),
+  (RegExp(r'([ക-ഹ])്\1െ$'), r'$1്'),
+];

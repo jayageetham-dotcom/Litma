@@ -19,6 +19,7 @@ import { RHYME_KINDS, createRhymes, rhymeKey, type RhymeKind } from "../_shared/
 import { createSpeller, type EngineVerdict, type SpellEngine } from "../_shared/spell.ts";
 import { localDay, streak as streakOf, summarise, wordsThisWeek, type GoalPrefs } from "../_shared/goals.ts";
 import { metrePattern } from "../_shared/manglish.ts";
+import { checkStanza, ganaNames, patternOf, stanzas as splitStanzas } from "../_shared/metre.ts";
 import { transliteratePhrase } from "../_shared/google.ts";
 import { hit, ipKey, tooMany } from "../_shared/ratelimit.ts";
 
@@ -510,6 +511,55 @@ const TOOLS: Tool[] = [
       const all = await rhymes.find(word, kind, { max: offset + max, sameMetre: !!a.same_metre });
       const list = all.slice(offset);
       return outJson({ word, metre: metrePattern(word), kind, key, offset, rhymes: list.map((r) => ({ word: r.word, metre: r.metre })), next_offset: list.length === max ? offset + max : null });
+    },
+  },
+  {
+    name: "check_metre",
+    title: "Metre (വൃത്തം)",
+    description:
+      "The metre of Malayalam verse, stanza by stanza (blank lines between stanzas, one line of verse per line): the metre's name, how well it fits ('exact' for a Sanskrit metre every line follows, 'likely' for a Malayalam metre recognised from the aksharas in each line, 'close' when a few syllables or one line are off, 'none' for free verse, which needs no metre), and every line's syllables with laghu (∪) and guru (–), the ones that don't fit marked. A word-final ് may be counted as a short syllable or left out, whichever fits.",
+    inputSchema: {
+      type: "object",
+      properties: { text: S("string", "The verse in Malayalam script (stanzas separated by a blank line)") },
+      required: ["text"],
+    },
+    annotations: RO,
+    async run(a) {
+      const text = String(a.text ?? "");
+      if (!/[ഀ-ൿ]/.test(text)) return out("Give the verse in Malayalam script (use transliterate for Manglish).", true);
+      if (text.length > 20000) return out("That is too long: check up to 20,000 characters at a time.", true);
+      const result = splitStanzas(text).slice(0, 100).map((lines) => {
+        const r = checkStanza(lines);
+        const m = r.metre;
+        const rule = !m
+          ? null
+          : m.kind === "sama"
+            ? `ganas ${ganaNames(m.ganas!)}, ${patternOf(m).length} aksharas a line`
+            : m.kind === "ardhasama"
+              ? `odd lines ${ganaNames(m.ganas!)}, even lines ${ganaNames(m.even!)}`
+              : m.kind === "upajati"
+                ? `lines of ${m.of!.join(" and ")}`
+                : m.kind === "anushtup"
+                  ? "eight aksharas a pada; the 5th laghu, the 6th guru, the 7th guru in odd padas and laghu in even ones"
+                  : m.counts
+                    ? `${m.counts[0].join("/")} and ${m.counts[1].join("/")} aksharas in each pair of lines`
+                    : "eight ganas of two matras, 16 matras a line";
+        return {
+          metre: m ? { id: m.id, name: m.ml, latin: m.en, kind: m.kind, rule } : null,
+          fit: r.fit,
+          lines: r.lines.map((l) => ({
+            text: l.text,
+            aksharas: l.count,
+            matras: l.matras,
+            pattern: l.syllables.filter((x) => x.counted).map((x) => (x.weight === "G" ? "–" : "∪")).join(""),
+            ...(l.expected !== undefined && l.expected !== l.count ? { needs_aksharas: l.expected } : {}),
+            ...(l.syllables.some((x) => x.wrong)
+              ? { off: l.syllables.filter((x) => x.wrong).map((x) => ({ syllable: x.text, needs: x.weight === "L" ? "guru" : "laghu" })) }
+              : {}),
+          })),
+        };
+      });
+      return outJson({ stanzas: result });
     },
   },
   {

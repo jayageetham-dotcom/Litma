@@ -20,4 +20,17 @@ void main() {
     expect(romanise('എന്റെ കുട്ടി നമ്മുടെ'), 'ente kutti nammute');
     expect(manglishMatches('കടൽ കാണാത്ത വീട്, കടലിലെ തിര. കടവ്', 'kada'), ['കടൽ', 'കടവ്', 'കടലിലെ']);
   });
+
+  test('forgiving: Malayalam spellings that sound the same, and typos, ranked after exact matches', () {
+    const ranks = [
+      ['എന്റെ കഥ', 'കത', 2], ['മലയാളം നോവൽ', 'മലയാലം', 2], ['മലയാളം നോവൽ', 'malayalm', 1], ['പുതിയ നോവൽ', 'puthya', 1],
+      ['Hello world', 'wrold', 1], ['Litma diary', 'dairy', 1], ['കടൽ കാണാത്ത വീട്', 'kadal', 2], ['കടൽ', 'kala', 0],
+      ['എന്റെ കഥ', 'കല', 0], ['അമ്മ', 'umma', 0], ['എന്റെ കഥ', 'കഥ', 3], ['Hello world', 'world', 3],
+    ];
+    for (final c in ranks) {
+      expect(searchRank(c[0] as String, c[1] as String), c[2], reason: '${c[0]} / ${c[1]}');
+    }
+    expect(manglishMatches('എന്റെ കഥ, കതകും കഥകളും', 'കത'), ['കഥ', 'കതകും', 'കഥകളും']);
+    expect(manglishMatches('മലയാളം മലയാളി', 'malayalm'), ['മലയാളി', 'മലയാളം']);
+  });
 }

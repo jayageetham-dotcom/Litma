@@ -388,9 +388,11 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     final profile = ref.watch(profileProvider).value;
     final wide = MediaQuery.sizeOf(context).width >= 700;
     final pinned = tab == DeskTab.works ? pinnedWork(profile) : null;
-    final list = docs.value
-        ?.where((d) => matchesSearch('${d.title} ${d.excerpt}', _query))
-        .toList();
+    // while searching: as typed first, then by sound, then near misses (stable within each)
+    final all = docs.value;
+    final ranked = all == null ? null : [for (var i = 0; i < all.length; i++) (d: all[i], r: searchRank('${all[i].title} ${all[i].excerpt}', _query), i: i)].where((x) => x.r > 0).toList();
+    if (ranked != null && _query.trim().isNotEmpty) ranked.sort((a, b) => a.r != b.r ? b.r.compareTo(a.r) : a.i.compareTo(b.i));
+    final list = ranked?.map((x) => x.d).toList();
     // the pinned work always comes first
     final at = pinned == null ? -1 : (list?.indexWhere((d) => d.id == pinned) ?? -1);
     if (at > 0) list!.insert(0, list.removeAt(at));

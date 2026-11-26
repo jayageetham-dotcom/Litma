@@ -29,7 +29,7 @@ Inside the editor you can also select a word and press <kbd>Ctrl</kbd> + <kbd>Sh
 
 ## Find rhymes (പ്രാസം) {#rhymes}
 
-The rhyme finder suggests words from the dictionary that rhyme with a word or a line, with the laghu and guru of each word, so they fit the metre too.
+The rhyme finder suggests words that rhyme with a word or a line, with the laghu and guru of each word, so they fit the metre too. Along with dictionary words it offers the forms people write every day, such as പറഞ്ഞു, നിറഞ്ഞു, മഴയിൽ and പുഴയിൽ, so a line ending in a verb or a case ending finds rhymes too.
 
 ![The rhyme finder beside a poem](shots/rhymes.webp "Rhymes for the line being written, with each word's laghu (∪) and guru (–).")
 
@@ -38,13 +38,13 @@ The rhyme finder suggests words from the dictionary that rhyme with a word or a 
    - **ദ്വിതീയാക്ഷരം**: the second akshara has the same consonant (കാലം, നീലം, ജാലം). Words whose first akshara has the same weight come first, as the classical rule asks.
    - **അന്ത്യപ്രാസം**: words that end in the same akshara (മഴയിൽ, പുഴയിൽ).
    - **ആദിപ്രാസം**: words that start with the same letter.
-3. Click a word to put it in your text. In the Dictionary, click it to see its meaning.
+3. Click a word to put it in your text. In the Dictionary, click it to see its meaning. A form such as കാണുന്നു opens the word it comes from (കാണുക).
 
 In the editor the finder follows the line you are on. When that line is still empty it uses the line above, so the next line can rhyme with it. You can also type any word, in Malayalam or Manglish.
 
 Tick **Same number of aksharas** or **Same laghu–guru pattern** to see only words that fit the same place in the line.
 
-The finder shows 40 words at a time, best known first. Tap **Next set** under them for the next 40; after the last set it starts again from the first.
+The finder shows 40 words at a time, most used first. Tap **Next set** under them for the next 40; after the last set it starts again from the first.
 
 > **Phone:** In a work, tap the tools button and choose **Rhymes**. Tap a word to put it at the cursor. Or open **Dictionary** and the **പ്രാസം** tab; there a word opens its meaning.
 

@@ -270,7 +270,9 @@ class _FindSheetState extends State<_FindSheet> {
   }
 
   List<({TextBlock line, int at})> get _hits => widget.session.find(_term.text);
-  List<String> get _sounds => RegExp('[a-z]', caseSensitive: false).hasMatch(_term.text) ? manglishMatches(widget.session.lines.map((l) => l.text).join(' '), _term.text) : const [];
+  bool get _latinTerm => RegExp('[a-z]', caseSensitive: false).hasMatch(_term.text);
+  // Manglish: the Malayalam words that sound like it; Malayalam: other spellings of the same sound
+  List<String> get _sounds => _term.text.trim().isEmpty ? const [] : manglishMatches(widget.session.lines.map((l) => l.text).join(' '), _term.text);
 
   void _show(int i) {
     final hits = _hits;
@@ -309,7 +311,7 @@ class _FindSheetState extends State<_FindSheet> {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-              Text('${context.t('search.inMalayalam')}:', style: TextStyle(color: c.muted, fontSize: 13)),
+              Text('${context.t(_latinTerm ? 'search.inMalayalam' : 'search.soundsLike')}:', style: TextStyle(color: c.muted, fontSize: 13)),
               for (final w in _sounds)
                 ActionChip(
                   label: Text(w, style: const TextStyle(fontFamily: LitmaFonts.display, fontSize: 15)),

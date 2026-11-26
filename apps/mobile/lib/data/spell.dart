@@ -150,7 +150,17 @@ class Speller {
         return false;
       });
 
-  Future<List<SpellIssue>> check(String text, {bool unknown = false, Set<String> mine = const {}, SpellEngine? engine}) async {
+  /// [rankFixes] and [closeWords] come from the offline word list (`ManglishRanker`) once it has
+  /// loaded: they order the engine's fixes by real use and ask about an unknown word one letter from
+  /// a common word. Without them the check works as before. Same as the web's `SpellOptions.words`.
+  Future<List<SpellIssue>> check(
+    String text, {
+    bool unknown = false,
+    Set<String> mine = const {},
+    SpellEngine? engine,
+    List<String> Function(String word, List<String> fixes)? rankFixes,
+    List<String> Function(String word)? closeWords,
+  }) async {
     final out = <SpellIssue>[];
     final joined = <(int, int)>[];
     for (final m in _colon.allMatches(text)) {
@@ -191,11 +201,17 @@ class Speller {
           continue;
         }
         if (v.k == 'suspect' && v.fix.isNotEmpty) {
-          out.add(SpellIssue(m.start, m.end, word, SpellKind.suspect, v.fix.take(4).toList()));
+          out.add(SpellIssue(m.start, m.end, word, SpellKind.suspect, rankFixes != null ? rankFixes(word, v.fix) : v.fix.take(4).toList()));
           continue;
         }
       }
       if (v?.k == 'ok') continue;
+      // nobody knows it, and a common word is one letter away: probably a typo, so ask
+      final close = closeWords != null && word.runes.length > 2 ? closeWords(word) : const <String>[];
+      if (close.isNotEmpty && !await isKnown(word)) {
+        out.add(SpellIssue(m.start, m.end, word, SpellKind.suspect, close));
+        continue;
+      }
       if (unknown && word.runes.length > 2 && !await isKnown(word)) out.add(SpellIssue(m.start, m.end, word, SpellKind.unknown, const []));
     }
     out.sort((a, b) => a.from.compareTo(b.from));

@@ -29,22 +29,26 @@ import {
   Bookmark,
   Files,
   Repeat2,
+  AudioLines,
   SpellCheck,
   Target,
   Volume2,
 } from "lucide-react";
 import { RhymePanel } from "./RhymePanel";
+import { MetrePanel } from "./MetrePanel";
 import { GoalPanel } from "./GoalPanel";
 import { TimerChip } from "./TimerChip";
 import { CheckPanel } from "./CheckPanel";
 import { ReadAloudPanel } from "./ReadAloudPanel";
 import { recheckSpelling } from "@/extensions/writing-aids";
-import { SPELL_EVENT, blockChecker, spellPrefs } from "@/lib/spell";
+import { SPELL_EVENT, blockChecker, setStoryWords, spellPrefs } from "@/lib/spell";
+import { setStoryNames } from "@/lib/manglish-words";
+import { ownWordsFrom } from "@litma/shared/manglish-rank";
 import { timerWords } from "@/lib/timer";
 import { buildExtensions } from "./extensions";
 import { MobileFormatStrip, MobileSelectionBar, Toolbar } from "./Toolbar";
 import { keepSelectionNow } from "@/extensions/keep-selection";
-import { useT } from "@/i18n/react";
+import { useT, type MessageKey } from "@/i18n/react";
 import { TextSelection, type Transaction } from "@tiptap/pm/state";
 import { ReplaceStep } from "@tiptap/pm/transform";
 import { Sheet } from "@/components/ui/Sheet";
@@ -76,13 +80,15 @@ import { CueSuggest } from "./CueSuggest";
 import { StoryWorld } from "@/components/story/StoryWorld";
 import { TypewriterIcon } from "@/components/icons/Typewriter";
 
-type PanelId = "ai" | "dict" | "saved" | "rhyme" | "check" | "read" | "goals" | "inbox" | "story" | "history" | "keys" | "page";
+type PanelId = "ai" | "dict" | "saved" | "rhyme" | "metre" | "check" | "read" | "goals" | "inbox" | "story" | "history" | "keys" | "page";
 /** `tint`: the soft home-page colour of each tool's icon in the rail (icons only; labels stay neutral). */
-const PANELS: { id: PanelId; label: string; short: string; icon: React.ComponentType<{ size?: number }>; tint: string }[] = [
+/** `labelKey` / `shortKey`: the name from the strings files (newer panels); the rest are still inline. */
+const PANELS: { id: PanelId; label: string; short: string; labelKey?: MessageKey; shortKey?: MessageKey; icon: React.ComponentType<{ size?: number }>; tint: string }[] = [
   { id: "ai", short: "AI", label: "AI companion", icon: Sparkles, tint: "text-tint-violet" },
   { id: "dict", short: "Dictionary", label: "Dictionary & thesaurus", icon: BookA, tint: "text-tint-tangerine" },
   { id: "saved", short: "Saved", label: "Saved words", icon: Bookmark, tint: "text-tint-coral" },
   { id: "rhyme", short: "Rhymes", label: "Rhymes (പ്രാസം)", icon: Repeat2, tint: "text-tint-sky" },
+  { id: "metre", short: "Metre", label: "Metre (വൃത്തം)", labelKey: "metre.panel", shortKey: "metre.tile", icon: AudioLines, tint: "text-tint-violet" },
   { id: "check", short: "Check", label: "Spelling and grammar", icon: SpellCheck, tint: "text-tint-coral" },
   { id: "read", short: "Listen", label: "Read aloud", icon: Volume2, tint: "text-tint-lime" },
   { id: "goals", short: "Goals", label: "Goal and timer", icon: Target, tint: "text-tint-tangerine" },
@@ -167,6 +173,31 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       .then((items) => setCastNames(items.filter((i) => i.kind === "character" && i.name).map((i) => i.name)))
       .catch(() => {});
   }, [usesCues, storyOpen, initial.id]);
+  // the work's Story World names become the writer's own words: first in Manglish suggestions when
+  // they fit, never marked by the spelling check (refreshed when Story World closes)
+  useEffect(() => {
+    if (storyOpen) return;
+    let live = true;
+    store
+      .listStory(initial.id)
+      .then((items) => {
+        if (!live) return;
+        const names = items.map((i) => i.name).filter(Boolean);
+        setStoryNames(names);
+        setStoryWords(ownWordsFrom(names));
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [storyOpen, initial.id]);
+  useEffect(
+    () => () => {
+      setStoryNames([]);
+      setStoryWords([]);
+    },
+    [initial.id]
+  );
   /** New documents stay "pristine" until the writer types; pristine documents are discarded on close. */
   const pristine = useRef(!!initial.settings.pristine);
   const docRef = useRef<LitmaDoc>(initial);
@@ -641,6 +672,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       <>
         {id === "ai" && <AIPanel key={aiStart ?? "ai"} editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} start={aiStart ?? undefined} onStarted={() => setAiStart(null)} />}
         {id === "rhyme" && <RhymePanel editor={editor} />}
+        {id === "metre" && <MetrePanel editor={editor} marks={!!settings.showMetre} onMarks={(on) => updateSettings({ showMetre: on })} />}
         {id === "check" && <CheckPanel editor={editor} kind={initial.kind} docId={initial.id} title={title} onOpenInbox={() => openPanel("inbox")} />}
         {id === "read" && <ReadAloudPanel editor={editor} />}
         {id === "goals" && <GoalPanel docId={initial.id} words={stats.words} settings={settings} onChange={updateSettings} />}
@@ -654,6 +686,10 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       </>
     );
   const panelMode = phone ? "sheet" : screen === "wide" ? "dock" : "drawer";
+  const panelLabel = (id: PanelId) => {
+    const p = PANELS.find((x) => x.id === id)!;
+    return p.labelKey ? t(p.labelKey) : p.label;
+  };
   const openPanel = (id: PanelId | null) => {
     setPhoneSheet(null);
     setPanel(id);
@@ -946,14 +982,14 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             </Sheet>
           )}
           {!focus && panel && editor && panelMode === "drawer" && (
-            <Sheet mode="drawer" title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+            <Sheet mode="drawer" title={panelLabel(panel)} onClose={() => setPanel(null)}>
               {panelBody(panel)}
             </Sheet>
           )}
         </div>
 
         {!focus && panel && editor && panelMode === "dock" && (
-          <Sheet mode="dock" title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+          <Sheet mode="dock" title={panelLabel(panel)} onClose={() => setPanel(null)}>
             {panelBody(panel)}
           </Sheet>
         )}
@@ -967,11 +1003,11 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
               {(() => {
                 const tool = (id: PanelId) => {
                   const p = PANELS.find((x) => x.id === id)!;
-                  return <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={p.label} icon={p.icon} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} />;
+                  return <RailBtn key={p.id} active={panel === p.id} onClick={() => setPanel(panel === p.id ? null : p.id)} label={panelLabel(p.id)} icon={p.icon} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} />;
                 };
                 const groups: [string, React.ReactNode[]][] = [
                   [t("app.tools.groupWrite"), [<RailBtn key="outline" active={outline} onClick={() => setOutline((o) => !o)} label="Outline" hint="Chapters and headings" icon={ListTree} tint="text-tint-sky" />, tool("story"), tool("dict")]],
-                  [t("app.tools.groupWords"), [tool("saved"), tool("rhyme"), tool("check"), tool("keys")]],
+                  [t("app.tools.groupWords"), [tool("saved"), tool("rhyme"), ...(template.metre ? [tool("metre")] : []), tool("check"), tool("keys")]],
                   [t("app.tools.groupPlan"), [tool("ai"), tool("inbox"), tool("goals")]],
                   [t("app.tools.groupPage"), [tool("page"), <RailBtn key="typewriter" active={typewriter} onClick={() => setTypewriter((tw) => !tw)} label="Typewriter scrolling" hint="While you type, keep the line you are writing in the middle of the screen" icon={TypewriterIcon} tint="text-tint-lime" />]],
                   [
@@ -1010,7 +1046,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
       {/* ── Phone: bottom sheets ── */}
       {phone && panel && editor && (
-        <Sheet mode="sheet" bottomOffset={kb} title={PANELS.find((p) => p.id === panel)!.label} onClose={() => setPanel(null)}>
+        <Sheet mode="sheet" bottomOffset={kb} title={panelLabel(panel)} onClose={() => setPanel(null)}>
           {panelBody(panel)}
         </Sheet>
       )}
@@ -1032,10 +1068,10 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           {(() => {
             const panel = (id: PanelId) => {
               const p = PANELS.find((x) => x.id === id)!;
-              return <Tile key={p.id} icon={p.icon} label={p.short} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />;
+              return <Tile key={p.id} icon={p.icon} label={p.shortKey ? t(p.shortKey) : p.short} tint={p.tint} badge={p.id === "inbox" ? inboxCount : 0} onClick={() => openPanel(p.id)} />;
             };
             const groups: [string, React.ReactNode[]][] = [
-              [t("app.tools.groupWords"), [panel("saved"), panel("rhyme"), panel("check"), panel("keys")]],
+              [t("app.tools.groupWords"), [panel("saved"), panel("rhyme"), ...(template.metre ? [panel("metre")] : []), panel("check"), panel("keys")]],
               [t("app.tools.groupPlan"), [panel("ai"), panel("inbox"), panel("goals")]],
               [t("app.tools.groupPage"), [
                 panel("page"),
@@ -1294,13 +1330,15 @@ function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
   }, [term, cs, editor]);
   useEffect(() => () => void editor.commands.setSearch(""), [editor]);
   const n = st?.results.length ?? 0;
-  // Manglish typed in the box: offer the Malayalam words of this work that sound like it
-  const sounds = useMemo(() => (/[a-z]/i.test(term) ? manglishMatches(editor.state.doc.textBetween(0, editor.state.doc.content.size, " ", " "), term) : []), [term, editor]);
+  // Manglish typed in the box: the Malayalam words of this work that sound like it; Malayalam typed:
+  // other spellings of the same sound (കത → കഥ) and near misses
+  const latinTerm = /[a-z]/i.test(term);
+  const sounds = useMemo(() => (term.trim() ? manglishMatches(editor.state.doc.textBetween(0, editor.state.doc.content.size, " ", " "), term) : []), [term, editor]);
   return (
     <div className="no-print sticky top-0 z-30 mx-auto mb-4 flex w-fit max-w-full flex-wrap items-center gap-1.5 rounded-xl border border-line bg-paper p-2 shadow-lg" role="search">
       <input
         autoFocus
-        className="field min-w-0 flex-1 !py-1.5 !text-sm sm:!w-52 sm:flex-none"
+        className="field min-w-[7.5rem] flex-1 !py-1.5 !text-sm sm:!w-52 sm:flex-none"
         placeholder="Find"
         value={term}
         onChange={(e) => setTerm(e.target.value)}
@@ -1316,7 +1354,7 @@ function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
       <button className="btn btn-ghost !p-1.5" onClick={() => editor.commands.searchStep(1)} aria-label="Next match">
         <ChevronDown size={15} />
       </button>
-      <input className="field min-w-0 flex-1 !py-1.5 !text-sm sm:!w-44 sm:flex-none" placeholder="Replace with" value={rep} onChange={(e) => setRep(e.target.value)} />
+      <input className="field min-w-[7.5rem] flex-1 !py-1.5 !text-sm sm:!w-44 sm:flex-none" placeholder="Replace with" value={rep} onChange={(e) => setRep(e.target.value)} />
       <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => editor.commands.replaceCurrent(rep)} disabled={!n}>
         Replace
       </button>
@@ -1330,8 +1368,8 @@ function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
         <X size={15} />
       </button>
       {sounds.length > 0 && (
-        <div className="flex w-full flex-wrap items-center gap-1.5 px-1 pt-1 text-xs text-muted" title={t("search.inMalayalamHint")}>
-          {t("search.inMalayalam")}:
+        <div className="flex w-full flex-wrap items-center gap-1.5 px-1 pt-1 text-xs text-muted" title={t(latinTerm ? "search.inMalayalamHint" : "search.soundsLikeHint")}>
+          {t(latinTerm ? "search.inMalayalam" : "search.soundsLike")}:
           {sounds.map((w) => (
             <button key={w} type="button" data-private className="rounded-[6px] border border-line-strong bg-surface px-2 py-0.5 text-sm text-ink hover:border-accent hover:text-accent" style={{ fontFamily: "'Anek Malayalam'" }} onClick={() => setTerm(w)}>
               {w}

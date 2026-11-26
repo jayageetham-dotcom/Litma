@@ -24,7 +24,7 @@ Open any work from the desk and you are in the editor.
 
 > **Phone:** On the phone the writing fills the screen as one long sheet. Tap anywhere on the page, even below the last line, to start typing on the nearest line. While you type, a strip above the keyboard holds the formatting buttons; when the keyboard is closed, a tab bar gives you Format, Contents, Story, Dictionary and More.
 
-> In the Litma phone app, the tools button at the top opens every tool in four groups: **Words** (Dictionary, Rhymes, Check, Saved words), **Plan and assist** (AI companion, Story World, Goals), **Page** (Format, Page setup, Contents, Pages, Insert page) and **Review and share** (Listen, Version history, Share & export). Tools for your writing type, such as footnotes or scene tools, sit in a last group. **Find** has its own button beside the tools button.
+> In the Litma phone app, the tools button at the top opens every tool in four groups: **Words** (Dictionary, Rhymes, Metre in poems and lyrics, Check, Saved words), **Plan and assist** (AI companion, Story World, Goals), **Page** (Format, Page setup, Contents, Pages, Insert page) and **Review and share** (Listen, Version history, Share & export). Tools for your writing type, such as footnotes or scene tools, sit in a last group. **Find** has its own button beside the tools button.
 
 ![The editor's tools on the phone](shots/phone-tools.webp)
 
@@ -74,7 +74,7 @@ In novels and stories, paragraphs start with a small indent like a printed book.
 
 Drag over the words you want, or press <kbd>Shift</kbd> with the arrow keys. A selection can run over as many lines and pages as you like. Typing replaces it, and <kbd>Backspace</kbd> removes it.
 
-> **Phone:** Press and hold a word to select it. Drag the round handles to take in more, over as many lines and pages as you like. The page scrolls when you drag near the top or bottom. The bar above the selection has **Cut**, **Copy**, **Paste**, **Delete**, bold, italic and **Select all**. Typing or <kbd>Backspace</kbd> replaces the whole selection, and **Undo** brings it back.
+> **Phone:** Press and hold a word to select it. Drag the round handles to take in more, over as many lines and pages as you like. The page scrolls when you drag near the top or bottom. The bar above the selection has **Cut**, **Copy**, **Paste**, **Delete**, bold, italic and **Select all**. Once the whole work is selected, the same button says **Deselect all**. Typing or <kbd>Backspace</kbd> replaces the whole selection, and **Undo** brings it back.
 
 ## Pages and Insert page {#pages}
 
@@ -115,13 +115,14 @@ Marks appear in your text as you write. Click or tap a marked word (or select it
 - Pick a spelling to put it in place of the word.
 - **Ignore** leaves the word as you wrote it. It isn't marked again until you open Litma again.
 - **Keep** leaves it for good: a kept word isn't marked again on this device.
+- **Suggest** appears on a word marked "Not in the dictionary", which has no spellings of its own. It shows known words that sound like yours (കര്യം → കാര്യം). Nothing is shown until you ask, so a name or a word you made up is never pushed to change.
 - Or just carry on typing. A dialect or regional word is often right as it is; the suggestion is only a choice. <kbd>Esc</kbd> closes the suggestions on a computer.
 - With the keyboard: <kbd>↓</kbd> and <kbd>↑</kbd> move through the suggestions, <kbd>Enter</kbd> uses the highlighted one, <kbd>Esc</kbd> closes them. If you reached the word with the arrow keys, the arrows keep moving the cursor; press <kbd>Alt</kbd> + <kbd>↓</kbd> to go into the suggestions. Screen readers say what is marked and read each suggestion as you move.
 
 1. Choose **Spelling and grammar** on the right-hand rail to see every mark in a list. Litma marks these in your text:
    - **Broken letters** (blue wavy line): Malayalam typed in an old or broken way that looks right but searches and sorts wrongly, like ന്‍ for ൻ or a colon for ഃ (ദു:ഖം for ദുഃഖം).
    - **Misspellings** (red wavy line): words often written wrongly (ഉൽഘാടനം for ഉദ്ഘാടനം), with the standard spelling.
-   - **Check spelling?** (amber wavy line): a word the engine doesn't know that is close to words it does, like പോയീ (പോയി) or ഹ്രുദയം (ഹൃദയം). It's a question: if your word is right, choose **Keep**.
+   - **Check spelling?** (amber wavy line): a word the engine doesn't know that is close to words it does, like പോയീ (പോയി) or ഹ്രുദയം (ഹൃദയം), or one letter away from a common word, like പുസ്ടകം (പുസ്തകം). This works offline too. The most likely spelling is listed first. It's a question: if your word is right, choose **Keep**.
    - **Spacing**: a space before a comma or full stop, no space after one, two spaces between words, or two commas.
 2. Click a fix in the list to use it, or **Keep** to leave the word as it is. A kept word isn't marked again on this device. **Fix all** puts every broken letter and spacing mark right at once.
 3. Untick **Mark spelling in the text** or **Mark spacing around punctuation** to hide those marks.
@@ -161,7 +162,7 @@ Litma uses the Malayalam voice of your device, so it costs nothing and your text
 
 1. Press <kbd>Ctrl</kbd> + <kbd>F</kbd> (<kbd>⌘</kbd> + <kbd>F</kbd> on a Mac).
 2. Type what to look for. Every match is highlighted and the count shows (1/3).
-3. Typed it in Manglish? Under the box, **In Malayalam** lists the words in your work that sound like it (`kada` → കടൽ, കടവ്). Click one to find it.
+3. Typed it in Manglish? Under the box, **In Malayalam** lists the words in your work that sound like it (`kada` → കടൽ, കടവ്). Typed it in Malayalam? **Sounds like** lists other spellings in your work that sound the same, and near misses (കത → കഥ). Click one to find it. A small typo still finds the word (`malayalm` → മലയാളം).
 4. Use the arrows (or <kbd>Enter</kbd>) to go from one to the next. Tick **Aa** to match capital letters exactly.
 5. To replace, type the new text in **Replace with** and choose **Replace** (this one) or **All**.
 

@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import type { Transaction } from "@tiptap/pm/state";
 import { transliterate } from "@/lib/functions";
+import { offlineCandidates, OFFLINE_MAX, rememberPick, withPick } from "@/lib/manglish-words";
 import { manglishKey, topCandidates, pageOf, MAX_CANDIDATES, PAGE_SIZE, type ComposeState, type CommitInfo } from "@/extensions/manglish";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useT } from "@/i18n/react";
@@ -12,12 +13,14 @@ import { domId, ownAttr } from "./aria-owner";
 const cache = new Map<string, string[]>();
 
 async function fetchCandidates(word: string): Promise<string[] | null> {
-  if (cache.has(word)) return cache.get(word)!;
+  if (cache.has(word)) return withPick(word, cache.get(word)!);
   const j = await transliterate(word, MAX_CANDIDATES);
   if (!j.candidates?.length || j.source === "offline") return null;
-  const list = topCandidates(j.candidates);
+  // Google's spellings first, then the offline ones it doesn't have
+  const list = topCandidates([...j.candidates, ...offlineCandidates(word, OFFLINE_MAX)]);
   cache.set(word, list);
-  return list;
+  // the writer's own earlier pick beats Google's order
+  return withPick(word, list);
 }
 
 /** Height of one suggestion row (h-9). */
@@ -116,6 +119,7 @@ export function ManglishPopup({ editor, docked = false }: { editor: Editor; dock
       for (const p of pending) p.from = transaction.mapping.map(p.from, -1);
       const meta = transaction.getMeta(manglishKey) as { committed?: CommitInfo } | undefined;
       const c = meta?.committed;
+      if (c?.chosen) rememberPick(c.word, c.text);
       if (!c || c.fetched) return;
       const item = { ...c };
       pending.push(item);

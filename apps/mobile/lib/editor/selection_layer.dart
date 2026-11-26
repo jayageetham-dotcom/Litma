@@ -107,7 +107,7 @@ _Geometry? _geometry(EditorSession s, RenderBox layer) {
 
 /// A selection that can run over many lines and pages, drawn over the page: the highlight, two
 /// handles to drag (across lines, like Google Docs) and a bar with Cut, Copy, Paste, Delete,
-/// Bold, Italic and Select all. The text itself lives in the session ([EditorSession.spanRange]).
+/// Bold, Italic and Select all (Deselect all once everything is selected). The text itself lives in the session ([EditorSession.spanRange]).
 class SelectionLayer extends StatefulWidget {
   const SelectionLayer({super.key, required this.session, required this.scroll});
   final EditorSession session;
@@ -275,7 +275,11 @@ class _SelectionLayerState extends State<SelectionLayer> {
               button(context.t('common.delete'), s.deleteSpan),
               button(context.t('app.editor.bold'), () => s.toggleMark('bold'), icon: LucideIcons.bold),
               button(context.t('app.editor.italic'), () => s.toggleMark('italic'), icon: LucideIcons.italic),
-              button(context.t('app.selection.selectAll'), s.selectAll),
+              // the whole work selected: the same place offers the way back
+              if (s.allSelected)
+                button(context.t('app.selection.deselectAll'), s.deselectAll)
+              else
+                button(context.t('app.selection.selectAll'), s.selectAll),
             ]),
           ),
         ),

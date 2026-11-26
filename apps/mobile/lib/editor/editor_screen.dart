@@ -136,8 +136,12 @@ class _EditorState extends ConsumerState<_Editor> {
   void initState() {
     super.initState();
     s.addListener(_changed);
-    s.spelling = (word) => _best[word];
+    // a space takes what the strip shows first: Google's best once it answered, else the offline list's
+    s.spelling = (word) => _best[word] ?? _firstOffline(word);
     s.reveal = _reveal;
+    s.storyClosed = _loadStoryNames;
+    _translit = ref.read(servicesProvider).transliterator;
+    _loadStoryNames();
     WritingTimer.instance.onDone = _timerDone;
     setupSpellMarks(ref, s);
   }
@@ -169,10 +173,36 @@ class _EditorState extends ConsumerState<_Editor> {
     s.removeListener(_changed);
     s.spelling = null;
     s.reveal = null;
+    s.storyClosed = null;
+    _translit.setStoryNames(const []); // another work's names don't carry over
     if (WritingTimer.instance.onDone == _timerDone) WritingTimer.instance.onDone = null;
     _suggestTimer?.cancel();
     _scroll.dispose();
     super.dispose();
+  }
+
+  late final Transliterator _translit;
+
+  String? _firstOffline(String word) {
+    final list = ref.read(servicesProvider).transliterator.offline(word);
+    return list.isEmpty ? null : list.first;
+  }
+
+  /// The work's Story World names become the writer's own words (first in Manglish suggestions when
+  /// they fit, never marked by the spelling check). Again whenever Story World closes.
+  Future<void> _loadStoryNames() async {
+    final services = ref.read(servicesProvider);
+    final items = await services.store.listStory(s.doc.id).catchError((_) => <Json>[]);
+    if (!mounted) return;
+    services.transliterator.setStoryNames(items.map((i) => '${i['name'] ?? ''}'));
+    _best.clear(); // lists change with the names
+    setupSpellMarks(ref, s);
+  }
+
+  /// The writer chose [choice] for [word]: remembered on this phone and used for the next space.
+  void _chose(String word, String choice) {
+    ref.read(servicesProvider).transliterator.rememberPick(word, choice);
+    _best[word] = choice;
   }
 
   /// Best spelling per word once Google has answered, so a space takes what the strip shows.
@@ -187,7 +217,7 @@ class _EditorState extends ConsumerState<_Editor> {
         _candidates = const [];
       } else {
         final known = _best[word];
-        _candidates = known != null ? [known] : manglishCandidates(word);
+        _candidates = known != null ? [known] : ref.read(servicesProvider).transliterator.offline(word);
         _suggestTimer = Timer(const Duration(milliseconds: 140), () async {
           final list = await ref.read(servicesProvider).transliterator.candidates(word);
           if (list.isNotEmpty) {
@@ -313,7 +343,7 @@ class _EditorState extends ConsumerState<_Editor> {
               switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, a) => SizeTransition(sizeFactor: a, alignment: Alignment.topCenter, child: FadeTransition(opacity: a, child: child)),
               child: writing
-                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates, onKeepWord: (w) => keepSpellingWord(ref, s, w), onLookUp: () => showLookUpSheet(context, s), onAi: () => showAiSheet(context, ref, s), onInbox: () {
+                  ? _KeyboardBar(key: const ValueKey('bar'), session: s, word: _word, candidates: _candidates, onKeepWord: (w) => keepSpellingWord(ref, s, w), onSuggestWord: (w) => ref.read(servicesProvider).transliterator.similar(w), onChoseSpelling: _chose, onLookUp: () => showLookUpSheet(context, s), onAi: () => showAiSheet(context, ref, s), onInbox: () {
                       FocusScope.of(context).unfocus();
                       showInboxSheet(context, ref, s);
                     })
@@ -576,8 +606,12 @@ double _barOffset = 0;
 
 /// The keyboard accessory: suggestions for the Manglish word, then the writing tools.
 class _KeyboardBar extends StatefulWidget {
-  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates, required this.onKeepWord, required this.onLookUp, required this.onAi, required this.onInbox});
+  const _KeyboardBar({super.key, required this.session, required this.word, required this.candidates, required this.onKeepWord, required this.onSuggestWord, required this.onChoseSpelling, required this.onLookUp, required this.onAi, required this.onInbox});
   final void Function(String word) onKeepWord;
+  /// Known words that sound like an unknown word (spelling "Suggest").
+  final Future<List<String>> Function(String word) onSuggestWord;
+  /// The writer picked a spelling other than the first for a Manglish word.
+  final void Function(String word, String choice) onChoseSpelling;
   final VoidCallback onLookUp;
   final VoidCallback onAi;
   final VoidCallback onInbox;
@@ -665,9 +699,9 @@ class _KeyboardBarState extends State<_KeyboardBar> {
             curve: Motion.emphasized,
             alignment: Alignment.bottomCenter,
             child: spell != null
-                ? _SpellRow(session: s, issue: spell, onKeep: widget.onKeepWord)
+                ? _SpellRow(session: s, issue: spell, onKeep: widget.onKeepWord, onSuggest: widget.onSuggestWord)
                 : s.mode == InputMode.manglish
-                    ? _Suggestions(session: s, word: word, candidates: candidates)
+                    ? _Suggestions(session: s, word: word, candidates: candidates, onChose: widget.onChoseSpelling)
                     : const SizedBox(width: double.infinity),
           ),
         ]),
@@ -680,10 +714,11 @@ class _KeyboardBarState extends State<_KeyboardBar> {
 /// row: the word as typed in quotes (keeps English), then every spelling, best one marked, in a
 /// row that scrolls sideways. A new word starts the row at the beginning.
 class _Suggestions extends StatelessWidget {
-  const _Suggestions({required this.session, required this.word, required this.candidates});
+  const _Suggestions({required this.session, required this.word, required this.candidates, required this.onChose});
   final EditorSession session;
   final String? word;
   final List<String> candidates;
+  final void Function(String word, String choice) onChose;
 
   @override
   Widget build(BuildContext context) {
@@ -705,7 +740,11 @@ class _Suggestions extends StatelessWidget {
                 ctrl?.keepEnglish = w;
                 ctrl?.replaceWordAtCursor(w, w);
               },
-              onPick: (cand) => ctrl?.replaceWordAtCursor(w, cand),
+              onPick: (cand) {
+                // a spelling other than the first is the writer's own choice: offered first next time
+                if (list.isNotEmpty && cand != list.first) onChose(w, cand);
+                ctrl?.replaceWordAtCursor(w, cand);
+              },
             ),
     );
   }
@@ -716,10 +755,11 @@ class _Suggestions extends StatelessWidget {
 /// this visit) or Keep (never marked again on this device). Typing on simply goes on: dialect and
 /// regional words are often "unknown", and leaving them is the writer's choice.
 class _SpellRow extends StatelessWidget {
-  const _SpellRow({required this.session, required this.issue, required this.onKeep});
+  const _SpellRow({required this.session, required this.issue, required this.onKeep, this.onSuggest});
   final EditorSession session;
   final SpellIssue issue;
   final void Function(String word) onKeep;
+  final Future<List<String>> Function(String word)? onSuggest;
 
   @override
   Widget build(BuildContext context) {
@@ -729,6 +769,7 @@ class _SpellRow extends StatelessWidget {
       onFix: (fix) => ctrl?.fixSpelling(issue, fix),
       onIgnore: () => session.ignoreSpelling(issue.text),
       onKeep: issue.kind == SpellKind.unicode ? null : () => onKeep(issue.text),
+      onSuggest: onSuggest == null ? null : () => onSuggest!(issue.text),
     );
   }
 }

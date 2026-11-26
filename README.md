@@ -29,7 +29,7 @@ docs/changes       what changed in each app and what is still open (for maintain
 | Desktop app: Electron, serving its own copy of the web build | the writer's Mac, Windows or Linux computer (installers on `litma-releases`) |
 | Phone app: Flutter, native editor, SQLite copy for offline | iPhone and Android (App Store / Google Play, once the store accounts are set up) |
 | Accounts, documents, versions, AI inbox, writing stats | Supabase project `jdexadomaxjtxlvgtldu` (Postgres + RLS, Auth, Storage, Realtime) |
-| Manglish: offline engine first, Google Input Tools predictions on top | `packages/shared/src/manglish.ts` (Dart port in `apps/mobile/lib/core/manglish.dart`) + Edge Function `litma-transliterate` |
+| Manglish: offline engine first (letter rules + real words ranked from a 150k-word list), Google Input Tools predictions on top | `packages/shared/src/manglish.ts` + `manglish-rank.ts` (Dart ports in `apps/mobile/lib/core/`), word list `scripts/build-manglish-words.mjs` → `/dict/manglish-words.txt`, Edge Function `litma-transliterate` |
 | AI companion (Claude / GPT / Gemini, streamed, writer's own key) | Edge Function `litma-ai` (signed-in users only) |
 | MCP server | Edge Function `litma-mcp`, exposed at `getlitma.in/mcp` by `apps/web/public/mcp.php` (a relay with no secrets) |
 | Usage statistics and the admin dashboard | Edge Functions `litma-track`, `litma-admin` |
@@ -169,7 +169,8 @@ Every addition, change or removal also updates the strings in both languages (`p
 - **Nine സാഹിത്യരൂപങ്ങൾ (writing types)**, each with its own template and toolbar — including the Kerala **screenplay** layout (Scene: N, location, time, cast on the right, action left, two-column dialogue) and **poems/lyrics** with akshara counts and laghu/guru metre marks.
 - **Accounts:** sign up, sign in (password, email link, Google), forgot/reset password, **profile** with avatar pictures (photo uploads are paused for now), pen name, bio, default typing mode, writing heatmap.
 - **Goals and statistics (`/goals/`):** daily and weekly word goals, streaks with rest days, a goal and finish date per work, a writing timer (sprint) with a chime and notification, a daily reminder (browser tab, desktop app main process, or the phone's own scheduled notification), and 7/30/90-day statistics (words, minutes, writing days, hours of the day, by writing type and work). Kept for 90 days.
-- **Rhymes (പ്രാസം):** ദ്വിതീയാക്ഷര, അന്ത്യ and ആദി പ്രാസം from the dictionary's headwords with laghu–guru patterns (files built by `scripts/build-rhymes.mjs`), in the editor, the Dictionary's പ്രാസം tab, the phone and MCP (`find_rhymes`).
+- **Rhymes (പ്രാസം):** ദ്വിതീയാക്ഷര, അന്ത്യ and ആദി പ്രാസം from the dictionary's headwords and the common forms people write (പറഞ്ഞു, മഴയിൽ), most used first, with laghu–guru patterns (files built by `scripts/build-rhymes.mjs`), in the editor, the Dictionary's പ്രാസം tab, the phone and MCP (`find_rhymes`).
+- **Metre (വൃത്തം):** names the metre of the stanza being written (Sanskrit metres such as വസന്തതിലകം, മന്ദാക്രാന്ത, അനുഷ്ടുപ്പ്; Malayalam metres such as കേക, കാകളി, നതോന്നത) and marks the syllables or lines that don't fit; free verse is never marked. `packages/shared/src/metre.ts`, in poems and lyrics on web, desktop and phone, and MCP (`check_metre`).
 - **Spelling and grammar:** Litma's own spelling engine knows Malayalam word forms with all their endings and joins. It marks common misspellings in red with the right spelling, words it can't analyse as amber "Check spelling?" with likely fixes, broken Unicode letters, and spacing around punctuation (`packages/shared/src/spell.ts`, `punctuation.ts`, `mlmorph.ts`; Edge Function `litma-spell`). If the engine can't be reached the editor goes on with its own checks. **Check grammar** in the Spelling and grammar panel asks the writer's AI companion and shows each fix as a card to accept or skip. MCP `check_spelling`.
 - **Read aloud** with the device's own Malayalam voice (Web Speech API; the phone's own speech engine on the phone), sentence by sentence with the line highlighted.
 - **Backup:** everything as one zip (Word files + a restorable JSON), downloaded, saved to Google Drive, written daily into a folder by the desktop app, or shared from the phone; restore on the website or desktop app.
@@ -199,7 +200,9 @@ The suggestion list also offers റ for r, ള for l, ണ for n, long ഏ/ഓ, �
 
 For exact control, capitals and marks spell letter by letter: `T` ട, `D` ഡ, `N` ണ, `L` ള, `R` റ, `S` ശ, `E` ഏ, `O` ഓ, `A` ആ; `_` breaks a cluster and keeps d as ദ between vowels (`u_dayam` ഉദയം), `~` adds a chandrakkala (`naad~` നാട്).
 
-The website's and phone's engines must agree: `npm run mobile:assets` writes the web engine's answers to `apps/mobile/test/manglish_vectors.json` and `manglish_candidates.json`, and `flutter test` checks the Dart port against them.
+The website's and phone's engines must agree: `npm run mobile:assets` writes the web engine's answers to `apps/mobile/test/manglish_vectors.json`, `manglish_candidates.json` and `manglish_rank_vectors.json`, and `flutter test` checks the Dart ports against them.
+
+Offline, `manglish-rank.ts` turns the letter readings into real words: a 150k-word list (`/dict/manglish-words.txt`, most used first) is indexed by a loose sound skeleton and candidates are scored by fit, closeness to the plain reading, typed vowel lengths and how common they are. A word that fits no real word keeps its plain reading first, and the plain reading always stays in the first six.
 
 ## AI: every writer brings their own
 

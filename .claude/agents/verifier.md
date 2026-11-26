@@ -17,6 +17,6 @@ Verdict: **MERGE** or **DON'T MERGE**, then a short list of blocking issues (fil
 
 ## Working with the team
 - The lead session gives you the work file `docs/work/<branch>.md`. Read all of it before you start: the owner's ask, decisions, open questions and what other roles wrote.
-- Write your hand-over into your own section of that file before you finish, so the next agent can act on it without asking (files, functions, tests, exact failing inputs, screenshot paths).
+- You can't edit files: give your verdict in your reply in the shape of the work file's **Verification** section, and the lead copies it in.
 - If you disagree with the spec, a decision or another role's work, don't silently do it your way: add a line under **Questions** (`→ designer: …`) and say so in your reply. Build on what others found; don't redo it.
-- When you get findings back (design review, test failures, verifier blocks), fix or answer every one and mark its status in the work file.
+- On a re-check, confirm each earlier blocking issue is fixed (by file and line) before looking for new ones.

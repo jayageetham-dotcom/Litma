@@ -55,3 +55,29 @@ Novel editor, 1440×900 and 1024×768, light and dark: **60 of 62 checks pass in
 - Not changed: a tall menu pinned at the top can cover the clicked line (cosmetic).
 
 ## Verification (verifier)
+2026-11-26, branch at 5c0f6fb, full diff `origin/main...HEAD` (23 files) read.
+
+**Verdict: MERGE.** No blocking issues.
+
+Checklist (CLAUDE.md "Every change"):
+1. Every app: done. Web menu in `EditorContextMenu.tsx`, mounted off phones in `Workspace.tsx`; desktop `litma:edit` IPC (role checked against `EDIT_ROLES`), `litmaDesktop.edit` in preload and `lib/desktop.ts` (optional, older builds fall back to `navigator.clipboard`), `editMenuFor` outside the editor. Phone: nothing to port (menu is pointer-only; spelling fix is server side), noted in `docs/changes/mobile.md`.
+2. Strings: done. `editorMenu.*` (17 keys) in en + ml, phone copy regenerated (`npm run mobile:assets` gives no drift). `i18n:check`: 0 missing.
+3. Help guide: done. `03-editor.md` "The right-click menu" (no `{#id}` changed).
+4. Privacy/Terms: not needed (no new data or service; clipboard is read locally).
+5. Credits: not needed (no new outside data/code).
+6. Security: not needed / ok. No new host or Edge Function; IPC accepts only `paste`/`pasteAndMatchStyle` on the sender.
+7. Setup: not needed.
+8. Project docs: done. CLAUDE.md editor rule, `docs/changes/` web, desktop (Release needed), mobile, cross-platform. README not touched (fine: no feature table line for editing menus).
+9. Checks (re-run here): `npm run typecheck` ok, `npm run build` ok (0.7.34+5c0f6fb), `npm run i18n:check` ok, `npm run sync:shared` no drift (`git status` clean), `npx tsx scripts/spell-lab/quoted-check.ts` all passed (prose 22 of 345 flagged; 34 of 811 misspellings through; known false passes: none). Flutter not run here; CI covers it.
+10. Release: a **desktop Release is needed** for `litmaDesktop.edit` and the native menu outside the editor (the web menu itself reaches desktop users with the site deploy). No phone store build needed (only regenerated i18n assets). The quotative fix reaches every app when `litma-spell` deploys from `main` (that deploy step is allowed to fail: check the Deploy run's litma-spell step after merging).
+
+Owner rules: fairness ok (prose sample mixes names, food and festivals across communities; no biased suggestions); no em dashes in the new UI copy; no "forms" or "Coming soon"; no release notes changed; phone files only `assets/i18n/*.json` with green Mobile app checks; no other product touched.
+
+Tester's blocking items, re-checked by code: Shift+F10 / menu key closing at once is fixed (`onMenu` takes `button === -1`; `onScroll` ignores scrolls inside the menu and in the first 400 ms; active item `scrollIntoView`). False passes fixed (`quoted()` takes only `<neg>` bases or `-ഏണ്ട` with a verb `-ഏണം`), confirmed by the check above.
+
+CI on 5c0f6fb: Mobile app checks (`check`, `screens`) success. It is the only workflow that runs on this PR. PR #19 open, mergeable (state was `unstable` only while that run was in progress).
+
+Non-blocking notes:
+- `packages/shared/src/mlmorph.ts` comment in `quoted()` says "122 false passes → 0"; the check measures 34 (the 34 have bases mlmorph already accepts). Fix the comment some time.
+- Keyboard Shift+F10 in browsers that set `shiftKey` on that event would get the browser's menu (`if (e.shiftKey) return`); not seen in Chromium.
+- Still open from the tester: a tall menu pinned at the top can cover the clicked line (cosmetic); endings like എന്നാണ്/എന്നുള്ള not yet accepted; phone Manglish capitals online unverified.

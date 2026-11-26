@@ -102,7 +102,7 @@ export function MetrePanel({ editor, marks, onMarks }: { editor: Editor; marks: 
   };
 
   return (
-    <div>
+    <div className="min-w-0 max-w-full overflow-x-clip">
       <label className="flex items-center gap-2 text-[13px]">
         <input type="checkbox" checked={marks} onChange={(e) => onMarks(e.target.checked)} /> {t("metre.marks")}
       </label>
@@ -182,19 +182,20 @@ const METRE_NAMES: Record<string, string> = { indravajra: "ഇന്ദ്രവ
 
 function Line({ line, onPick }: { line: LineCheck; onPick: (start: number, end: number) => void }) {
   const t = useT();
-  // syllables by gana group, so the groups show with a little space between them
+  // syllables by gana group, so the groups show with a little space between them; with no metre
+  // (free verse) every syllable stands alone so the line can wrap anywhere; a word-final ് left
+  // uncounted stays with the syllable before it
   const groups: { key: number; items: LineCheck["syllables"] }[] = [];
   for (const s of line.syllables) {
-    const key = s.counted ? s.group : groups.length ? groups[groups.length - 1].key : 0;
     const last = groups[groups.length - 1];
-    if (last && last.key === key) last.items.push(s);
-    else groups.push({ key, items: [s] });
+    if (last && (s.counted ? s.group >= 0 && last.key === s.group : true)) last.items.push(s);
+    else groups.push({ key: s.counted ? s.group : -1, items: [s] });
   }
   return (
-    <li className={`rounded-xl border px-3 py-2.5 ${line.ok ? "border-line" : "border-highlight/50"}`}>
-      <div className="flex flex-wrap gap-x-2 gap-y-1.5" style={ml}>
+    <li className={`min-w-0 rounded-xl border px-3 py-2.5 ${line.ok ? "border-line" : "border-highlight/50"}`}>
+      <div className={`flex flex-wrap gap-y-1.5 ${groups.some((g) => g.key >= 0) ? "gap-x-2" : "gap-x-0.5"}`} style={ml}>
         {groups.map((g, gi) => (
-          <span key={gi} className="inline-flex gap-0.5">
+          <span key={gi} className="inline-flex max-w-full flex-wrap gap-0.5">
             {g.items.map((s, si) => (
               <button
                 key={si}
@@ -202,7 +203,7 @@ function Line({ line, onPick }: { line: LineCheck; onPick: (start: number, end: 
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onPick(s.start, s.end)}
                 title={s.wrong ? t(s.weight === "L" ? "metre.wantGuru" : "metre.wantLaghu") : !s.counted ? t("metre.uncounted") : undefined}
-                className={`flex min-w-[1.6rem] flex-col items-center rounded-md px-0.5 py-0.5 transition-colors hover:bg-subtle ${
+                className={`relative flex min-w-[1.6rem] flex-col items-center rounded-md px-0.5 py-0.5 transition-colors hover:bg-subtle ${
                   s.wrong ? "bg-highlight-soft text-highlight ring-1 ring-highlight/50" : !s.counted ? "opacity-45" : ""
                 }`}
               >

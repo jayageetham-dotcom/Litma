@@ -7,6 +7,12 @@ Work that touches more than one Litma app (web, desktop, phone). Per-app details
 first) and update **Open items** before you finish. Keep entries short: what changed, where in
 the code, and what is still unverified.
 
+## 2026-11-26 (evening): Metre panel no longer overflows (branch `fix-metre-overflow`)
+
+- Owner's photos (16-inch MacBook, docked panel): in free verse the panel's lines ran off its edge and the whole editor scrolled sideways (page 1886 px in a 1728 px window). Causes: with no gana groups every syllable fell into one unbreakable row; and each chip's screen-reader text (`sr-only`, absolutely positioned) had no positioned parent, so it stretched the page.
+- Web `components/editor/MetrePanel.tsx`: free-verse syllables stand alone (narrow gaps), groups wrap, chips are `relative`, the panel and its lines are `min-w-0` with `overflow-x-clip`. Phone `lib/editor/metre_view.dart`: same grouping, groups are `Wrap`s.
+- Checked: page width = window at 1280, 1512 and 1728 px with the panel open; 15 public and app pages at 1728, 1512, 390 and 320 px have no sideways scroll; metre panel tests (tap selects the syllable, 390/320 px) pass. The toolbar still scrolls sideways under ~1600 px by design.
+
 ## 2026-11-26: Ignore kept with the work (branch `claude/keep-ignores`)
 
 - Owner: fixed and ignored spellings came back after a refresh. Fixes were saved (the same word elsewhere in a lyric stays marked); Ignore lived only in memory. Now Ignore is saved in the work's `settings.spellIgnored` (shared `DocSettings`, last 1,000 words): web `lib/spell.ts` `setWorkIgnored` (Workspace loads and saves it), phone `EditorSession.isSpellIgnored` / `ignoreSpelling` (marks and the Check sheet). Strings `check.ignoreHint` (en + ml), help `03-editor.md`. Verifier: MERGE; after it, the web's `persist` sets the new settings before saving (a new work's first save could drop an Ignore) and the phone's ignores are per work (no shared set). Open: MCP `check_spelling` doesn't read a work's ignored words; two devices saving settings at once, last writer wins (as before).

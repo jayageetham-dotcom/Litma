@@ -43,11 +43,14 @@ const MUST_OK = `കാണാനില്ലെന്ന് കാണാനി�
 പറഞ്ഞില്ലെന്ന് കാണാനാവില്ലെന്ന് വേണ്ടെന്ന് ഒരുങ്ങിയില്ലെന്ന് ജയിച്ചില്ലെന്ന് കുറഞ്ഞില്ലെന്ന് വൈകില്ലെന്നും കണ്ടില്ലെന്ന്
 വിഷമിക്കേണ്ടെന്ന് പോകേണ്ടെന്ന് തികഞ്ഞില്ലെന്ന് കണ്ടിട്ടില്ലെന്ന് വായിക്കുന്നില്ലെന്ന് സമ്മതിച്ചില്ലെന്ന് ഒന്നുമില്ലെന്ന്
 ആരുമില്ലെന്ന് സമയമില്ലെന്ന് മറക്കാനാവില്ലെന്ന് ഇല്ലെന്ന് ആണെന്ന് ഉണ്ടെന്ന് വരുമെന്ന് വേണമെന്ന് പോയെന്ന് വന്നെന്ന്
-കാണാനില്ലെന്നാണ് കാണാനില്ലെന്നുള്ള അറിയില്ലെന്നായിരുന്നു വരില്ലെന്നാണോ കിട്ടില്ലെന്നുമാണ് പറഞ്ഞില്ലെന്നായി പോകേണ്ടെന്നാണ് വേണ്ടെന്നുള്ള കണ്ടിട്ടില്ലെന്നല്ലേ`.split(/\s+/);
+കാണാനില്ലെന്നാണ് കാണാനില്ലെന്നുള്ള അറിയില്ലെന്നായിരുന്നു വരില്ലെന്നാണോ കിട്ടില്ലെന്നുമാണ് പറഞ്ഞില്ലെന്നായി പോകേണ്ടെന്നാണ് വേണ്ടെന്നുള്ള കണ്ടിട്ടില്ലെന്നല്ലേ
+വരില്ലെന്നത് ഇല്ലെന്നതാണ് പറ്റില്ലെന്നതിനാൽ അറിയില്ലെന്നൊക്കെ വരില്ലെന്നുതന്നെ കിട്ടില്ലെന്നുപോലും നടക്കില്ലെന്നാകും ആരുമില്ലെന്നുമുള്ള
+വരില്ലെന്നോർത്ത് ഇല്ലെന്നറിയാം വരില്ലെന്നമട്ടിൽ വേണ്ടെന്നുവെച്ചു വേണ്ടെന്നുവച്ചു കാണാനില്ലെന്നാണെന്ന് മരിക്കില്ലെന്നാവും`.split(/\s+/);
 for (const w of MUST_OK) if (!ok(w)) fail(`correct word flagged: ${w}`);
 
 // 2. not words: must stay flagged
-const MUST_FLAG = "കാണാനില്ലെന്ന്ന് ലെന്ന് പെരുന്നാൾെന്ന് കാണാനില്ലെന്ന്‌ന് കാണാനില്ലെന്നാണ്ണ് അമ്മെന്നാണ് വരിലെന്നുള്ള കാണാനില്ലെന്നxയ".split(/\s+/);
+const MUST_FLAG = `കാണാനില്ലെന്ന്ന് ലെന്ന് പെരുന്നാൾെന്ന് കാണാനില്ലെന്ന്‌ന് കാണാനില്ലെന്നാണ്ണ് അമ്മെന്നാണ് വരിലെന്നുള്ള കാണാനില്ലെന്നxയ
+വരില്ലെന്നമ്മ വരില്ലെന്നവൻ പോകേണ്ടെന്നുല്ല പോകണ്ടെന്നാണ് പോകെണ്ടെന്നാണ് കണ്ടിലെന്നുള്ള സീതെന്നുള്ള കാണാനില്ലെന്നുള്ളള കാണാനില്ലെന്നായിരുന്നുു`.split(/\s+/);
 for (const w of MUST_FLAG) if (ok(w)) fail(`non-word accepted: ${w}`);
 
 // 3. everyday prose: false alarms
@@ -102,6 +105,18 @@ const KNOWN = "അമ്മെന്ന് സീതെന്ന് ആയിഷ
 const back = KNOWN.filter(ok);
 console.log(`known false passes still accepted: ${back.join(" ") || "none"}`);
 if (back.length) fail(`false passes came back: ${back.join(" ")}`);
+
+// 6. slips in the ending, and garbage endings that mlmorph reads after ഇല്ലെന്ന as compounds
+//    (ഇ<dem>അല്ല്<n>എന്നു്<postp>… + ഓ<cnj>അര, n-v-compounds, vowel signs read as vowels): tester, 26 Nov.
+//    All of these are wrong, but quoted() accepts them because accepts("ഇല്ലെന്ന" + tail) is true.
+//    The ceiling stops it getting worse; lower it (to 0) when the tail test is made stricter.
+const TAIL_SLIP_MAX = 29; // 26 Nov 2026: 29 of 29 (one more is accepted by mlmorph alone)
+const SLIP_TAILS = "യിരുന്നു ാനോ ാണൊ െന്ന് െന്നാണ് ോര ട നട റി ുാക".split(" "); // എന്നയിരുന്നു, doubled എന്ന, junk
+const SLIP_BASES = "കാണാനില്ല വരില്ല പോകേണ്ട".split(" ");
+const slips = SLIP_BASES.flatMap((b) => SLIP_TAILS.map((t) => b + "െന്ന" + t)).filter((w) => !plain(w));
+const slipThrough = slips.filter(ok);
+console.log(`ending slips: ${slips.length}, accepted ${slipThrough.length}${process.env.SHOW ? ": " + slipThrough.join(" ") : ""}`);
+if (slipThrough.length > TAIL_SLIP_MAX) fail(`ending slips accepted ${slipThrough.length} > ${TAIL_SLIP_MAX}: ${slipThrough.slice(0, 20).join(" ")}`);
 
 console.log(failed ? `${failed} failure(s)` : "quoted-check: all passed");
 process.exit(failed ? 1 : 0);

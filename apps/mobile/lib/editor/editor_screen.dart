@@ -474,8 +474,25 @@ class _JournalLine extends StatelessWidget {
           _ => (null, c.muted),
         };
         final d = session.doc;
-        final line = text ?? journalDateLine(context, d.createdAt, d.updatedAt);
-        return SwapFade(child: Text(line, key: ValueKey(text == null ? 'date' : '$st'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: size, color: color)));
+        final style = TextStyle(fontSize: size, color: color);
+        // below 360 px the "Edited" word gives way to a small pencil, so the date stays whole
+        final Widget dates = text == null && size < 12 && !sameDay(d.createdAt, d.updatedAt)
+            ? Row(key: const ValueKey('date'), mainAxisSize: MainAxisSize.min, children: [
+                Text('${shortDate(d.createdAt)} · ', style: style),
+                Flexible(
+                  child: Semantics(
+                    label: context.t('journals.edited', {'date': shortDate(d.updatedAt)}),
+                    excludeSemantics: true,
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(LucideIcons.pencilLine, size: 12, color: color),
+                      const SizedBox(width: 3),
+                      Flexible(child: Text(shortDate(d.updatedAt), maxLines: 1, overflow: TextOverflow.ellipsis, style: style)),
+                    ]),
+                  ),
+                ),
+              ])
+            : Text(text ?? journalDateLine(context, d.createdAt, d.updatedAt), key: ValueKey(text == null ? 'date' : '$st'), maxLines: 1, overflow: TextOverflow.ellipsis, style: style);
+        return SwapFade(child: dates);
       },
     );
   }

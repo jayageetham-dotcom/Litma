@@ -100,10 +100,10 @@ final diary = {
 };
 
 /// A journal started on [day] (its dateline and text), for the Journals tab.
-Json _journal(DateTime day, List<String> paras) => {
+Json _journal(DateTime day, List<String> paras, [String? title]) => {
       'type': 'doc',
       'content': [
-        {'type': 'styledBlock', 'attrs': {'variant': 'title'}},
+        if (title != null) _sb('title', title) else {'type': 'styledBlock', 'attrs': {'variant': 'title'}},
         _sb('dateline', todayLine(day)),
         for (final t in paras) _p([_t(t)]),
       ],
@@ -145,7 +145,7 @@ Map<String, List<Json>> sampleTables() {
       ])
         () {
           final start = now.subtract(Duration(days: days)).toLocal();
-          final content = _journal(start, paras);
+          final content = _journal(start, paras, title);
           return _doc(id, DocKind.diary, title ?? journalTitle(start), content, paras.join(' ').split(' ').length, ago(Duration(days: edited, minutes: 5)), created: start.toUtc().toIso8601String());
         }(),
     ],

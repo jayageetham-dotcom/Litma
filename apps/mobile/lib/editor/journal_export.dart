@@ -122,12 +122,14 @@ Future<void> showJournalExportSheet(BuildContext context, WidgetRef ref, {List<L
     );
 
 class JournalExportSheet extends ConsumerStatefulWidget {
-  const JournalExportSheet({super.key, this.journals, this.current, this.today});
+  const JournalExportSheet({super.key, this.journals, this.current, this.today, this.from, this.to});
   final List<LitmaDoc>? journals;
   final EditorSession? current;
 
-  /// For tests and screenshots: today's date.
+  /// For tests and screenshots: today's date, and a chosen range.
   final DateTime? today;
+  final DateTime? from;
+  final DateTime? to;
 
   @override
   ConsumerState<JournalExportSheet> createState() => _JournalExportSheetState();
@@ -152,8 +154,8 @@ class _JournalExportSheetState extends ConsumerState<JournalExportSheet> {
   void initState() {
     super.initState();
     _pdf = ref.read(servicesProvider).prefs.getString(_formatKey) != 'word';
-    _to = _today;
-    _from = _today;
+    _to = widget.to ?? _today;
+    _from = widget.from ?? _today;
     final given = widget.journals;
     if (given != null && given.isNotEmpty) {
       _setList(given);
@@ -176,7 +178,7 @@ class _JournalExportSheetState extends ConsumerState<JournalExportSheet> {
     final cur = widget.current?.doc;
     final list = journalOrder([...all, if (cur != null && !all.any((d) => d.id == cur.id)) cur]);
     _list = list;
-    if (list.isNotEmpty) _from = list.first.createdAt;
+    if (list.isNotEmpty && widget.from == null) _from = list.first.createdAt;
     unawaited(_checkDevice());
   }
 
@@ -353,7 +355,7 @@ class _JournalExportSheetState extends ConsumerState<JournalExportSheet> {
                       },
               ),
               const SizedBox(height: 8),
-              Text(_all ? context.t('journals.exportDialog.allHint') : '${shortDate(cur.doc.createdAt, _today)} · ${isUntitledJournal(cur.title, cur.doc.createdAt) ? todayLine(cur.doc.createdAt) : cur.title}', maxLines: 2, overflow: TextOverflow.ellipsis, style: hint),
+              Text(_all ? context.t('journals.exportDialog.allHint') : (isUntitledJournal(cur.title, cur.doc.createdAt) ? todayLine(cur.doc.createdAt) : '${shortDate(cur.doc.createdAt, _today)} · ${cur.title}'), maxLines: 2, overflow: TextOverflow.ellipsis, style: hint),
               const SizedBox(height: 20),
             ],
             AnimatedSize(
@@ -367,7 +369,7 @@ class _JournalExportSheetState extends ConsumerState<JournalExportSheet> {
                       if (narrow) ...[dateField(true), const SizedBox(height: 10), dateField(false)] else Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: dateField(true)), const SizedBox(width: 12), Expanded(child: dateField(false))]),
                       const SizedBox(height: 8),
                       // a fixed-height line, so nothing jumps when the count changes
-                      Semantics(liveRegion: true, child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 20), child: count)),
+                      Semantics(liveRegion: true, child: ConstrainedBox(constraints: BoxConstraints(minHeight: MediaQuery.sizeOf(context).width < 768 ? 40 : 20), child: count)),
                       if (_missing > 0) ...[
                         const SizedBox(height: 10),
                         _Notice(icon: LucideIcons.cloudOff, color: c.highlight, background: c.highlightSoft, text: context.t('journals.exportDialog.notOnDevice', {'count': _missing})),
@@ -393,7 +395,7 @@ class _JournalExportSheetState extends ConsumerState<JournalExportSheet> {
               const SizedBox(height: 18),
               ClipRRect(
                 borderRadius: BorderRadius.circular(99),
-                child: LinearProgressIndicator(minHeight: 6, value: _total == 0 ? null : _done / _total, color: c.accent, backgroundColor: c.subtle),
+                child: LinearProgressIndicator(minHeight: 6, value: _total == 0 ? null : _done / _total, color: c.accent, backgroundColor: c.dialogWell),
               ),
             ],
             Semantics(
@@ -440,17 +442,25 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    // phones: the hint goes on its own line under the heading, whole (Malayalam was cut beside it)
+    final phone = MediaQuery.sizeOf(context).width < 768;
+    final head = Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      Container(width: 7, height: 7, decoration: BoxDecoration(shape: BoxShape.circle, color: tint)),
+      const SizedBox(width: 10),
+      Semantics(header: true, child: Text(title, style: TextStyle(fontFamily: LitmaFonts.ui, fontFamilyFallback: LitmaFonts.uiFallback, fontSize: 14, fontWeight: FontWeight.w600, color: c.ink))),
+      if (aside != null && !phone) ...[
+        const SizedBox(width: 10),
+        Expanded(child: Text(aside!, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.muted))),
+      ],
+    ]);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Container(width: 7, height: 7, decoration: BoxDecoration(shape: BoxShape.circle, color: tint)),
-        const SizedBox(width: 10),
-        Semantics(header: true, child: Text(title, style: TextStyle(fontFamily: LitmaFonts.ui, fontFamilyFallback: LitmaFonts.uiFallback, fontSize: 14, fontWeight: FontWeight.w600, color: c.ink))),
-        if (aside != null) ...[
-          const SizedBox(width: 10),
-          Expanded(child: Text(aside!, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.muted))),
-        ],
-      ]),
+      child: aside == null || !phone
+          ? head
+          : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              head,
+              Padding(padding: const EdgeInsets.only(left: 17, top: 4), child: Text(aside!, style: TextStyle(fontSize: 13, color: c.muted, height: 1.4))),
+            ]),
     );
   }
 }

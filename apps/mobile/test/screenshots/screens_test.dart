@@ -21,6 +21,8 @@ import 'package:litma/data/offline.dart';
 import 'package:litma/data/store.dart';
 import 'package:litma/editor/document.dart';
 import 'package:litma/editor/editor_screen.dart';
+import 'package:litma/editor/journal_export.dart' show JournalExportSheet;
+import 'package:litma/features/desk/journals_view.dart' show JournalsSkeleton;
 import 'package:litma/features/auth/auth_screen.dart';
 import 'package:litma/features/auth/welcome_screen.dart';
 import 'package:litma/features/desk/desk_screen.dart';
@@ -316,7 +318,7 @@ void main() {
           await settle(t);
         });
       });
-      for (final (id, name) in [('j-2', 'journal'), ('j-1', 'journal-latest')]) {
+      for (final (id, name) in [('j-2', 'journal'), ('j-1', 'journal-latest'), ('w-diary', 'journal-first')]) {
         testWidgets('editor $name $tag', (t) async {
           final s = await t.runAsync(() => services(locale: locale)) as Services;
           await shoot(t, 'editor-$name-$tag', app(s, home: EditorScreen(docId: id)), size: Size(width, 844), brightness: b, then: (t) async {
@@ -339,6 +341,41 @@ void main() {
         });
       });
     }
+    testWidgets('journal export from a journal (This journal) 320-dark', (t) async {
+      final s = await t.runAsync(() => services(locale: 'ml')) as Services;
+      await shoot(t, 'export-journal-this-320-dark', app(s, home: const EditorScreen(docId: 'j-1')), size: const Size(320, 844), brightness: Brightness.dark, then: (t) async {
+        await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+        await settle(t);
+        await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+        await settle(t, 8);
+        await t.tap(find.text('എക്സ്പോർട്ട്').last);
+        await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+        await settle(t);
+      });
+    });
+    testWidgets('journal export, none in range 390-light', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      final list = await t.runAsync(() => s.store.listDocs()) ?? const [];
+      final sheet = Scaffold(
+        body: Align(
+          alignment: Alignment.bottomCenter,
+          child: Builder(
+            builder: (context) => Material(
+              color: Theme.of(context).colorScheme.surface,
+              child: JournalExportSheet(journals: list, from: DateTime(2025, 1, 1), to: DateTime(2025, 1, 31)),
+            ),
+          ),
+        ),
+      );
+      await shoot(t, 'export-journal-none-390-light', app(s, home: sheet), then: (t) async {
+        await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+        await settle(t);
+      });
+    });
+    testWidgets('journals loading', (t) async {
+      final s = await t.runAsync(() => services()) as Services;
+      await shoot(t, 'desk-journals-loading', app(s, home: const Scaffold(body: SafeArea(child: SingleChildScrollView(padding: EdgeInsets.all(16), child: JournalsSkeleton())))));
+    });
     testWidgets('journals empty', (t) async {
       final s = await t.runAsync(() => services(withWorks: false)) as Services;
       await shoot(t, 'desk-journals-empty', app(s, home: const DeskScreen()), then: (t) async {

@@ -62,7 +62,8 @@ jobs:
   # Pictures of the phone screens for review (test/screenshots), uploaded as the "phone-screens"
   # artifact. Fonts render a little differently on each machine, so this never fails the checks.
   screens:
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    # TEMP (journals review, owner OK 28 Nov): also on pushes to the journals branch. Remove before merging.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/journals'
     runs-on: ubuntu-latest
     continue-on-error: true
     permissions:

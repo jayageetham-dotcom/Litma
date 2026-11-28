@@ -156,12 +156,25 @@ class EditorSession extends ChangeNotifier {
   FocusNode focusFor(TextBlock b) => _focus.putIfAbsent(b, () {
         final f = FocusNode(debugLabel: b.type);
         f.addListener(() {
-          if (f.hasFocus && focused != b) {
+          if (f.hasFocus) {
+            final moved = focused != b;
             focused = b;
-            // the writer went to another line: a selection over several lines ends
-            if (!_syncing && _anchor != null) _anchor = _extent = null;
-            notifyListeners();
-          } else if (!f.hasFocus) {
+            // A tap or long press reaches the field before its focus does (audit, 26 Nov), so the
+            // selection follows what the field now holds: a word it selected (long press on another
+            // line) is shown with handles and bar; a plain cursor (a tap, also in the same line once
+            // the keyboard was hidden) ends the selection.
+            if (!_syncing && _anchor != null) {
+              final c = _controllers[b];
+              if (c != null && !c.blockSelection.isCollapsed) {
+                _followFieldSelection(c, textChanged: false);
+              } else {
+                _anchor = _extent = null;
+              }
+              notifyListeners();
+            } else if (moved) {
+              notifyListeners();
+            }
+          } else {
             // left the line: a Manglish word still being typed is finished, as a space would
             _controllers[b]?.finishPendingWord();
           }
@@ -459,7 +472,14 @@ class EditorSession extends ChangeNotifier {
     }
     final c = current;
     if (c == null) return;
+    // a one-line selection stays selected (and its bar stays), so Italic can follow Bold (audit, 26 Nov)
+    final keep = hasSpan ? (_anchor, _extent, _synced) : null;
     c.toggleMark(type);
+    if (keep != null && !c.blockSelection.isCollapsed) {
+      _anchor = keep.$1;
+      _extent = keep.$2;
+      _synced = keep.$3;
+    }
     notifyListeners();
   }
 

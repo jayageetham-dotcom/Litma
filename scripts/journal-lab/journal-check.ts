@@ -1,7 +1,7 @@
 // Hand-written cases for the shared journal dates (packages/shared/src/forms.ts).
 // The phone's test/journal_test.dart checks the same answers.
 // Run: TZ=Asia/Kolkata node --experimental-transform-types scripts/journal-lab/journal-check.ts
-import { todayLine, journalDay, shortDate, monthLine, journalTitle, isUntitledJournal, keepOnClose, starterContent } from "../../packages/shared/src/forms.ts";
+import { todayLine, journalDay, shortDate, monthLine, journalTitle, isUntitledJournal, keepOnClose, starterContent, isDateLine, journalPreview } from "../../packages/shared/src/forms.ts";
 
 let fails = 0;
 const eq = (name: string, got: unknown, want: unknown) => {
@@ -45,6 +45,15 @@ eq("keep: new journal, own title", keepOnClose({ title: "ബസ് സ്റ്�
 const written = { type: "doc", content: [...(content.content ?? []), { type: "paragraph", content: [{ type: "text", text: "അമ്മച്ചി അപ്പം ഉണ്ടാക്കി." }] }] };
 eq("keep: date title + text", keepOnClose({ title: journalTitle(d), kind: "diary", content: written, createdAt: created }), true);
 eq("keep: story default title, no text", keepOnClose({ title: "പുതിയ ചെറുകഥ", kind: "story", content: starterContent("story") }), false);
+
+eq("dateLine", isDateLine("2026 നവംബർ 28, ശനിയാഴ്ച"), true);
+eq("dateLine ICU", isDateLine("2026, നവംബർ 3, ചൊവ്വാഴ്‌ച"), true);
+eq("dateLine: prose with a year", isDateLine("1998-ൽ ഇക്കയുടെ കല്യാണം നവംബർ മാസത്തിലായിരുന്നു, വീട്ടിൽ എല്ലാവരും ഉണ്ടായിരുന്നു"), false);
+const lines = ["2026 നവംബർ 28, ശനിയാഴ്ച", "രാവിലെ ഉമ്മ പത്തിരി ചുട്ടു.", "അയൽപക്കത്തെ കുട്ടികൾ മണം പിടിച്ച് വന്നു."];
+eq("preview: untitled", journalPreview(journalTitle(d), created, lines), { heading: "രാവിലെ ഉമ്മ പത്തിരി ചുട്ടു.", body: "അയൽപക്കത്തെ കുട്ടികൾ മണം പിടിച്ച് വന്നു." });
+eq("preview: named, title block repeats it", journalPreview("മഴ പെയ്ത വൈകുന്നേരം", created, ["മഴ പെയ്ത വൈകുന്നേരം", "2026 നവംബർ 26, വ്യാഴാഴ്ച", "ജോസഫ് ചേട്ടന്റെ ഓട്ടോ വന്നു."]), { heading: "മഴ പെയ്ത വൈകുന്നേരം", body: "ജോസഫ് ചേട്ടന്റെ ഓട്ടോ വന്നു." });
+eq("preview: nothing written", journalPreview("പുതിയ ജേണൽ", created, ["2026 നവംബർ 28, ശനിയാഴ്ച"]), { heading: null, body: "" });
+eq("preview: named, no text", journalPreview("അമ്മച്ചിയുടെ അപ്പം", created, []), { heading: "അമ്മച്ചിയുടെ അപ്പം", body: "" });
 
 console.log(fails ? `\n${fails} failed` : "\nall passed");
 process.exit(fails ? 1 : 0);

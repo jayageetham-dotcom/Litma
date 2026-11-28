@@ -273,3 +273,25 @@ export function isUntitledJournal(title: string | null | undefined, createdAt?: 
   const day = `${c.getDate()} ${ML_MONTHS_SHORT[c.getMonth()]}`;
   return t === journalTitle(c) || t === day || t === `${day} ${c.getFullYear()}`;
 }
+
+/** A line the app wrote as a date heading ("2026 നവംബർ 28, ശനിയാഴ്ച", older ICU forms too). */
+export function isDateLine(line: string): boolean {
+  const t = plainTitle(line);
+  return t.length <= 40 && /\d{4}/.test(t) && ML_MONTHS.some((m) => t.includes(m));
+}
+
+/**
+ * What a journal card shows. `lines`: the journal's lines of text in order (title block and
+ * datelines included, empty lines left out). A named journal shows its title; an untitled one
+ * shows its first line of writing in its place, and the text continues after that line.
+ * `heading` is null when nothing is written (the card says "Nothing written yet").
+ */
+export function journalPreview(title: string | null | undefined, createdAt: DateIn | null | undefined, lines: string[]): { heading: string | null; body: string } {
+  const own = plainTitle(title ?? "");
+  const text = lines.map((l) => l.replace(/\s+/g, " ").trim()).filter((l) => l && !isDateLine(l));
+  // the title block repeats the title at the top of the page
+  while (text.length && own && plainTitle(text[0]) === own) text.shift();
+  if (!isUntitledJournal(title, createdAt)) return { heading: own, body: text.join(" ") };
+  const [first, ...rest] = text;
+  return { heading: first ?? null, body: rest.join(" ") };
+}

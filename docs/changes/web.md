@@ -12,6 +12,7 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
 
 ## 2026-11-28: Interaction audit fixes, undo for spelling (branch `claude/interaction-audit`)
 
+- 28 Nov after the verifier: see cross-platform.md (focus listener regression from PR #23 fixed, undo tag guards, Esc order, accessibility fixes).
 - See cross-platform.md 2026-11-28: `useModalFocus`, `Sheet`, desk picker, FindBar, Toolbar `undoAll`, `spell-history`, `spell-undo`, manglish Enter.
 
 ## 2026-11-26 (evening): Metre panel no longer overflows (branch `fix-metre-overflow`)

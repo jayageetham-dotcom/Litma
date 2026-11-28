@@ -32,6 +32,9 @@ export function useModalFocus(
         // a list or menu inside (a dropdown, Manglish suggestions) closes first: it handles Esc
         // before this bubble-phase listener and marks it handled (verifier, 28 Nov)
         if (e.defaultPrevented) return;
+        // a dialog opened over this one (a confirmation) holds focus: Esc is its own, not ours
+        const at = document.activeElement;
+        if (at && at !== document.body && box.current && !box.current.contains(at)) return;
         e.preventDefault();
         close.current();
         return;

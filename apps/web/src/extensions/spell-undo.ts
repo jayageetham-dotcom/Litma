@@ -1,5 +1,5 @@
 import { Extension } from "@tiptap/core";
-import { bindSpellHistory, redoAll, spellHistoryOnEdit, undoAll } from "@/lib/spell-history";
+import { bindSpellHistory, redoAll, spellHistoryOnEdit, unbindSpellHistory, undoAll } from "@/lib/spell-history";
 
 /**
  * Ctrl/⌘+Z and redo cover Ignore and Keep too, in the order the writer did them
@@ -12,7 +12,7 @@ export const SpellUndo = Extension.create({
     bindSpellHistory(this.editor);
   },
   onDestroy() {
-    bindSpellHistory(null);
+    unbindSpellHistory(this.editor);
   },
   onTransaction({ transaction }) {
     // an edit (not an undo or redo) ends the redo chain

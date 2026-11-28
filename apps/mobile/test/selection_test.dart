@@ -46,7 +46,7 @@ Future<void> frames(WidgetTester t, [int n = 8]) async {
 }
 
 /// The editor at phone size (390 × 844) on a story whose body is [lines].
-Future<EditorSession> openEditor(WidgetTester t, {int lines = 8}) async {
+Future<EditorSession> openEditor(WidgetTester t, {int lines = 8, List<String>? texts}) async {
   t.view.physicalSize = const Size(390, 844) * 3;
   t.view.devicePixelRatio = 3;
   addTearDown(t.view.reset);
@@ -54,7 +54,7 @@ Future<EditorSession> openEditor(WidgetTester t, {int lines = 8}) async {
     final s = await h.services();
     final doc = await s.store.createDoc(DocKind.story);
     await s.store.updateDoc(doc.id, {
-      'content': {'type': 'doc', 'content': [for (final l in lineTexts(lines)) para(l)]},
+      'content': {'type': 'doc', 'content': [for (final l in texts ?? lineTexts(lines)) para(l)]},
       'settings': {...doc.settings, 'pristine': false},
     });
     return (s, doc.id);
@@ -427,6 +427,31 @@ void main() {
     await frames(t);
     expect(s.isSpellIgnored('പോയീ'), isFalse);
     expect(c, isNotNull);
+    await closeEditor(t);
+  });
+
+  testWidgets('verifier, 28 Nov: Select all on a work that ends with an empty line keeps the selection', (t) async {
+    final s = await openEditor(t, texts: [...lineTexts(4), '']);
+    await t.tapAt(lineRect(t, s, s.lines.first).centerLeft + const Offset(4, 0));
+    await frames(t, 5);
+    s.selectAll();
+    await frames(t);
+    expect(s.hasSpan, isTrue, reason: 'focus moving to the empty last line must not end it');
+    expect(barButton('Copy'), findsOneWidget);
+    await closeEditor(t);
+  });
+
+  testWidgets('verifier, 28 Nov: an end handle dragged to the start of the next line keeps the selection', (t) async {
+    final s = await openEditor(t);
+    final a = s.lines[1], b = s.lines[2];
+    await selectInLine(t, s, a, 0, 4);
+    expect(s.hasSpan, isTrue);
+    // what a drag of the end handle does when the finger lifts at offset 0 of the next line
+    s.setSpan(DocPoint(a, 0), DocPoint(b, 0));
+    s.syncSpan();
+    await frames(t);
+    expect(s.hasSpan, isTrue, reason: 'the part on the next line is empty, and that is not a tap');
+    expect(barButton('Copy'), findsOneWidget);
     await closeEditor(t);
   });
 }

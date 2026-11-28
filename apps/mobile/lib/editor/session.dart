@@ -175,9 +175,11 @@ class EditorSession extends ChangeNotifier {
             // selection follows what the field now holds: a word it selected (long press on another
             // line) is shown with handles and bar; a plain cursor (a tap, also in the same line once
             // the keyboard was hidden) ends the selection.
+            // _followFieldSelection keeps a part the session put there itself (Select all ending on
+            // an empty line, a handle dragged to a line start: verifier, 28 Nov) and ends it for a tap.
             if (!_syncing && _anchor != null) {
               final c = _controllers[b];
-              if (c != null && !c.blockSelection.isCollapsed) {
+              if (c != null) {
                 _followFieldSelection(c, textChanged: false);
               } else {
                 _anchor = _extent = null;
@@ -1257,7 +1259,16 @@ class EditorSession extends ChangeNotifier {
     _history.removeRange(_at + 1, _history.length);
     _history.add(s);
     _spellRedo.clear(); // a new edit ends the redo chain
-    if (_history.length > 200) _history.removeAt(0);
+    if (_history.length > 200) {
+      _history.removeAt(0);
+      // the Ignore/Keep tags count positions in _history: move them with it, drop the ones that fell off
+      for (final list in [_spellActs]) {
+        final shifted = [for (final a in list) if (a.$1 > 0) (a.$1 - 1, a.$2, a.$3)];
+        list
+          ..clear()
+          ..addAll(shifted);
+      }
+    }
     _at = _history.length - 1;
     notifyListeners();
   }

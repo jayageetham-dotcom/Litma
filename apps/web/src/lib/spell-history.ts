@@ -29,6 +29,11 @@ export function bindSpellHistory(editor: Editor | null) {
   future = [];
 }
 
+/** Unbind only if [editor] is still the bound one (Tiptap destroys an old editor after the new one starts). */
+export function unbindSpellHistory(editor: Editor) {
+  if (editorRef === editor) bindSpellHistory(null);
+}
+
 /** A new edit (not an undo or redo) ends the redo chain, as in any editor. */
 export function spellHistoryOnEdit() {
   future = [];
@@ -59,6 +64,15 @@ export function applyFixes(editor: Editor, fixes: { from: number; to: number; te
   editor.view.dispatch(closeHistory(editor.state.tr));
 }
 
+/**
+ * ProseMirror keeps 100 steps and trims older ones, so depth tags can repeat after very long
+ * sessions; acts tagged deeper than the history now reaches are stale and dropped (verifier, 28 Nov).
+ */
+function dropStale(editor: Editor) {
+  const d = undoDepth(editor.state);
+  while (past.length > 1 && past[past.length - 2].depth > d) past.splice(past.length - 2, 1);
+}
+
 export function canUndoAll(editor: Editor): boolean {
   const top = past[past.length - 1];
   return (!!top && top.depth === undoDepth(editor.state)) || editor.can().undo();
@@ -71,6 +85,7 @@ export function canRedoAll(editor: Editor): boolean {
 
 /** Ctrl/⌘+Z and the toolbar's Undo: the last Ignore/Keep if it came after the last edit, else the edit. */
 export function undoAll(editor: Editor): boolean {
+  dropStale(editor);
   const top = past[past.length - 1];
   if (top && top.depth === undoDepth(editor.state)) {
     past.pop();

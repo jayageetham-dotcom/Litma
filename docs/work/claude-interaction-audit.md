@@ -67,5 +67,15 @@ Status: all open, handed to the lead (phone 1–6, web 1–10).
 - Web 1 (z-20 on the tab-bar wrapper), 2 and 4 (`lib/useModalFocus.ts` for the type picker and phone `Sheet`), 3 (FindBar `close()` selects the match and focuses the text; strings to `app.find.*`), 6 (Enter after ↓/↑ only takes the spelling; help 02-typing), 8 (bar strings), 9 partly (goals progress names, help count contrast, logo label). Left open: 5 (kept highlight by design), 7, 9 rest, 10.
 - Owner, 26 Nov: undo for spelling fixes, Ignore and Keep (web `lib/spell-history.ts`, `extensions/spell-undo.ts`; phone `recordSpellAct`, `fixAsOneStep`). Chromium check: type, fix, type, Ignore; 4 undos then 4 redos in exact order.
 
+### Fixes after the verifier (lead, 28 Nov)
+- Blocking: the phone focus listener now always asks `_followFieldSelection` (keeps the part the session synced itself, ends it for a tap), so Select all ending on an empty line and a handle dragged to a line start keep the selection; two tests added. PR #23 (merged by the owner) carried the regression, so `main` gets the fix with this PR.
+- Non-blocking: phone undo tags shift when `_history` trims; web `dropStale` drops Ignore/Keep tags deeper than the history now reaches; `spell-undo` unbinds only its own editor; `useModalFocus` listens in the bubble phase and leaves Esc to a list or menu inside that handled it (`defaultPrevented`).
+- Owner, 28 Nov: "fix everything for accessibility": goals reminder settings no longer fade (a disabled fieldset, readable), rhyme chip counts at full contrast, the Settings code box is focusable and its Copy button shows on focus and on touch screens. axe (serious/critical) clean on desk, dictionary (3 views), settings, help, goals, books, trash, profile and the editor, light and dark. Tab order rechecked: header, toolbar, text, rail, zoom (the tester's "starts at the rail" came from blurring the editor first). Rail buttons already have `aria-pressed`.
+
+## Decisions (added 28 Nov)
+- Bar placement: keep the line above clear (lead; docking left for the designer if writers want it).
+- Enter after ↓/↑ in the Manglish list only takes the spelling (lead, like Google Input Tools; owner to confirm).
+- Phone sheets take focus when they open, so the keyboard closes while a sheet is open (lead; matches Look up and Ask AI).
+
 ## Verification (verifier)
 Checklist result, CI status, verdict: MERGE / DON'T MERGE, blocking issues.

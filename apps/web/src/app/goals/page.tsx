@@ -189,7 +189,8 @@ function GoalsView() {
             <input type="checkbox" className="accent-[var(--accent)]" checked={r.on} onChange={(e) => setReminder({ on: e.target.checked })} />
             {t("goals.reminder.on")}
           </label>
-          <div className={`mt-3 space-y-3 ${r.on ? "" : "pointer-events-none opacity-50"}`}>
+          {/* while reminders are off the settings stay readable (no fading: it failed contrast) but can't be changed */}
+          <fieldset disabled={!r.on} className="m-0 mt-3 min-w-0 space-y-3 border-0 p-0 disabled:[&_button]:cursor-not-allowed disabled:[&_input]:cursor-not-allowed">
             <label className="block text-sm">
               <span className="mb-1 block text-xs text-muted">{t("goals.reminder.time")}</span>
               <input type="time" className="field" value={r.time} onChange={(e) => e.target.value && setReminder({ time: e.target.value })} />
@@ -229,7 +230,7 @@ function GoalsView() {
               )
             ) : null}
             <p className="text-xs text-muted">{t(typeof window !== "undefined" && window.litmaDesktop ? "goals.reminder.whereDesktop" : "goals.reminder.whereWeb")}</p>
-          </div>
+          </fieldset>
         </Card>
       </div>
 

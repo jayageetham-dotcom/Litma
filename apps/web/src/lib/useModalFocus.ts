@@ -29,8 +29,10 @@ export function useModalFocus(
     }
     const k = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        // a list or menu inside (a dropdown, Manglish suggestions) closes first: it handles Esc
+        // before this bubble-phase listener and marks it handled (verifier, 28 Nov)
+        if (e.defaultPrevented) return;
         e.preventDefault();
-        e.stopPropagation();
         close.current();
         return;
       }
@@ -50,9 +52,9 @@ export function useModalFocus(
         a.focus();
       }
     };
-    window.addEventListener("keydown", k, true);
+    window.addEventListener("keydown", k);
     return () => {
-      window.removeEventListener("keydown", k, true);
+      window.removeEventListener("keydown", k);
       if (back && back !== document.body && back.isConnected) back.focus({ preventScroll: true });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

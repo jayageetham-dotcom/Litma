@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-28: Note first, keep rule, Journal name (branch `notes-first`)
+
+- See cross-platform.md. `lib/data/forms.dart` (names, `pickerKinds`, `defaultTitle`, `isDefaultTitle`, `currentTitle`, `hasWriting`, `keepOnClose`), `lib/data/store.dart` (`createDoc`, `discardPristine`), `lib/editor/session.dart` (`_createdPristine`, `_recheckPristine`: rename keeps a work), `lib/features/desk/type_picker.dart`, new `test/keep_rule_test.dart`. **Not compiled here**: merge only with Mobile app checks green.
+
 ## 2026-11-26 (evening): Metre panel no longer overflows (branch `fix-metre-overflow`)
 
 - Owner's photos (16-inch MacBook, docked panel): in free verse the panel's lines ran off its edge and the whole editor scrolled sideways (page 1886 px in a 1728 px window). Causes: with no gana groups every syllable fell into one unbreakable row; and each chip's screen-reader text (`sr-only`, absolutely positioned) had no positioned parent, so it stretched the page.

@@ -1,7 +1,7 @@
 "use client";
 import { useInView } from "@/lib/useInView";
 
-const WORDS = ["നോവൽ", "Novel", "കവിത", "Poem", "തിരക്കഥ", "Screenplay", "ചെറുകഥ", "Short story", "ലേഖനം", "Essay", "നാടകം", "Drama", "ഗാനം", "Lyrics", "ഡയറി", "Diary", "ഫീച്ചർ", "Feature"];
+const WORDS = ["നോവൽ", "Novel", "കവിത", "Poem", "തിരക്കഥ", "Screenplay", "ചെറുകഥ", "Short story", "ലേഖനം", "Essay", "നാടകം", "Drama", "ഗാനം", "Lyrics", "ജേണൽ", "Journal", "കുറിപ്പ്", "Note", "ഫീച്ചർ", "Feature"];
 
 /** The tilted lime ribbon under the hero: writing types in both languages, scrolling (pauses on hover). */
 export function Marquee() {

@@ -2,7 +2,7 @@
 id: types
 title: Writing types
 ml: സാഹിത്യരൂപങ്ങൾ
-summary: Novel, story, poem, screenplay, play, feature, essay, lyrics and diary, each with its own page, and a metre checker for verse.
+summary: Note, novel, story, poem, screenplay, play, feature, essay, lyrics and journal, each with its own page, and a metre checker for verse.
 icon: layout-template
 tint: lime
 ---
@@ -11,10 +11,11 @@ Every work in Litma has a writing type (സാഹിത്യരൂപം). It d
 
 ## Choosing a writing type {#choose-type}
 
-When you choose **New work**, Litma shows ten writing types with a preview of their first page:
+When you choose **New work**, Litma shows ten writing types with a preview of their first page. **Note** comes first, for anything that needs no template:
 
 | Writing type | Good for |
 | --- | --- |
+| കുറിപ്പ് · Note | Anything else: a plain page with no template |
 | നോവൽ · Novel | Long fiction in chapters |
 | ചെറുകഥ · Short story | A story in one piece |
 | കവിത · Poem | Verse, with metre marks when you want them |
@@ -23,8 +24,7 @@ When you choose **New work**, Litma shows ten writing types with a preview of th
 | ലേഖനം · Essay / article | Essays and articles with footnotes |
 | നാടകം · Drama / play | Plays: cast list, acts, scenes and stage directions |
 | ഗാനം · Song lyrics | Songs with പല്ലവി and അനുപല്ലവി |
-| ഡയറി · Diary / memoir | Dated entries |
-| ശൂന്യം · Blank page | Anything else, with no template |
+| ജേണൽ · Journal | Dated entries, travelogues and memoir |
 
 > **Good to know:** The writing type can't be changed after you start. If you picked the wrong one, start a new work of the right type and paste your text in.
 
@@ -103,8 +103,8 @@ Scenes are numbered for you (രംഗം 1 or Scene 1, chosen in **Page & type*
 - Features have a kicker (the small line above the title), a standfirst (the short lead under the title), a byline and pull quotes.
 - **Footnotes:** put the cursor where the note belongs, choose **Footnote** on the toolbar, type the note and choose **Add footnote**. A small number appears in the text and the notes are listed at the end of the work, in the PDF and in the Word file. Click a number to edit or remove its note.
 
-## Diary and memoir {#diary}
+## Journal {#diary}
 
-![A diary with dated entries](shots/diary.webp)
+![A journal with dated entries](shots/diary.webp)
 
 Choose **New entry** on the toolbar to add today's date at the end and start writing under it. The outline lists every date, so you can jump back to any day.

@@ -11,7 +11,7 @@ import type { JSONContent } from "@tiptap/core";
 import { getSupabase } from "./supabase/client";
 import { track } from "./analytics";
 import { templateFor } from "./templates";
-import { newSettings, withAuthor } from "@litma/shared/forms";
+import { defaultTitle, isDefaultTitle, newSettings, withAuthor } from "@litma/shared/forms";
 import type { Book, DocKind, DocVersion, LitmaDoc, Profile, Suggestion, WordBookmark } from "./types";
 import type { StoryItem, StoryKind } from "./story";
 import { textToNodes } from "@litma/shared/serialize";
@@ -228,7 +228,7 @@ export const store = {
     track("work_created", { kind });
     const t = templateFor(kind);
     const base = {
-      title: title || `പുതിയ ${t.ml}`,
+      title: title || defaultTitle(kind),
       kind,
       content: t.content(),
       settings: { ...newSettings(kind), pristine: true } as LitmaDoc["settings"],
@@ -313,7 +313,8 @@ export const store = {
   async discardPristine(olderThanMinutes = 30) {
     const cutoff = Date.now() - olderThanMinutes * 60_000;
     const docs = await this.listDocs();
-    const stale = docs.filter((d) => d.settings?.pristine && new Date(d.updated_at).getTime() < cutoff);
+    // only works still under the name they were given (the keep rule, `keepOnClose`); text clears the flag when saved
+    const stale = docs.filter((d) => d.settings?.pristine && isDefaultTitle(d.title, d.kind) && new Date(d.updated_at).getTime() < cutoff);
     for (const d of stale) await this.deleteDoc(d.id);
     return stale.length;
   },

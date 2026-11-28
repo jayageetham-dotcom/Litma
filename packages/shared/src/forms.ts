@@ -38,7 +38,7 @@ export interface DocSettings {
   headingLabels?: "ml" | "en";
   /** poem/lyrics: lines start at the left ("start", default) or sit centred ("center") */
   verseAlign?: "start" | "center";
-  /** true until the writer types anything; untouched new documents are discarded on close */
+  /** true while a new work has neither its own title nor any text (`keepOnClose`); such works are discarded on close */
   pristine?: boolean;
 }
 
@@ -53,9 +53,58 @@ export const FORM_NAMES: Record<DocKind, { ml: string; en: string }> = {
   essay: { ml: "ലേഖനം", en: "Essay / article" },
   drama: { ml: "നാടകം", en: "Drama / play" },
   lyrics: { ml: "ഗാനം", en: "Song lyrics" },
-  diary: { ml: "ഡയറി", en: "Diary / memoir" },
-  blank: { ml: "ശൂന്യം", en: "Blank page" },
+  diary: { ml: "ജേണൽ", en: "Journal" },
+  blank: { ml: "കുറിപ്പ്", en: "Note" },
 };
+
+/** Order in the writing-type pickers: a plain note first, then the types with templates. */
+export const PICKER_KINDS: DocKind[] = ["blank", ...KINDS.filter((k) => k !== "blank")];
+
+/** The title a new work gets: "പുതിയ കുറിപ്പ്", "പുതിയ നോവൽ"… */
+export function defaultTitle(kind: DocKind): string {
+  return `പുതിയ ${(FORM_NAMES[kind] ?? FORM_NAMES.blank).ml}`;
+}
+
+/** Titles older apps gave new works, before a writing type was renamed. */
+const OLD_TITLES: Partial<Record<DocKind, string[]>> = { blank: ["പുതിയ ശൂന്യം"], diary: ["പുതിയ ഡയറി"] };
+
+/** True when the title is still the one a new work got (empty counts too): the writer hasn't named it. */
+export function isDefaultTitle(title: string | null | undefined, kind: DocKind): boolean {
+  const t = (title ?? "").trim();
+  return !t || t === defaultTitle(kind) || (OLD_TITLES[kind] ?? []).includes(t);
+}
+
+/** A new note still called "പുതിയ ശൂന്യം" (older apps) shows the current name instead; other titles pass through. */
+export function currentTitle(title: string, kind: DocKind): string {
+  return kind === "blank" && title.trim() === "പുതിയ ശൂന്യം" ? defaultTitle(kind) : title;
+}
+
+type Node = { type?: string; text?: string; attrs?: Record<string, any> | null; content?: Node[] };
+const textOf = (n: Node): string => (n.text ?? "") + (n.content ?? []).map(textOf).join("");
+/** Lines a new work fills in by itself: the writer's name and a journal's date. */
+const AUTO_FILLED = new Set(["author", "byline", "dateline"]);
+
+/**
+ * Has the writer written anything in the body? Text the app put there itself (the author line,
+ * a journal's date, a template's labels such as പല്ലവി or കഥാപാത്രങ്ങൾ) doesn't count.
+ */
+export function hasWriting(content: Node | null | undefined, kind: DocKind): boolean {
+  const starter = new Set((starterContent(kind).content ?? []).map((b) => textOf(b as Node).trim()).filter(Boolean));
+  return (content?.content ?? []).some((b) => {
+    const t = textOf(b).trim();
+    if (!t) return false;
+    if (b.type === "styledBlock" && AUTO_FILLED.has(String(b.attrs?.variant))) return false;
+    return !starter.has(t);
+  });
+}
+
+/**
+ * The keep rule for a new work, the same for every writing type: it stays when the writer changed
+ * its title or wrote any body text; otherwise closing it deletes it (and the desk's cleanup does).
+ */
+export function keepOnClose(doc: { title: string | null | undefined; kind: DocKind; content: Node | null | undefined }): boolean {
+  return !isDefaultTitle(doc.title, doc.kind) || hasWriting(doc.content, doc.kind);
+}
 
 export const DEFAULT_SETTINGS: DocSettings = {
   pageSize: "A4",

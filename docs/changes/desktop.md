@@ -31,6 +31,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
 
+## 2026-11-28: Note first, keep rule, Journal name (branch `notes-first`)
+
+- Shared web code only (Note first, keep rule, Journal name): reaches the desktop app with the next **Release**.
+
 ## 2026-11-26: Metre checker (branch `metre-checker`)
 
 - No desktop code. The metre panel and the Manglish fix come to the desktop app with the next Release.

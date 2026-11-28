@@ -119,7 +119,7 @@ void main() {
     expect(rows.map((r) => r.month ?? r.doc!.id), ['2026 നവംബർ', 'e', 'd', 'c', 'b', '2026 ഒക്ടോബർ', 'a']);
     final found = journalRows(list, query: 'mazha');
     expect(found.map((r) => r.month ?? r.doc!.id), ['2026 നവംബർ', 'c']);
-    expect(journalRows(list, query: 'zzzz'), isEmpty);
+    expect(journalRows(list, query: 'kadal'), isEmpty);
   });
 
   test('card face: untitled shows its first line, text continues after it', () {

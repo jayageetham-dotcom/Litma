@@ -30,6 +30,7 @@ Builds on branch `notes-first` (Part 1): diary is called ജേണൽ · Journal
 - 2026-11-28 Sharing (owner approved): migration adds a trigger on `public.documents` that refuses `is_public = true` or a non-null `share_id` when `kind = 'diary'`, and revokes existing diary shares (`is_public = false, share_id = null`; touch trigger paused). The apps hide every share entry for journals; MCP refuses sharing a journal if any tool can share.
 - 2026-11-28 Books: journals can't be added (web and phone pickers leave them out; MCP `add_to_book` refuses a diary with a plain message). Old books that already hold a journal keep it.
 - 2026-11-28 Old journals keep their stored titles; nothing is renamed. The Works tab no longer lists kind `diary` (Works counts change accordingly).
+- 2026-11-28 Owner (14:30): **Word is a real .docx on every platform.** The phone's Word exports (journals and single works) become .docx like the web's `lib/export.ts`, not HTML .doc (flutter-dev).
 - 2026-11-28 Order: designer mockups (phone 320/375/390, desktop 1440, light and dark) → owner's OK → web-dev and flutter-dev in parallel → designer review + tester → fixes → verifier with every CI check green → PR → merge (owner).
 
 ## Questions

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -18,6 +17,7 @@ import '../data/analytics.dart';
 import '../data/forms.dart';
 import '../data/journals.dart';
 import '../data/models.dart';
+import 'docx.dart';
 import 'document.dart';
 import 'export.dart';
 import 'pdf_fonts.dart';
@@ -73,6 +73,36 @@ section.journal { page-break-before: always; break-before: page; }
 .sb-dateline { color: #555; }
 </style></head><body><h1 class="contents">$contents</h1><ol class="toc">$toc</ol>$body</body></html>''';
 }
+
+/// The contents line of a journal: its date line, and " · title" when it is named (`contentsEntry`).
+String contentsEntry(LitmaDoc d) {
+  final date = todayLine(d.createdAt);
+  return isUntitledJournal(d.title, d.createdAt) ? date : '$date · ${d.title.trim()}';
+}
+
+/// A journal ready for a file: a named journal whose title block on the page is empty gets its title
+/// there (`journalForExport`).
+Json journalContentForExport(LitmaDoc d, Json content) {
+  final blocks = [...(content['content'] as List? ?? const [])];
+  if (isUntitledJournal(d.title, d.createdAt)) return content;
+  final at = blocks.indexWhere((b) => b is Map && b['type'] == 'styledBlock' && (b['attrs'] as Map?)?['variant'] == 'title');
+  if (at < 0 || ((blocks[at] as Map)['content'] as List?)?.isNotEmpty == true) return content;
+  blocks[at] = {
+    ...(blocks[at] as Map).cast<String, dynamic>(),
+    'content': [
+      {'type': 'text', 'text': d.title.trim()}
+    ],
+  };
+  return {...content, 'content': blocks};
+}
+
+/// Journals (oldest first) as one Word file, like the web's: title ജേണലുകൾ, contents ഉള്ളടക്കം,
+/// each journal on a new page.
+Uint8List journalsWordFile(List<(LitmaDoc, EditorDocument)> docs) => journalsDocx(
+      [for (final (d, doc) in docs) (kind: DocKind.diary, settings: d.settings, content: journalContentForExport(d, doc.toJson()), entry: contentsEntry(d))],
+      title: 'ജേണലുകൾ',
+      contents: 'ഉള്ളടക്കം',
+    );
 
 /// The journal export sheet: This journal (from the editor) or All journals started between two
 /// dates, as PDF or Word, in one file. From the desk only All journals.
@@ -223,20 +253,21 @@ class _JournalExportSheetState extends ConsumerState<JournalExportSheet> {
         if (mounted) setState(() => _done++);
       }
       if (docs.isEmpty || _closed) throw StateError('nothing to export');
-      Analytics.track('export', {'format': _pdf ? 'pdf' : 'doc', 'kind': DocKind.diary.name});
-      final fonts = _pdf ? await fontFaceCss({for (final (d, _) in docs) d.settings['font'] as String?}) : '';
-      final html = journalsHtml(docs, fontsCss: fonts);
+      Analytics.track('export', {'format': _pdf ? 'pdf' : 'docx', 'kind': DocKind.diary.name});
       final name = docs.length == 1 ? (isUntitledJournal(docs.first.$1.title, docs.first.$1.createdAt) ? todayLine(docs.first.$1.createdAt) : docs.first.$1.title) : '${journalTitle(docs.first.$1.createdAt)} – ${journalTitle(docs.last.$1.createdAt)}';
       final safe = name.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').trim();
       if (_pdf) {
+        final fonts = await fontFaceCss({for (final (d, _) in docs) d.settings['font'] as String?});
+        final html = journalsHtml(docs, fontsCss: fonts);
         // the phone's own web engine lays out the HTML, so Malayalam shapes correctly (as for works)
         // ignore: deprecated_member_use
         await Printing.layoutPdf(name: safe, onLayout: (f) => Printing.convertHtml(format: f, html: html));
       } else {
+        // a real Word file, made like the web's journalsDocxBlob
         final dir = await getTemporaryDirectory();
-        final file = File('${dir.path}/$safe.doc');
-        await file.writeAsString(html, encoding: utf8);
-        await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], subject: name));
+        final file = File('${dir.path}/$safe.docx');
+        await file.writeAsBytes(journalsWordFile(docs));
+        await SharePlus.instance.share(ShareParams(files: [XFile(file.path, mimeType: docxMime)], subject: name));
       }
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
@@ -346,7 +377,7 @@ class _JournalExportSheetState extends ConsumerState<JournalExportSheet> {
             ),
             _Section(tint: c.tintCoral, title: context.t('journals.exportDialog.format')),
             _Switcher(
-              labels: const ['PDF', 'Word'],
+              labels: [context.t('journals.exportDialog.pdf'), context.t('journals.exportDialog.word')],
               selected: _pdf ? 0 : 1,
               onChanged: _busy ? null : (i) => setState(() => _pdf = i == 0),
             ),

@@ -23,6 +23,7 @@ import '../features/settings/settings_screen.dart';
 import '../features/story/story_world_screen.dart';
 import '../widgets/common.dart';
 import 'document.dart';
+import 'docx.dart';
 import 'export.dart';
 import 'journal_export.dart';
 import 'metre_view.dart';
@@ -687,7 +688,7 @@ class _ShareState extends ConsumerState<_Share> {
     final s = widget.session;
     await s.saver.flush();
     final pdf = format == 'pdf';
-    Analytics.track('export', {'format': format, 'kind': s.kind.name});
+    Analytics.track('export', {'format': format == 'doc' ? 'docx' : format, 'kind': s.kind.name});
     final html = docToHtml(s.document, title: s.title, kind: s.kind, settings: s.settings, fontsCss: pdf ? await fontFaceCss([s.settings['font'] as String?]) : '');
     final safe = s.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').trim();
     if (pdf) {
@@ -698,8 +699,15 @@ class _ShareState extends ConsumerState<_Share> {
       return;
     }
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/$safe.${format == 'doc' ? 'doc' : 'txt'}');
-    await file.writeAsString(format == 'doc' ? html : '${s.title}\n\n${_plain(s.document)}', encoding: utf8);
+    if (format == 'doc') {
+      // a real Word file, made like the web's (docx.dart)
+      final file = File('${dir.path}/$safe.docx');
+      await file.writeAsBytes(workDocx(title: s.title, kind: s.kind, settings: s.settings, content: s.document.toJson()));
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path, mimeType: docxMime)], subject: s.title));
+      return;
+    }
+    final file = File('${dir.path}/$safe.txt');
+    await file.writeAsString('${s.title}\n\n${_plain(s.document)}', encoding: utf8);
     await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], subject: s.title));
   }
 

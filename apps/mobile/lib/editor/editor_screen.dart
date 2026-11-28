@@ -696,10 +696,18 @@ class _Footer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(color: c.paper, border: Border(top: BorderSide(color: c.line))),
       padding: EdgeInsets.fromLTRB(20, 10, 12, 10 + MediaQuery.paddingOf(context).bottom),
+      // at 320 px in Malayalam the words, the reading time and the typing chip don't all fit: the
+      // counts give way (ellipsis), the chip stays whole
       child: Row(children: [
-        Text(context.t('common.words', {'count': w}), style: Theme.of(context).textTheme.labelMedium?.copyWith(color: c.muted)),
-        if (w > 0) Text('  ·  ${context.t('app.editor.minRead', {'n': readingMinutes(w)})}', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: c.muted)),
-        const Spacer(),
+        Expanded(
+          child: Text(
+            '${context.t('common.words', {'count': w})}${w > 0 ? '  ·  ${context.t('app.editor.minRead', {'n': readingMinutes(w)})}' : ''}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(color: c.muted),
+          ),
+        ),
+        const SizedBox(width: 8),
         _ModeChip(session: session),
       ]),
     );

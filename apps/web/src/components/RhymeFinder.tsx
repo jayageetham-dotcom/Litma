@@ -121,7 +121,7 @@ export function RhymeFinder({
             className={`rounded-full border px-3 py-1 text-[13px] transition-colors ${kind === k ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-muted hover:text-ink"}`}
           >
             <span style={ml}>{t(`rhyme.kind.${k}.ml`)}</span>
-            <span className="ml-1.5 text-[11px] opacity-80">{t(`rhyme.kind.${k}.en`)}</span>
+            <span className="ml-1.5 text-[11px]">{t(`rhyme.kind.${k}.en`)}</span>
           </button>
         ))}
       </div>

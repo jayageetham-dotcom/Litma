@@ -294,7 +294,7 @@ function HomeView({ data, go }: { data: HelpData; go: (href: string) => void }) 
             <div>
               <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-violet-text">Browse by topic</p>
               <h2 className="text-3xl font-extrabold leading-tight md:text-5xl" style={ml}>
-                വിഷയങ്ങൾ. <span className="text-ink/40">{count} guides in {data.categories.length} topics.</span>
+                വിഷയങ്ങൾ. <span className="text-muted">{count} guides in {data.categories.length} topics.</span>
               </h2>
             </div>
           </div>

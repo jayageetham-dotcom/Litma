@@ -18,7 +18,7 @@ Manglish means writing Malayalam words in English letters: `mazha` for മഴ, `
 1. Make sure **Manglish** is chosen at the left of the toolbar.
 2. Type a word in English letters, for example `nammude`.
 3. A list of Malayalam spellings appears under the word, best first.
-4. Press <kbd>Space</kbd>, <kbd>Enter</kbd> or a punctuation mark to take the highlighted spelling.
+4. Press <kbd>Space</kbd>, <kbd>Enter</kbd> or a punctuation mark to take the highlighted spelling. If you moved to another spelling with <kbd>↓</kbd> <kbd>↑</kbd>, <kbd>Enter</kbd> only takes it and doesn't start a new line.
 
 ### Pick another spelling
 

@@ -114,7 +114,8 @@ class EditorSession extends ChangeNotifier {
   }
 
   /// Leave this word as written in this work, kept with it (a reopen or another device keeps it).
-  void ignoreSpelling(String word) {
+  void ignoreSpelling(String word, {bool record = true}) {
+    if (record) recordSpellAct(() => unignoreSpelling(word), () => ignoreSpelling(word, record: false));
     _ignoredNow.add(word);
     final kept = [...((settings['spellIgnored'] as List?)?.cast<String>() ?? const <String>[])];
     if (!kept.contains(word)) {
@@ -126,6 +127,17 @@ class EditorSession extends ChangeNotifier {
       if (c.spellIssues.any((i) => i.text == word)) c.setSpellIssues([for (final i in c.spellIssues) if (i.text != word) i]);
     }
     notifyListeners();
+  }
+
+  /// Undo of an Ignore: the word is marked again in this work.
+  void unignoreSpelling(String word) {
+    _ignoredNow.remove(word);
+    final kept = [...((settings['spellIgnored'] as List?)?.cast<String>() ?? const <String>[])];
+    if (kept.remove(word)) {
+      _doc = _doc.copyWith(settings: {..._doc.settings, 'spellIgnored': kept});
+      unawaited(store.updateDoc(_doc.id, {'settings': _doc.settings}).catchError((_) => false));
+    }
+    recheckSpelling();
   }
 
   void _scheduleSpelling([Duration delay = const Duration(milliseconds: 700)]) {
@@ -174,9 +186,11 @@ class EditorSession extends ChangeNotifier {
             // selection follows what the field now holds: a word it selected (long press on another
             // line) is shown with handles and bar; a plain cursor (a tap, also in the same line once
             // the keyboard was hidden) ends the selection.
+            // _followFieldSelection keeps a part the session put there itself (Select all ending on
+            // an empty line, a handle dragged to a line start: verifier, 28 Nov) and ends it for a tap.
             if (!_syncing && _anchor != null) {
               final c = _controllers[b];
-              if (c != null && !c.blockSelection.isCollapsed) {
+              if (c != null) {
                 _followFieldSelection(c, textChanged: false);
               } else {
                 _anchor = _extent = null;
@@ -1256,18 +1270,61 @@ class EditorSession extends ChangeNotifier {
     if (_history.isNotEmpty && _history[_at] == s) return;
     _history.removeRange(_at + 1, _history.length);
     _history.add(s);
-    if (_history.length > 200) _history.removeAt(0);
+    _spellRedo.clear(); // a new edit ends the redo chain
+    if (_history.length > 200) {
+      _history.removeAt(0);
+      // the Ignore/Keep tags count positions in _history: move them with it, drop the ones that fell off
+      for (final list in [_spellActs]) {
+        final shifted = [for (final a in list) if (a.$1 > 0) (a.$1 - 1, a.$2, a.$3)];
+        list
+          ..clear()
+          ..addAll(shifted);
+      }
+    }
     _at = _history.length - 1;
     notifyListeners();
   }
 
-  bool get canUndo => _at > 0 || (_historyTimer?.isActive ?? false);
-  bool get canRedo => _at < _history.length - 1;
+  // Ignore and Keep change no text, so they sit on their own stack, each tagged with the undo
+  // position at that moment; undo and redo take whichever came last (owner, 26 Nov: undo should
+  // step through spelling fixes, Ignore and Keep one by one, like the web).
+  final _spellActs = <(int, void Function(), void Function())>[];
+  final _spellRedo = <(int, void Function(), void Function())>[];
 
-  void undo() {
+  /// Take any text change still waiting for its undo snapshot now, so the next change is a step of its own.
+  void flushHistory() {
     if (_historyTimer?.isActive ?? false) {
       _historyTimer!.cancel();
       _pushHistory();
+    }
+  }
+
+  /// Record an Ignore or Keep so undo can take it back.
+  void recordSpellAct(void Function() undo, void Function() redo) {
+    flushHistory();
+    _spellActs.add((_at, undo, redo));
+    if (_spellActs.length > 200) _spellActs.removeAt(0);
+    _spellRedo.clear();
+  }
+
+  /// A spelling or grammar fix as one undo step of its own (never merged with typing around it).
+  void fixAsOneStep(void Function() fix) {
+    flushHistory();
+    fix();
+    flushHistory();
+  }
+
+  bool get canUndo => _at > 0 || (_historyTimer?.isActive ?? false) || (_spellActs.isNotEmpty && _spellActs.last.$1 == _at);
+  bool get canRedo => _at < _history.length - 1 || (_spellRedo.isNotEmpty && _spellRedo.last.$1 == _at);
+
+  void undo() {
+    flushHistory();
+    if (_spellActs.isNotEmpty && _spellActs.last.$1 == _at) {
+      final a = _spellActs.removeLast();
+      a.$2();
+      _spellRedo.add(a);
+      notifyListeners();
+      return;
     }
     if (_at == 0) return;
     _at--;
@@ -1275,7 +1332,14 @@ class EditorSession extends ChangeNotifier {
   }
 
   void redo() {
-    if (!canRedo) return;
+    if (_spellRedo.isNotEmpty && _spellRedo.last.$1 == _at) {
+      final a = _spellRedo.removeLast();
+      a.$3();
+      _spellActs.add(a);
+      notifyListeners();
+      return;
+    }
+    if (_at >= _history.length - 1) return;
     _at++;
     _restore(_history[_at]);
   }

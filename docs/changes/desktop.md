@@ -6,6 +6,8 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 
 ## Open items
 
+- **Release needed** for the interaction audit fixes and spelling undo (2026-11-28, shared web code).
+
 - **Release needed** for Ignore kept with the work (2026-11-26, shared web code).
 
 - **Release needed** for PR #20 (2026-11-26): right-click menu placement off the clicked line and the Manglish capitals rule (`foldCaps`/`exactReading`), both in the shared web code.

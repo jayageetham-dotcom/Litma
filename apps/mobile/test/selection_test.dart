@@ -46,7 +46,7 @@ Future<void> frames(WidgetTester t, [int n = 8]) async {
 }
 
 /// The editor at phone size (390 × 844) on a story whose body is [lines].
-Future<EditorSession> openEditor(WidgetTester t, {int lines = 8}) async {
+Future<EditorSession> openEditor(WidgetTester t, {int lines = 8, List<String>? texts}) async {
   t.view.physicalSize = const Size(390, 844) * 3;
   t.view.devicePixelRatio = 3;
   addTearDown(t.view.reset);
@@ -54,7 +54,7 @@ Future<EditorSession> openEditor(WidgetTester t, {int lines = 8}) async {
     final s = await h.services();
     final doc = await s.store.createDoc(DocKind.story);
     await s.store.updateDoc(doc.id, {
-      'content': {'type': 'doc', 'content': [for (final l in lineTexts(lines)) para(l)]},
+      'content': {'type': 'doc', 'content': [for (final l in texts ?? lineTexts(lines)) para(l)]},
       'settings': {...doc.settings, 'pristine': false},
     });
     return (s, doc.id);
@@ -353,10 +353,7 @@ void main() {
   // ── keyboard strip ──
 
   testWidgets('Hide keyboard in the strip takes the keyboard away from the line',
-      // TEST TO FIX (lead, 26 Nov): in CI the finder for the keyboard strip's Scrollable (ancestor of
-      // the Undo tooltip) finds nothing, so dragUntilVisible throws before the app is exercised. Not an
-      // app bug that we know of; fix the finder, then remove this skip.
-      skip: true, (t) async {
+      (t) async {
     final s = await openEditor(t);
     final line = s.lines[2];
     await t.tapAt(lineRect(t, s, line).center);
@@ -365,7 +362,7 @@ void main() {
     expect(s.focusFor(line).hasFocus, isTrue);
     final hide = find.byTooltip('Hide keyboard');
     // the strip is a lazy sideways list: scroll it until the last tool is built
-    final strip = find.ancestor(of: find.byTooltip('Undo'), matching: find.byType(Scrollable)).first;
+    final strip = find.ancestor(of: find.byTooltip('Bold'), matching: find.byType(Scrollable)).first;
     await t.dragUntilVisible(hide, strip, const Offset(-200, 0));
     await frames(t, 3);
     await t.tap(hide);
@@ -396,6 +393,65 @@ void main() {
     expect(s.controllerFor(s.lines[5]).spellIssues, isEmpty, reason: 'the same word elsewhere is left too');
     expect(find.byKey(const ValueKey('spell-row')), findsNothing);
     expect(((s.settings['spellIgnored'] as List?) ?? const []).contains('പോയീ'), isTrue);
+    await closeEditor(t);
+  });
+
+  testWidgets('owner, 26 Nov: undo takes back an Ignore in order with the edits, and redo brings it back', (t) async {
+    final s = await openEditor(t);
+    final last = s.lines.last;
+    await t.tapAt(lineRect(t, s, last).centerRight - const Offset(4, 0));
+    await frames(t, 5);
+    s.flushHistory();
+    s.ignoreSpelling('പോയീ');
+    expect(s.isSpellIgnored('പോയീ'), isTrue);
+    expect(s.canUndo, isTrue);
+    s.undo();
+    await frames(t);
+    expect(s.isSpellIgnored('പോയീ'), isFalse, reason: 'undo took the Ignore back');
+    expect(((s.settings['spellIgnored'] as List?) ?? const []).contains('പോയീ'), isFalse, reason: 'and from the saved work');
+    expect(s.canRedo, isTrue);
+    s.redo();
+    await frames(t);
+    expect(s.isSpellIgnored('പോയീ'), isTrue, reason: 'redo ignores it again');
+    // a fix in between: undo takes the fix first, then the Ignore
+    final c = s.controllerFor(last);
+    final before = last.text;
+    s.fixAsOneStep(() => s.replaceInLine(last, 0, 1, 'X'));
+    await frames(t);
+    expect(last.text == before, isFalse);
+    s.undo();
+    await frames(t);
+    expect(s.lines.last.text, before, reason: 'the fix is its own undo step');
+    expect(s.isSpellIgnored('പോയീ'), isTrue, reason: 'the Ignore stays until the next undo');
+    s.undo();
+    await frames(t);
+    expect(s.isSpellIgnored('പോയീ'), isFalse);
+    expect(c, isNotNull);
+    await closeEditor(t);
+  });
+
+  testWidgets('verifier, 28 Nov: Select all on a work that ends with an empty line keeps the selection', (t) async {
+    final s = await openEditor(t, texts: [...lineTexts(4), '']);
+    await t.tapAt(lineRect(t, s, s.lines.first).centerLeft + const Offset(4, 0));
+    await frames(t, 5);
+    s.selectAll();
+    await frames(t);
+    expect(s.hasSpan, isTrue, reason: 'focus moving to the empty last line must not end it');
+    expect(barButton('Copy'), findsOneWidget);
+    await closeEditor(t);
+  });
+
+  testWidgets('verifier, 28 Nov: an end handle dragged to the start of the next line keeps the selection', (t) async {
+    final s = await openEditor(t);
+    final a = s.lines[1], b = s.lines[2];
+    await selectInLine(t, s, a, 0, 4);
+    expect(s.hasSpan, isTrue);
+    // what a drag of the end handle does when the finger lifts at offset 0 of the next line
+    s.setSpan(DocPoint(a, 0), DocPoint(b, 0));
+    s.syncSpan();
+    await frames(t);
+    expect(s.hasSpan, isTrue, reason: 'the part on the next line is empty, and that is not a tap');
+    expect(barButton('Copy'), findsOneWidget);
     await closeEditor(t);
   });
 }

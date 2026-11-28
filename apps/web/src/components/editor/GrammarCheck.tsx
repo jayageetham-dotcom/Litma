@@ -1,4 +1,5 @@
 "use client";
+import { applyFix } from "@/lib/spell-history";
 import { useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import type { Node as PMNode } from "@tiptap/pm/model";
@@ -197,7 +198,7 @@ export function GrammarCheck({ editor, kind, docId, title, onOpenInbox }: { edit
   const fix = (f: Finding) => {
     const r = locate(editor.state.doc, f.wrong, f.at);
     if (!r) return mark(f.id, "missing");
-    editor.view.dispatch(editor.state.tr.insertText(f.right, r.from, r.to));
+    applyFix(editor, r.from, r.to, f.right);
     mark(f.id, "fixed");
   };
   const show = (f: Finding) => {

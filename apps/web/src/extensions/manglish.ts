@@ -296,6 +296,12 @@ export const Manglish = Extension.create<{ defaultMode: InputMode }, { mode: Inp
               view.dispatch(view.state.tr.setMeta(manglishKey, { dismiss: true }));
               return true;
             }
+            if (event.key === "Enter" && st.index > 0) {
+              // a spelling picked with ↓/↑: Enter only takes it, like Google Input Tools (audit, 26 Nov);
+              // with the first spelling Enter still finishes the word and starts a new line
+              commit(view);
+              return true;
+            }
             if (COMMIT_KEYS.has(event.key)) {
               commit(view);
               return false; // let the key do its normal job after committing

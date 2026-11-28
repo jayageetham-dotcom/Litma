@@ -6,6 +6,7 @@ import { BookA, Bold, ClipboardPaste, ClipboardType, Copy, Italic, Keyboard, Rep
 import { issueAt, type DocIssue } from "@/extensions/writing-aids";
 import { boldIsOn } from "@/extensions/bold";
 import { addMyWord, ignoreWord } from "@/lib/spell";
+import { applyFix } from "@/lib/spell-history";
 import { desktop } from "@/lib/desktop";
 import { useT } from "@/i18n/react";
 import { domId, ownAttr } from "./aria-owner";
@@ -167,7 +168,7 @@ export function EditorContextMenu({ editor, onLookUp, onRhymes, onAskAI, onShort
         ml: !!ml,
         strong: i === 0,
         run: () => {
-          editor.view.dispatch(editor.state.tr.insertText(f, issue.pos, issue.end));
+          applyFix(editor, issue.pos, issue.end, f);
           editor.commands.focus();
         },
       }),

@@ -4,6 +4,7 @@ import type { Editor } from "@tiptap/react";
 import { issueAt, type DocIssue } from "@/extensions/writing-aids";
 import { manglishKey } from "@/extensions/manglish";
 import { addMyWord, ignoreWord } from "@/lib/spell";
+import { applyFix } from "@/lib/spell-history";
 import { similarWords } from "@/lib/manglish-words";
 import { useT } from "@/i18n/react";
 import { domId, ownAttr } from "./aria-owner";
@@ -51,7 +52,7 @@ function useSpellAt(editor: Editor) {
 function useActions(editor: Editor, issue: DocIssue | null, close: () => void) {
   const fix = (text: string) => {
     if (!issue) return;
-    editor.view.dispatch(editor.state.tr.insertText(text, issue.pos, issue.end));
+    applyFix(editor, issue.pos, issue.end, text);
     editor.commands.focus();
   };
   const ignore = () => {

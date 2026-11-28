@@ -15,7 +15,7 @@ import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { useWriting } from "@/lib/goals";
 import { usePinned } from "@/lib/pin";
-import { TEMPLATES, templateFor } from "@/lib/templates";
+import { PICKER_TEMPLATES, templateFor } from "@/lib/templates";
 import type { Book, DocKind, LitmaDoc } from "@/lib/types";
 import { useT } from "@/i18n/react";
 import { useModalFocus } from "@/lib/useModalFocus";
@@ -459,7 +459,7 @@ function Chooser({ onPick, creating }: { onPick: (k: DocKind) => void; creating:
   const tr = useT();
   return (
     <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] sm:gap-x-5 sm:gap-y-7">
-      {TEMPLATES.map((t) => (
+      {PICKER_TEMPLATES.map((t) => (
         <button key={t.kind} onClick={() => onPick(t.kind)} disabled={!!creating} className="group flex flex-col items-start self-start text-left" title={tr(`types.${t.kind}.blurb`)}>
           <div className="transition-transform group-hover:-translate-y-1 group-focus-visible:-translate-y-1">
             <TemplatePreview kind={t.kind} width={140} />

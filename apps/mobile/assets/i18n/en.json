@@ -828,10 +828,10 @@
       "blurb": "പല്ലവി, അനുപല്ലവി, ചരണം: labelled parts, repeat lines, song details and metre counts."
     },
     "diary": {
-      "blurb": "Dated entries for journals, travelogues and memoir drafts. New entry adds today's date."
+      "blurb": "Dated entries for your journal, travelogues and memoir drafts. New entry adds today's date."
     },
     "blank": {
-      "blurb": "An empty A4 page. Use any heading or block from the toolbar."
+      "blurb": "A plain note on an empty page, with no template. Use any heading or block from the toolbar."
     }
   },
   "story": {

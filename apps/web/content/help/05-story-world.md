@@ -28,7 +28,7 @@ The tabs depend on the writing type:
 | Screenplay, play | Characters, Locations (sets), Props, Beat board, Timeline, Notes |
 | Poem, song lyrics | Images & ideas, Structure, Voices |
 | Feature, essay | People, Places, Sources, Outline |
-| Diary | People, Places, Timeline, Notes |
+| Journal | People, Places, Timeline, Notes |
 
 Every writing type also has **Reports**.
 

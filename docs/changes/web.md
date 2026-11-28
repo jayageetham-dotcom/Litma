@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-28: Note first, keep rule, Journal name (branch `notes-first`)
+
+- See cross-platform.md. `lib/templates.ts` (`PICKER_TEMPLATES`, names), `app/desk/page.tsx` Chooser, `lib/store.ts` (`defaultTitle`, `discardPristine` needs a default title), `components/editor/Workspace.tsx` (`recheckPristine`, `currentTitle`), `components/landing/Marquee.tsx`, MCP `litma-mcp/index.ts` (`KIND_HELP`, keep rule in `create_document` / `update_document`).
+
 ## 2026-11-28: Interaction audit fixes, undo for spelling (branch `claude/interaction-audit`)
 
 - 28 Nov after the verifier: see cross-platform.md (focus listener regression from PR #23 fixed, undo tag guards, Esc order, accessibility fixes).

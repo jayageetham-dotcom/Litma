@@ -13,7 +13,7 @@ import { cors, json, preflight } from "../_shared/cors.ts";
 import { recordUsage } from "../_shared/usage.ts";
 import { textToNodes, toMarkdown, toPlainText, type JSONContent } from "../_shared/serialize.ts";
 import { WRITING_GUIDES } from "../_shared/guides.ts";
-import { FORM_NAMES, KINDS, newSettings, starterContent, withAuthor, type DocKind } from "../_shared/forms.ts";
+import { FORM_NAMES, KINDS, defaultTitle, isDefaultTitle, keepOnClose, newSettings, starterContent, withAuthor, type DocKind } from "../_shared/forms.ts";
 import { createDictionary, mlShardName } from "../_shared/dict.ts";
 import { RHYME_KINDS, createRhymes, rhymeKey, type RhymeKind } from "../_shared/rhyme.ts";
 import { createSpeller, type EngineVerdict, type SpellEngine } from "../_shared/spell.ts";
@@ -77,6 +77,8 @@ async function pinnedWork(u: string): Promise<string | null> {
 }
 type Args = Record<string, any>; // deno-lint-ignore no-explicit-any
 const formName = (k: string) => FORM_NAMES[k as DocKind] ?? FORM_NAMES.blank;
+/** Writing type ids with their names, for tool descriptions: "novel (Novel), …, blank (Note)". */
+const KIND_HELP = KINDS.map((k) => `${k} (${FORM_NAMES[k].en})`).join(", ");
 const words = (t: string) => (t.match(/\S+/g) ?? []).length;
 const uid = () => crypto.randomUUID().slice(0, 8);
 const out = (t: string, isError = false) => ({ content: [{ type: "text", text: t }], isError });
@@ -122,7 +124,7 @@ const TOOLS: Tool[] = [
     name: "list_documents",
     title: "List documents",
     description: "List the writer's works (novels, stories, poems, screenplays, features…) with id, title, writing type (സാഹിത്യരൂപം), words and last edit. The work the writer pinned to the top of the desk (the work in progress) comes first, marked PINNED. Set trash=true for deleted works.",
-    inputSchema: { type: "object", properties: { kind: S("string", "Only this writing type", { enum: KINDS }), trash: S("boolean", "List the trash instead"), limit: S("number", "Max results (default 50)") } },
+    inputSchema: { type: "object", properties: { kind: S("string", `Only this writing type (${KIND_HELP})`, { enum: KINDS }), trash: S("boolean", "List the trash instead"), limit: S("number", "Max results (default 50)") } },
     annotations: RO,
     async run(a, u) {
       let q = db.from("documents").select("id,title,kind,word_count,updated_at").eq("user_id", u).eq("archived", !!a.trash).order("updated_at", { ascending: false }).limit(Number(a.limit) || 50);
@@ -181,11 +183,11 @@ const TOOLS: Tool[] = [
   {
     name: "create_document",
     title: "Create a document",
-    description: "Create a new work of a given writing type, optionally with starting text (parsed like append_to_document).",
-    inputSchema: { type: "object", properties: { title: S("string", "Title"), kind: S("string", "Writing type", { enum: KINDS }), text: S("string", "Optional starting text") }, required: ["title", "kind"] },
+    description: "Create a new work of a given writing type, optionally with starting text (parsed like append_to_document). Use blank (Note) for a plain note with no template.",
+    inputSchema: { type: "object", properties: { title: S("string", "Title"), kind: S("string", `Writing type (${KIND_HELP})`, { enum: KINDS }), text: S("string", "Optional starting text") }, required: ["title", "kind"] },
     async run(a, u) {
       const kind = (KINDS.includes(a.kind) ? a.kind : "blank") as DocKind;
-      const title = String(a.title || `പുതിയ ${formName(kind).ml}`);
+      const title = String(a.title || defaultTitle(kind));
       // an empty work starts with the writer's name on the author line, as in the apps
       const prof = a.text ? null : (await db.from("profiles").select("pen_name, display_name").eq("id", u).maybeSingle()).data as Json | null;
       const content: JSONContent = a.text
@@ -194,7 +196,7 @@ const TOOLS: Tool[] = [
       const plain = toPlainText(content);
       const { data, error } = await db
         .from("documents")
-        .insert({ user_id: u, title, kind, content, settings: { ...newSettings(kind), pristine: !a.text }, plain_text: plain, word_count: words(plain) })
+        .insert({ user_id: u, title, kind, content, settings: { ...newSettings(kind), pristine: !keepOnClose({ title, kind, content }) }, plain_text: plain, word_count: words(plain) })
         .select("id")
         .single();
       if (error) return out(error.message, true);
@@ -268,9 +270,11 @@ const TOOLS: Tool[] = [
       required: ["id"],
     },
     async run(a, u) {
-      const d = await ownDoc(u, a.id, "id,settings");
+      const d = await ownDoc(u, a.id, "id,kind,settings");
       if (!d) return out("Document not found.", true);
       const st = { ...(d.settings as Json) };
+      // a new work with its own title is kept (the keep rule, `keepOnClose`)
+      if (a.title && !isDefaultTitle(String(a.title), d.kind as DocKind)) delete st.pristine;
       for (const k of ["pageSize", "font", "fontSize", "lineHeight", "margins", "goal", "notes"]) if (a[k] !== undefined) st[k] = a[k];
       const patch: Json = { settings: st };
       if (a.title) patch.title = String(a.title);

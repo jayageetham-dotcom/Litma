@@ -60,6 +60,7 @@ import { AIPanel, HistoryPanel, InboxPanel, KeysPanel, OutlinePanel, PagePanel }
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { store } from "@/lib/store";
 import { docClasses, templateFor } from "@/lib/templates";
+import { currentTitle, keepOnClose } from "@litma/shared/forms";
 import { fillCastList } from "@/extensions/drama";
 import { FootnoteDialog } from "./FootnoteDialog";
 import type { DocSettings, LitmaDoc } from "@/lib/types";
@@ -105,7 +106,7 @@ type SaveState = SaveStatus;
 export function Workspace({ initial }: { initial: LitmaDoc }) {
   const t = useT();
   const template = templateFor(initial.kind);
-  const [title, setTitle] = useState(initial.title);
+  const [title, setTitle] = useState(() => currentTitle(initial.title, initial.kind));
   const [settings, setSettings] = useState<DocSettings>(initial.settings);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -204,10 +205,12 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     setWorkIgnored(settingsRef.current.spellIgnored ?? [], (words) => updateSettingsRef.current({ spellIgnored: words }));
     return () => setWorkIgnored([], null);
   }, [initial.id]);
-  /** New documents stay "pristine" until the writer types; pristine documents are discarded on close. */
+  /** A new work stays "pristine" until it has its own title or any text (shared `keepOnClose`); pristine works are discarded on close. */
   const pristine = useRef(!!initial.settings.pristine);
+  // opened as a new, untouched work: only such a work can be discarded (an older work never is)
+  const createdPristine = useRef(!!initial.settings.pristine);
   const docRef = useRef<LitmaDoc>(initial);
-  const titleRef = useRef(initial.title);
+  const titleRef = useRef(currentTitle(initial.title, initial.kind));
   // the title was typed in this visit (only then is it converted from Manglish on leaving it)
   const titleDirty = useRef(false);
   // the title when the writer clicked into it, so Esc can put it back
@@ -271,6 +274,24 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   }, [editor]);
 
   // ── persistence ──
+  const editorRef = useRef(editor);
+  editorRef.current = editor;
+  /**
+   * The keep rule (shared `keepOnClose`), same in every app: a new work is kept once the writer
+   * changed its title or wrote any text. Without a live editor it changes nothing (closing must
+   * never drop text typed since the last save).
+   */
+  const recheckPristine = useCallback(() => {
+    if (!createdPristine.current) return;
+    const ed = editorRef.current;
+    if (!ed || ed.isDestroyed) return;
+    const p = !keepOnClose({ title: titleRef.current, kind: initial.kind, content: ed.getJSON() });
+    if (p === pristine.current) return;
+    pristine.current = p;
+    setSettings((prev) => ({ ...prev, pristine: p }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const persist = useCallback(async (patch: Partial<LitmaDoc>) => {
     // known at once, so a save that starts meanwhile builds on these settings, not older ones
     // (an Ignore pressed before a new work's first save stayed lost otherwise)
@@ -286,7 +307,9 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       const content = ed.getJSON();
       const words = countWords(ed.getText({ blockSeparator: "\n" }));
       const patch: Partial<LitmaDoc> = { content, word_count: words, title: titleRef.current };
-      if (docRef.current.settings?.pristine && !pristine.current) patch.settings = { ...docRef.current.settings, pristine: false };
+      // the keep rule, on what is being saved: a new work stays pristine until it has its own title or text
+      const p = createdPristine.current && !keepOnClose({ title: titleRef.current, kind: initial.kind, content });
+      if (!!docRef.current.settings?.pristine !== p) patch.settings = { ...docRef.current.settings, pristine: p };
       const queued = await persist(patch);
       const delta = words - lastSavedWords.current;
       lastSavedWords.current = words;
@@ -334,7 +357,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
         titleRef.current = startContent.title;
         setTitle(startContent.title);
       }
-      pristine.current = false;
+      recheckPristine();
       sv.touch();
     }
     return () => sv.dispose();
@@ -360,12 +383,12 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     const computeStats = () => {
       const text = editor.getText({ blockSeparator: "\n" });
       setStats((s) => ({ ...s, words: countWords(text), chars: text.replace(/\s/g, "").length, aksharas: aksharas(text).length }));
+      // after a pause: a new work whose text was all deleted again is empty once more
+      if (!pristine.current) recheckPristine();
     };
     const onUpdate = () => {
-      if (pristine.current) {
-        pristine.current = false;
-        setSettings((prev) => ({ ...prev, pristine: false }));
-      }
+      // at once while it would still be discarded, so a letter typed just before leaving is kept
+      if (pristine.current) recheckPristine();
       saver.current?.touch();
       activeMinutes.current.add(Math.floor(Date.now() / 60000));
       clearTimeout(statTimer);
@@ -398,6 +421,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const finish = useCallback(async () => {
     if (closed.current) return;
     closed.current = true;
+    recheckPristine();
     if (pristine.current) {
       saver.current?.dispose();
       clearJournal(docRef.current.id);
@@ -760,10 +784,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 titleDirty.current = true;
                 setTitle(v);
                 titleRef.current = v;
-                if (pristine.current) {
-                  pristine.current = false;
-                  setSettings((prev) => ({ ...prev, pristine: false }));
-                }
+                recheckPristine();
                 saver.current?.touch();
               }}
               onKeyDown={(e) => {
@@ -777,6 +798,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                   if (v !== titleRef.current) {
                     setTitle(v);
                     titleRef.current = v;
+                    recheckPristine();
                     saver.current?.touch();
                   }
                   (e.target as HTMLInputElement).blur();
@@ -790,6 +812,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                   titleDirty.current = false;
                   setTitle(before);
                   titleRef.current = before;
+                  recheckPristine();
                   saver.current?.touch();
                   return;
                 }
@@ -799,6 +822,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 const v = toMalayalam(titleRef.current);
                 setTitle(v);
                 titleRef.current = v;
+                recheckPristine();
                 saver.current?.touch();
               }}
               className={`w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none md:text-[1.05rem] ${title ? "focus:pr-8" : ""}`}
@@ -820,6 +844,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                   titleDirty.current = false;
                   setTitle("");
                   titleRef.current = "";
+                  recheckPristine();
                   saver.current?.touch();
                   input?.focus();
                 }}

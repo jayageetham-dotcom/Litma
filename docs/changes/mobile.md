@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-28: Note first, keep rule, Journal name (branch `notes-first`)
+
+- See cross-platform.md. `lib/data/forms.dart` (names, `pickerKinds`, `defaultTitle`, `isDefaultTitle`, `currentTitle`, `hasWriting`, `keepOnClose`), `lib/data/store.dart` (`createDoc`, `discardPristine`), `lib/editor/session.dart` (`_createdPristine`, `_recheckPristine`: rename keeps a work), `lib/features/desk/type_picker.dart`, new `test/keep_rule_test.dart`. **Not compiled here**: merge only with Mobile app checks green.
+
 ## 2026-11-28: Interaction audit fixes, undo for spelling (branch `claude/interaction-audit`)
 
 - 28 Nov after the verifier: see cross-platform.md (focus listener regression from PR #23 fixed, undo tag guards, Esc order, accessibility fixes).

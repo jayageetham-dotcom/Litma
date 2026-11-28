@@ -130,7 +130,7 @@ Behaviour fixed on the web that the Flutter app must match (the editor, offline,
   - **Plays:** cast list as `castEntry` (`castName` + `castRole`) nodes, filled from Story World characters; stage direction button; Tab after speech adds a stage direction; Enter on an empty speaker line becomes a stage direction.
   - **Screenplays:** Enter on the empty line after the last cast name goes on to the action; scene tools set Int./Ext. and the time and fill the cast from the scene's speakers; scene numbers read "രംഗം 1", "Scene 1" or the older "Scene: 1" (`settings.headingLabels`).
   - **Footnotes** (essays, features): inline `footnote` node with `attrs.text`, numbered in order and listed at the end ("കുറിപ്പുകൾ") on screen, in print and in Word.
-  - **Diary:** "New entry" adds today's date heading at the end (`todayLine()`), or goes to the end if today's entry exists.
+  - **Journal** (kind `diary`): "New entry" adds today's date heading at the end (`todayLine()`), or goes to the end if today's entry exists.
   - **Settings:** `chapterNumbers` (novel/story), `headingLabels` (screenplay/drama), `verseAlign` (poem/lyrics). Layout classes as in `docClasses()` (`apps/web/src/lib/templates.ts`).
   - **Phones** show the writing at full size (no A4 page shrunk to the screen). The website on phones uses one continuous sheet with a "Pages" switch; this app shows pages as you write (`lib/editor/pages.dart`): each about as much text as a printed page, the next page starting when one fills, a small + between pages to insert a blank one.
   - Strings: `editor.drama.*`, `editor.scene.*`, `editor.diary.*`, `editor.footnote.*`, `editor.page.*`, `types.<kind>.blurb`, `story.tabs.*` in `packages/i18n`.

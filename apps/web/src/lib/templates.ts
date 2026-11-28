@@ -1,7 +1,7 @@
 import type { JSONContent } from "@tiptap/core";
 import type { DocKind, DocSettings } from "./types";
 import type { BlockVariant } from "@/extensions/blocks";
-import { FORM_NAMES, settingsFor as sharedSettingsFor, starterContent } from "@litma/shared/forms";
+import { FORM_NAMES, PICKER_KINDS, settingsFor as sharedSettingsFor, starterContent } from "@litma/shared/forms";
 
 export { DEFAULT_SETTINGS } from "@litma/shared/forms";
 
@@ -92,16 +92,16 @@ const META: TemplateMeta[] = [
   },
   {
     kind: "diary",
-    ml: "ഡയറി",
-    en: "Diary / memoir",
-    blurb: "Dated entries for journals, travelogues and memoir drafts. New entry adds today's date.",
+    ml: "ജേണൽ",
+    en: "Journal",
+    blurb: "Dated entries for your journal, travelogues and memoir drafts. New entry adds today's date.",
     blocks: ["title", "dateline", "subhead"],
   },
   {
     kind: "blank",
-    ml: "ശൂന്യം",
-    en: "Blank page",
-    blurb: "An empty A4 page. Use any heading or block from the toolbar.",
+    ml: "കുറിപ്പ്",
+    en: "Note",
+    blurb: "A plain note on an empty page, with no template. Use any heading or block from the toolbar.",
     blocks: ["title", "subtitle", "author", "subhead", "pullquote"],
   },
 ];
@@ -115,6 +115,9 @@ export const TEMPLATES: Template[] = META.map((m) => ({
 }));
 
 export const templateFor = (kind: DocKind) => TEMPLATES.find((t) => t.kind === kind) ?? TEMPLATES[TEMPLATES.length - 1];
+
+/** The writing-type picker's order: Note first (`PICKER_KINDS`). */
+export const PICKER_TEMPLATES: Template[] = PICKER_KINDS.map((k) => templateFor(k));
 
 export const settingsFor = sharedSettingsFor;
 

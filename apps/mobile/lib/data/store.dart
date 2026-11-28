@@ -132,7 +132,7 @@ class Store {
     content = withAuthor(content, profile?.name);
     final row = <String, dynamic>{
       'id': newId(),
-      'title': title ?? 'പുതിയ ${kindNames[kind]!.ml}',
+      'title': title ?? defaultTitle(kind),
       'kind': kind.name,
       'content': content,
       'settings': settings,
@@ -189,7 +189,8 @@ class Store {
   /// Discard new works opened but never typed in (the editor does this on close; the desk as a safety net).
   Future<int> discardPristine({Duration olderThan = const Duration(minutes: 30)}) async {
     final cutoff = DateTime.now().subtract(olderThan);
-    final stale = (await listDocs()).where((d) => d.pristine && d.updatedAt.isBefore(cutoff)).toList();
+    // only works still under the name they were given (the keep rule, `keepOnClose`); text clears the flag when saved
+    final stale = (await listDocs()).where((d) => d.pristine && isDefaultTitle(d.title, d.kind) && d.updatedAt.isBefore(cutoff)).toList();
     for (final d in stale) {
       await deleteDoc(d.id);
     }

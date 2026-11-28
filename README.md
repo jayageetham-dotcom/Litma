@@ -1,6 +1,6 @@
 # Litma · ലിറ്റ്മ
 
-A Malayalam writing desk for novels, short stories, poems, screenplays, features, essays, plays, lyrics and diaries, on real A4 pages, typed in **Manglish**, **Malayalam** or English, even offline. On the web, as a desktop app for macOS and Windows (a Linux AppImage is still built but not offered on the website for now), and as a phone app for iPhone and Android (store release pending).
+A Malayalam writing desk for notes, novels, short stories, poems, screenplays, features, essays, plays, lyrics and journals, on real A4 pages, typed in **Manglish**, **Malayalam** or English, even offline. On the web, as a desktop app for macOS and Windows (a Linux AppImage is still built but not offered on the website for now), and as a phone app for iPhone and Android (store release pending).
 
 **Live:** https://getlitma.in · **MCP:** https://getlitma.in/mcp
 
@@ -167,7 +167,7 @@ Every addition, change or removal also updates the strings in both languages (`p
 - **Security:** rate limits on the public functions (`_shared/ratelimit.ts`), an optional Cloudflare Turnstile check before email sign-in, sign-up and reset (`/captcha/`, shown only when Supabase asks), and HSTS, CSP and frame rules in `apps/web/public/.htaccess`.
 - **Works offline** on the web, desktop and phone: a copy of your works stays on the device and changes are sent when the connection returns.
 - **A4 pages** by default (A5, Letter, Legal), page numbers, running heads, true-size PDF export.
-- **Nine സാഹിത്യരൂപങ്ങൾ (writing types)**, each with its own template and toolbar — including the Kerala **screenplay** layout (Scene: N, location, time, cast on the right, action left, two-column dialogue) and **poems/lyrics** with akshara counts and laghu/guru metre marks.
+- **Ten സാഹിത്യരൂപങ്ങൾ (writing types)**, a plain Note first, each with its own template and toolbar — including the Kerala **screenplay** layout (Scene: N, location, time, cast on the right, action left, two-column dialogue) and **poems/lyrics** with akshara counts and laghu/guru metre marks.
 - **Accounts:** sign up, sign in (password, email link, Google), forgot/reset password, **profile** with avatar pictures (photo uploads are paused for now), pen name, bio, default typing mode, writing heatmap.
 - **Goals and statistics (`/goals/`):** daily and weekly word goals, streaks with rest days, a goal and finish date per work, a writing timer (sprint) with a chime and notification, a daily reminder (browser tab, desktop app main process, or the phone's own scheduled notification), and 7/30/90-day statistics (words, minutes, writing days, hours of the day, by writing type and work). Kept for 90 days.
 - **Rhymes (പ്രാസം):** ദ്വിതീയാക്ഷര, അന്ത്യ and ആദി പ്രാസം from the dictionary's headwords and the common forms people write (പറഞ്ഞു, മഴയിൽ), most used first, with laghu–guru patterns (files built by `scripts/build-rhymes.mjs`), in the editor, the Dictionary's പ്രാസം tab, the phone and MCP (`find_rhymes`).

@@ -66,9 +66,9 @@ class _PickerState extends ConsumerState<_Picker> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
             sliver: SliverGrid.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: wide ? 4 : 2, mainAxisSpacing: 14, crossAxisSpacing: 12, childAspectRatio: 0.58),
-              itemCount: DocKind.values.length,
+              itemCount: pickerKinds.length,
               itemBuilder: (context, i) {
-                final k = DocKind.values[i];
+                final k = pickerKinds[i];
                 return FadeSlideIn(
                   index: i,
                   step: const Duration(milliseconds: 35),

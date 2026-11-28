@@ -111,7 +111,7 @@ Pin the work you are busy with and it stays first on the desk, with a **Pinned**
 Every work starts with a writing type (സാഹിത്യരൂപം). It sets the page, the fonts and the blocks you can use, like chapters for a novel or scenes for a screenplay.
 
 1. On the desk choose **New work**.
-2. Pick a writing type. Each one shows a real first page so you can see what you get.
+2. Pick a writing type. Each one shows a real first page so you can see what you get. **Note** (കുറിപ്പ്), first in the list, is a plain page for anything else.
    ![Choosing a writing type](shots/chooser.webp "Ten writing types, each with a preview of its first page.")
 3. The editor opens with a template: grey prompts such as ശീർഷകം (title) and എഴുതുന്ന ആളുടെ പേര് (author) show where things go. Click a prompt and type over it.
 4. Press <kbd>Enter</kbd> at the end of a template line to jump to the next empty one.
@@ -120,7 +120,7 @@ Litma saves as you type. There is no Save button; the line under the title says 
 
 > **Tip:** Your pen name or profile name fills the author line of every new work, so you don't type it each time. Change it in [your profile](#profile).
 
-> **Good to know:** A new work that you leave without typing anything is thrown away, so the desk doesn't fill up with empty pages.
+> **Good to know:** A new work is kept once you give it a title or write anything in it. One you leave with neither is thrown away, so the desk doesn't fill up with empty pages.
 
 ### Rename a work
 

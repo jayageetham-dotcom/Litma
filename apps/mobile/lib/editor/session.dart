@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../core/manglish.dart';
+import '../data/forms.dart' show currentTitle, keepOnClose;
 import '../data/models.dart';
 import '../data/spell.dart';
 import '../data/store.dart';
@@ -15,10 +16,11 @@ import 'saver.dart';
 /// One open work in the editor: the document model, a text controller and focus node per
 /// editable line, the rules for Enter and Backspace, formatting, undo, and saving.
 class EditorSession extends ChangeNotifier {
-  EditorSession({required LitmaDoc doc, required this.store, Json? restored}) : _doc = doc {
+  EditorSession({required LitmaDoc doc, required this.store, Json? restored}) : _doc = doc.copyWith(title: currentTitle(doc.title, doc.kind)) {
     document = EditorDocument.fromJson(restored ?? doc.content);
     mode = inputModeFrom(doc.settings['inputMode']);
-    pristine = doc.pristine && restored == null;
+    _createdPristine = doc.pristine;
+    _recheckPristine();
     _lastSavedWords = doc.wordCount;
     words = countWords(document.plainText);
     saver = DocSaver(id: doc.id, offline: store.offline, snapshot: () => document.toJson(), save: _save)..start();
@@ -43,8 +45,17 @@ class EditorSession extends ChangeNotifier {
   VoidCallback? storyClosed;
   late final DocSaver saver;
 
-  /// New works stay pristine until the writer types; pristine works are discarded on close.
+  /// A new work stays pristine until it has its own title or any text (`keepOnClose`); pristine works are discarded on close.
   bool pristine = false;
+
+  /// Opened as a new, untouched work: only such a work can be discarded (an older work never is).
+  late final bool _createdPristine;
+
+  /// The keep rule, same in every app: a new work is kept once the writer changed its title or wrote any text.
+  void _recheckPristine([Json? snap]) {
+    if (!_createdPristine) return;
+    pristine = !keepOnClose(title: _doc.title, kind: _doc.kind, content: snap ?? document.toJson());
+  }
   int words = 0;
   int _lastSavedWords = 0;
 
@@ -440,7 +451,7 @@ class EditorSession extends ChangeNotifier {
 
   void _afterChange() {
     _scheduleSpelling();
-    if (pristine) pristine = false;
+    if (pristine) _recheckPristine(); // at once while it would be discarded, so a letter typed just before leaving is kept
     words = countWords(document.plainText);
     _activeMinutes.add(DateTime.now().millisecondsSinceEpoch ~/ 60000);
     WritingTimer.instance.words(_doc.id, words);
@@ -541,6 +552,7 @@ class EditorSession extends ChangeNotifier {
     final t = title.trim();
     if (t.isEmpty || t == _doc.title) return;
     _doc = _doc.copyWith(title: t);
+    _recheckPristine(); // a work the writer named is kept, even with no text yet
     notifyListeners();
     saver.touch();
   }
@@ -1361,8 +1373,9 @@ class EditorSession extends ChangeNotifier {
 
   Future<bool> _save(Json snap) async {
     final patch = <String, dynamic>{'content': snap, 'word_count': words, 'title': _doc.title};
-    if (_doc.pristine && !pristine) {
-      _doc = _doc.copyWith(settings: {..._doc.settings}..remove('pristine'));
+    _recheckPristine(snap); // a new work whose text was all deleted again is empty once more
+    if (_doc.pristine != pristine) {
+      _doc = _doc.copyWith(settings: pristine ? {..._doc.settings, 'pristine': true} : ({..._doc.settings}..remove('pristine')));
       patch['settings'] = _doc.settings;
     }
     final queued = await store.updateDoc(_doc.id, patch);
@@ -1382,7 +1395,8 @@ class EditorSession extends ChangeNotifier {
   /// Leaving the editor: save what's left, and discard a new work nobody typed in.
   Future<bool> close() async {
     _historyTimer?.cancel();
-    if (pristine && _doc.pristine) {
+    _recheckPristine();
+    if (pristine) {
       saver.dispose();
       await saver.clearJournal();
       await store.deleteDoc(_doc.id).catchError((_) {});

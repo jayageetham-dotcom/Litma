@@ -14,9 +14,56 @@ const kindNames = <DocKind, ({String ml, String en})>{
   DocKind.essay: (ml: 'ലേഖനം', en: 'Essay / article'),
   DocKind.drama: (ml: 'നാടകം', en: 'Drama / play'),
   DocKind.lyrics: (ml: 'ഗാനം', en: 'Song lyrics'),
-  DocKind.diary: (ml: 'ഡയറി', en: 'Diary / memoir'),
-  DocKind.blank: (ml: 'ശൂന്യം', en: 'Blank page'),
+  DocKind.diary: (ml: 'ജേണൽ', en: 'Journal'),
+  DocKind.blank: (ml: 'കുറിപ്പ്', en: 'Note'),
 };
+
+/// Order in the writing-type picker: a plain note first, then the types with templates (`PICKER_KINDS`).
+final pickerKinds = [DocKind.blank, ...DocKind.values.where((k) => k != DocKind.blank)];
+
+/// The title a new work gets: "പുതിയ കുറിപ്പ്", "പുതിയ നോവൽ"…
+String defaultTitle(DocKind kind) => 'പുതിയ ${kindNames[kind]!.ml}';
+
+/// Titles older apps gave new works, before a writing type was renamed.
+const _oldTitles = <DocKind, List<String>>{
+  DocKind.blank: ['പുതിയ ശൂന്യം'],
+  DocKind.diary: ['പുതിയ ഡയറി'],
+};
+
+/// True when the title is still the one a new work got (empty counts too).
+bool isDefaultTitle(String? title, DocKind kind) {
+  final t = (title ?? '').trim();
+  return t.isEmpty || t == defaultTitle(kind) || (_oldTitles[kind] ?? const []).contains(t);
+}
+
+/// A new note still called "പുതിയ ശൂന്യം" (older apps) shows the current name instead.
+String currentTitle(String title, DocKind kind) => kind == DocKind.blank && title.trim() == 'പുതിയ ശൂന്യം' ? defaultTitle(kind) : title;
+
+String _textOf(Object? n) {
+  if (n is! Map) return '';
+  final kids = n['content'];
+  return '${n['text'] ?? ''}${kids is List ? kids.map(_textOf).join() : ''}';
+}
+
+/// Lines a new work fills in by itself: the writer's name and a journal's date.
+const _autoFilled = {'author', 'byline', 'dateline'};
+
+/// Has the writer written anything in the body? The author line, a journal's date and a template's
+/// labels (പല്ലവി, കഥാപാത്രങ്ങൾ) don't count. Same as `hasWriting` in shared/forms.ts.
+bool hasWriting(Json? content, DocKind kind) {
+  final starter = {for (final b in (starterContent(kind)['content'] as List)) _textOf(b).trim()}..remove('');
+  for (final b in (content?['content'] as List? ?? const [])) {
+    final t = _textOf(b).trim();
+    if (t.isEmpty) continue;
+    if (b is Map && b['type'] == 'styledBlock' && _autoFilled.contains((b['attrs'] as Map?)?['variant'])) continue;
+    if (!starter.contains(t)) return true;
+  }
+  return false;
+}
+
+/// The keep rule for a new work, every writing type: kept when the writer changed its title or wrote
+/// any body text; otherwise closing it deletes it (and the desk's cleanup does). Same as `keepOnClose`.
+bool keepOnClose({required String? title, required DocKind kind, required Json? content}) => !isDefaultTitle(title, kind) || hasWriting(content, kind);
 
 typedef Json = Map<String, dynamic>;
 

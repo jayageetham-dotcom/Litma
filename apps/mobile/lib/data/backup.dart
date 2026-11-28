@@ -5,13 +5,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/zip.dart';
-import '../editor/document.dart';
-import '../editor/export.dart';
+import '../editor/docx.dart';
 import 'store.dart';
 
 /// Backups on the phone, in the same format as the web's lib/backup.ts:
 ///   litma-backup.json   every work (full text) with its Story World, books, saved words
-///   works/*.html        each work as a web page, readable anywhere
+///   works/*.docx        each work as a Word file, readable anywhere
 /// Saved into the app's own folder (the last 14 kept) and handed to the share sheet, where the writer
 /// picks Google Drive, Files or any app. Restoring a backup is done on the website or desktop app
 /// (Settings → Backup); the phone reads the same works back from the server.
@@ -48,8 +47,7 @@ abstract final class Backup {
       }
       used.add(n);
       try {
-        final html = docToHtml(EditorDocument.fromJson(full.content), title: full.title, kind: full.kind, settings: full.settings);
-        files.add(('works/$n.html', utf8.encode(html)));
+        files.add(('works/$n.docx', workDocx(title: full.title, kind: full.kind, settings: full.settings, content: full.content)));
       } catch (_) {
         /* the JSON copy still has it */
       }
@@ -68,7 +66,7 @@ abstract final class Backup {
       '',
       'Made ${DateTime.now()} with ${works.length} works.',
       '',
-      'works/ has each work as a web page you can open anywhere.',
+      'works/ has each work as a Word file you can open anywhere.',
       'litma-backup.json has everything (full text, Story World, books, saved words).',
       'To bring works back into Litma: on the website or the desktop app, Settings, Backup, Restore from a backup file.',
       '',

@@ -54,7 +54,7 @@ class EditorSession extends ChangeNotifier {
   /// The keep rule, same in every app: a new work is kept once the writer changed its title or wrote any text.
   void _recheckPristine([Json? snap]) {
     if (!_createdPristine) return;
-    pristine = !keepOnClose(title: _doc.title, kind: _doc.kind, content: snap ?? document.toJson());
+    pristine = !keepOnClose(title: _doc.title, kind: _doc.kind, content: snap ?? document.toJson(), createdAt: _doc.createdAt);
   }
   int words = 0;
   int _lastSavedWords = 0;
@@ -1379,7 +1379,7 @@ class EditorSession extends ChangeNotifier {
       patch['settings'] = _doc.settings;
     }
     final queued = await store.updateDoc(_doc.id, patch);
-    _doc = _doc.copyWith(content: snap, wordCount: words);
+    _doc = _doc.copyWith(content: snap, wordCount: words, updatedAt: DateTime.now());
     final delta = words - _lastSavedWords;
     _lastSavedWords = words;
     final minutes = _activeMinutes.length;

@@ -24,6 +24,7 @@ import '../features/story/story_world_screen.dart';
 import '../widgets/common.dart';
 import 'document.dart';
 import 'export.dart';
+import 'journal_export.dart';
 import 'metre_view.dart';
 import 'pdf_fonts.dart';
 import 'session.dart';
@@ -67,7 +68,11 @@ Future<void> showToolsSheet(BuildContext context, WidgetRef ref, EditorSession s
     (context.t('app.tools.groupShare'), [
       tool(LucideIcons.volume2, 'app.tools.listen', c.tintLime, () => showReadAloudSheet(context, ref, s)),
       tool(LucideIcons.history, 'app.tools.history', c.tintSky, () => showHistorySheet(context, ref, s)),
-      tool(LucideIcons.share2, 'app.tools.share', c.tintCoral, () => showShareSheet(context, ref, s)),
+      // journals have no share link (owner, 28 Nov): their own export instead
+      if (s.kind == DocKind.diary)
+        tool(LucideIcons.download, 'journals.export', c.tintCoral, () => showJournalExportSheet(context, ref, current: s))
+      else
+        tool(LucideIcons.share2, 'app.tools.share', c.tintCoral, () => showShareSheet(context, ref, s)),
     ]),
     // each writing type's own tools, as on the web toolbar
     (context.t('app.tools.groupWork'), [
@@ -646,7 +651,9 @@ Future<void> showHistorySheet(BuildContext context, WidgetRef ref, EditorSession
 
 // ── share and export ──
 
-Future<void> showShareSheet(BuildContext context, WidgetRef ref, EditorSession s) => showModalBottomSheet<void>(
+Future<void> showShareSheet(BuildContext context, WidgetRef ref, EditorSession s) => s.kind == DocKind.diary
+    ? showJournalExportSheet(context, ref, current: s)
+    : showModalBottomSheet<void>(
       context: context,
       useSafeArea: true,
       builder: (_) => _Share(session: s),

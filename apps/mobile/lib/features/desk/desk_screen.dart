@@ -17,19 +17,22 @@ import '../../data/backend.dart' show OfflineException;
 import '../../data/backup.dart';
 import '../../data/goals.dart';
 import '../goals/goals_screen.dart' show rescheduleReminders;
+import '../../data/journals.dart';
 import '../../data/models.dart';
 import '../../editor/document.dart';
 import '../../editor/editor_screen.dart';
+import '../../editor/journal_export.dart';
 import '../../features/reader/reader_screen.dart';
 import '../../widgets/brand.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/common.dart';
 import '../books/book_screen.dart';
 import '../profile/profile_screen.dart';
+import 'journals_view.dart';
 import 'type_picker.dart';
 import '../../core/keyboard.dart';
 
-enum DeskTab { works, books, trash }
+enum DeskTab { works, books, journals, trash }
 
 /// The writer's works for one tab, kept in step with the store.
 class DeskNotifier extends AsyncNotifier<List<LitmaDoc>> {
@@ -44,8 +47,14 @@ class DeskNotifier extends AsyncNotifier<List<LitmaDoc>> {
   Future<List<LitmaDoc>> _load() async {
     final store = ref.read(servicesProvider).store;
     if (tab == DeskTab.books) return const []; // books come from booksProvider
-    if (tab == DeskTab.works) await store.discardPristine().catchError((_) => 0);
-    return store.listDocs(trash: tab == DeskTab.trash);
+    if (tab == DeskTab.works || tab == DeskTab.journals) await store.discardPristine().catchError((_) => 0);
+    final all = await store.listDocs(trash: tab == DeskTab.trash);
+    // journals have their own tab; Works lists every other writing type
+    return switch (tab) {
+      DeskTab.works => all.where((d) => d.kind != DocKind.diary).toList(),
+      DeskTab.journals => all.where((d) => d.kind == DocKind.diary).toList(),
+      _ => all,
+    };
   }
 
   Future<void> show(DeskTab t) async {
@@ -141,6 +150,19 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     if (doc == null || !mounted) return;
     final r = await Navigator.of(context).push(_editorRoute(doc.id, doc));
     _after(r);
+  }
+
+  /// New journal: a journal titled with today's date, opened at once (no writing-type picker).
+  Future<void> _newJournal() async {
+    final doc = await ref.read(servicesProvider).store.createDoc(DocKind.diary, profile: ref.read(profileProvider).value);
+    if (!mounted) return;
+    final r = await Navigator.of(context).push(_editorRoute(doc.id, doc));
+    _after(r);
+  }
+
+  void _exportJournals() {
+    Analytics.tap('journals.export');
+    showJournalExportSheet(context, ref, journals: ref.read(deskProvider).value ?? const []);
   }
 
   Route<Object?> _editorRoute(String id, [LitmaDoc? doc]) => PageRouteBuilder(
@@ -264,6 +286,7 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
   void _actions(LitmaDoc d) {
     final c = context.c;
     final isPinned = pinnedWork(ref.read(profileProvider).value) == d.id;
+    final journal = d.kind == DocKind.diary;
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(
@@ -272,12 +295,13 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-              child: Text(d.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontFamily: LitmaFonts.display)),
+              child: Text(journal ? journalFace(d).title : d.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontFamily: LitmaFonts.display)),
             ),
             for (final (i, (icon, label, color, run)) in [
-              (isPinned ? LucideIcons.pinOff : LucideIcons.pin, context.t(isPinned ? 'desk.pin.unpin' : 'desk.pin.pin'), c.accent, () => _pin(d, !isPinned)),
+              // journals: no pin (the newest is first) and no duplicate (owner, 28 Nov)
+              if (!journal) (isPinned ? LucideIcons.pinOff : LucideIcons.pin, context.t(isPinned ? 'desk.pin.unpin' : 'desk.pin.pin'), c.accent, () => _pin(d, !isPinned)),
               (LucideIcons.bookOpen, context.t('app.desk.read'), c.ink, () => _read(d)),
-              (LucideIcons.copy, context.t('common.duplicate'), c.ink, () => _duplicate(d)),
+              if (!journal) (LucideIcons.copy, context.t('common.duplicate'), c.ink, () => _duplicate(d)),
               (LucideIcons.trash2, context.t('desk.moveToTrash'), c.danger, () => _trash(d)),
             ].indexed)
               FadeSlideIn(
@@ -379,6 +403,53 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
     ];
   }
 
+  /// The Journals tab: one column, newest first, a month line before each month.
+  List<Widget> _journalSlivers(BuildContext context, List<LitmaDoc>? all) {
+    final width = MediaQuery.sizeOf(context).width;
+    // one column; on a tablet it keeps a readable width
+    final side = width > 760 ? (width - 720) / 2 : 16.0;
+    if (all == null) {
+      return [SliverPadding(padding: EdgeInsets.fromLTRB(side, 0, side, 120), sliver: const SliverToBoxAdapter(child: JournalsSkeleton()))];
+    }
+    if (all.isEmpty) return [SliverFillRemaining(hasScrollBody: false, child: JournalsEmpty(onNew: _newJournal))];
+    final rows = journalRows(all, query: _query);
+    if (rows.isEmpty) {
+      return [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
+            child: Text(context.t('journals.noMatch', {'q': _query.trim()}), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: context.c.muted)),
+          ),
+        ),
+      ];
+    }
+    return [
+      SliverPadding(
+        padding: EdgeInsets.fromLTRB(side, 0, side, 120),
+        sliver: SliverList.builder(
+          itemCount: rows.length,
+          itemBuilder: (context, i) {
+            final r = rows[i];
+            final Widget row = r.month != null
+                ? JournalMonthLine(key: ValueKey('m-${r.month}'), text: r.month!)
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _OpenableCard(
+                      key: ValueKey(r.doc!.id),
+                      doc: r.doc!,
+                      face: JournalCard(doc: r.doc!),
+                      onClosed: _after,
+                      onLongPress: () => _actions(r.doc!),
+                      onSwipe: () => _trash(r.doc!),
+                    ),
+                  );
+            return _firstLoad ? FadeSlideIn(index: i, child: row) : row;
+          },
+        ),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.c;
@@ -423,7 +494,7 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                     // the wider one's box, so the logo jumped left when the fade finished
                     layoutBuilder: (current, previous) => Stack(alignment: Alignment.centerLeft, children: [...previous, ?current]),
                     child: collapsed
-                        ? Text(tab == DeskTab.trash ? context.t('trash.title') : (tab == DeskTab.books ? context.t('books.title') : context.t('desk.title')),
+                        ? Text(_tabTitle(context, tab),
                             key: const ValueKey('t'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontFamily: LitmaFonts.display, fontWeight: FontWeight.w700))
                         : const Wordmark(key: ValueKey('w'), size: 24),
                   ),
@@ -456,7 +527,22 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                   ),
                 ),
               ),
-              if (tab == DeskTab.works && (docs.value?.length ?? 0) > 3)
+              if (tab == DeskTab.journals && (docs.value?.isNotEmpty ?? false))
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: _exportJournals,
+                        style: OutlinedButton.styleFrom(foregroundColor: c.ink, minimumSize: const Size(0, 44)),
+                        icon: const Icon(LucideIcons.download, size: 16),
+                        label: Text(context.t('journals.export')),
+                      ),
+                    ),
+                  ),
+                ),
+              if ((tab == DeskTab.works || tab == DeskTab.journals) && (docs.value?.length ?? 0) > 3)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -465,7 +551,7 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                       textInputAction: TextInputAction.search,
                       onSubmitted: (_) => dismissKeyboard(),
                       decoration: InputDecoration(
-                        hintText: context.t('desk.search'),
+                        hintText: context.t(tab == DeskTab.journals ? 'journals.search' : 'desk.search'),
                         prefixIcon: Icon(LucideIcons.search, size: 18, color: c.muted),
                         contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       ),
@@ -489,6 +575,8 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
                 ),
               if (tab == DeskTab.books)
                 ..._booksSlivers(context, wide)
+              else if (tab == DeskTab.journals)
+                ..._journalSlivers(context, docs.value)
               else if (list == null)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
@@ -528,24 +616,39 @@ class _DeskScreenState extends ConsumerState<DeskScreen> {
         ),
         const Positioned(left: 16, right: 16, bottom: 90, child: SafeArea(child: Center(child: OfflinePill()))),
       ]),
-      floatingActionButton: tab != DeskTab.trash
+      // journals: no button while there are none (the empty state has its own)
+      floatingActionButton: tab != DeskTab.trash && !(tab == DeskTab.journals && (docs.value?.isEmpty ?? true))
           ? ValueListenableBuilder<bool>(
               valueListenable: _fabExtended,
               builder: (context, extended, _) => FloatingActionButton.extended(
                 onPressed: () {
                   Haptics.soft();
-                  tab == DeskTab.books ? _newBook() : _newWork();
+                  if (tab == DeskTab.books) {
+                    _newBook();
+                  } else if (tab == DeskTab.journals) {
+                    _newJournal();
+                  } else {
+                    _newWork();
+                  }
                 },
                 icon: Icon(tab == DeskTab.books ? LucideIcons.bookPlus : LucideIcons.plus, size: 20),
                 isExtended: extended,
                 extendedIconLabelSpacing: 8,
-                label: SwapFade(child: Text(tab == DeskTab.books ? context.t('desk.newBook') : context.t('desk.newWork'), key: ValueKey(tab))),
+                label: SwapFade(child: Text(context.t(switch (tab) { DeskTab.books => 'desk.newBook', DeskTab.journals => 'journals.new', _ => 'desk.newWork' }), key: ValueKey(tab))),
               ),
             )
           : null,
     );
   }
 }
+
+/// Each tab's title (Malayalam in both languages, like the other desk titles).
+String _tabTitle(BuildContext context, DeskTab tab) => context.t(switch (tab) {
+      DeskTab.trash => 'trash.title',
+      DeskTab.books => 'books.title',
+      DeskTab.journals => 'journals.title',
+      DeskTab.works => 'desk.title',
+    });
 
 class _Header extends ConsumerWidget {
   const _Header({required this.tab, required this.docs});
@@ -559,15 +662,30 @@ class _Header extends ConsumerWidget {
     final words = docs?.fold<int>(0, (a, d) => a + d.wordCount) ?? 0;
     final trash = tab == DeskTab.trash;
     final books = tab == DeskTab.books;
+    final journals = tab == DeskTab.journals;
+    // phones: the Journals heading is 24 px and its line 14 px (owner, 28 Nov: the big title was too big)
+    final phone = MediaQuery.sizeOf(context).width < 768;
+    final text = Theme.of(context).textTheme;
+    final titleStyle = journals && phone ? TextStyle(fontFamily: LitmaFonts.display, fontFamilyFallback: LitmaFonts.displayFallback, fontSize: 24, fontWeight: FontWeight.w600, height: 1.25, color: c.ink) : text.displaySmall;
+    final description = context.t(switch (tab) {
+      DeskTab.trash => 'trash.description',
+      DeskTab.books => 'books.description',
+      DeskTab.journals => 'journals.description',
+      DeskTab.works => 'desk.description',
+    });
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SwapFade(
-          child: Text(trash ? context.t('trash.title') : (books ? context.t('books.title') : context.t('desk.title')), key: ValueKey(tab), style: Theme.of(context).textTheme.displaySmall),
+          child: Semantics(key: ValueKey(tab), header: true, child: Text(_tabTitle(context, tab), style: titleStyle)),
         ),
-        const SizedBox(height: 6),
-        Text(trash ? context.t('trash.description') : (books ? context.t('books.description') : context.t('desk.description')), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: c.muted)),
-        if (!trash && !books && docs != null) ...[
+        SizedBox(height: journals && phone ? 4 : 6),
+        Text(description, style: text.bodyMedium?.copyWith(color: c.muted, fontSize: journals && phone ? 14 : null)),
+        if (journals && docs != null && docs!.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _Stat(icon: LucideIcons.calendar, text: context.t('desk.stats', {'works': context.t('journals.count', {'count': docs!.length}), 'words': context.t('common.words', {'count': words})})),
+        ],
+        if (!trash && !books && !journals && docs != null) ...[
           const SizedBox(height: 14),
           Wrap(spacing: 8, runSpacing: 8, children: [
             _Stat(icon: LucideIcons.fileText, text: context.t('desk.stats', {'works': context.t('common.works', {'count': docs!.length}), 'words': context.t('common.words', {'count': words})})),
@@ -601,68 +719,133 @@ class _Stat extends StatelessWidget {
   }
 }
 
-/// Works · Trash, with a pill that slides between them.
-class _Tabs extends StatelessWidget {
+/// Works · Books · Journals · Trash. Each segment is as wide as its label; when they don't fit (in
+/// Malayalam on every phone) the row scrolls sideways and the chosen tab is always fully in view.
+/// When they fit, they share the whole width.
+class _Tabs extends StatefulWidget {
   const _Tabs({required this.tab, required this.onChanged});
   final DeskTab tab;
   final ValueChanged<DeskTab> onChanged;
 
   @override
+  State<_Tabs> createState() => _TabsState();
+}
+
+class _TabsState extends State<_Tabs> {
+  final _scroll = ScrollController();
+  List<double> _widths = const [];
+
+  static const _pad = 10.0;
+
+  @override
+  void didUpdateWidget(_Tabs old) {
+    super.didUpdateWidget(old);
+    if (old.tab != widget.tab) WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(animate: true));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(animate: false));
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  /// Scroll just enough to show the chosen segment whole.
+  void _reveal({required bool animate}) {
+    if (!mounted || !_scroll.hasClients || _widths.length != DeskTab.values.length) return;
+    final i = widget.tab.index;
+    final left = 2 + _widths.take(i).fold<double>(0, (a, w) => a + w);
+    final right = left + _widths[i] + 2;
+    final p = _scroll.position;
+    var to = p.pixels;
+    if (left - 2 < to) to = left - 2;
+    if (right > to + p.viewportDimension) to = right - p.viewportDimension;
+    to = to.clamp(0.0, p.maxScrollExtent);
+    if ((to - p.pixels).abs() < 0.5) return;
+    if (animate) {
+      _scroll.animateTo(to, duration: Motion.of(context, Motion.medium), curve: Motion.emphasized);
+    } else {
+      _scroll.jumpTo(to);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.c;
-    final labels = [context.t('desk.tabs.works'), context.t('desk.tabs.books'), context.t('desk.tabs.trash')];
-    return Container(
-      height: 42,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: c.subtle, borderRadius: BorderRadius.circular(12)),
-      child: LayoutBuilder(builder: (context, box) {
-        final w = box.maxWidth / DeskTab.values.length;
-        return Stack(children: [
-          AnimatedPositioned(
-            duration: Motion.of(context, Motion.medium),
-            curve: Motion.emphasized,
-            left: tab.index * w,
-            width: w,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: context.isDark ? Color.lerp(c.subtle, c.ink, 0.12) : c.surface,
-                borderRadius: BorderRadius.circular(9),
-                boxShadow: const [BoxShadow(color: Color(0x14111113), blurRadius: 6, offset: Offset(0, 1))],
-              ),
-            ),
-          ),
-          Row(children: [
+    final labels = [for (final t in DeskTab.values) context.t('desk.tabs.${t.name}')];
+    final size = MediaQuery.sizeOf(context).width < 360 ? 13.0 : 14.0;
+    TextStyle style(bool on) => TextStyle(fontFamily: LitmaFonts.ui, fontFamilyFallback: LitmaFonts.uiFallback, fontSize: size, fontWeight: FontWeight.w600, color: on ? c.ink : c.muted);
+    final scaler = MediaQuery.textScalerOf(context);
+    double measure(String label) {
+      final p = TextPainter(text: TextSpan(text: label, style: style(true)), textDirection: TextDirection.ltr, textScaler: scaler, maxLines: 1)..layout();
+      final w = p.width;
+      p.dispose();
+      return w.ceilToDouble() + 2 * _pad + 4;
+    }
+
+    final natural = [for (final l in labels) measure(l)];
+    return LayoutBuilder(builder: (context, box) {
+      final room = box.maxWidth - 4;
+      final total = natural.fold<double>(0, (a, w) => a + w);
+      final extra = total < room ? (room - total) / natural.length : 0.0;
+      _widths = [for (final w in natural) w + extra];
+      return Container(
+        height: 48,
+        decoration: BoxDecoration(color: c.subtle, borderRadius: BorderRadius.circular(12)),
+        child: SingleChildScrollView(
+          controller: _scroll,
+          scrollDirection: Axis.horizontal,
+          physics: total < room ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
+          padding: const EdgeInsets.all(2),
+          child: Row(children: [
             for (final t in DeskTab.values)
-              Expanded(
-                child: Semantics(
-                  selected: t == tab,
-                  button: true,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => t == tab ? null : onChanged(t),
-                    child: Center(
+              Semantics(
+                selected: t == widget.tab,
+                button: true,
+                inMutuallyExclusiveGroup: true,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => t == widget.tab ? null : widget.onChanged(t),
+                  child: SizedBox(
+                    width: _widths[t.index],
+                    height: 44,
+                    child: AnimatedContainer(
+                      duration: Motion.of(context, Motion.fast),
+                      margin: const EdgeInsets.all(2),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: t == widget.tab ? (context.isDark ? Color.lerp(c.subtle, c.ink, 0.12) : c.surface) : c.subtle.withValues(alpha: 0),
+                        borderRadius: BorderRadius.circular(9),
+                        boxShadow: t == widget.tab ? const [BoxShadow(color: Color(0x14111113), blurRadius: 6, offset: Offset(0, 1))] : const [],
+                      ),
                       child: AnimatedDefaultTextStyle(
                         duration: Motion.of(context, Motion.fast),
-                        style: TextStyle(fontFamily: LitmaFonts.ui, fontFamilyFallback: LitmaFonts.uiFallback, fontSize: 14, fontWeight: FontWeight.w600, color: t == tab ? c.ink : c.muted),
-                        child: Text(labels[t.index]),
+                        style: style(t == widget.tab),
+                        child: Text(labels[t.index], maxLines: 1, softWrap: false),
                       ),
                     ),
                   ),
                 ),
               ),
           ]),
-        ]);
-      }),
-    );
+        ),
+      );
+    });
   }
 }
 
 /// A work on the desk. Tapping grows the card into the editor (container transform).
 class _OpenableCard extends StatelessWidget {
-  const _OpenableCard({super.key, required this.doc, required this.onClosed, required this.onLongPress, required this.onSwipe, this.pinned = false});
+  const _OpenableCard({super.key, required this.doc, required this.onClosed, required this.onLongPress, required this.onSwipe, this.pinned = false, this.face});
   final LitmaDoc doc;
+
+  /// The card's face; a work card by default (journals have their own).
+  final Widget? face;
   final bool pinned;
   final ValueChanged<Object?> onClosed;
   final VoidCallback onLongPress;
@@ -700,7 +883,7 @@ class _OpenableCard extends StatelessWidget {
           onTap: open,
           onLongPress: onLongPress,
           scale: 0.985,
-          child: WorkCard(doc: doc, pinned: pinned),
+          child: face ?? WorkCard(doc: doc, pinned: pinned),
         ),
       ),
     );

@@ -141,7 +141,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => _PickWorks(docs: _docs.values.where((d) => !d.pristine).toList(), used: used.cast<String>().toSet()),
+      builder: (context) => _PickWorks(docs: _docs.values.where((d) => !d.pristine && d.kind != DocKind.diary).toList(), used: used.cast<String>().toSet()),
     );
     if (picked == null || picked.isEmpty) return;
     _insert([for (final d in picked) {'id': bookItemId(), 'type': 'document', 'documentId': d.id, 'showTitle': true, 'inToc': true}]);

@@ -14,6 +14,7 @@ import '../core/manglish.dart';
 import '../core/motion.dart';
 import '../core/theme.dart';
 import '../data/forms.dart';
+import '../data/journals.dart';
 import '../data/models.dart';
 import '../data/spell.dart';
 import '../features/reader/reader_screen.dart';
@@ -22,6 +23,7 @@ import '../widgets/script_field.dart';
 import 'block_controller.dart';
 import 'block_style.dart';
 import 'document.dart';
+import 'journal_export.dart';
 import 'page_view.dart';
 import 'pages.dart';
 import 'saver.dart';
@@ -50,17 +52,20 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   EditorSession? _session;
   Object? _error;
 
+  /// A journal's fellow journals, oldest first (for ‹ ›); null until known.
+  List<LitmaDoc>? _journals;
+
   @override
   void initState() {
     super.initState();
     Analytics.screen('/write/');
-    _open();
+    _open(widget.docId, widget.initial);
   }
 
-  Future<void> _open() async {
+  Future<void> _open(String id, LitmaDoc? initial) async {
     final services = ref.read(servicesProvider);
     try {
-      final doc = widget.initial ?? await services.store.getDoc(widget.docId);
+      final doc = initial ?? await services.store.getDoc(id);
       if (doc == null) throw StateError('missing');
       // crash recovery: a journal on the phone newer than the saved copy wins
       final j = await services.offline.get('journal', doc.id);
@@ -68,10 +73,38 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       if (j != null && DateTime.tryParse('${j['at']}')?.isAfter(doc.updatedAt) == true) restored = (j['doc'] as Map).cast<String, dynamic>();
       final s = EditorSession(doc: doc, store: services.store, restored: restored);
       if (await services.offline.hasPending('documents', doc.id)) s.saver.markLocal();
-      if (mounted) setState(() => _session = s);
+      if (!mounted) {
+        s.dispose();
+        return;
+      }
+      setState(() => _session = s);
+      if (doc.kind == DocKind.diary && _journals == null) unawaited(_loadJournals(doc));
     } catch (e) {
       if (mounted) setState(() => _error = e);
     }
+  }
+
+  /// The writer's journals for ‹ › (by started date; this one always among them).
+  Future<void> _loadJournals(LitmaDoc doc) async {
+    final all = await ref.read(servicesProvider).store.listDocs().catchError((_) => <LitmaDoc>[]);
+    if (!mounted) return;
+    setState(() => _journals = journalOrder([...all.where((d) => d.id != doc.id), doc]));
+  }
+
+  /// ‹ or ›: save this journal (or discard it if it is new and untouched, the keep rule), then open
+  /// [target] in the same screen.
+  Future<void> _goTo(LitmaDoc target) async {
+    final old = _session;
+    if (old == null) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _session = null);
+    await WidgetsBinding.instance.endOfFrame; // the old editor lets go of the session first
+    final discarded = await old.close().catchError((_) => false);
+    old.dispose();
+    if (!mounted) return;
+    final kept = _journals?.where((d) => d.id != old.doc.id).toList();
+    setState(() => _journals = kept == null ? null : (discarded ? kept : journalOrder([...kept, old.doc])));
+    await _open(target.id, null);
   }
 
   @override
@@ -89,7 +122,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final s = _session;
     if (_error != null) return _NotAvailable(offline: '$_error'.contains('Offline'));
     if (s == null) return Scaffold(body: InkLoader(label: context.t('loading.work')));
-    return _Editor(session: s);
+    return _Editor(key: ObjectKey(s), session: s, journals: _journals, onJournal: _goTo);
   }
 }
 
@@ -116,8 +149,12 @@ class _NotAvailable extends StatelessWidget {
 }
 
 class _Editor extends ConsumerStatefulWidget {
-  const _Editor({required this.session});
+  const _Editor({super.key, required this.session, this.journals, this.onJournal});
   final EditorSession session;
+
+  /// For a journal: the journals for ‹ › (null until known) and how to open one.
+  final List<LitmaDoc>? journals;
+  final ValueChanged<LitmaDoc>? onJournal;
 
   @override
   ConsumerState<_Editor> createState() => _EditorState();
@@ -266,6 +303,11 @@ class _EditorState extends ConsumerState<_Editor> {
     if (save == true && name.trim().isNotEmpty) await s.rename(name.trim());
   }
 
+  void _find() {
+    Analytics.tap('app.tools.find');
+    showFindSheet(context, s);
+  }
+
   void _read() {
     FocusScope.of(context).unfocus();
     Navigator.of(context).push(ReaderScreen.route(title: s.title, kind: s.kind, settings: s.settings, document: s.document));
@@ -277,6 +319,26 @@ class _EditorState extends ConsumerState<_Editor> {
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
     final writing = keyboard && s.focused != null;
     s.styler = (m, b) => markStyle(m, b, dark: context.isDark, t: c);
+    final journal = s.kind == DocKind.diary;
+    // journals: ‹ › beside the title, so the bar keeps fewer buttons (Find and Read move to ⋮, and
+    // below 360 px the tools too) and the title keeps room
+    final narrow = MediaQuery.sizeOf(context).width < 360;
+    final titleBlock = InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: _rename,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontFamily: LitmaFonts.display)),
+            const SizedBox(height: 1),
+            if (journal) _JournalLine(session: s) else _SaveLine(session: s),
+          ],
+        ),
+      ),
+    );
 
     return PopScope(
       // Android back with a selection ends the selection first, as with the keyboard (audit, 26 Nov)
@@ -289,22 +351,14 @@ class _EditorState extends ConsumerState<_Editor> {
         appBar: AppBar(
           backgroundColor: MediaQuery.sizeOf(context).width >= 760 ? c.canvas : c.paper,
           titleSpacing: 0,
-          title: InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: _rename,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontFamily: LitmaFonts.display)),
-                  const SizedBox(height: 1),
-                  _SaveLine(session: s),
-                ],
-              ),
-            ),
-          ),
+          leadingWidth: journal ? 48 : null,
+          title: journal
+              ? Row(mainAxisSize: MainAxisSize.min, children: [
+                  JournalArrow(prev: true, current: s.doc, journals: widget.journals, onOpen: widget.onJournal),
+                  Flexible(child: titleBlock),
+                  JournalArrow(prev: false, current: s.doc, journals: widget.journals, onOpen: widget.onJournal),
+                ])
+              : titleBlock,
           actions: [
             // the writing timer's time left; opens Goal and timer
             ListenableBuilder(
@@ -326,17 +380,15 @@ class _EditorState extends ConsumerState<_Editor> {
                 );
               },
             ),
-            IconButton(
-              tooltip: context.t('app.tools.find'),
-              onPressed: () {
-                Analytics.tap('app.tools.find');
-                showFindSheet(context, s);
-              },
-              icon: Icon(LucideIcons.search, size: 21, color: c.ink),
-            ),
-            IconButton(tooltip: context.t('app.tools.title'), onPressed: () => showToolsSheet(context, ref, s), icon: Icon(LucideIcons.layoutGrid, size: 21, color: c.ink)),
-            IconButton(tooltip: context.t('app.editor.read'), onPressed: _read, icon: const Icon(LucideIcons.bookOpen, size: 21)),
-            _MoreMenu(session: s, onRename: _rename, onRead: _read),
+            if (!journal)
+              IconButton(
+                tooltip: context.t('app.tools.find'),
+                onPressed: _find,
+                icon: Icon(LucideIcons.search, size: 21, color: c.ink),
+              ),
+            if (!(journal && narrow)) IconButton(tooltip: context.t('app.tools.title'), onPressed: () => showToolsSheet(context, ref, s), icon: Icon(LucideIcons.layoutGrid, size: 21, color: c.ink)),
+            if (!journal) IconButton(tooltip: context.t('app.editor.read'), onPressed: _read, icon: const Icon(LucideIcons.bookOpen, size: 21)),
+            _MoreMenu(session: s, onRename: _rename, onRead: _read, onFind: journal ? _find : null, onTools: journal && narrow ? () => showToolsSheet(context, ref, s) : null),
           ],
         ),
         body: Column(
@@ -397,6 +449,75 @@ class _SaveLine extends StatelessWidget {
           ),
         ]);
       },
+    );
+  }
+}
+
+/// A journal's line under its title: "26 നവം · Edited 27 നവം" (the edited day only when it differs);
+/// while saving, offline or failed the save text takes its place, as the save line does.
+class _JournalLine extends StatelessWidget {
+  const _JournalLine({required this.session});
+  final EditorSession session;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final size = MediaQuery.sizeOf(context).width < 360 ? 11.5 : 12.0;
+    return ValueListenableBuilder<SaveStatus>(
+      valueListenable: session.saver.status,
+      builder: (context, st, _) {
+        final narrow = MediaQuery.sizeOf(context).width < 400;
+        final (String? text, Color color) = switch (st) {
+          SaveStatus.saving => (context.t('app.editor.saving'), c.muted),
+          SaveStatus.local => (narrow ? context.t('app.editor.localShort') : context.t('app.editor.local'), c.highlight),
+          SaveStatus.failed => (context.t('app.editor.failed'), c.danger),
+          _ => (null, c.muted),
+        };
+        final d = session.doc;
+        final line = text ?? journalDateLine(context, d.createdAt, d.updatedAt);
+        return SwapFade(child: Text(line, key: ValueKey(text == null ? 'date' : '$st'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: size, color: color)));
+      },
+    );
+  }
+}
+
+/// "26 നവം · Edited 27 നവം", or just "26 നവം" when it was last edited the day it was started.
+String journalDateLine(BuildContext context, DateTime created, DateTime updated, [DateTime? now]) {
+  final start = shortDate(created, now);
+  return sameDay(created, updated) ? start : '$start · ${context.t('journals.edited', {'date': shortDate(updated, now)})}';
+}
+
+/// ‹ or › in a journal's title bar: opens the journal started just before or after. It stays in place
+/// at the ends (disabled, "This is your first journal"), and while the journals are still loading.
+class JournalArrow extends StatelessWidget {
+  const JournalArrow({super.key, required this.prev, required this.current, required this.journals, required this.onOpen});
+  final bool prev;
+  final LitmaDoc current;
+  final List<LitmaDoc>? journals;
+  final ValueChanged<LitmaDoc>? onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final known = journals != null;
+    final n = journalNeighbours(journals ?? [current], current.id);
+    final target = prev ? n.prev : n.next;
+    final tip = target != null
+        ? context.t(prev ? 'journals.prev' : 'journals.next', {'date': shortDate(target.createdAt)})
+        : context.t(prev ? 'journals.first' : 'journals.latest');
+    return IconButton(
+      tooltip: known ? tip : null,
+      constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+      padding: EdgeInsets.zero,
+      onPressed: known && target != null && onOpen != null
+          ? () {
+              Haptics.tap();
+              onOpen!(target);
+            }
+          : null,
+      color: c.ink,
+      disabledColor: c.disabledInk.withValues(alpha: 0.55),
+      icon: Icon(prev ? LucideIcons.chevronLeft : LucideIcons.chevronRight, size: 22),
     );
   }
 }
@@ -988,10 +1109,14 @@ class TrashedWork {
 }
 
 class _MoreMenu extends ConsumerWidget {
-  const _MoreMenu({required this.session, required this.onRename, required this.onRead});
+  const _MoreMenu({required this.session, required this.onRename, required this.onRead, this.onFind, this.onTools});
   final EditorSession session;
   final VoidCallback onRename;
   final VoidCallback onRead;
+
+  /// Journals keep Find (and on narrow phones the tools) here instead of in the bar.
+  final VoidCallback? onFind;
+  final VoidCallback? onTools;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1007,6 +1132,12 @@ class _MoreMenu extends ConsumerWidget {
             openStoryWorld(context, session);
           case 'share':
             await showShareSheet(context, ref, session);
+          case 'export':
+            await showJournalExportSheet(context, ref, current: session);
+          case 'find':
+            onFind?.call();
+          case 'tools':
+            onTools?.call();
           case 'history':
             await showHistorySheet(context, ref, session);
           case 'read':
@@ -1027,10 +1158,16 @@ class _MoreMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
+        if (onTools != null) _item('tools', LucideIcons.layoutGrid, context.t('app.tools.title'), c.ink),
+        if (onFind != null) _item('find', LucideIcons.search, context.t('app.tools.find'), c.ink),
         _item('read', LucideIcons.bookOpen, context.t('app.editor.read'), c.ink),
         _item('story', LucideIcons.notebookPen, context.t('app.tools.story'), c.ink),
         _item('history', LucideIcons.history, context.t('app.tools.history'), c.ink),
-        _item('share', LucideIcons.share2, context.t('app.tools.share'), c.ink),
+        // journals have no share link (owner, 28 Nov): Export instead
+        if (session.kind == DocKind.diary)
+          _item('export', LucideIcons.download, context.t('journals.export'), c.ink)
+        else
+          _item('share', LucideIcons.share2, context.t('app.tools.share'), c.ink),
         _item('rename', LucideIcons.pencilLine, context.t('app.editor.rename'), c.ink),
         _item('mode', LucideIcons.languages, context.t('app.editor.typing'), c.ink),
         const PopupMenuDivider(),

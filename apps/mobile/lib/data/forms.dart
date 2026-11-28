@@ -63,7 +63,11 @@ bool hasWriting(Json? content, DocKind kind) {
 
 /// The keep rule for a new work, every writing type: kept when the writer changed its title or wrote
 /// any body text; otherwise closing it deletes it (and the desk's cleanup does). Same as `keepOnClose`.
-bool keepOnClose({required String? title, required DocKind kind, required Json? content}) => !isDefaultTitle(title, kind) || hasWriting(content, kind);
+/// For a journal the title counts as not named while [isUntitledJournal] says so (its started date).
+bool keepOnClose({required String? title, required DocKind kind, required Json? content, DateTime? createdAt}) {
+  final unnamed = kind == DocKind.diary ? isUntitledJournal(title, createdAt) : isDefaultTitle(title, kind);
+  return !unnamed || hasWriting(content, kind);
+}
 
 typedef Json = Map<String, dynamic>;
 
@@ -178,11 +182,63 @@ Json withAuthor(Json content, String? name) {
   return {...content, 'content': blocks};
 }
 
+// Fixed Malayalam tables, never Intl (ICU writes ZWNJ forms such as ഞായറാഴ്‌ച), so the web and the
+// phone write the same dates. Same tables as packages/shared/src/forms.ts. Weekdays from Monday (Dart).
 const _months = ['ജനുവരി', 'ഫെബ്രുവരി', 'മാർച്ച്', 'ഏപ്രിൽ', 'മേയ്', 'ജൂൺ', 'ജൂലൈ', 'ഓഗസ്റ്റ്', 'സെപ്റ്റംബർ', 'ഒക്ടോബർ', 'നവംബർ', 'ഡിസംബർ'];
 const _weekdays = ['തിങ്കളാഴ്ച', 'ചൊവ്വാഴ്ച', 'ബുധനാഴ്ച', 'വ്യാഴാഴ്ച', 'വെള്ളിയാഴ്ച', 'ശനിയാഴ്ച', 'ഞായറാഴ്ച'];
+const _shortMonths = ['ജനു', 'ഫെബ്രു', 'മാർ', 'ഏപ്രി', 'മേയ്', 'ജൂൺ', 'ജൂലൈ', 'ഓഗ', 'സെപ്റ്റം', 'ഒക്ടോ', 'നവം', 'ഡിസം'];
+const _shortWeekdays = ['തിങ്കൾ', 'ചൊവ്വ', 'ബുധൻ', 'വ്യാഴം', 'വെള്ളി', 'ശനി', 'ഞായർ'];
 
-/// Today's date as a diary heading, e.g. "2026 നവംബർ 3, ചൊവ്വാഴ്ച" (same as the web's ml-IN format).
-String todayLine(DateTime d) => '${d.year} ${_months[d.month - 1]} ${d.day}, ${_weekdays[d.weekday - 1]}';
+/// The writer's local day of [d] (server times arrive in UTC).
+DateTime _local(DateTime d) => d.isUtc ? d.toLocal() : d;
+
+/// A date as a journal heading, e.g. "2026 നവംബർ 28, ശനിയാഴ്ച" (`todayLine`).
+String todayLine(DateTime d) {
+  final l = _local(d);
+  return '${l.year} ${_months[l.month - 1]} ${l.day}, ${_weekdays[l.weekday - 1]}';
+}
+
+/// The calendar block on a journal card: day 28, month നവം, weekday ശനി (`journalDay`).
+({int day, String month, String weekday}) journalDay(DateTime d) {
+  final l = _local(d);
+  return (day: l.day, month: _shortMonths[l.month - 1], weekday: _shortWeekdays[l.weekday - 1]);
+}
+
+/// "28 നവം", with the year when it isn't [now]'s year: "28 നവം 2025" (`shortDate`).
+String shortDate(DateTime d, [DateTime? now]) {
+  final l = _local(d);
+  final n = _local(now ?? DateTime.now());
+  return l.year == n.year ? '${l.day} ${_shortMonths[l.month - 1]}' : '${l.day} ${_shortMonths[l.month - 1]} ${l.year}';
+}
+
+/// The month line between journal cards: "2026 നവംബർ" (`monthLine`).
+String monthLine(DateTime d) {
+  final l = _local(d);
+  return '${l.year} ${_months[l.month - 1]}';
+}
+
+/// The title a new journal gets: its started date (`journalTitle`).
+String journalTitle(DateTime d) => todayLine(d);
+
+String _plainTitle(String t) => t.replaceAll(RegExp('[\u200c\u200d]'), '').replaceAll(RegExp(r'\s+'), ' ').trim();
+
+/// True while a journal has no title of its own: empty, an old default (പുതിയ ജേണൽ, പുതിയ ഡയറി) or
+/// still its started date as the apps write it (`journalTitle`, or `shortDate` with or without the
+/// year). Without [createdAt] only the empty title and the old defaults count (`isUntitledJournal`).
+bool isUntitledJournal(String? title, [DateTime? createdAt]) {
+  final t = _plainTitle(title ?? '');
+  if (isDefaultTitle(t, DocKind.diary)) return true;
+  if (createdAt == null) return false;
+  final l = _local(createdAt);
+  final day = '${l.day} ${_shortMonths[l.month - 1]}';
+  return t == journalTitle(l) || t == day || t == '$day ${l.year}';
+}
+
+/// Same local calendar day.
+bool sameDay(DateTime a, DateTime b) {
+  final x = _local(a), y = _local(b);
+  return x.year == y.year && x.month == y.month && x.day == y.day;
+}
 
 /// Prompts shown on empty lines (apps/web/src/components/editor/extensions.ts).
 const variantPrompt = <String, String>{
@@ -260,3 +316,24 @@ List<String> menuVariants(DocKind kind) => switch (kind) {
       DocKind.screenplay => ['subhead'],
       DocKind.blank => ['title', 'subhead', 'chapter', 'pullquote'],
     };
+
+/// A line the apps wrote as a date heading ("2026 നവംബർ 28, ശനിയാഴ്ച", older ICU forms too). Same as `isDateLine`.
+bool isDateLine(String line) {
+  final t = _plainTitle(line);
+  return t.length <= 40 && RegExp(r'\d{4}').hasMatch(t) && _months.any(t.contains);
+}
+
+/// What a journal card shows (`journalPreview`). [lines]: the journal's lines of text in order (title
+/// block and datelines included). A named journal shows its title; an untitled one its first line of
+/// writing, and the text continues after it. `heading` is null when nothing is written.
+({String? heading, String body}) journalPreview(String? title, DateTime? createdAt, List<String> lines) {
+  final own = _plainTitle(title ?? '');
+  final text = lines.map((l) => l.replaceAll(RegExp(r'\s+'), ' ').trim()).where((l) => l.isNotEmpty && !isDateLine(l)).toList();
+  // the title block repeats the title at the top of the page
+  while (text.isNotEmpty && own.isNotEmpty && _plainTitle(text.first) == own) {
+    text.removeAt(0);
+  }
+  if (!isUntitledJournal(title, createdAt)) return (heading: own, body: text.join(' '));
+  if (text.isEmpty) return (heading: null, body: '');
+  return (heading: text.first, body: text.skip(1).join(' '));
+}

@@ -99,7 +99,17 @@ final diary = {
   ],
 };
 
-Json _doc(String id, DocKind kind, String title, Json content, int words, String updated) => {
+/// A journal started on [day] (its dateline and text), for the Journals tab.
+Json _journal(DateTime day, List<String> paras) => {
+      'type': 'doc',
+      'content': [
+        _sb('title'),
+        _sb('dateline', todayLine(day)),
+        for (final t in paras) _p([_t(t)]),
+      ],
+    };
+
+Json _doc(String id, DocKind kind, String title, Json content, int words, String updated, {String created = '2026-10-01T08:00:00.000Z'}) => {
       'id': id,
       'user_id': 'writer-1',
       'title': title,
@@ -111,7 +121,7 @@ Json _doc(String id, DocKind kind, String title, Json content, int words, String
       'archived': false,
       'is_public': false,
       'share_id': null,
-      'created_at': '2026-10-01T08:00:00.000Z',
+      'created_at': created,
       'updated_at': updated,
     };
 
@@ -125,7 +135,19 @@ Map<String, List<Json>> sampleTables() {
       _doc('w-story', DocKind.story, 'ക്രിസ്മസ് രാവിലെ', story, 840, ago(const Duration(days: 1))),
       _doc('w-poem', DocKind.poem, 'മഴക്കാലം', poem, 96, ago(const Duration(days: 3))),
       _doc('w-drama', DocKind.drama, 'കടത്തുവള്ളം', drama, 2150, ago(const Duration(days: 9))),
-      _doc('w-diary', DocKind.diary, 'ഓണക്കാലം', diary, 410, ago(const Duration(days: 40))),
+      _doc('w-diary', DocKind.diary, 'ഓണക്കാലം', diary, 410, ago(const Duration(days: 40)), created: '2026-09-05T08:00:00.000Z'),
+      // journals from different families' days, side by side (fairness rule)
+      for (final (id, days, edited, title, paras) in [
+        ('j-1', 0, 0, null, ['രാവിലെ ഉമ്മ പത്തിരി ചുട്ടു.', 'അയൽപക്കത്തെ കുട്ടികൾ മണം പിടിച്ച് വന്നു. ഉച്ചയ്ക്ക് കറന്റ് പോയപ്പോൾ എല്ലാവരും ഉമ്മറത്തിരുന്ന് കഥ പറഞ്ഞു.']),
+        ('j-2', 2, 1, 'മഴ പെയ്ത വൈകുന്നേരം', ['കോളേജിൽ നിന്ന് മടങ്ങുമ്പോൾ ബസ് സ്റ്റോപ്പിൽ ഒരു മണിക്കൂർ നിന്നു. അടുത്തിരുന്ന ഫാത്തിമ ടീച്ചർ പഴയ സ്കൂൾകാലത്തെ മഴയെക്കുറിച്ച് പറഞ്ഞു. ജോസഫ് ചേട്ടന്റെ ഓട്ടോ വന്നപ്പോഴേക്കും ഞങ്ങൾ മൂന്നുപേരും ഒരേ കുടക്കീഴിലായി.']),
+        ('j-3', 5, 5, 'അമ്മച്ചിയുടെ അപ്പം', ['ഞായറാഴ്ച അമ്മച്ചി അപ്പവും സ്റ്റൂവും ഉണ്ടാക്കി. അപ്പാപ്പൻ ഉച്ചകഴിഞ്ഞ് ഞങ്ങളെ കടപ്പുറത്തു കൊണ്ടുപോയി.']),
+        ('j-4', 40, 39, null, ['അച്ഛൻ രാവിലെ പാടത്തേക്കു പോയി. കൊയ്ത്തിന് ഇനി രണ്ടാഴ്ച.', 'വൈകുന്നേരം ഇക്കയുടെ കല്യാണത്തിന്റെ ഒരുക്കങ്ങൾ.']),
+      ])
+        () {
+          final start = now.subtract(Duration(days: days)).toLocal();
+          final content = _journal(start, paras);
+          return _doc(id, DocKind.diary, title ?? journalTitle(start), content, paras.join(' ').split(' ').length, ago(Duration(days: edited, minutes: 5)), created: start.toUtc().toIso8601String());
+        }(),
     ],
     'profiles': [sampleProfile],
     'story_items': [

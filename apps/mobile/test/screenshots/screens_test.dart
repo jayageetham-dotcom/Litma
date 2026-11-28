@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:litma/app/app.dart';
 import 'package:litma/app/providers.dart';
 import 'package:litma/core/config.dart';
@@ -86,8 +87,8 @@ Future<void> loadFonts() async {
   if (icons.existsSync()) await (FontLoader('MaterialIcons')..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync())))).load();
 }
 
-Future<Services> services({bool signedIn = true, bool withWorks = true, bool offline = false}) async {
-  SharedPreferences.setMockInitialValues({});
+Future<Services> services({bool signedIn = true, bool withWorks = true, bool offline = false, String? locale}) async {
+  SharedPreferences.setMockInitialValues({if (locale != null) 'litma:locale': locale});
   final prefs = await SharedPreferences.getInstance();
   final messages = <String, Map<String, dynamic>>{};
   for (final code in ['en', 'ml']) {
@@ -296,6 +297,54 @@ void main() {
         await t.ensureVisible(find.text('കഥാഘടന').first);
         await settle(t, 4);
         await t.tap(find.text('കഥാഘടന').first);
+        await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+        await settle(t);
+      });
+    });
+    // Journals (designer review): the tab at 390 (English, light) and 320 (Malayalam, dark), a
+    // journal in the editor with ‹ ›, the latest journal (› disabled), the export sheet, the empty tab
+    for (final (width, b, locale) in [(390.0, Brightness.light, 'en'), (320.0, Brightness.dark, 'ml')]) {
+      final tag = '${width.toInt()}-${b.name}';
+      final journalsTab = locale == 'ml' ? 'ജേണലുകൾ' : 'Journals';
+      testWidgets('journals tab $tag', (t) async {
+        final s = await t.runAsync(() => services(locale: locale)) as Services;
+        await shoot(t, 'desk-journals-$tag', app(s, home: const DeskScreen()), size: Size(width, 844), brightness: b, then: (t) async {
+          await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+          await settle(t);
+          await t.tap(find.text(journalsTab).last);
+          await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+          await settle(t);
+        });
+      });
+      for (final (id, name) in [('j-2', 'journal'), ('j-1', 'journal-latest')]) {
+        testWidgets('editor $name $tag', (t) async {
+          final s = await t.runAsync(() => services(locale: locale)) as Services;
+          await shoot(t, 'editor-$name-$tag', app(s, home: EditorScreen(docId: id)), size: Size(width, 844), brightness: b, then: (t) async {
+            await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+            await settle(t);
+          });
+        });
+      }
+      testWidgets('journal export $tag', (t) async {
+        final s = await t.runAsync(() => services(locale: locale)) as Services;
+        await shoot(t, 'export-journal-$tag', app(s, home: const DeskScreen()), size: Size(width, 844), brightness: b, then: (t) async {
+          await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+          await settle(t);
+          await t.tap(find.text(journalsTab).last);
+          await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+          await settle(t);
+          await t.tap(find.byIcon(LucideIcons.download).first);
+          await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+          await settle(t);
+        });
+      });
+    }
+    testWidgets('journals empty', (t) async {
+      final s = await t.runAsync(() => services(withWorks: false)) as Services;
+      await shoot(t, 'desk-journals-empty', app(s, home: const DeskScreen()), then: (t) async {
+        await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+        await settle(t);
+        await t.tap(find.text('Journals').last);
         await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
         await settle(t);
       });

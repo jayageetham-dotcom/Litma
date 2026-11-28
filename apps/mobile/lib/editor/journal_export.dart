@@ -32,9 +32,12 @@ String fieldDate(DateTime d) {
   return '${j.day} ${j.month} ${(d.isUtc ? d.toLocal() : d).year}';
 }
 
-/// One file of journals, oldest first: a contents page with each journal's date line and title, then
-/// each journal on a new page under its title and date. [contents] is the contents page's heading.
-String journalsHtml(List<(LitmaDoc, EditorDocument)> journals, {required String contents, String fontsCss = ''}) {
+/// One file of journals, oldest first: a contents page (each journal's date line, and " · title" when
+/// it is named), then each journal on a new page under its title and date. The file's own words are
+/// Malayalam in both UI languages, like books (ജേണലുകൾ, ഉള്ളടക്കം), as on the web.
+String journalsHtml(List<(LitmaDoc, EditorDocument)> journals, {String fontsCss = ''}) {
+  const title = 'ജേണലുകൾ';
+  const contents = 'ഉള്ളടക്കം';
   final esc = htmlText;
   final first = journals.isEmpty ? defaultSettings : journals.first.$1.settings;
   final font = (first['font'] as String?) ?? 'Gayathri';
@@ -44,9 +47,8 @@ String journalsHtml(List<(LitmaDoc, EditorDocument)> journals, {required String 
   final body = StringBuffer();
   for (final (i, (d, doc)) in journals.indexed) {
     final date = todayLine(d.createdAt);
-    final face = journalFace(d.copyWith(content: doc.toJson()));
     final named = !isUntitledJournal(d.title, d.createdAt);
-    toc.write('<li><span class="toc-date">${esc(date)}</span>${named ? '<span class="toc-title">${esc(d.title.trim())}</span>' : (face.title.isEmpty ? '' : '<span class="toc-title">${esc(face.title)}</span>')}</li>');
+    toc.write('<li>${esc(named ? '$date · ${d.title.trim()}' : date)}</li>');
     // the journal's own title and dateline lines, unless its text already starts with them
     final lead = <TextBlock>[for (final b in doc.blocks.take(3)) if (b is TextBlock && b.type == 'styledBlock') b];
     final hasTitle = lead.any((b) => b.variant == 'title' && b.plainText.trim().isNotEmpty);
@@ -57,21 +59,19 @@ String journalsHtml(List<(LitmaDoc, EditorDocument)> journals, {required String 
     body.write(docBodyHtml(doc, kind: DocKind.diary));
     body.write('</section>');
   }
-  return '''<!doctype html><html lang="ml"><head><meta charset="utf-8"><title>${esc(contents)}</title>
+  return '''<!doctype html><html lang="ml"><head><meta charset="utf-8"><title>$title</title>
 <style>
 $fontsCss@page { size: A4; margin: 25mm; }
 body { font-family: '$font', 'Noto Serif Malayalam', serif; font-size: ${size}pt; line-height: $lh; color: #111; text-align: start; margin: 0; }
 $exportCss
 h1.contents { font-size: 1.6em; margin: 0 0 1em; }
 ol.toc { list-style: none; padding: 0; margin: 0; }
-ol.toc li { margin: 0 0 .7em; }
-.toc-date { display: block; color: #555; font-size: .9em; }
-.toc-title { display: block; font-weight: 700; }
+ol.toc li { margin: 0 0 .6em; }
 section.journal { page-break-before: always; break-before: page; }
 .j-title { text-align: start; font-size: 1.6em; }
 .j-date { color: #555; margin-bottom: 1.2em; }
 .sb-dateline { color: #555; }
-</style></head><body><h1 class="contents">${esc(contents)}</h1><ol class="toc">$toc</ol>$body</body></html>''';
+</style></head><body><h1 class="contents">$contents</h1><ol class="toc">$toc</ol>$body</body></html>''';
 }
 
 /// The journal export sheet: This journal (from the editor) or All journals started between two
@@ -195,7 +195,6 @@ class _JournalExportSheetState extends ConsumerState<JournalExportSheet> {
     final services = ref.read(servicesProvider);
     final picked = _picked;
     if (picked.isEmpty) return;
-    final contents = context.t('journals.exportDialog.contents');
     final cur = widget.current;
     setState(() {
       _busy = true;
@@ -226,7 +225,7 @@ class _JournalExportSheetState extends ConsumerState<JournalExportSheet> {
       if (docs.isEmpty || _closed) throw StateError('nothing to export');
       Analytics.track('export', {'format': _pdf ? 'pdf' : 'doc', 'kind': DocKind.diary.name});
       final fonts = _pdf ? await fontFaceCss({for (final (d, _) in docs) d.settings['font'] as String?}) : '';
-      final html = journalsHtml(docs, contents: contents, fontsCss: fonts);
+      final html = journalsHtml(docs, fontsCss: fonts);
       final name = docs.length == 1 ? (isUntitledJournal(docs.first.$1.title, docs.first.$1.createdAt) ? todayLine(docs.first.$1.createdAt) : docs.first.$1.title) : '${journalTitle(docs.first.$1.createdAt)} – ${journalTitle(docs.last.$1.createdAt)}';
       final safe = name.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').trim();
       if (_pdf) {

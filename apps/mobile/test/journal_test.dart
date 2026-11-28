@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:litma/data/forms.dart';
 import 'package:litma/data/journals.dart';
 import 'package:litma/data/models.dart';
+import 'package:litma/editor/document.dart';
+import 'package:litma/editor/journal_export.dart' show journalsHtml;
 
 // The shared journal dates and rules (packages/shared/src/forms.ts). The same hand-written cases as
 // scripts/journal-lab/journal-check.ts, so the web and the phone give the same answers.
@@ -139,5 +141,18 @@ void main() {
     expect(picked.map((j) => j.id), ['b', 'c', 'd']);
     expect(journalsBetween(list, DateTime(2026, 11, 29), DateTime(2026, 12, 31)), isEmpty);
     expect(journalsBetween(list, DateTime(2026, 11, 28), DateTime(2026, 11, 1)).map((j) => j.id), ['b', 'c', 'd', 'e'], reason: 'From after To: swapped');
+  });
+
+  test('export file: Malayalam contents, oldest first, each journal on a new page', () {
+    final a = DateTime(2026, 11, 2, 21), b = DateTime(2026, 11, 26, 18);
+    final docA = EditorDocument.fromJson(starterContent(DocKind.diary, now: a));
+    final docB = EditorDocument.fromJson(starterContent(DocKind.diary, now: b));
+    final html = journalsHtml([(journal('a', a), docA), (journal('b', b, title: 'മഴ പെയ്ത വൈകുന്നേരം'), docB)]);
+    expect(html, contains('<h1 class="contents">ഉള്ളടക്കം</h1>'));
+    expect(html, contains('<li>${todayLine(a)}</li>'));
+    expect(html, contains('<li>${todayLine(b)} · മഴ പെയ്ത വൈകുന്നേരം</li>'));
+    expect(html.indexOf(todayLine(a)) < html.indexOf(todayLine(b)), isTrue);
+    expect('<section class="journal"'.allMatches(html).length, 2);
+    expect(html, contains('<p class="sb sb-title j-title">മഴ പെയ്ത വൈകുന്നേരം</p>'), reason: "a named journal's empty title block gets its title");
   });
 }

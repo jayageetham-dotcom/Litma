@@ -88,7 +88,7 @@ Future<void> loadFonts() async {
 }
 
 Future<Services> services({bool signedIn = true, bool withWorks = true, bool offline = false, String? locale}) async {
-  SharedPreferences.setMockInitialValues({if (locale != null) 'litma:locale': locale});
+  SharedPreferences.setMockInitialValues({'litma:locale': ?locale});
   final prefs = await SharedPreferences.getInstance();
   final messages = <String, Map<String, dynamic>>{};
   for (final code in ['en', 'ml']) {

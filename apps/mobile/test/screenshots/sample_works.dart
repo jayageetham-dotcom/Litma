@@ -103,7 +103,7 @@ final diary = {
 Json _journal(DateTime day, List<String> paras) => {
       'type': 'doc',
       'content': [
-        _sb('title'),
+        {'type': 'styledBlock', 'attrs': {'variant': 'title'}},
         _sb('dateline', todayLine(day)),
         for (final t in paras) _p([_t(t)]),
       ],

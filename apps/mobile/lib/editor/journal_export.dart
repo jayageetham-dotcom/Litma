@@ -506,7 +506,7 @@ class _Switcher extends StatelessWidget {
                   child: Text(l,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontFamily: LitmaFonts.ui, fontFamilyFallback: LitmaFonts.uiFallback, fontSize: 15, fontWeight: FontWeight.w600, color: i == selected ? c.ink : c.muted)),
+                      style: TextStyle(fontFamily: LitmaFonts.ui, fontFamilyFallback: LitmaFonts.uiFallback, fontSize: MediaQuery.sizeOf(context).width < 360 ? 13 : 15, fontWeight: FontWeight.w600, color: i == selected ? c.ink : c.muted)),
                 ),
               ),
             ),

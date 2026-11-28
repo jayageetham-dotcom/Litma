@@ -11,7 +11,7 @@ import type { JSONContent } from "@tiptap/core";
 import { getSupabase } from "./supabase/client";
 import { track } from "./analytics";
 import { templateFor } from "./templates";
-import { defaultTitle, isDefaultTitle, newSettings, withAuthor } from "@litma/shared/forms";
+import { defaultTitle, isDefaultTitle, isUntitledJournal, journalTitle, newSettings, withAuthor } from "@litma/shared/forms";
 import type { Book, DocKind, DocVersion, LitmaDoc, Profile, Suggestion, WordBookmark } from "./types";
 import type { StoryItem, StoryKind } from "./story";
 import { textToNodes } from "@litma/shared/serialize";
@@ -115,13 +115,24 @@ async function myId(): Promise<string> {
   return u.id;
 }
 
-const excerptOf = (d: KeptDoc) => (d.plain_text ?? (d.content?.content ? plainText(d.content) : "")).replace(/\s+/g, " ").trim().slice(0, 220);
+const plainOf = (d: { plain_text?: string; content?: JSONContent }) => d.plain_text ?? (d.content?.content ? plainText(d.content) : "");
+const excerptOf = (d: KeptDoc) => plainOf(d).replace(/\s+/g, " ").trim().slice(0, 220);
+/** A journal card needs its lines (the first one can stand in for a title), not one run of text. */
+const linesOf = (d: { kind: DocKind; plain_text?: string; content?: JSONContent }) =>
+  d.kind === "diary"
+    ? plainOf(d)
+        .split("\n")
+        .map((l) => l.replace(/\s+/g, " ").trim())
+        .filter(Boolean)
+        .slice(0, 8)
+        .map((l) => l.slice(0, 300))
+    : undefined;
 const listed = (d: KeptDoc): LitmaDoc => {
   const { plain_text: _p, _server_at: _s, _content_at: _c, ...rest } = d;
   void _p;
   void _s;
   void _c;
-  return { ...rest, content: { type: "doc" }, excerpt: excerptOf(d) } as LitmaDoc;
+  return { ...rest, content: { type: "doc" }, excerpt: excerptOf(d), lines: linesOf(d) } as LitmaDoc;
 };
 const fullDoc = (d: KeptDoc): LitmaDoc => {
   const { plain_text: _p, _server_at: _s, _content_at: _c, ...rest } = d;
@@ -186,7 +197,7 @@ export const store = {
     if (!sb)
       return lsGet<LitmaDoc[]>(LS_DOCS, [])
         .filter((d) => !!d.archived === trash)
-        .map((d) => ({ ...d, excerpt: plainText(d.content).replace(/\s+/g, " ").trim().slice(0, 220) }))
+        .map((d) => ({ ...d, excerpt: plainText(d.content).replace(/\s+/g, " ").trim().slice(0, 220), lines: linesOf(d) }))
         .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
     return cloudRead(
       async () => {
@@ -224,11 +235,19 @@ export const store = {
     );
   },
 
+  /** Which of these works have their text on this device (all of them in local mode). */
+  async keptWithText(ids: string[]): Promise<Set<string>> {
+    if (!getSupabase()) return new Set(ids);
+    const kept = await Promise.all(ids.map(async (id) => ((await cache.get<KeptDoc>("documents", id))?.content?.type ? id : null)));
+    return new Set(kept.filter((x): x is string => !!x));
+  },
+
   async createDoc(kind: DocKind, title?: string): Promise<LitmaDoc> {
     track("work_created", { kind });
     const t = templateFor(kind);
     const base = {
-      title: title || defaultTitle(kind),
+      // a journal is named after the day it was started (shared `journalTitle`)
+      title: title || (kind === "diary" ? journalTitle(new Date()) : defaultTitle(kind)),
       kind,
       content: t.content(),
       settings: { ...newSettings(kind), pristine: true } as LitmaDoc["settings"],
@@ -314,7 +333,8 @@ export const store = {
     const cutoff = Date.now() - olderThanMinutes * 60_000;
     const docs = await this.listDocs();
     // only works still under the name they were given (the keep rule, `keepOnClose`); text clears the flag when saved
-    const stale = docs.filter((d) => d.settings?.pristine && isDefaultTitle(d.title, d.kind) && new Date(d.updated_at).getTime() < cutoff);
+    const unnamed = (d: LitmaDoc) => (d.kind === "diary" ? isUntitledJournal(d.title, d.created_at) : isDefaultTitle(d.title, d.kind));
+    const stale = docs.filter((d) => d.settings?.pristine && unnamed(d) && new Date(d.updated_at).getTime() < cutoff);
     for (const d of stale) await this.deleteDoc(d.id);
     return stale.length;
   },
@@ -340,7 +360,12 @@ export const store = {
     await cloudWrite({ kind: "delete", table: "documents", id }, () => remote(sb.from("documents").delete().eq("id", id)));
   },
 
+  /** Journals are never shared by link (the database refuses it too: migration journals_private). */
   async setPublic(id: string, isPublic: boolean): Promise<string | null> {
+    if (isPublic) {
+      const d = await this.getDoc(id).catch(() => null);
+      if (d?.kind === "diary") throw new Error("Journals can't be shared by link.");
+    }
     const share_id = isPublic ? uuid().replace(/-/g, "").slice(0, 12) : null;
     await this.updateDoc(id, { is_public: isPublic, share_id } as Partial<LitmaDoc>);
     return share_id;

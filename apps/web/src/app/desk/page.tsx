@@ -1,9 +1,9 @@
 "use client";
-import { searchRank } from "@litma/shared/search";
+import { matchesSearch, searchRank } from "@litma/shared/search";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { BookPlus, Copy, FileUp, Pin, PinOff, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { BookPlus, Copy, Download, FileUp, Pin, PinOff, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import { CoverFront, presetPatch } from "@/components/book/Cover";
 import { DEFAULT_STRUCTURE } from "@/lib/book-structure";
 import { AppHeader } from "@/components/AppHeader";
@@ -23,7 +23,9 @@ import type { MessageKey, Params } from "@litma/i18n";
 import { DesktopDownload } from "@/components/landing/DesktopDownload";
 import { kindDot } from "@/lib/tints";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { DeskSkeleton, BooksSkeleton, InkLoader } from "@/components/ui/Skeleton";
+import { DeskSkeleton, BooksSkeleton, InkLoader, JournalsSkeleton } from "@/components/ui/Skeleton";
+import { CalendarBlock, JournalList, byStartedNewest } from "@/components/journals/Journals";
+import { JournalExport } from "@/components/editor/JournalExport";
 
 function timeAgo(iso: string, t: (k: MessageKey, p?: Params) => string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -39,7 +41,7 @@ function Desk() {
   // the view lives in the URL so the phone tab bar (and the back button) can switch it
   const params = useSearchParams();
   const pv = params.get("view");
-  const view: "works" | "books" | "trash" = pv === "books" || pv === "trash" ? pv : "works";
+  const view: "works" | "books" | "journals" | "trash" = pv === "books" || pv === "trash" || pv === "journals" ? pv : "works";
   const setView = (v: typeof view) => router.replace(v === "works" ? "/desk/" : `/desk/?view=${v}`);
   const [books, setBooks] = useState<Book[] | null>(null);
   const [docs, setDocs] = useState<LitmaDoc[] | null>(null);
@@ -50,6 +52,7 @@ function Desk() {
   const [choosing, setChoosing] = useState(false);
   const [importing, setImporting] = useState<File | null>(null);
   const [creating, setCreating] = useState<DocKind | null>(null);
+  const [exporting, setExporting] = useState(false);
   const writing = useWriting();
   // one work kept at the top of the desk (the work in progress)
   const [pinned, setPinned] = usePinned();
@@ -59,13 +62,15 @@ function Desk() {
 
   const load = useCallback(async () => {
     try {
-      if (view === "works") await store.discardPristine(30).catch(() => 0);
+      if (view === "works" || view === "journals") await store.discardPristine(30).catch(() => 0);
       if (view === "books") {
         setBooks(await store.listBooks());
         setDocs([]);
         return;
       }
-      setDocs(await store.listDocs({ trash: view === "trash" }));
+      const list = await store.listDocs({ trash: view === "trash" });
+      // journals have their own tab: Works leaves them out, Journals shows only them (Trash keeps both)
+      setDocs(view === "works" ? list.filter((d) => d.kind !== "diary") : view === "journals" ? list.filter((d) => d.kind === "diary").sort(byStartedNewest) : list);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("desk.loadError"));
       setDocs([]);
@@ -75,8 +80,32 @@ function Desk() {
 
   useEffect(() => {
     setDocs(null);
+    setQ("");
     load();
   }, [load]);
+
+  // phones: the tab row scrolls sideways; keep the chosen tab fully in view
+  const tabsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    tabsRef.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [view]);
+
+  async function newJournal() {
+    setCreating("diary");
+    try {
+      const d = await store.createDoc("diary");
+      router.push(`/write/?id=${d.id}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("desk.createError"));
+      setCreating(null);
+    }
+  }
+
+  async function trashJournal(d: LitmaDoc) {
+    if (!(await ask({ title: t("desk.trashWork.title", { title: d.title }), body: t("desk.trashWork.body"), confirm: t("desk.trashWork.confirm"), danger: true }))) return;
+    await store.trashDoc(d.id);
+    load();
+  }
 
   async function create(kind: DocKind) {
     setCreating(kind);
@@ -113,6 +142,10 @@ function Desk() {
     if (at > 0) list.unshift(...list.splice(at, 1));
     return list;
   }, [docs, q, filter, sort, pinned, view]);
+  const journalsShown = useMemo(
+    () => (view === "journals" && docs ? docs.filter((d) => matchesSearch(`${d.title} ${(d.lines ?? []).join(" ")}`, q)) : []),
+    [docs, q, view]
+  );
   const totalWords = (docs ?? []).reduce((n, d) => n + (d.word_count || 0), 0);
   const kindsUsed = Array.from(new Set((docs ?? []).map((d) => d.kind)));
   async function newBook() {
@@ -134,10 +167,30 @@ function Desk() {
       <main className="mx-auto max-w-6xl px-4 pb-24 sm:px-5 md:pb-20">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-6 pt-8 sm:pt-12">
           <div>
-            <h1 className="text-[1.9rem] font-bold leading-tight sm:text-[2.5rem]" style={{ fontFamily: "'Anek Malayalam'" }}>
-              {view === "works" ? t("desk.title") : view === "books" ? t("books.title") : t("trash.title")}
+            <h1
+              className={view === "journals" ? "text-[24px] font-semibold leading-[1.25] md:text-[2.5rem] md:font-bold md:leading-tight" : "text-[1.9rem] font-bold leading-tight sm:text-[2.5rem]"}
+              style={{ fontFamily: "'Anek Malayalam'" }}
+            >
+              {view === "works" ? t("desk.title") : view === "books" ? t("books.title") : view === "journals" ? t("journals.title") : t("trash.title")}
             </h1>
-            <p className="mt-3 max-w-2xl text-[1.05rem] leading-relaxed text-muted">{view === "books" ? t("books.description") : view === "trash" ? t("trash.description") : t("desk.description")}</p>
+            <p className={`max-w-2xl leading-relaxed text-muted ${view === "journals" ? "mt-2 text-sm md:mt-3 md:text-[1.05rem]" : "mt-3 text-[1.05rem]"}`}>
+              {view === "books" ? t("books.description") : view === "trash" ? t("trash.description") : view === "journals" ? t("journals.description") : t("desk.description")}
+            </p>
+            {view === "journals" && (!docs || docs.length > 0) && (
+              <p className="mt-4 flex min-h-7 flex-wrap items-center gap-x-2.5 text-sm text-muted md:mt-5" aria-live="polite">
+                {docs ? (
+                  docs.length > 0 && (
+                    <>
+                      <span className="font-medium text-ink">{t("journals.count", { count: docs.length })}</span>
+                      <span aria-hidden>·</span>
+                      <span>{t("common.words", { count: totalWords })}</span>
+                    </>
+                  )
+                ) : (
+                  <span className="skeleton h-4 w-48 rounded" aria-label={t("common.loading")} />
+                )}
+              </p>
+            )}
             {view === "works" && (
               <p className="mt-5 flex min-h-7 flex-wrap items-center gap-x-2.5 gap-y-2 text-sm text-muted" aria-live="polite">
                 {docs ? (
@@ -165,7 +218,19 @@ function Desk() {
             )}
           </div>
           <div className="flex flex-wrap gap-2.5">
-            {view === "books" ? (
+            {view === "journals" ? (
+              docs &&
+              docs.length > 0 && (
+                <>
+                  <button className="btn btn-outline max-md:!hidden" onClick={() => setExporting(true)}>
+                    <Download size={16} /> {t("journals.export")}
+                  </button>
+                  <button className="btn btn-primary !px-4 !py-2.5 max-md:!hidden" onClick={newJournal} disabled={!!creating}>
+                    <Plus size={18} /> {t("journals.new")}
+                  </button>
+                </>
+              )
+            ) : view === "books" ? (
               <button className="btn btn-primary !px-4 !py-2.5 max-md:!hidden" onClick={newBook}>
                 <BookPlus size={18} /> {t("desk.newBook")}
               </button>
@@ -224,20 +289,35 @@ function Desk() {
         {error && <p className="mt-6 rounded-lg bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p>}
 
         <div className="mt-10 flex flex-wrap items-center gap-3 border-b border-line pb-4 sm:mt-14">
-          <div className="flex gap-1 text-sm" role="tablist">
+          {/* phones: the tabs keep their own width and the row scrolls sideways (Malayalam doesn't fit four) */}
+          <div ref={tabsRef} className="scrollbar-none -mx-4 flex max-w-[calc(100%+2rem)] gap-1 overflow-x-auto px-4 text-sm max-[359px]:text-[13px] sm:mx-0 sm:max-w-full sm:px-0" role="tablist">
             {(
               [
                 ["works", t("desk.tabs.works")],
                 ["books", t("desk.tabs.books")],
+                ["journals", t("desk.tabs.journals")],
                 ["trash", t("desk.tabs.trash")],
               ] as const
             ).map(([v, l]) => (
-              <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)} className={`rounded-full px-3.5 py-1.5 ${view === v ? "bg-primary font-semibold text-primary-ink" : "text-muted hover:bg-subtle hover:text-ink"}`}>
+              <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)} className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 max-md:min-h-11 sm:px-3.5 ${view === v ? "bg-primary font-semibold text-primary-ink" : "text-muted hover:bg-subtle hover:text-ink"}`}>
                 {l}
               </button>
             ))}
           </div>
-          {view !== "books" && docs && docs.length > 0 && (
+          {view === "journals" && docs && docs.length > 0 && (
+            <>
+              {docs.length > 3 && (
+                <label className="relative order-last w-full sm:order-none sm:ml-auto sm:w-auto">
+                  <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                  <input className="field !py-1.5 !pl-9 sm:!w-56" placeholder={t("journals.search")} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t("journals.search")} data-private />
+                </label>
+              )}
+              <button className="btn btn-outline ml-auto min-h-11 md:!hidden" onClick={() => setExporting(true)}>
+                <Download size={16} /> {t("journals.export")}
+              </button>
+            </>
+          )}
+          {view !== "books" && view !== "journals" && docs && docs.length > 0 && (
             <>
               <label className="relative order-last w-full sm:order-none sm:ml-auto sm:w-auto">
                 <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
@@ -276,7 +356,24 @@ function Desk() {
           </section>
         )}
         {docs && docs.length === 0 && view === "trash" && <p className="mt-10 text-muted">{t("trash.empty")}</p>}
-        {!docs && view !== "books" && <DeskSkeleton />}
+        {!docs && view === "journals" && <JournalsSkeleton />}
+        {!docs && view !== "books" && view !== "journals" && <DeskSkeleton />}
+        {view === "journals" && docs && docs.length === 0 && (
+          <section className="mt-12 flex flex-col items-center text-center md:items-start md:text-left">
+            <CalendarBlock date={new Date()} dashed />
+            <h2 className="mt-5 text-xl font-semibold">{t("journals.empty.title")}</h2>
+            <p className="mt-1 max-w-md text-muted">{t("journals.empty.body")}</p>
+            <button className="btn btn-primary mt-6 !px-4 !py-2.5" onClick={newJournal} disabled={!!creating}>
+              {creating ? <span className="ink-spinner" aria-hidden /> : <Plus size={18} />} {t("journals.new")}
+            </button>
+          </section>
+        )}
+        {view === "journals" && docs && docs.length > 0 && (
+          <>
+            {q.trim() && journalsShown.length === 0 && <p className="mt-10 text-muted">{t("journals.noMatch", { q })}</p>}
+            <JournalList docs={journalsShown} onTrash={trashJournal} />
+          </>
+        )}
         {view === "books" && !books && <BooksSkeleton />}
 
         {view === "books" && books && (
@@ -311,6 +408,7 @@ function Desk() {
           </ul>
         )}
 
+        {view !== "journals" && (
         <ul className="mt-8 grid grid-cols-2 gap-x-3 gap-y-7 sm:mt-10 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-x-6 sm:gap-y-10">
           {shown.map((d) => {
             const tpl = templateFor(d.kind);
@@ -421,10 +519,21 @@ function Desk() {
             );
           })}
         </ul>
+        )}
         {view === "works" && docs && <DesktopDownload variant="card" />}
       </main>
 
       {/* Phone: floating action button, like a native app */}
+      {view === "journals" && docs && docs.length > 0 && (
+        <button
+          className="btn btn-primary fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-40 !rounded-full !px-5 !py-3.5 shadow-xl md:!hidden"
+          onClick={newJournal}
+          disabled={!!creating}
+        >
+          <Plus size={20} /> {t("journals.new")}
+        </button>
+      )}
+      {exporting && <JournalExport onClose={() => setExporting(false)} />}
       {(view === "works" || view === "books") && !choosing && (
         <button
           className="btn btn-primary fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-40 !rounded-full !px-5 !py-3.5 shadow-xl md:!hidden"

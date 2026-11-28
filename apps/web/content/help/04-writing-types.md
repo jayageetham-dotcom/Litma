@@ -2,7 +2,7 @@
 id: types
 title: Writing types
 ml: സാഹിത്യരൂപങ്ങൾ
-summary: Note, novel, story, poem, screenplay, play, feature, essay, lyrics and journal, each with its own page, and a metre checker for verse.
+summary: Note, novel, story, poem, screenplay, play, feature, essay, lyrics and journal, each with its own page, a metre checker for verse, and the Journals tab with export of all your journals.
 icon: layout-template
 tint: lime
 ---
@@ -108,3 +108,42 @@ Scenes are numbered for you (രംഗം 1 or Scene 1, chosen in **Page & type*
 ![A journal with dated entries](shots/diary.webp)
 
 Choose **New entry** on the toolbar to add today's date at the end and start writing under it. The outline lists every date, so you can jump back to any day.
+
+Journals live in their own **Journals** tab on the desk, not among your works. Each one is named after the day you started it, until you give it a title of your own. See [Journals](#journals).
+
+## Journals {#journals}
+
+Your journals have their own tab on the desk, newest first, with a line for each month. They stay private: a journal can't be shared by link or added to a book.
+
+![The Journals tab on the desk](shots/journals.webp)
+
+### Start a journal
+
+1. On the desk choose the **Journals** tab.
+2. Choose **New journal**. It opens straight away, named after today's date, for example 2026 നവംബർ 28, ശനിയാഴ്ച.
+3. Write. Give it a title of your own at the top if you like.
+
+A new journal you leave without writing anything is removed, like any other empty work.
+
+### The journal cards
+
+- The small calendar on each card shows the day you started the journal.
+- A journal still named after its date shows its first line of writing as the title, in bold.
+- **Edited** and a date appear at the bottom when you last changed it on another day.
+- **Search journals** (when you have more than three) finds words in titles and text, in Malayalam or Manglish.
+
+> **Phone:** Tap **New journal** at the bottom right. Slide the tabs sideways if Journals is out of view.
+
+### Move between journals
+
+In a journal, the arrows on each side of the title open the journal you started before (‹) and after (›) it. Your writing is saved first. Under the title you see when the journal was started and last edited. At your first or latest journal that arrow is greyed out.
+
+### Export your journals {#export-journals}
+
+1. In a journal choose **Export** at the top (phone: **More → Export journals**), or choose **Export** on the Journals tab.
+2. Pick **This journal** or **All journals**. For all journals, pick the dates they were started between.
+3. Pick **PDF** or **Word (.docx)** and choose **Export**.
+
+All journals make one file: oldest first, with a contents page, and each journal starting on a new page. A PDF opens in the print view: choose **Save as PDF** there.
+
+> **Good to know:** Offline, journals you have never opened on this device can't go into the file yet. Litma tells you how many, and makes the file from the rest.

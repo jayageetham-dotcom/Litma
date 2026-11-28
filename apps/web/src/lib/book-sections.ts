@@ -46,6 +46,24 @@ export function documentPrint(doc: LitmaDoc): { spec: PageSpec; sections: Sectio
   };
 }
 
+// ── Journals (Export → All journals): a contents page, then each journal on a new page ──
+export function journalsPrint(entries: { doc: LitmaDoc; entry: string }[], contents: string): { spec: PageSpec; sections: Section[] } {
+  const first = entries[0]?.doc;
+  const spec = first ? documentPrint(first).spec : documentPrint({ id: "none", kind: "diary", settings: settingsFor("diary"), content: { type: "doc" } } as LitmaDoc).spec;
+  const base = first ? { ...settingsFor(first.kind), ...first.settings } : settingsFor("diary");
+  const toc = entries
+    .map(({ doc, entry }, i) => `<li data-toc="${doc.id}" class="pp-toc-document"><span class="pp-toc-no">${i + 1}</span><span class="pp-toc-t">${esc(entry)}</span><span class="pp-toc-dots"></span><span class="pp-toc-num"></span></li>`)
+    .join("");
+  const sections: Section[] = [
+    { kind: "flow", id: "contents", numbering: "roman", quietFirst: true, className: "pp-plain", vars: varsFor(base.font, base.fontSize, base.lineHeight), html: `<h2 class="pp-chapter">${esc(contents)}</h2><ol class="pp-toc">${toc}</ol>` },
+  ];
+  for (const { doc } of entries) {
+    const own = { ...settingsFor(doc.kind), ...doc.settings };
+    sections.push({ kind: "flow", id: doc.id, numbering: "arabic", className: docClasses(doc.kind, own), vars: varsFor(own.font, own.fontSize, own.lineHeight), html: docHtml(doc, doc.content) });
+  }
+  return { spec, sections };
+}
+
 // ── Book ──
 export const ITEM_LABELS: Record<BookItem["type"], { en: string; ml: string }> = {
   cover: { en: "Front cover", ml: "മുഖചിത്രം" },

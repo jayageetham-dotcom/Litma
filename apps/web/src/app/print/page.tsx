@@ -7,16 +7,26 @@ import { RequireAuth } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { track } from "@/lib/analytics";
 import { paginate, type PageSpec, type Section } from "@/lib/paginate";
-import { bookSections, bookSpec, documentPrint } from "@/lib/book-sections";
+import { bookSections, bookSpec, documentPrint, journalsPrint } from "@/lib/book-sections";
+import { contentsEntry, journalForExport, listJournals, startedBetween } from "@/lib/journals";
+import { useT } from "@/i18n/react";
 import { CoverBack, CoverFront } from "@/components/book/Cover";
 import type { Book, LitmaDoc } from "@/lib/types";
 
-/** Print-ready pages for a document (?doc=) or a whole book (?book=). Save as PDF from the print dialog. */
+/**
+ * Print-ready pages for a document (?doc=), a whole book (?book=) or the writer's journals
+ * (?journals=1&from=YYYY-MM-DD&to=YYYY-MM-DD: oldest first, a contents page, each on a new page).
+ * Save as PDF from the print dialog.
+ */
 function PrintView() {
+  const t = useT();
   const params = useSearchParams();
   const router = useRouter();
   const docId = params.get("doc");
   const bookId = params.get("book");
+  const journals = params.get("journals") === "1";
+  const from = params.get("from") ?? "";
+  const to = params.get("to") ?? "";
   const auto = params.get("auto") === "1";
   const root = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<{ spec: PageSpec; sections: Section[]; title: string; book?: Book } | null>(null);
@@ -30,8 +40,19 @@ function PrintView() {
         if (docId) {
           const d = await store.getDoc(docId);
           if (!d) throw new Error("Document not found.");
-          const { spec, sections } = documentPrint(d);
+          const { spec, sections } = documentPrint(d.kind === "diary" ? journalForExport(d) : d);
           setState({ spec, sections, title: d.title });
+        } else if (journals) {
+          // journals not on this device while offline are left out (the export dialog said so)
+          const list = startedBetween(await listJournals(), from, to);
+          const entries: { doc: LitmaDoc; entry: string }[] = [];
+          for (const j of list) {
+            const d = await store.getDoc(j.id).catch(() => null);
+            if (d) entries.push({ doc: journalForExport(d), entry: contentsEntry(d) });
+          }
+          if (!entries.length) throw new Error(t("journals.exportDialog.none"));
+          const { spec, sections } = journalsPrint(entries, "ഉള്ളടക്കം");
+          setState({ spec, sections, title: t("journals.title") });
         } else if (bookId) {
           const b = await store.getBook(bookId);
           if (!b) throw new Error("Book not found.");
@@ -47,7 +68,8 @@ function PrintView() {
         setError(e instanceof Error ? e.message : "Couldn't prepare the pages.");
       }
     })();
-  }, [docId, bookId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docId, bookId, journals, from, to]);
 
   useEffect(() => {
     if (!state || !root.current) return;

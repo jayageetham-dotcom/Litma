@@ -5,6 +5,8 @@ import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import {
   ArrowLeft,
   BookA,
+  ChevronLeft,
+  ChevronRight,
   Download,
   Eye,
   FileText,
@@ -60,7 +62,9 @@ import { AIPanel, HistoryPanel, InboxPanel, KeysPanel, OutlinePanel, PagePanel }
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { store } from "@/lib/store";
 import { docClasses, templateFor } from "@/lib/templates";
-import { currentTitle, keepOnClose } from "@litma/shared/forms";
+import { currentTitle, keepOnClose, sameDay, shortDate } from "@litma/shared/forms";
+import { JournalExport } from "./JournalExport";
+import { listJournals } from "@/lib/journals";
 import { fillCastList } from "@/extensions/drama";
 import { FootnoteDialog } from "./FootnoteDialog";
 import type { DocSettings, LitmaDoc } from "@/lib/types";
@@ -135,6 +139,32 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
   const [sharing, setSharing] = useState(false);
   const [shareError, setShareError] = useState(false);
   const [menu, setMenu] = useState<"export" | "share" | null>(null);
+  // journals: ‹ › open the journal started before / after this one; Export opens the journal export
+  const journal = initial.kind === "diary";
+  const [journalExport, setJournalExport] = useState(false);
+  const [neighbours, setNeighbours] = useState<{ prev: LitmaDoc | null; next: LitmaDoc | null } | null>(null);
+  const [editedAt, setEditedAt] = useState(initial.updated_at);
+  const [tiny, setTiny] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia("(max-width: 359px)");
+    const on = () => setTiny(m.matches);
+    on();
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  useEffect(() => {
+    if (!journal) return;
+    let live = true;
+    listJournals()
+      .then((list) => {
+        const at = list.findIndex((d) => d.id === initial.id);
+        if (live) setNeighbours({ prev: at > 0 ? list[at - 1] : null, next: at >= 0 ? (list[at + 1] ?? null) : null });
+      })
+      .catch(() => live && setNeighbours({ prev: null, next: null }));
+    return () => {
+      live = false;
+    };
+  }, [journal, initial.id]);
   const [stats, setStats] = useState({ words: initial.word_count, chars: 0, aksharas: 0, pages: 1 });
   // the writing timer counts the words written while it runs
   useEffect(() => timerWords(initial.id, stats.words), [initial.id, stats.words]);
@@ -285,7 +315,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     if (!createdPristine.current) return;
     const ed = editorRef.current;
     if (!ed || ed.isDestroyed) return;
-    const p = !keepOnClose({ title: titleRef.current, kind: initial.kind, content: ed.getJSON() });
+    const p = !keepOnClose({ title: titleRef.current, kind: initial.kind, content: ed.getJSON(), createdAt: initial.created_at });
     if (p === pristine.current) return;
     pristine.current = p;
     setSettings((prev) => ({ ...prev, pristine: p }));
@@ -308,7 +338,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       const words = countWords(ed.getText({ blockSeparator: "\n" }));
       const patch: Partial<LitmaDoc> = { content, word_count: words, title: titleRef.current };
       // the keep rule, on what is being saved: a new work stays pristine until it has its own title or text
-      const p = createdPristine.current && !keepOnClose({ title: titleRef.current, kind: initial.kind, content });
+      const p = createdPristine.current && !keepOnClose({ title: titleRef.current, kind: initial.kind, content, createdAt: initial.created_at });
       if (!!docRef.current.settings?.pristine !== p) patch.settings = { ...docRef.current.settings, pristine: p };
       const queued = await persist(patch);
       const delta = words - lastSavedWords.current;
@@ -408,6 +438,10 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     };
   }, [editor]);
 
+  useEffect(() => {
+    if (save === "dirty" || save === "saving") setEditedAt(new Date().toISOString());
+  }, [save]);
+
   const saveContent = useCallback(
     async (ed: Editor, label?: string | null) => {
       await saver.current?.flush();
@@ -433,8 +467,17 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
 
   const goToDesk = useCallback(async () => {
     await finish();
-    router.push("/desk/");
-  }, [finish, router]);
+    router.push(journal ? "/desk/?view=journals" : "/desk/");
+  }, [finish, router, journal]);
+
+  /** Another journal: save this one first (or discard it under the keep rule), then open the other. */
+  const openJournal = useCallback(
+    async (id: string) => {
+      await finish();
+      router.replace(`/write/?id=${id}`);
+    },
+    [finish, router]
+  );
 
   // Run `finish` only on real exits (tab close / unmount), never on re-renders.
   const mounted = useRef(false);
@@ -640,6 +683,28 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
     { label: "Web page (.html)", run: () => exportHTML(currentDoc()) },
   ];
 
+  /** ‹ and › beside a journal's title; disabled (in place) at either end and until the neighbours are known. */
+  const journalNav = (dir: "prev" | "next") => {
+    const other = neighbours ? neighbours[dir] : null;
+    const Icon = dir === "prev" ? ChevronLeft : ChevronRight;
+    const label = other ? t(dir === "prev" ? "journals.prev" : "journals.next", { date: shortDate(other.created_at) }) : neighbours ? t(dir === "prev" ? "journals.first" : "journals.latest") : "";
+    return (
+      // the tooltip sits on a wrapper, since a disabled button gets no hover
+      <span title={label} className="inline-flex shrink-0">
+        <button
+          type="button"
+          className={`btn btn-ghost shrink-0 !p-0 ${phone ? "size-11" : "size-8"} justify-center disabled:!bg-transparent disabled:text-[var(--disabled-ink)] disabled:opacity-55`}
+          disabled={!other}
+          aria-disabled={!other}
+          aria-label={label || (dir === "prev" ? t("journals.first") : t("journals.latest"))}
+          onClick={() => other && openJournal(other.id)}
+        >
+          <Icon size={phone ? 22 : 18} aria-hidden />
+        </button>
+      </span>
+    );
+  };
+
   const shareBody = store.isCloud() ? (
     <div className="space-y-2 text-sm">
       <label className="flex items-center gap-2">
@@ -759,7 +824,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           <button onClick={goToDesk} className="btn btn-ghost !p-2" title="Back to desk" aria-label="Back to desk">
             <ArrowLeft size={phone ? 20 : 18} />
           </button>
-          <div className="min-w-0 flex-1">
+          {journal && journalNav("prev")}
+          <div className={journal && !phone ? "min-w-0 shrink" : "min-w-0 flex-1"}>
             <div className="group/title relative max-w-xl">
             <input
               value={title}
@@ -825,7 +891,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 recheckPristine();
                 saver.current?.touch();
               }}
-              className={`w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none md:text-[1.05rem] ${title ? "focus:pr-8" : ""}`}
+              className={`${journal && !phone ? "min-w-24 [field-sizing:content]" : "w-full"} max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none md:text-[1.05rem] ${title ? "focus:pr-8" : ""}`}
               aria-label="Title"
             />
             {title && (
@@ -853,6 +919,29 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
               </button>
             )}
             </div>
+            {journal ? (
+              <div className={`flex items-center gap-2 truncate px-1.5 text-muted ${phone ? (tiny ? "text-[11.5px]" : "text-xs") : "text-[11.5px]"}`}>
+                {phone ? (
+                  save === "saving" || save === "offline" || save === "local" ? (
+                    <span aria-live="polite" className={`truncate ${save === "offline" ? "font-semibold text-danger" : ""}`}>{saveText}</span>
+                  ) : (
+                    <span className="truncate">
+                      {shortDate(initial.created_at)}
+                      {!sameDay(initial.created_at, editedAt) && ` · ${t("journals.edited", { date: shortDate(editedAt) })}`}
+                    </span>
+                  )
+                ) : (
+                  <>
+                    <span className="font-semibold text-highlight">{template.ml}</span>
+                    <span className="shrink-0">
+                      {t("journals.started", { date: shortDate(initial.created_at) })}
+                      {!sameDay(initial.created_at, editedAt) && ` · ${t("journals.edited", { date: shortDate(editedAt) })}`}
+                    </span>
+                    <span aria-live="polite" className={`truncate ${save === "offline" ? "font-semibold text-danger" : ""}`}>{saveText}</span>
+                  </>
+                )}
+              </div>
+            ) : (
             <div className="flex items-center gap-2 truncate px-1.5 text-[11.5px] text-muted">
               <span className="font-semibold text-highlight">{template.ml}</span>
               {phone ? (
@@ -867,20 +956,29 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 {saveText}
               </span>
             </div>
+            )}
           </div>
+          {journal && journalNav("next")}
+          {journal && !phone && <div className="flex-1" />}
 
           <TimerChip onOpen={() => openPanel("goals")} />
           {phone ? (
-            <button className={`btn btn-ghost !p-2 ${panel === "ai" ? "text-accent" : ""}`} onClick={() => openPanel(panel === "ai" ? null : "ai")} aria-label="AI companion">
+            journal && tiny ? null : <button className={`btn btn-ghost !p-2 ${panel === "ai" ? "text-accent" : ""}`} onClick={() => openPanel(panel === "ai" ? null : "ai")} aria-label="AI companion">
               <Sparkles size={20} />
             </button>
           ) : (
             <>
               <div className="relative">
-                <button className="btn btn-ghost !px-2.5" data-menu-button onClick={() => setMenu(menu === "export" ? null : "export")} aria-expanded={menu === "export"}>
+                <button
+                  className="btn btn-ghost !px-2.5"
+                  data-menu-button
+                  onClick={() => (journal ? setJournalExport(true) : setMenu(menu === "export" ? null : "export"))}
+                  aria-expanded={journal ? journalExport : menu === "export"}
+                  aria-haspopup={journal ? "dialog" : "menu"}
+                >
                   <Download size={16} /> <span className="hidden lg:inline">Export</span>
                 </button>
-                {menu === "export" && (
+                {menu === "export" && !journal && (
                   <Menu onClose={() => setMenu(null)}>
                     {exportItems.map((x) => (
                       <MenuItem key={x.label} onClick={x.run} icon={<FileText size={15} />} label={x.label} hint={x.hint} />
@@ -888,7 +986,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                   </Menu>
                 )}
               </div>
-              <div className="relative">
+              {/* journals are never shared by link */}
+              {!journal && <div className="relative">
                 <button className="btn btn-ghost !px-2.5" data-menu-button onClick={() => setMenu(menu === "share" ? null : "share")} aria-expanded={menu === "share"}>
                   <Share2 size={16} /> <span className="hidden lg:inline">Share</span>
                 </button>
@@ -897,7 +996,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                     <div className="p-3">{shareBody}</div>
                   </Menu>
                 )}
-              </div>
+              </div>}
               <ThemeToggle />
               <button className="btn btn-ghost !p-2 text-sm font-semibold" onClick={() => setShowKeys(true)} title="Keyboard shortcuts (Ctrl+/)" aria-label="Keyboard shortcuts">
                 ?
@@ -1060,7 +1159,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                     [
                       tool("read"),
                       tool("history"),
-                      ...(store.isCloud() && shareId && isPublic
+                      ...(store.isCloud() && shareId && isPublic && !journal
                         ? [
                             <a key="reader" href={`${BASE}/read/?s=${shareId}`} target="_blank" rel="noreferrer" className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-[9px] text-muted hover:bg-subtle hover:text-ink" aria-label="Open reader view">
                               <Eye size={17} className="shrink-0" />
@@ -1128,7 +1227,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
               [t("app.tools.groupShare"), [
                 panel("read"),
                 panel("history"),
-                ...(store.isCloud() && shareId && isPublic ? [<Tile key="reader" icon={Eye} label="Reader" onClick={() => window.open(`${BASE}/read/?s=${shareId}`, "_blank")} />] : []),
+                ...(store.isCloud() && shareId && isPublic && !journal ? [<Tile key="reader" icon={Eye} label="Reader" onClick={() => window.open(`${BASE}/read/?s=${shareId}`, "_blank")} />] : []),
               ]],
             ];
             return groups.map(([label, tiles], i) => (
@@ -1139,6 +1238,13 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
             ));
           })()}
           <h3 className="mb-1.5 mt-5 text-xs font-semibold uppercase tracking-wide text-muted">Export</h3>
+          {journal ? (
+            <div className="overflow-hidden rounded-xl border border-line bg-paper">
+              <button onClick={() => { setPhoneSheet(null); setJournalExport(true); }} className="flex min-h-11 w-full items-center gap-3 px-4 py-3 text-left text-sm active:bg-subtle">
+                <Download size={16} className="text-muted" /> {t("journals.exportDialog.title")}
+              </button>
+            </div>
+          ) : (
           <div className="overflow-hidden rounded-xl border border-line bg-paper">
             {exportItems.filter((x) => x.label !== "Quick print").map((x) => (
               <button key={x.label} onClick={x.run} className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left text-sm last:border-0 active:bg-subtle">
@@ -1146,8 +1252,13 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
               </button>
             ))}
           </div>
-          <h3 className="mb-1.5 mt-5 text-xs font-semibold uppercase tracking-wide text-muted">Share</h3>
-          <div className="rounded-xl border border-line bg-paper p-3">{shareBody}</div>
+          )}
+          {!journal && (
+            <>
+              <h3 className="mb-1.5 mt-5 text-xs font-semibold uppercase tracking-wide text-muted">Share</h3>
+              <div className="rounded-xl border border-line bg-paper p-3">{shareBody}</div>
+            </>
+          )}
           <div className="mt-5 flex items-center justify-between rounded-xl border border-line bg-paper px-4 py-2 text-sm">
             <span>Theme</span>
             <ThemeToggle />
@@ -1156,6 +1267,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       )}
 
       {storyOpen && <StoryWorld doc={docRef.current} editor={editor} columns={settings.beatColumns} onColumns={(beatColumns) => updateSettings({ beatColumns })} onClose={() => setStoryOpen(false)} />}
+      {journalExport && <JournalExport current={currentDoc()} beforeExport={() => saver.current?.flush() ?? Promise.resolve()} onClose={() => setJournalExport(false)} />}
       {showKeys && <ShortcutsDialog onClose={() => setShowKeys(false)} screenplay={!!template.screenplay} />}
 
       {/* ── Phone: keyboard accessory while writing, tab bar otherwise ── */}

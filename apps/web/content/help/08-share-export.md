@@ -13,6 +13,8 @@ When a piece is ready for other eyes, Litma can give it a reading link, a PDF, a
 
 Send someone a link so they can read your work in their browser, without an account.
 
+> **Note:** Journals can't be shared by link: they stay private to you. Export them as PDF or Word instead ([Export your journals](#export-journals)).
+
 1. In the editor choose **Share** at the top.
 2. Tick **Anyone with the link can read**. The link appears below it.
 3. Choose **Copy** and send the link.
@@ -27,7 +29,7 @@ The reader sees the title and your name (your pen name, or your profile name) ab
 
 ![The Export menu](shots/export.webp)
 
-Choose **Export** at the top of the editor:
+Choose **Export** at the top of the editor (for a journal, see [Export your journals](#export-journals)):
 
 - **PDF, print-ready pages:** opens the print view with your work laid out on pages. Choose **Save as PDF**, then in the print window pick **Save as PDF**, margins **None**, and turn on **Background graphics**.
 - **Quick print** (<kbd>Ctrl</kbd> + <kbd>P</kbd>): prints the pages straight away.

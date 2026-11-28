@@ -14,7 +14,7 @@ A book puts one or more works together with the pages a printed book needs: cove
 1. On the desk open the **Books** tab and choose **New book**.
    ![The Books tab on the desk](shots/desk-books.webp)
 2. Give it a title. The book editor opens with sample text in every field, so you edit instead of filling blanks.
-3. Under **Book contents** choose **Add** and pick your works, and any book pages you want: half-title, title page, copyright, dedication, മേൽക്കുറിപ്പ് (epigraph), contents, a part divider or a page of your own text.
+3. Under **Book contents** choose **Add** and pick your works (journals stay private, so they aren't listed), and any book pages you want: half-title, title page, copyright, dedication, മേൽക്കുറിപ്പ് (epigraph), contents, a part divider or a page of your own text.
 4. Drag items into order. Click an item to change it: for a work you can give it a different chapter title in the book, choose whether to **Print a chapter heading**, and untick **List in the table of contents**.
 
 ![The book editor](shots/book.webp "Book contents on the left, the cover designer in the middle, book details on the right.")

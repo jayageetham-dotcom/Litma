@@ -6,6 +6,8 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 
 ## Open items
 
+- **Release needed** for Journals (2026-11-28, shared web code only). No desktop-only change: the print view opens as an app window (`setWindowOpenHandler` allows the app origin) and Word files download as before.
+
 - **Release needed** for the interaction audit fixes and spelling undo (2026-11-28, shared web code).
 
 - **Release needed** for Ignore kept with the work (2026-11-26, shared web code).
@@ -32,6 +34,10 @@ Actions → **Release** builds new installers. Cross-app summary and open items:
 - In the Playwright Electron run, `page.goto` to an `app://` address with a query string, or away
   from an open editor, was aborted; in-app clicks work. Use clicks in tests.
 
+
+## 2026-11-28: Journals (branch `journals`)
+
+- Shared web code only (see web.md and cross-platform.md). Checked that nothing desktop-only needs a change: `/print/?journals=1…` opens as an app window like other print views, and `download()` saves Word files as before. Not run in Electron here.
 
 ## 2026-11-28: Note first, keep rule, Journal name (branch `notes-first`)
 

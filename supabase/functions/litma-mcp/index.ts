@@ -13,7 +13,7 @@ import { cors, json, preflight } from "../_shared/cors.ts";
 import { recordUsage } from "../_shared/usage.ts";
 import { textToNodes, toMarkdown, toPlainText, type JSONContent } from "../_shared/serialize.ts";
 import { WRITING_GUIDES } from "../_shared/guides.ts";
-import { FORM_NAMES, KINDS, defaultTitle, isDefaultTitle, keepOnClose, newSettings, starterContent, withAuthor, type DocKind } from "../_shared/forms.ts";
+import { FORM_NAMES, KINDS, defaultTitle, isDefaultTitle, isUntitledJournal, journalTitle, keepOnClose, newSettings, starterContent, withAuthor, type DocKind } from "../_shared/forms.ts";
 import { createDictionary, mlShardName } from "../_shared/dict.ts";
 import { RHYME_KINDS, createRhymes, rhymeKey, type RhymeKind } from "../_shared/rhyme.ts";
 import { createSpeller, type EngineVerdict, type SpellEngine } from "../_shared/spell.ts";
@@ -118,23 +118,39 @@ interface Tool {
 const RO = { readOnlyHint: true };
 const DESTRUCTIVE = { destructiveHint: true };
 
+/**
+ * "Now" as a Date whose local fields are the writer's wall clock in `tz` (an IANA zone; Kerala time
+ * when none or an unknown one is given), so journal dates match the writer's day, not the server's.
+ */
+function writerNow(tz?: unknown): Date {
+  const zone = typeof tz === "string" && tz ? tz : "Asia/Kolkata";
+  try {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: zone, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", hourCycle: "h23" }).formatToParts(new Date()).map((p) => [p.type, p.value]));
+    return new Date(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute));
+  } catch {
+    return zone === "Asia/Kolkata" ? new Date() : writerNow("Asia/Kolkata");
+  }
+}
+const JOURNAL_PRIVATE = "Journals are private: they can't be shared by link or added to a book. Export them as PDF or Word in Litma instead.";
+
 const TOOLS: Tool[] = [
   // ── Documents ──────────────────────────────────────────────────────────
   {
     name: "list_documents",
     title: "List documents",
-    description: "List the writer's works (novels, stories, poems, screenplays, features…) with id, title, writing type (സാഹിത്യരൂപം), words and last edit. The work the writer pinned to the top of the desk (the work in progress) comes first, marked PINNED. Set trash=true for deleted works.",
+    description: "List the writer's works (novels, stories, poems, screenplays, features…) and journals with id, title, writing type (സാഹിത്യരൂപം), words and last edit. Journals are marked [Journal] with the day they were started; they are private and can't be shared or added to books. The work the writer pinned to the top of the desk (the work in progress) comes first, marked PINNED. Set trash=true for deleted works.",
     inputSchema: { type: "object", properties: { kind: S("string", `Only this writing type (${KIND_HELP})`, { enum: KINDS }), trash: S("boolean", "List the trash instead"), limit: S("number", "Max results (default 50)") } },
     annotations: RO,
     async run(a, u) {
-      let q = db.from("documents").select("id,title,kind,word_count,updated_at").eq("user_id", u).eq("archived", !!a.trash).order("updated_at", { ascending: false }).limit(Number(a.limit) || 50);
+      let q = db.from("documents").select("id,title,kind,word_count,created_at,updated_at").eq("user_id", u).eq("archived", !!a.trash).order("updated_at", { ascending: false }).limit(Number(a.limit) || 50);
       if (a.kind) q = q.eq("kind", String(a.kind));
       const { data, error } = await q;
       if (error) return out(error.message, true);
       if (!data?.length) return out(a.trash ? "The trash is empty." : "No documents yet.");
       const pinned = a.trash ? null : await pinnedWork(u);
       const rows = [...data].sort((x, y) => Number(y.id === pinned) - Number(x.id === pinned));
-      return out(rows.map((d) => `- ${d.id === pinned ? "PINNED: " : ""}${d.title} [${formName(d.kind).en}] — ${d.word_count} words — updated ${d.updated_at} — id: ${d.id}`).join("\n"));
+      const type = (d: Json) => (d.kind === "diary" ? `[Journal, started ${String(d.created_at).slice(0, 10)}]` : `[${formName(String(d.kind)).en}]`);
+      return out(rows.map((d) => `- ${d.id === pinned ? "PINNED: " : ""}${d.title} ${type(d)} — ${d.word_count} words — updated ${d.updated_at} — id: ${d.id}`).join("\n"));
     },
   },
   {
@@ -183,11 +199,22 @@ const TOOLS: Tool[] = [
   {
     name: "create_document",
     title: "Create a document",
-    description: "Create a new work of a given writing type, optionally with starting text (parsed like append_to_document). Use blank (Note) for a plain note with no template.",
-    inputSchema: { type: "object", properties: { title: S("string", "Title"), kind: S("string", `Writing type (${KIND_HELP})`, { enum: KINDS }), text: S("string", "Optional starting text") }, required: ["title", "kind"] },
+    description:
+      "Create a new work of a given writing type, optionally with starting text (parsed like append_to_document). Use blank (Note) for a plain note with no template. Use diary for a journal: leave the title out and it is named after today's date, as in the apps (journals are private, never shared).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: S("string", "Title (a journal without one is named after today's date)"),
+        kind: S("string", `Writing type (${KIND_HELP})`, { enum: KINDS }),
+        text: S("string", "Optional starting text"),
+        timezone: S("string", "The writer's time zone (IANA, e.g. Asia/Kolkata, Asia/Dubai), for a journal's date"),
+      },
+      required: ["kind"],
+    },
     async run(a, u) {
       const kind = (KINDS.includes(a.kind) ? a.kind : "blank") as DocKind;
-      const title = String(a.title || defaultTitle(kind));
+      const now = writerNow(a.timezone);
+      const title = String(a.title || (kind === "diary" ? journalTitle(now) : defaultTitle(kind)));
       // an empty work starts with the writer's name on the author line, as in the apps
       const prof = a.text ? null : (await db.from("profiles").select("pen_name, display_name").eq("id", u).maybeSingle()).data as Json | null;
       const content: JSONContent = a.text
@@ -196,7 +223,7 @@ const TOOLS: Tool[] = [
       const plain = toPlainText(content);
       const { data, error } = await db
         .from("documents")
-        .insert({ user_id: u, title, kind, content, settings: { ...newSettings(kind), pristine: !keepOnClose({ title, kind, content }) }, plain_text: plain, word_count: words(plain) })
+        .insert({ user_id: u, title, kind, content, settings: { ...newSettings(kind), pristine: !keepOnClose({ title, kind, content, createdAt: now }) }, plain_text: plain, word_count: words(plain) })
         .select("id")
         .single();
       if (error) return out(error.message, true);
@@ -270,11 +297,12 @@ const TOOLS: Tool[] = [
       required: ["id"],
     },
     async run(a, u) {
-      const d = await ownDoc(u, a.id, "id,kind,settings");
+      const d = await ownDoc(u, a.id, "id,kind,settings,created_at");
       if (!d) return out("Document not found.", true);
       const st = { ...(d.settings as Json) };
-      // a new work with its own title is kept (the keep rule, `keepOnClose`)
-      if (a.title && !isDefaultTitle(String(a.title), d.kind as DocKind)) delete st.pristine;
+      // a new work with its own title is kept (the keep rule, `keepOnClose`); a journal's date title doesn't count
+      const named = (t: string) => (d.kind === "diary" ? !isUntitledJournal(t, String(d.created_at)) : !isDefaultTitle(t, d.kind as DocKind));
+      if (a.title && named(String(a.title))) delete st.pristine;
       for (const k of ["pageSize", "font", "fontSize", "lineHeight", "margins", "goal", "notes"]) if (a[k] !== undefined) st[k] = a[k];
       const patch: Json = { settings: st };
       if (a.title) patch.title = String(a.title);
@@ -709,7 +737,11 @@ const TOOLS: Tool[] = [
       const b = await ownBook(u, a.book_id);
       if (!b) return out("Book not found.", true);
       if (!BOOK_ITEM_TYPES.includes(a.type)) return out("Unknown item type.", true);
-      if (a.type === "document" && !(await ownDoc(u, a.document_id, "id"))) return out("Document not found.", true);
+      if (a.type === "document") {
+        const d = await ownDoc(u, a.document_id, "id,kind");
+        if (!d) return out("Document not found.", true);
+        if (d.kind === "diary") return out(JOURNAL_PRIVATE, true);
+      }
       const item: Json = { id: uid(), type: a.type };
       if (a.document_id) item.documentId = String(a.document_id);
       if (a.title) item.title = String(a.title);

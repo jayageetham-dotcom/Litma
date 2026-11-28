@@ -5,7 +5,7 @@ import type { LitmaDoc } from "./types";
 import { track } from "./analytics";
 import { PAGE_SIZES } from "@/extensions/pagination";
 import { renderDocHtml } from "./doc-html";
-import { docClasses } from "./templates";
+import { docClasses, settingsFor } from "./templates";
 
 export function download(name: string, blob: Blob) {
   const a = document.createElement("a");
@@ -73,10 +73,36 @@ export async function exportDocx(d: LitmaDoc) {
 
 /** A work as a Word file (used by Export and by the backup). */
 export async function docxBlob(d: LitmaDoc): Promise<Blob> {
+  notes = [];
+  const body = docxBody(d);
+  return packDocx(d.title, d.settings, body);
+}
+
+/**
+ * Several journals in one Word file, in the order given (oldest first): a contents page listing
+ * each journal's date line and title, then each journal on a new page.
+ */
+export async function journalsDocxBlob(docs: { doc: LitmaDoc; entry: string }[], o: { title: string; contents: string }): Promise<Blob> {
+  notes = [];
+  const s = docs[0]?.doc.settings ?? settingsFor("diary");
+  const pt = (v: number) => Math.round(v * 2);
+  const body: (Paragraph | Table)[] = [
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 360 }, children: [new TextRun({ text: o.title, bold: true, size: pt(20) })] }),
+    new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ text: o.contents, bold: true, size: pt(14) })] }),
+    ...docs.map(({ entry }, i) => new Paragraph({ spacing: { after: 80 }, children: [new TextRun({ text: `${i + 1}.  ${entry}` })] })),
+  ];
+  for (const { doc } of docs) {
+    body.push(new Paragraph({ children: [new PageBreak()] }));
+    body.push(...docxBody(doc));
+  }
+  return packDocx(o.title, s, body);
+}
+
+/** The body of one work as Word paragraphs (footnotes go into the shared `notes`). */
+function docxBody(d: LitmaDoc): (Paragraph | Table)[] {
   const s = d.settings;
   const pt = (v: number) => Math.round(v * 2); // half-points
   const body: (Paragraph | Table)[] = [];
-  notes = [];
   let scene = 0;
   let chapter = 0;
   let act = 0;
@@ -217,12 +243,17 @@ export async function docxBlob(d: LitmaDoc): Promise<Blob> {
         );
     }
   }
+  return body;
+}
+
+function packDocx(title: string, s: LitmaDoc["settings"], body: (Paragraph | Table)[]): Promise<Blob> {
+  const pt = (v: number) => Math.round(v * 2);
   const size = PAGE_SIZES[s.pageSize] ?? PAGE_SIZES.A4;
   const tw = (mm: number) => Math.round((mm / 25.4) * 1440);
   const footnotes = Object.fromEntries(notes.map((t, i) => [String(i + 1), { children: [new Paragraph({ children: [new TextRun({ text: t, size: pt(s.fontSize - 2) })] })] }]));
   const docx = new Document({
     creator: "Litma",
-    title: d.title,
+    title,
     footnotes,
     styles: { default: { document: { run: { font: s.font, size: pt(s.fontSize) } } } },
     sections: [

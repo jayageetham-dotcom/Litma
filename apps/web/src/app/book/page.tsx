@@ -398,7 +398,8 @@ function BookEditor() {
 
       {picking && (
         <DocPicker
-          docs={docs}
+          // journals stay private: they can't be added to a book (books that already hold one keep it)
+          docs={docs.filter((d) => d.kind !== "diary")}
           already={new Set(items.filter((i) => i.type === "document").map((i) => i.documentId!))}
           onClose={() => setPicking(false)}
           onPick={(ids) => {

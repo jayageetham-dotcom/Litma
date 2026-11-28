@@ -1791,8 +1791,7 @@
       "working": "Making your file… {n} of {total}",
       "error": "Couldn't make the file. Check your connection and try again.",
       "notOnDevice": "{count} journals aren't on this device yet. Connect to the internet to include them.",
-      "private": "Journals stay private to you. They can't be shared by link.",
-      "contents": "Contents"
+      "private": "Journals stay private to you. They can't be shared by link."
     }
   }
 }

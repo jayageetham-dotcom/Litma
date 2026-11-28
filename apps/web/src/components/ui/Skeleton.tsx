@@ -57,6 +57,32 @@ export function DeskSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
+/** The Journals tab while it loads: a month line and cards with a calendar block (4 on phones, 8 on wider screens). */
+export function JournalsSkeleton() {
+  return (
+    <Busy label="loading.desk">
+      <Skeleton className="mt-8 h-3.5 w-[110px] sm:mt-10" />
+      <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-x-6 sm:gap-y-10">
+        {Array.from({ length: 8 }, (_, i) => (
+          <li key={i} className={`fade-in ${i >= 4 ? "max-sm:hidden" : ""}`} style={{ animationDelay: `${i * 60}ms` }}>
+            <div className="rounded-2xl border border-line bg-surface p-4 sm:h-[208px]">
+              <div className="flex gap-3">
+                <Skeleton className="h-[66px] w-12 shrink-0 !rounded-[10px]" />
+                <div className="min-w-0 flex-1 pt-1">
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="mt-2 h-4 w-1/2" />
+                </div>
+              </div>
+              <Skeleton className="mt-5 h-3 w-full" />
+              <Skeleton className="mt-2.5 h-3 w-3/4" />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </Busy>
+  );
+}
+
 export function BooksSkeleton({ count = 4 }: { count?: number }) {
   return (
     <Busy label="loading.book">

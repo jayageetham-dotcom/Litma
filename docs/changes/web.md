@@ -10,6 +10,11 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-28: Journals (branch `journals`)
+
+- See cross-platform.md. Files: `app/desk/page.tsx`, `components/journals/Journals.tsx`, `components/editor/JournalExport.tsx`, `components/editor/Workspace.tsx` (‹ ›, Started · Edited, Share hidden, Export dialog), `app/write/page.tsx` (skeleton while the next journal loads), `app/print/page.tsx` (`?journals=1&from=&to=`), `app/book/page.tsx` (picker), `lib/journals.ts`, `lib/book-sections.ts` (`journalsPrint`), `lib/export.ts` (`journalsDocxBlob`, `docxBody`/`packDocx` split), `lib/store.ts` (`createDoc` title, `discardPristine`, `setPublic`, `keptWithText`, listing `lines`), `lib/types.ts` (`lines`), `components/ui/Skeleton.tsx`, `theme.css`/`globals.css` (`--dialog-well`).
+- Checked: typecheck, local build, i18n check, sync:shared, journal-check cases, Playwright at 1440, 1440 dark, 390, 320 dark and 320 Malayalam (Works without journals, Journals cards, search in Manglish, export dialog from desk and editor, Word all/this, PDF all → print view with contents and 7 pages, ‹ › and the disabled end, New journal titled with the date, an empty new journal discarded, one with text kept). Not checked: the cloud path (Supabase listing with `plain_text` lines, offline "not on this device" box), real-browser file names, the print dialog itself.
+
 ## 2026-11-28: Note first, keep rule, Journal name (branch `notes-first`)
 
 - See cross-platform.md. `lib/templates.ts` (`PICKER_TEMPLATES`, names), `app/desk/page.tsx` Chooser, `lib/store.ts` (`defaultTitle`, `discardPristine` needs a default title), `components/editor/Workspace.tsx` (`recheckPristine`, `currentTitle`), `components/landing/Marquee.tsx`, MCP `litma-mcp/index.ts` (`KIND_HELP`, keep rule in `create_document` / `update_document`).

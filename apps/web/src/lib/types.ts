@@ -13,6 +13,8 @@ export interface LitmaDoc {
   share_id?: string | null;
   archived?: boolean;
   excerpt?: string;
+  /** journals in a desk listing: the first lines of text, title and date lines included */
+  lines?: string[];
   created_at: string;
   updated_at: string;
 }

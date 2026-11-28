@@ -20,6 +20,10 @@ function Writer() {
 
   useEffect(() => {
     if (!id) return setDoc(null);
+    // another work (a journal's ‹ ›): show the skeleton, never the old work, while it loads
+    setDoc(undefined);
+    setError(null);
+    setOffline(false);
     store
       .getDoc(id)
       .then((d) => setDoc(d ? { ...d, settings: { ...settingsFor(d.kind), ...d.settings } } : null))

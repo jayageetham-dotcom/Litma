@@ -101,9 +101,17 @@ export function hasWriting(content: Node | null | undefined, kind: DocKind): boo
 /**
  * The keep rule for a new work, the same for every writing type: it stays when the writer changed
  * its title or wrote any body text; otherwise closing it deletes it (and the desk's cleanup does).
+ * A journal's title starts as its date (`journalTitle`), which doesn't count as naming it.
  */
-export function keepOnClose(doc: { title: string | null | undefined; kind: DocKind; content: Node | null | undefined }): boolean {
-  return !isDefaultTitle(doc.title, doc.kind) || hasWriting(doc.content, doc.kind);
+export function keepOnClose(doc: {
+  title: string | null | undefined;
+  kind: DocKind;
+  content: Node | null | undefined;
+  /** the work's `created_at`; a journal still titled with this date counts as not named */
+  createdAt?: Date | string | number | null;
+}): boolean {
+  const named = doc.kind === "diary" ? !isUntitledJournal(doc.title, doc.createdAt) : !isDefaultTitle(doc.title, doc.kind);
+  return named || hasWriting(doc.content, doc.kind);
 }
 
 export const DEFAULT_SETTINGS: DocSettings = {
@@ -196,7 +204,72 @@ export function withAuthor(content: JSONContent, name: string | null | undefined
   return { ...content, content: blocks };
 }
 
-/** Today's date as a diary heading, e.g. "2026 നവംബർ 3, ചൊവ്വാഴ്ച". */
-export function todayLine(d = new Date()): string {
-  return d.toLocaleDateString("ml-IN", { day: "numeric", month: "long", year: "numeric", weekday: "long" });
+// Journal dates. Fixed tables, never Intl / toLocaleDateString: ICU writes ZWNJ forms (ഞായറാഴ്‌ച)
+// that the phone app's tables don't, so web and phone would write different datelines.
+// Phone: lib/data/forms.dart, same names and answers.
+
+/** Full Malayalam month names, January first. */
+export const ML_MONTHS = ["ജനുവരി", "ഫെബ്രുവരി", "മാർച്ച്", "ഏപ്രിൽ", "മേയ്", "ജൂൺ", "ജൂലൈ", "ഓഗസ്റ്റ്", "സെപ്റ്റംബർ", "ഒക്ടോബർ", "നവംബർ", "ഡിസംബർ"];
+/** Short month names for cards and dates ("28 നവം"), January first. */
+export const ML_MONTHS_SHORT = ["ജനു", "ഫെബ്രു", "മാർ", "ഏപ്രി", "മേയ്", "ജൂൺ", "ജൂലൈ", "ഓഗ", "സെപ്റ്റം", "ഒക്ടോ", "നവം", "ഡിസം"];
+/** Full weekday names, Sunday first (as `Date.getDay()`). */
+export const ML_WEEKDAYS = ["ഞായറാഴ്ച", "തിങ്കളാഴ്ച", "ചൊവ്വാഴ്ച", "ബുധനാഴ്ച", "വ്യാഴാഴ്ച", "വെള്ളിയാഴ്ച", "ശനിയാഴ്ച"];
+/** Short weekday names, Sunday first. */
+export const ML_WEEKDAYS_SHORT = ["ഞായർ", "തിങ്കൾ", "ചൊവ്വ", "ബുധൻ", "വ്യാഴം", "വെള്ളി", "ശനി"];
+
+type DateIn = Date | string | number;
+const asDate = (d: DateIn): Date => (d instanceof Date ? d : new Date(d));
+
+/** A date as a journal heading, in the writer's local day: "2026 നവംബർ 28, ശനിയാഴ്ച". */
+export function todayLine(d: DateIn = new Date()): string {
+  const x = asDate(d);
+  return `${x.getFullYear()} ${ML_MONTHS[x.getMonth()]} ${x.getDate()}, ${ML_WEEKDAYS[x.getDay()]}`;
+}
+
+/** The parts of a journal card's calendar block: { day: 28, month: "നവം", weekday: "ശനി" }. */
+export function journalDay(d: DateIn): { day: number; month: string; weekday: string } {
+  const x = asDate(d);
+  return { day: x.getDate(), month: ML_MONTHS_SHORT[x.getMonth()], weekday: ML_WEEKDAYS_SHORT[x.getDay()] };
+}
+
+/** "28 നവം", or "28 നവം 2025" when the date isn't in the current year of `now`. */
+export function shortDate(d: DateIn, now: DateIn = new Date()): string {
+  const x = asDate(d);
+  const s = `${x.getDate()} ${ML_MONTHS_SHORT[x.getMonth()]}`;
+  return x.getFullYear() === asDate(now).getFullYear() ? s : `${s} ${x.getFullYear()}`;
+}
+
+/** The month line that divides the journal list: "2026 നവംബർ". */
+export function monthLine(d: DateIn): string {
+  const x = asDate(d);
+  return `${x.getFullYear()} ${ML_MONTHS[x.getMonth()]}`;
+}
+
+/** The title a new journal gets: its started date as a heading (same as `todayLine`). */
+export function journalTitle(d: DateIn = new Date()): string {
+  return todayLine(d);
+}
+
+/** True when two dates fall on the same local day. */
+export function sameDay(a: DateIn, b: DateIn): boolean {
+  const x = asDate(a);
+  const y = asDate(b);
+  return x.getFullYear() === y.getFullYear() && x.getMonth() === y.getMonth() && x.getDate() === y.getDate();
+}
+
+const plainTitle = (t: string) => t.replace(/[\u200c\u200d]/g, "").replace(/\s+/g, " ").trim();
+
+/**
+ * A journal the writer hasn't named: the title is empty, an old default (പുതിയ ജേണൽ, പുതിയ ഡയറി),
+ * or still its started date as the apps write it (`journalTitle`, or `shortDate` with or without
+ * the year). Without `createdAt` only the empty title and the old defaults count.
+ */
+export function isUntitledJournal(title: string | null | undefined, createdAt?: DateIn | null): boolean {
+  const t = plainTitle(title ?? "");
+  if (isDefaultTitle(t, "diary")) return true;
+  if (createdAt == null || createdAt === "") return false;
+  const c = asDate(createdAt);
+  if (Number.isNaN(c.getTime())) return false;
+  const day = `${c.getDate()} ${ML_MONTHS_SHORT[c.getMonth()]}`;
+  return t === journalTitle(c) || t === day || t === `${day} ${c.getFullYear()}`;
 }

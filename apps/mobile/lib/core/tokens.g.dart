@@ -68,6 +68,7 @@ class LitmaTokens {
     required this.scrim,
     required this.dialog,
     required this.dialogPage,
+    required this.dialogWell,
     required this.switchColor,
   });
 
@@ -133,6 +134,7 @@ class LitmaTokens {
   final Color scrim;
   final Color dialog;
   final Color dialogPage;
+  final Color dialogWell;
   final Color switchColor;
 
   static const light = LitmaTokens(
@@ -198,6 +200,7 @@ class LitmaTokens {
     scrim: Color(0x6B111113),
     dialog: Color(0xFFFFFFFF),
     dialogPage: Color(0xFFFFFFFF),
+    dialogWell: Color(0xFFEDECF3),
     switchColor: Color(0xFFFFFFFF),
   );
 
@@ -264,6 +267,7 @@ class LitmaTokens {
     scrim: Color(0x8C000000),
     dialog: Color(0xFF202027),
     dialogPage: Color(0xFF2B2B33),
+    dialogWell: Color(0xFF141417),
     switchColor: Color(0xFF34343C),
   );
 
@@ -331,6 +335,7 @@ class LitmaTokens {
         scrim: Color.lerp(a.scrim, b.scrim, t)!,
         dialog: Color.lerp(a.dialog, b.dialog, t)!,
         dialogPage: Color.lerp(a.dialogPage, b.dialogPage, t)!,
+        dialogWell: Color.lerp(a.dialogWell, b.dialogWell, t)!,
         switchColor: Color.lerp(a.switchColor, b.switchColor, t)!,
       );
 }

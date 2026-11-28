@@ -49,6 +49,7 @@
     "tabs": {
       "works": "Works",
       "books": "Books",
+      "journals": "Journals",
       "trash": "Trash"
     },
     "newWork": "New work",
@@ -1748,5 +1749,50 @@
     "hint": "Tap a syllable to find it in your text.",
     "guru": "guru",
     "laghu": "laghu"
+  },
+  "journals": {
+    "title": "ജേണലുകൾ",
+    "description": "Your days, in your own words. The newest is first.",
+    "count_one": "{count} journal",
+    "count_other": "{count} journals",
+    "new": "New journal",
+    "export": "Export",
+    "search": "Search journals",
+    "noMatch": "No journals match “{q}”.",
+    "empty": {
+      "title": "Start your journal",
+      "body": "Write a few lines about today. Each journal keeps the date you started it."
+    },
+    "nothingYet": "Nothing written yet",
+    "started": "Started {date}",
+    "edited": "Edited {date}",
+    "prev": "Previous journal, {date}",
+    "next": "Next journal, {date}",
+    "first": "This is your first journal",
+    "latest": "This is your latest journal",
+    "exportDialog": {
+      "title": "Export journals",
+      "which": "Which journals",
+      "this": "This journal",
+      "all": "All journals",
+      "allHint": "One file, oldest first, with a contents page",
+      "dates": "Started between",
+      "from": "From",
+      "to": "To",
+      "inRange_one": "{count} journal in these dates",
+      "inRange_other": "{count} journals in these dates",
+      "none": "No journals were started between these dates.",
+      "format": "Format",
+      "pdf": "PDF",
+      "pdfHint": "Print-ready pages",
+      "word": "Word (.docx)",
+      "wordHint": "Edit in Word or Google Docs",
+      "button": "Export",
+      "working": "Making your file… {n} of {total}",
+      "error": "Couldn't make the file. Check your connection and try again.",
+      "notOnDevice": "{count} journals aren't on this device yet. Connect to the internet to include them.",
+      "private": "Journals stay private to you. They can't be shared by link.",
+      "contents": "Contents"
+    }
   }
 }

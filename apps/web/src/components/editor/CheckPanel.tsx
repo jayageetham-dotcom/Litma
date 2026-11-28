@@ -4,6 +4,7 @@ import type { Editor } from "@tiptap/react";
 import { Check, Wand2 } from "lucide-react";
 import { GrammarCheck } from "./GrammarCheck";
 import { useT } from "@/i18n/react";
+import { applyFixes } from "@/lib/spell-history";
 import { SPELL_EVENT, addMyWord, setSpellPrefs, spellPrefs, type SpellPrefs } from "@/lib/spell";
 import { spellIssues, type DocIssue } from "@/extensions/writing-aids";
 
@@ -49,10 +50,8 @@ export function CheckPanel({ editor, kind, docId, title, onOpenInbox }: { editor
     editor.chain().focus().setTextSelection({ from: i.pos, to: i.end }).scrollIntoView().run();
   };
   const fixAll = () => {
-    // from the end, so earlier positions stay right
-    const tr = editor.state.tr;
-    [...issues].filter((i) => (i.kind === "unicode" || i.kind === "punct") && i.fix[0]).reverse().forEach((i) => tr.insertText(i.fix[0], i.pos, i.end));
-    editor.view.dispatch(tr);
+    // one undo step for all of them (applyFixes works from the end, so positions stay right)
+    applyFixes(editor, issues.filter((i) => (i.kind === "unicode" || i.kind === "punct") && i.fix[0]).map((i) => ({ from: i.pos, to: i.end, text: i.fix[0] })));
   };
   const broken = issues.filter((i) => i.kind === "unicode" || i.kind === "punct").length;
   const shown = issues.slice(0, 200);

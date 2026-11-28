@@ -3,6 +3,7 @@
  * Spelling check in the browser: word lists from /dict/words, the writer's own words on this device,
  * and the mlmorph engine on the server (lib/spell-engine.ts) when it can be reached.
  */
+import { recordSpellAct } from "./spell-history";
 import { BASE } from "./config";
 import { loadIndex } from "./dictionary";
 import { mlShardName } from "@litma/shared/dict";
@@ -56,15 +57,25 @@ export function myWords(): Set<string> {
     return new Set();
   }
 }
-export function addMyWord(w: string) {
-  const s = myWords();
-  s.add(w);
+function saveMyWords(s: Set<string>) {
   try {
     localStorage.setItem(LS_MINE, JSON.stringify([...s].slice(-5000)));
   } catch {
     /* storage blocked */
   }
   window.dispatchEvent(new Event(SPELL_EVENT));
+}
+/** Keep: the word is never marked again on this device. Undoable with Ctrl/⌘+Z (`record`). */
+export function addMyWord(w: string, record = true) {
+  const s = myWords();
+  if (s.has(w)) return;
+  s.add(w);
+  saveMyWords(s);
+  if (record) recordSpellAct({ undo: () => removeMyWord(w), redo: () => addMyWord(w, false) });
+}
+export function removeMyWord(w: string) {
+  const s = myWords();
+  if (s.delete(w)) saveMyWords(s);
 }
 
 /**
@@ -81,9 +92,16 @@ export function setWorkIgnored(words: string[], save: ((words: string[]) => void
   saveIgnored = save;
   window.dispatchEvent(new Event(SPELL_EVENT));
 }
-export function ignoreWord(w: string) {
+/** Ignore: not marked again in this work. Undoable with Ctrl/⌘+Z (`record`). */
+export function ignoreWord(w: string, record = true) {
   if (ignored.has(w)) return;
   ignored.add(w);
+  saveIgnored?.([...ignored].slice(-1000));
+  window.dispatchEvent(new Event(SPELL_EVENT));
+  if (record) recordSpellAct({ undo: () => unignoreWord(w), redo: () => ignoreWord(w, false) });
+}
+export function unignoreWord(w: string) {
+  if (!ignored.delete(w)) return;
   saveIgnored?.([...ignored].slice(-1000));
   window.dispatchEvent(new Event(SPELL_EVENT));
 }

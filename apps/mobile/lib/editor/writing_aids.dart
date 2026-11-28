@@ -281,11 +281,23 @@ void setupSpellMarks(WidgetRef ref, EditorSession s) {
   s.recheckSpelling();
 }
 
-/// "Keep": the word is never marked again on this device.
-Future<void> keepSpellingWord(WidgetRef ref, EditorSession s, String word) async {
+/// Undo of a Keep: the word is marked again where it is unknown.
+Future<void> unkeepSpellingWord(WidgetRef ref, EditorSession s, String word) async {
   final p = ref.read(servicesProvider).prefs;
   final mine = (p.getStringList(_myWordsKey) ?? const []).toList();
-  if (!mine.contains(word)) mine.add(word);
+  if (!mine.remove(word)) return;
+  await p.setStringList(_myWordsKey, mine);
+  setupSpellMarks(ref, s);
+}
+
+/// "Keep": the word is never marked again on this device.
+Future<void> keepSpellingWord(WidgetRef ref, EditorSession s, String word, {bool record = true}) async {
+  final p = ref.read(servicesProvider).prefs;
+  final mine = (p.getStringList(_myWordsKey) ?? const []).toList();
+  if (mine.contains(word)) return;
+  // undo takes a Keep back (redo keeps it again)
+  if (record) s.recordSpellAct(() => unawaited(unkeepSpellingWord(ref, s, word)), () => unawaited(keepSpellingWord(ref, s, word, record: false)));
+  mine.add(word);
   await p.setStringList(_myWordsKey, mine.length > 5000 ? mine.sublist(mine.length - 5000) : mine);
   setupSpellMarks(ref, s);
 }
@@ -338,7 +350,8 @@ class _CheckSheetState extends ConsumerState<_CheckSheet> {
   }
 
   void _fix(_Found f, String text) {
-    widget.session.replaceInLine(f.line, f.issue.from, f.issue.to, text);
+    // one undo step of its own
+    widget.session.fixAsOneStep(() => widget.session.replaceInLine(f.line, f.issue.from, f.issue.to, text));
     _check();
   }
 
@@ -391,10 +404,12 @@ class _CheckSheetState extends ConsumerState<_CheckSheet> {
               icon: const Icon(LucideIcons.wandSparkles, size: 16),
               label: Text(context.t('check.fixAll', {'count': broken.length})),
               onPressed: () {
-                // from the end of each line, so earlier positions stay right
-                for (final f in broken.reversed) {
-                  if (f.issue.fix.isNotEmpty) widget.session.replaceInLine(f.line, f.issue.from, f.issue.to, f.issue.fix.first);
-                }
+                // from the end of each line, so earlier positions stay right; one undo step for all
+                widget.session.fixAsOneStep(() {
+                  for (final f in broken.reversed) {
+                    if (f.issue.fix.isNotEmpty) widget.session.replaceInLine(f.line, f.issue.from, f.issue.to, f.issue.fix.first);
+                  }
+                });
                 _check();
               },
             ),

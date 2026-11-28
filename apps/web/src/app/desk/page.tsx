@@ -18,6 +18,7 @@ import { usePinned } from "@/lib/pin";
 import { TEMPLATES, templateFor } from "@/lib/templates";
 import type { Book, DocKind, LitmaDoc } from "@/lib/types";
 import { useT } from "@/i18n/react";
+import { useModalFocus } from "@/lib/useModalFocus";
 import type { MessageKey, Params } from "@litma/i18n";
 import { DesktopDownload } from "@/components/landing/DesktopDownload";
 import { kindDot } from "@/lib/tints";
@@ -123,6 +124,9 @@ function Desk() {
     setChoosing(false);
     setImporting(null);
   };
+  // the picker is a modal dialog: focus moves in, Tab stays in, Esc closes it (audit, 26 Nov)
+  const chooserBox = useRef<HTMLDivElement>(null);
+  useModalFocus(choosing, chooserBox, closeChooser);
 
   return (
     <div className="min-h-dvh">
@@ -433,8 +437,8 @@ function Desk() {
       {confirmDialog}
 
       {choosing && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto scrim sm:items-start sm:p-4 sm:pt-12" role="dialog" aria-modal="true" aria-label="Choose a writing type" onClick={closeChooser}>
-          <div className="max-h-[92dvh] w-full max-w-5xl overflow-y-auto rounded-t-2xl dialog p-4 pb-8 sm:max-h-none sm:rounded-xl sm:p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto scrim sm:items-start sm:p-4 sm:pt-12" role="dialog" aria-modal="true" aria-label={importing ? t("desk.importAs", { name: importing.name }) : t("desk.chooserTitle")} onClick={closeChooser}>
+          <div ref={chooserBox} className="max-h-[92dvh] w-full max-w-5xl overflow-y-auto rounded-t-2xl dialog p-4 pb-8 sm:max-h-none sm:rounded-xl sm:p-6" onClick={(e) => e.stopPropagation()}>
             <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-line sm:hidden" aria-hidden />
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-lg font-bold sm:text-xl">{importing ? t("desk.importAs", { name: importing.name }) : t("desk.chooserTitle")}</h2>

@@ -1,4 +1,5 @@
 "use client";
+import { canRedoAll, canUndoAll, redoAll, undoAll } from "@/lib/spell-history";
 import type { Editor } from "@tiptap/react";
 import {
   AlignCenter,
@@ -190,10 +191,10 @@ export function Toolbar({
       role="toolbar"
       aria-label="Formatting"
     >
-      <Btn title="Undo (Ctrl+Z)" onClick={() => chain().undo().run()} disabled={!e.can().undo()}>
+      <Btn title="Undo (Ctrl+Z)" onClick={() => undoAll(e)} disabled={!canUndoAll(e)}>
         <Undo2 size={16} />
       </Btn>
-      <Btn title="Redo (Ctrl+Shift+Z)" onClick={() => chain().redo().run()} disabled={!e.can().redo()}>
+      <Btn title="Redo (Ctrl+Shift+Z)" onClick={() => redoAll(e)} disabled={!canRedoAll(e)}>
         <Redo2 size={16} />
       </Btn>
       <Sep />
@@ -515,10 +516,10 @@ export function MobileFormatStrip({
         {label[mode]}
       </button>
       <div ref={scroller} onScroll={(ev) => (stripScroll = ev.currentTarget.scrollLeft)} className="scrollbar-none flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
-        <B t="Undo" on={() => chain().undo().run()} dis={!e.can().undo()}>
+        <B t="Undo" on={() => undoAll(e)} dis={!canUndoAll(e)}>
           <Undo2 size={18} />
         </B>
-        <B t="Redo" on={() => chain().redo().run()} dis={!e.can().redo()}>
+        <B t="Redo" on={() => redoAll(e)} dis={!canRedoAll(e)}>
           <Redo2 size={18} />
         </B>
         {usesDialogue
@@ -618,13 +619,13 @@ export function MobileSelectionBar({ editor, onLookUp, onAskAI, onClear }: { edi
         <Sparkles size={16} /> {t("mobile.askAI")}
       </Item>
       <span className="mx-0.5 h-5 w-px shrink-0 bg-line" aria-hidden />
-      <Item label="Bold" on={() => e.chain().focus().toggleSmartBold().run()} act={boldIsOn(e)}>
+      <Item label={t("editorMenu.bold")} on={() => e.chain().focus().toggleSmartBold().run()} act={boldIsOn(e)}>
         <Bold size={16} />
       </Item>
-      <Item label="Italic" on={() => e.chain().focus().toggleItalic().run()} act={e.isActive("italic")}>
+      <Item label={t("editorMenu.italic")} on={() => e.chain().focus().toggleItalic().run()} act={e.isActive("italic")}>
         <Italic size={16} />
       </Item>
-      <Item label="Copy" on={() => navigator.clipboard?.writeText(e.state.doc.textBetween(from, to, "\n"))}>
+      <Item label={t("editorMenu.copy")} on={() => navigator.clipboard?.writeText(e.state.doc.textBetween(from, to, "\n"))}>
         <Copy size={16} />
       </Item>
       <Item label={t("common.close")} on={onClear}>

@@ -1035,7 +1035,11 @@
       "replace": "പകരം",
       "replaceAll": "എല്ലാം മാറ്റുക",
       "replaced_one": "{count} ഇടത്ത് മാറ്റി",
-      "replaced_other": "{count} ഇടങ്ങളിൽ മാറ്റി"
+      "replaced_other": "{count} ഇടങ്ങളിൽ മാറ്റി",
+      "replaceOne": "മാറ്റുക",
+      "all": "എല്ലാം",
+      "matchCase": "വലിയക്ഷരം/ചെറിയക്ഷരം നോക്കുക",
+      "close": "തിരയൽ അടയ്ക്കുക"
     },
     "page": {
       "font": "ഫോണ്ട്",

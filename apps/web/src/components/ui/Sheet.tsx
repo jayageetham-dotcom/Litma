@@ -1,6 +1,8 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
+import { useModalFocus } from "@/lib/useModalFocus";
+import { useT } from "@/i18n/react";
 
 /**
  * One panel container that adapts like a native app:
@@ -23,12 +25,16 @@ export function Sheet({
   side?: "left" | "right";
   bottomOffset?: number;
 }) {
+  const t = useT();
+  const box = useRef<HTMLDivElement>(null);
+  // drawers: Esc closes them; phone sheets are modal: focus moves in, stays in, and goes back (audit, 26 Nov)
   useEffect(() => {
-    if (mode === "dock") return;
+    if (mode !== "drawer") return;
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
   }, [mode, onClose]);
+  useModalFocus(mode === "sheet", box, onClose);
 
   const head = (
     <div className="-mx-1 mb-5 flex items-center justify-between border-b border-line pb-3.5">
@@ -36,7 +42,7 @@ export function Sheet({
         <span aria-hidden className="size-1.5 rounded-full bg-[var(--brand-mark)]" />
         {title}
       </h2>
-      <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label={`Close ${title}`}>
+      <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label={`${t("common.close")}: ${title}`}>
         <X size={16} />
       </button>
     </div>
@@ -66,6 +72,7 @@ export function Sheet({
     // so a search field inside it never ends up hidden behind the keys
     <div className="fade-in no-print fixed inset-x-0 top-0 z-50 flex flex-col justify-end scrim" style={{ bottom: bottomOffset }} onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
       <div
+        ref={box}
         className="sheet-up scrollbar-thin overflow-y-auto overscroll-contain rounded-t-2xl dialog px-5 pt-2"
         style={{ maxHeight: bottomOffset ? `calc(100dvh - ${bottomOffset}px - 3rem)` : "78dvh", paddingBottom: bottomOffset ? "1rem" : "max(1.5rem, env(safe-area-inset-bottom))" }}
         onClick={(e) => e.stopPropagation()}

@@ -21,10 +21,12 @@ import { deleteAiKey, listAiKeys, saveAiKey, type AIProvider, type StoredKey } f
 type Token = { id: string; name: string; created_at: string; last_used_at: string | null };
 
 function Code({ children }: { children: string }) {
+  const t = useT();
   return (
     <div className="group relative">
-      <pre className="scrollbar-thin overflow-x-auto rounded-lg bg-subtle p-3 text-[12px] leading-relaxed">{children}</pre>
-      <button className="absolute right-2 top-2 rounded bg-paper p-1 opacity-0 shadow group-hover:opacity-100" onClick={() => navigator.clipboard.writeText(children)} aria-label="Copy">
+      {/* focusable so a keyboard can scroll it; the copy button shows on focus and on touch screens too */}
+      <pre tabIndex={0} className="scrollbar-thin overflow-x-auto rounded-lg bg-subtle p-3 text-[12px] leading-relaxed">{children}</pre>
+      <button className="absolute right-2 top-2 rounded bg-paper p-1 opacity-0 shadow focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100" onClick={() => navigator.clipboard.writeText(children)} aria-label={t("editorMenu.copy")}>
         <Copy size={13} />
       </button>
     </div>

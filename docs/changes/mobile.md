@@ -3,6 +3,11 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-28: Journals (branch `journals`)
+
+- `lib/data/forms.dart` (journal dates, `isUntitledJournal`, `isDateLine`, `journalPreview`, `keepOnClose(createdAt:)`), new `lib/data/journals.dart`, `lib/data/store.dart` (new journals titled `journalTitle(now)`, `discardPristine` uses `isUntitledJournal`), `lib/editor/session.dart` (keep rule with `createdAt`; `updatedAt` after a save), `lib/features/desk/desk_screen.dart` + new `journals_view.dart` (Journals tab, scrolling tabs, cards, month lines, search, skeleton, empty state, New journal FAB, Export, 24 px heading on phones; Works without journals; journal long-press: Read, Move to trash), `lib/editor/editor_screen.dart` (‹ › `JournalArrow`, `_goTo`, `_JournalLine`; journals keep Find and Read in ⋮, and below 360 px the tools too), new `lib/editor/journal_export.dart`, `lib/editor/tools.dart` (Export instead of Share for journals), `lib/features/books/book_screen.dart` (picker without journals). Tests `test/journal_test.dart`, `test/journal_widgets_test.dart`; screenshots `desk-journals-*`, `editor-journal-*`, `export-journal-*`, `desk-journals-empty`.
+- Mobile app checks green (run 46128009578). Not checked on a phone: ‹ › switching and the keep rule on a real device, `showDatePicker`, the print sheet and the Word share, the offline "not on this device" box, the screenshot pictures (the screens job is skipped on branch pushes). Word is an HTML `.doc` (as for works), not the web's `.docx`. Needs a store build.
+
 ## 2026-11-28: Note first, keep rule, Journal name (branch `notes-first`)
 
 - See cross-platform.md. `lib/data/forms.dart` (names, `pickerKinds`, `defaultTitle`, `isDefaultTitle`, `currentTitle`, `hasWriting`, `keepOnClose`), `lib/data/store.dart` (`createDoc`, `discardPristine`), `lib/editor/session.dart` (`_createdPristine`, `_recheckPristine`: rename keeps a work), `lib/features/desk/type_picker.dart`, new `test/keep_rule_test.dart`. **Not compiled here**: merge only with Mobile app checks green.

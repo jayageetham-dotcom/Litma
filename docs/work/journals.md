@@ -17,18 +17,29 @@ Builds on branch `notes-first` (Part 1): diary is called ജേണൽ · Journal
 - 2026-11-28 No share link for journals: hidden in every app, a database rule refusing shares for kind `diary`, and a migration revoking existing diary shares (owner approved).
 - 2026-11-28 Journals can't be added to Books (owner).
 - 2026-11-28 MCP: `create_document` makes journals, `list_documents` marks them, no share (owner).
+- 2026-11-28 Owner OK on the mockups (09:56), with one change: **the page title "ജേണലുകൾ" is too big on phones.** Phones (< 768 px, web and Flutter): the Journals heading is 24 px (Anek Malayalam semibold, line-height 1.25), the description 14 px; desktop keeps the mocked size. Designer re-checks it in the review.
+- 2026-11-28 Owner accepted the mocked answers: untitled = title empty, an old default (പുതിയ ജേണൽ / പുതിയ ഡയറി) or still its started date; export range by started date; journals export as PDF and Word only; Malayalam month and weekday names in both UI languages; phone tabs scroll sideways; no Pin, no Duplicate on journal cards; no keyboard shortcut and no swipe for ‹ ›; phone bar `[←] [‹] title [›]` as mocked; "New entry" stays, Malayalam പുതിയ എൻട്രി.
+- 2026-11-28 Shared contract (lead), web `packages/shared/src/forms.ts`, phone `lib/data/forms.dart`, same names and answers, hand-written cases in both test suites (web: a tsx check or vitest-free script the tester can run; phone `test/journal_test.dart`):
+  - Fixed Malayalam tables, never `Intl`/`toLocaleDateString` (ICU adds ZWNJ: ഞായറാഴ്‌ച). Full months ജനുവരി…ഡിസംബർ, full weekdays ഞായറാഴ്ച…ശനിയാഴ്ച (as the phone's `_months`/`_weekdays`), short months ജനു ഫെബ്രു മാർ ഏപ്രി മേയ് ജൂൺ ജൂലൈ ഓഗ സെപ്റ്റം ഒക്ടോ നവം ഡിസം, short weekdays ഞായർ തിങ്കൾ ചൊവ്വ ബുധൻ വ്യാഴം വെള്ളി ശനി.
+  - `todayLine(d)` → "2026 നവംബർ 28, ശനിയാഴ്ച" (web switches to the fixed tables, so web and phone write the same dateline).
+  - `journalDay(d)` → { day: 28, month: "നവം", weekday: "ശനി" }; `shortDate(d, now)` → "28 നവം", or "28 നവം 2025" when not this year; `monthLine(d)` → "2026 നവംബർ".
+  - `journalTitle(d)` = `todayLine(d)`: the title a new journal gets (store `createDoc`, both apps, and MCP `create_document` when no title is given). Dates are the writer's local day.
+  - `isUntitledJournal(title, createdAt)`: true for an empty title, പുതിയ ജേണൽ, പുതിയ ഡയറി, or a title equal to `journalTitle` / `shortDate` of its created day (trimmed).
+  - `keepOnClose` gets an optional `createdAt`; for kind `diary` the title counts as not named when `isUntitledJournal` says so. So a new journal with only its date title and no text is still discarded.
+  - Journal order and ‹ ›: by `created_at` (ties by id), trashed journals excluded.
+- 2026-11-28 Sharing (owner approved): migration adds a trigger on `public.documents` that refuses `is_public = true` or a non-null `share_id` when `kind = 'diary'`, and revokes existing diary shares (`is_public = false, share_id = null`; touch trigger paused). The apps hide every share entry for journals; MCP refuses sharing a journal if any tool can share.
+- 2026-11-28 Books: journals can't be added (web and phone pickers leave them out; MCP `add_to_book` refuses a diary with a plain message). Old books that already hold a journal keep it.
+- 2026-11-28 Old journals keep their stored titles; nothing is renamed. The Works tab no longer lists kind `diary` (Works counts change accordingly).
 - 2026-11-28 Order: designer mockups (phone 320/375/390, desktop 1440, light and dark) → owner's OK → web-dev and flutter-dev in parallel → designer review + tester → fixes → verifier with every CI check green → PR → merge (owner).
 
 ## Questions
-- → owner (with the mockups): what counts as "untitled" for a journal whose title defaults to the started date: a title still equal to the date (or empty)?
-- → owner: date range in Export: by started date (lead's proposal) or last edited?
-- → owner: the existing "New entry" button inside a journal (adds today's date): keep it as is?
-- → owner (designer): dates show Malayalam months in the English UI too ("Edited 27 നവം"), like `todayLine`. OK, or English months ("Edited 27 Nov") when the app is in English?
-- → owner (designer): phone tabs. In Malayalam the four tabs don't fit any phone width, so the mockups make the tab row scroll sideways (`desk-journals-320-dark.png`). The alternative is a shorter Trash: an icon-only segment on phones. Which do you prefer?
-- → owner (designer): the export formats for a journal are PDF and Word only (as decided). The Export menu used to offer Markdown, plain text and web page for every work. Is dropping those for journals intended?
-- → owner (designer): Pin for journals. My proposal: no pin on the Journals tab (the newest is already first). Duplicate is also left out.
-- → owner (designer): a keyboard shortcut for ‹ ›? Alt+←/→ is the browser's Back, so I suggest none for now, or Ctrl+Alt+[ and ].
-- → owner (designer): on phones, swipe left/right on the page to move between journals? I suggest no (it fights with text selection and the page scroll).
+- → owner: untitled, export range, "New entry" (answered 28 Nov: see Decisions).
+- → owner (designer): dates show Malayalam months in the English UI too ("Edited 27 നവം"), like `todayLine`. OK, or English months ("Edited 27 Nov") when the app is in English? (answered 28 Nov: as mocked, see Decisions)
+- → owner (designer): phone tabs. In Malayalam the four tabs don't fit any phone width, so the mockups make the tab row scroll sideways (`desk-journals-320-dark.png`). The alternative is a shorter Trash: an icon-only segment on phones. Which do you prefer? (answered 28 Nov: as mocked, see Decisions)
+- → owner (designer): the export formats for a journal are PDF and Word only (as decided). The Export menu used to offer Markdown, plain text and web page for every work. Is dropping those for journals intended? (answered 28 Nov: as mocked, see Decisions)
+- → owner (designer): Pin for journals. My proposal: no pin on the Journals tab (the newest is already first). Duplicate is also left out. (answered 28 Nov: as mocked, see Decisions)
+- → owner (designer): a keyboard shortcut for ‹ ›? Alt+←/→ is the browser's Back, so I suggest none for now, or Ctrl+Alt+[ and ]. (answered 28 Nov: as mocked, see Decisions)
+- → owner (designer): on phones, swipe left/right on the page to move between journals? I suggest no (it fights with text selection and the page scroll). (answered 28 Nov: as mocked, see Decisions)
 - → web-dev (designer): `isDefaultTitle` for `diary` must also treat the date title as default once titles default to the started date, or every new journal is kept by the keep rule and the "untitled" card rule never applies. Please export one helper (`isUntitledJournal(title, createdAt)`) that the card, the keep rule and the phone share.
 
 ## Design spec (designer)

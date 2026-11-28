@@ -62,5 +62,10 @@ Not tested: the Electron app; book editor and cover designer; Story World card e
 
 Status: all open, handed to the lead (phone 1–6, web 1–10).
 
+### Fixes after the tester (lead, 28 Nov)
+- Phone 1–6 fixed (`session.dart` focus listener follows the field's selection; `toggleMark` keeps a one-line span; `_handle` takes touches only on the knob; `_bar` keeps the line above clear via `_Geometry.lineAbove` and hides when the selection is off screen); all `knownBug` tests unskipped and green on CI; the hide-keyboard test anchors on Bold. Android back with a selection ends it first (`PopScope`).
+- Web 1 (z-20 on the tab-bar wrapper), 2 and 4 (`lib/useModalFocus.ts` for the type picker and phone `Sheet`), 3 (FindBar `close()` selects the match and focuses the text; strings to `app.find.*`), 6 (Enter after ↓/↑ only takes the spelling; help 02-typing), 8 (bar strings), 9 partly (goals progress names, help count contrast, logo label). Left open: 5 (kept highlight by design), 7, 9 rest, 10.
+- Owner, 26 Nov: undo for spelling fixes, Ignore and Keep (web `lib/spell-history.ts`, `extensions/spell-undo.ts`; phone `recordSpellAct`, `fixAsOneStep`). Chromium check: type, fix, type, Ignore; 4 undos then 4 redos in exact order.
+
 ## Verification (verifier)
 Checklist result, CI status, verdict: MERGE / DON'T MERGE, blocking issues.

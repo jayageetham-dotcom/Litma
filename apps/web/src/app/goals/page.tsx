@@ -46,10 +46,10 @@ function Big({ label, value, hint }: { label: string; value: string; hint?: stri
   );
 }
 
-function Progress({ value, max }: { value: number; max: number }) {
+function Progress({ value, max, label }: { value: number; max: number; label?: string }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
   return (
-    <div className="mt-2 h-2 overflow-hidden rounded-full bg-subtle" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+    <div className="mt-2 h-2 overflow-hidden rounded-full bg-subtle" role="progressbar" aria-label={label} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
       <div className="h-full rounded-full bg-highlight transition-[width]" style={{ width: `${pct}%` }} />
     </div>
   );
@@ -134,7 +134,7 @@ function GoalsView() {
               <dd className="text-xs text-muted">{t("goals.best", { count: w.streak.best })}</dd>
             </div>
           </dl>
-          {g.daily > 0 && <Progress value={w.today} max={g.daily} />}
+          {g.daily > 0 && <Progress value={w.today} max={g.daily} label={t("goals.todayLabel")} />}
           {g.weekly ? (
             <div className="mt-5">
               <p className="flex justify-between text-sm">
@@ -143,7 +143,7 @@ function GoalsView() {
                   <b>{num(w.week)}</b> / {num(g.weekly)}
                 </span>
               </p>
-              <Progress value={w.week} max={g.weekly} />
+              <Progress value={w.week} max={g.weekly} label={t("goals.thisWeek")} />
             </div>
           ) : (
             <p className="mt-5 flex justify-between text-sm">

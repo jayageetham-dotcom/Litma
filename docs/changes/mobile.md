@@ -3,6 +3,10 @@
 Reaches writers only through store builds. Cross-app summary and open items:
 `cross-platform.md`. Read before starting; add your changes (newest first) before finishing.
 
+## 2026-11-28: Interaction audit fixes, undo for spelling (branch `claude/interaction-audit`)
+
+- See cross-platform.md 2026-11-28: `session.dart` focus listener, `toggleMark`, undo stack for Ignore/Keep, `selection_layer.dart` handles and bar, `editor_screen.dart` `tapPaper` + PopScope, `writing_aids.dart`; tests `test/selection_test.dart`. Needs a store build.
+
 ## 2026-11-26 (evening): Metre panel no longer overflows (branch `fix-metre-overflow`)
 
 - Owner's photos (16-inch MacBook, docked panel): in free verse the panel's lines ran off its edge and the whole editor scrolled sideways (page 1886 px in a 1728 px window). Causes: with no gana groups every syllable fell into one unbreakable row; and each chip's screen-reader text (`sr-only`, absolutely positioned) had no positioned parent, so it stretched the page.

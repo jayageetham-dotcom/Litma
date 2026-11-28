@@ -279,6 +279,11 @@ class _EditorState extends ConsumerState<_Editor> {
     s.styler = (m, b) => markStyle(m, b, dark: context.isDark, t: c);
 
     return PopScope(
+      // Android back with a selection ends the selection first, as with the keyboard (audit, 26 Nov)
+      canPop: !s.hasSpan,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) s.clearSpan();
+      },
       child: Scaffold(
         backgroundColor: MediaQuery.sizeOf(context).width >= 760 ? c.canvas : c.paper,
         appBar: AppBar(
@@ -766,7 +771,7 @@ class _SpellRow extends StatelessWidget {
     final ctrl = session.current;
     return SpellRow(
       issue: issue,
-      onFix: (fix) => ctrl?.fixSpelling(issue, fix),
+      onFix: (fix) => session.fixAsOneStep(() => ctrl?.fixSpelling(issue, fix)),
       onIgnore: () => session.ignoreSpelling(issue.text),
       onKeep: issue.kind == SpellKind.unicode ? null : () => onKeep(issue.text),
       onSuggest: onSuggest == null ? null : () => onSuggest!(issue.text),

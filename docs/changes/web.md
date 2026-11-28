@@ -10,6 +10,10 @@ The website, and the shared code the desktop app bundles. Cross-app summary and 
   keyboard may compose words differently.
 
 
+## 2026-11-28: Interaction audit fixes, undo for spelling (branch `claude/interaction-audit`)
+
+- See cross-platform.md 2026-11-28: `useModalFocus`, `Sheet`, desk picker, FindBar, Toolbar `undoAll`, `spell-history`, `spell-undo`, manglish Enter.
+
 ## 2026-11-26 (evening): Metre panel no longer overflows (branch `fix-metre-overflow`)
 
 - Owner's photos (16-inch MacBook, docked panel): in free verse the panel's lines ran off its edge and the whole editor scrolled sideways (page 1886 px in a 1728 px window). Causes: with no gana groups every syllable fell into one unbreakable row; and each chip's screen-reader text (`sr-only`, absolutely positioned) had no positioned parent, so it stretched the page.

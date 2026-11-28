@@ -1153,7 +1153,8 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
           <ManglishPopup editor={editor} docked />
         </div>
       ) : (
-        <div className="relative">
+        // z-20: the selection bar above it must stay over the page text, also after a sheet closes (audit, 26 Nov)
+        <div className="relative z-20">
         {showSelectionBar && (
           <div className="absolute inset-x-0 bottom-full">
             <MobileSelectionBar editor={editor} onLookUp={() => openWithSelection("dict")} onAskAI={() => openWithSelection("ai")} onClear={clearSelection} />
@@ -1350,6 +1351,14 @@ function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
   }, [term, cs, editor]);
   useEffect(() => () => void editor.commands.setSearch(""), [editor]);
   const n = st?.results.length ?? 0;
+  // Esc or Close: back to the text with the match it was showing selected, never to the page body (audit, 26 Nov)
+  const close = () => {
+    const s2 = searchKey.getState(editor.state);
+    const hit = s2?.results[s2.current ?? 0];
+    onClose();
+    if (hit) editor.chain().focus().setTextSelection(hit).scrollIntoView().run();
+    else editor.commands.focus();
+  };
   // Manglish typed in the box: the Malayalam words of this work that sound like it; Malayalam typed:
   // other spellings of the same sound (കത → കഥ) and near misses
   const latinTerm = /[a-z]/i.test(term);
@@ -1359,32 +1368,36 @@ function FindBar({ editor, onClose }: { editor: Editor; onClose: () => void }) {
       <input
         autoFocus
         className="field min-w-[7.5rem] flex-1 !py-1.5 !text-sm sm:!w-52 sm:flex-none"
-        placeholder="Find"
+        placeholder={t("app.find.hint")}
+        aria-label={t("app.find.hint")}
         value={term}
         onChange={(e) => setTerm(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") editor.commands.searchStep(e.shiftKey ? -1 : 1);
-          if (e.key === "Escape") onClose();
+          if (e.key === "Escape") {
+            e.preventDefault();
+            close();
+          }
         }}
       />
       <span className="w-14 text-center text-xs text-muted">{term ? (n ? `${(st?.current ?? 0) + 1} / ${n}` : "0") : ""}</span>
-      <button className="btn btn-ghost !p-1.5" onClick={() => editor.commands.searchStep(-1)} aria-label="Previous match">
+      <button className="btn btn-ghost !p-1.5" onClick={() => editor.commands.searchStep(-1)} aria-label={t("app.find.previous")}>
         <ChevronUp size={15} />
       </button>
-      <button className="btn btn-ghost !p-1.5" onClick={() => editor.commands.searchStep(1)} aria-label="Next match">
+      <button className="btn btn-ghost !p-1.5" onClick={() => editor.commands.searchStep(1)} aria-label={t("app.find.next")}>
         <ChevronDown size={15} />
       </button>
-      <input className="field min-w-[7.5rem] flex-1 !py-1.5 !text-sm sm:!w-44 sm:flex-none" placeholder="Replace with" value={rep} onChange={(e) => setRep(e.target.value)} />
+      <input className="field min-w-[7.5rem] flex-1 !py-1.5 !text-sm sm:!w-44 sm:flex-none" placeholder={t("app.find.replace")} aria-label={t("app.find.replace")} value={rep} onChange={(e) => setRep(e.target.value)} />
       <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => editor.commands.replaceCurrent(rep)} disabled={!n}>
-        Replace
+        {t("app.find.replaceOne")}
       </button>
-      <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => editor.commands.replaceAll(rep)} disabled={!n}>
-        All
+      <button className="btn btn-outline !px-2 !py-1 !text-xs" onClick={() => editor.commands.replaceAll(rep)} disabled={!n} aria-label={t("app.find.replaceAll")}>
+        {t("app.find.all")}
       </button>
-      <label className="flex items-center gap-1 px-1 text-xs text-muted">
+      <label className="flex items-center gap-1 px-1 text-xs text-muted" title={t("app.find.matchCase")} aria-label={t("app.find.matchCase")}>
         <input type="checkbox" checked={cs} onChange={(e) => setCs(e.target.checked)} /> Aa
       </label>
-      <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label="Close find">
+      <button className="btn btn-ghost !p-1.5" onClick={close} aria-label={t("app.find.close")}>
         <X size={15} />
       </button>
       {sounds.length > 0 && (

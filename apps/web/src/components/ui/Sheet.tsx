@@ -42,7 +42,7 @@ export function Sheet({
         <span aria-hidden className="size-1.5 rounded-full bg-[var(--brand-mark)]" />
         {title}
       </h2>
-      <button className="btn btn-ghost !p-1.5" onClick={onClose} aria-label={`${t("common.close")}: ${title}`}>
+      <button className={`btn btn-ghost !p-1.5 ${mode === "sheet" ? "-my-2 size-11 justify-center" : ""}`} onClick={onClose} aria-label={`${t("common.close")}: ${title}`}>
         <X size={16} />
       </button>
     </div>

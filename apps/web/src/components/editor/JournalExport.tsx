@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, CalendarDays, Download, Lock, X } from "lucide-react";
-import { shortDate } from "@litma/shared/forms";
+import { isUntitledJournal, shortDate, todayLine } from "@litma/shared/forms";
 import { Sheet } from "@/components/ui/Sheet";
 import { useModalFocus } from "@/lib/useModalFocus";
 import { useScreen } from "@/lib/useLayout";
@@ -26,7 +26,7 @@ export function JournalExport({ current, onClose, beforeExport }: { current?: Li
   const t = useT();
   const phone = useScreen() === "phone";
   const narrow = typeof window !== "undefined" && window.innerWidth < 360;
-  const [which, setWhich] = useState<"this" | "all">("all");
+  const [which, setWhich] = useState<"this" | "all">(current ? "this" : "all");
   const [format, setFormat] = useState<Format>(() => {
     try {
       return localStorage.getItem(PREF) === "word" ? "word" : "pdf";
@@ -143,7 +143,7 @@ export function JournalExport({ current, onClose, beforeExport }: { current?: Li
               role="radio"
               aria-checked={value === o.v}
               onClick={() => set(o.v)}
-              className={`min-h-11 flex-1 rounded-[10px] px-2 text-[15px] ${value === o.v ? "bg-surface font-semibold text-ink shadow-sm" : "text-muted"}`}
+              className={`min-h-11 flex-1 rounded-[10px] px-2 text-[15px] ${value === o.v ? "bg-dialog font-semibold text-ink shadow-sm" : "text-muted"}`}
             >
               {o.short ?? o.label}
             </button>
@@ -192,20 +192,22 @@ export function JournalExport({ current, onClose, beforeExport }: { current?: Li
         <section>
           {heading("bg-tint-violet", t("journals.exportDialog.which"))}
           {choice(t("journals.exportDialog.which"), which, setWhich, [
-            { v: "this", label: t("journals.exportDialog.this"), hint: `${shortDate(current.created_at)} · ${current.title}` },
+            { v: "this", label: t("journals.exportDialog.this"), hint: isUntitledJournal(current.title, current.created_at) ? todayLine(current.created_at) : `${shortDate(current.created_at)} · ${current.title}` },
             { v: "all", label: t("journals.exportDialog.all"), hint: t("journals.exportDialog.allHint") },
           ])}
         </section>
       )}
       {isAll && (
         <section>
-          {heading("bg-tint-sky", t("journals.exportDialog.dates"), !current && <span className="ml-1 font-normal text-muted">· {t("journals.exportDialog.allHint")}</span>)}
+          {heading("bg-tint-sky", t("journals.exportDialog.dates"), !current && !phone && <span className="ml-1 font-normal text-muted">· {t("journals.exportDialog.allHint")}</span>)}
+          {/* phones: the hint gets its own line, so the heading never wraps beside it */}
+          {!current && phone && <p className="mt-1 text-sm text-muted">{t("journals.exportDialog.allHint")}</p>}
           <div className={`mt-3 grid gap-3 ${narrow ? "" : "grid-cols-2"}`}>
             {field(t("journals.exportDialog.from"), from, setFrom, undefined, to || undefined)}
             {field(t("journals.exportDialog.to"), to, setTo, from || undefined)}
           </div>
           {/* fixed height, so nothing jumps when the count changes */}
-          <p className={`mt-2 min-h-5 text-sm ${none ? "font-semibold text-danger" : "text-muted"}`} aria-live="polite">
+          <p className={`mt-2 min-h-10 text-sm md:min-h-5 ${none ? "font-semibold text-danger" : "text-muted"}`} aria-live="polite">
             {all === null ? "" : none ? t("journals.exportDialog.none") : t("journals.exportDialog.inRange", { count: chosen.length })}
           </p>
           {missing > 0 && <p className="mt-2 rounded-lg bg-highlight-soft px-3 py-2 text-sm text-highlight">{t("journals.exportDialog.notOnDevice", { count: missing })}</p>}
@@ -231,7 +233,7 @@ export function JournalExport({ current, onClose, beforeExport }: { current?: Li
       <div aria-live="polite" className={busy ? "" : "sr-only"}>
         {busy && (
           <>
-            <div className="h-1.5 overflow-hidden rounded-full bg-subtle">
+            <div className="h-1.5 overflow-hidden rounded-full bg-dialog-well">
               <div className="h-full rounded-full bg-accent transition-[width]" style={{ width: `${busy.total ? (busy.n / busy.total) * 100 : 0}%` }} />
             </div>
             <p className="mt-2 text-sm text-muted">{t("journals.exportDialog.working", { n: busy.n, total: busy.total })}</p>

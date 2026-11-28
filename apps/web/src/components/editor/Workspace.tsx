@@ -7,6 +7,7 @@ import {
   BookA,
   ChevronLeft,
   ChevronRight,
+  PenLine,
   Download,
   Eye,
   FileText,
@@ -821,11 +822,12 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
       {/* ── Top bar ── */}
       {!focus && (
         <header className="no-print relative z-50 flex items-center gap-1 border-b border-line bg-header px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] md:gap-2 md:px-3 md:py-2">
-          <button onClick={goToDesk} className="btn btn-ghost !p-2" title="Back to desk" aria-label="Back to desk">
+          <button onClick={goToDesk} className={`btn btn-ghost !p-2 ${phone ? "size-11 shrink-0 justify-center" : ""}`} title="Back to desk" aria-label="Back to desk">
             <ArrowLeft size={phone ? 20 : 18} />
           </button>
           {journal && journalNav("prev")}
-          <div className={journal && !phone ? "min-w-0 shrink" : "min-w-0 flex-1"}>
+          {/* tablet and up: a fixed width, so › stays in one place from journal to journal */}
+          <div className={journal && !phone ? "w-[min(36rem,40vw)] min-w-0 shrink" : "min-w-0 flex-1"}>
             <div className="group/title relative max-w-xl">
             <input
               value={title}
@@ -891,7 +893,7 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                 recheckPristine();
                 saver.current?.touch();
               }}
-              className={`${journal && !phone ? "min-w-24 [field-sizing:content]" : "w-full"} max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none md:text-[1.05rem] ${title ? "focus:pr-8" : ""}`}
+              className={`w-full max-w-xl truncate rounded-md bg-transparent px-1.5 py-0.5 text-[1rem] font-semibold hover:bg-subtle focus:bg-subtle focus:outline-none md:text-[1.05rem] ${title ? "focus:pr-8" : ""}`}
               aria-label="Title"
             />
             {title && (
@@ -925,9 +927,19 @@ export function Workspace({ initial }: { initial: LitmaDoc }) {
                   save === "saving" || save === "offline" || save === "local" ? (
                     <span aria-live="polite" className={`truncate ${save === "offline" ? "font-semibold text-danger" : ""}`}>{saveText}</span>
                   ) : (
-                    <span className="truncate">
+                    <span className="flex min-w-0 items-center gap-1 truncate">
                       {shortDate(initial.created_at)}
-                      {!sameDay(initial.created_at, editedAt) && ` · ${t("journals.edited", { date: shortDate(editedAt) })}`}
+                      {!sameDay(initial.created_at, editedAt) &&
+                        (tiny ? (
+                          // below 360 px the words don't fit: a pencil stands for "Edited"
+                          <>
+                            {" · "}
+                            <PenLine size={12} role="img" aria-label={t("journals.edited", { date: shortDate(editedAt) })} className="shrink-0" />
+                            <span aria-hidden>{shortDate(editedAt)}</span>
+                          </>
+                        ) : (
+                          ` · ${t("journals.edited", { date: shortDate(editedAt) })}`
+                        ))}
                     </span>
                   )
                 ) : (

@@ -66,7 +66,7 @@ export function JournalCard({ doc, onTrash }: { doc: LitmaDoc; onTrash?: () => v
         <span className="max-sm:invisible">{words}</span>
         {onTrash && (
           <button
-            className="rounded p-1.5 transition-opacity hover:bg-subtle hover:text-danger focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
+            className="rounded p-1.5 transition-opacity max-sm:-my-2 max-sm:grid max-sm:size-11 max-sm:place-items-center hover:bg-subtle hover:text-danger focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
             title={t("desk.moveToTrash")}
             aria-label={`${t("desk.moveToTrash")}: ${shortDate(doc.created_at)}`}
             onClick={onTrash}

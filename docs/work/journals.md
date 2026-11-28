@@ -129,6 +129,7 @@ Where: web a new `components/editor/JournalExport.tsx` (dialog on tablet and up,
 - Fairness: the sample journals in the mockups (and any for help pictures) take everyday life from different families side by side: ഉമ്മ's പത്തിരി, അമ്മച്ചി's അപ്പം, അച്ഛൻ in the paddy field, ഇക്ക's wedding, അപ്പാപ്പൻ at the beach, a bus stop with ഫാത്തിമ ടീച്ചർ and ജോസഫ് ചേട്ടൻ. Use the same mix in help pictures.
 
 ## Build (web-dev)
+- 2026-11-28 Foundation pushed: `b609818` (shared `forms.ts` journal dates + `isUntitledJournal` + `keepOnClose({ createdAt })`, en/ml strings under `journals.*` and `desk.tabs.journals`, `--dialog-well` token, phone assets regenerated). Cases: `scripts/journal-lab/journal-check.ts` (`TZ=Asia/Kolkata node --experimental-transform-types scripts/journal-lab/journal-check.ts`); `isUntitledJournal` strips ZWNJ/ZWJ and collapses spaces before comparing, and without `createdAt` only empty and old defaults count.
 
 ## Build (flutter-dev)
 
